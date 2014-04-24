@@ -1,0 +1,22 @@
+{% extends "core/main.html" %}
+
+{% block title %}WRONG{% endblock %}
+
+{% block content %}
+    <h1>UNFORTUNATELY THAT IS NOT THE CORRECT ANSWER</h1>
+
+    <a href="next">Skip to the next question</a>
+
+    {% autoescape off %}
+        <h2>The Question</h2>
+        <p>{{ question.question_content }}</p>
+        <h2>Full Solution</h2>
+        <p>{{ question.answer_content }}</p>
+    {% endautoescape %}
+    <br/>
+    <br/>
+    <a href="#">Read the textbook</a><br/>
+    <a href="#">Discuss this challenge</a><br/>
+    <br/>
+    <a href="next">Next Challenge</a><br/>
+{% endblock %}

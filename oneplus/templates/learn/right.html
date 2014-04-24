@@ -1,0 +1,26 @@
+{% extends "core/main.html" %}
+
+{% block title %}RIGHT{% endblock %}
+
+{% block content %}
+    <h1>CONGRATULATIONS, YOU DID IT</h1>
+    <h2>+{{ question.points }} POINTS</h2>
+    <h2>You now have XXX points</h2>
+
+    <p>XXX Badges Earned</p>
+    <p>X BADGE</p>
+    <p>Y BADGE</p>
+
+    <a href="next">Next Challenge</a>
+
+    {% autoescape off %}
+        <h2>Full Solution</h2>
+        <p>{{ question.answer_content }}</p>
+        <h2>The Question</h2>
+        <p>{{ question.question_content }}</p>
+    {% endautoescape %}
+    <br/>
+    <br/>
+    <a href="#">Read the textbook</a><br/>
+    <a href="#">Discuss this challenge</a><br/>
+{% endblock %}

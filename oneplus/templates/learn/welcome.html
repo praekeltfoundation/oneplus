@@ -1,0 +1,24 @@
+{% extends "core/main.html" %}
+
+{% block title %}WELCOME{% endblock %}
+
+{% block content %}
+    <h1>Welcome {{ user.name }}</h1>
+
+    <div>
+        <div>{{ user.points }} Points</div>
+        <div>{{ user.position }} Place Overall</div>
+    </div>
+
+    <div>
+        <div>{{ user.badges }} Badges</div>
+        <div>Latest: {{ user.latest }}</div>
+    </div>
+
+    <div>
+        <span style="font-weight: bold">Latest Activity: </span>You've completed {{ challenges }} this week and have got {{ correct }} correct. Get {{ outstanding }} more correct this week and you'll win R5 airtime!
+    </div>
+
+    <a href="next">Next Challenge</a>
+
+{% endblock %}

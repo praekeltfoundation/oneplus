@@ -1,0 +1,27 @@
+{% extends "core/main.html" %}
+
+{% block title %}NEXT{% endblock %}
+
+{% block content %}
+
+    {% autoescape off %}
+    <h1>Challenge - x/3 for Today</h1>
+    <h2>{{ question.name }} - {{ question.difficulty }}</h2>
+
+    <p>{{ question.question_content }}</p>
+
+    <form action="next" method="post">{% csrf_token %}
+        {% for opt in question.testingquestionoption_set.all %}
+            <input type="radio" name="answer" value="{{ opt.id }}">{{ opt.name }} {{ opt.content }}<br />
+        {% endfor %}
+
+        <br />
+        <button type="submit">Answer</button>
+    </form>
+    {% endautoescape %}
+    <br />
+    <br />
+    <a href="#">Read the textbook</a><br />
+    <a href="#">Discuss this challenge</a>
+
+{% endblock %}

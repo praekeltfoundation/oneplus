@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ONEPLUS | {% block title %}{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.css" %}">
+</head>
+<body>
+    <div style="position: absolute; top:0px; left:0px; right:0px; height:70px; background-color: lightgreen">
+        ONEPLUS
+        <div style="font-size: 70%">Practice makes perfect</div>
+    </div>
+
+    <div style="position: absolute; top:70px; left:0px; right:0px; bottom:40px">
+        {% block content %}{% endblock %}
+    </div>
+
+    <div style="position: absolute; bottom:0px; left:0px; right:0px; height:40px; background-color: lightgreen">
+        <div style="text-align: center">OnePlus is a collaboration between <a href="investec">Investec</a> and the <a href="praekelt">Praekelt Foundation</a></div>
+        <div style="text-align: center"><a href="about">About</a> | <a href="contact">Contact</a></div>
+    </div>
+</body>
+</html>

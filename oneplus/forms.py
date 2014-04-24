@@ -1,0 +1,8 @@
+from django import forms
+from django.db import models
+
+
+class LoginForm(forms.Form):
+    username = forms.CharField(label="Phone Number")
+    password = forms.CharField(label="Password")
+

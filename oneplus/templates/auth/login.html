@@ -1,0 +1,18 @@
+{% extends "core/main_big.html" %}
+
+{% block title %}LOGIN{% endblock %}
+
+{% block content %}
+    <h1>Login</h1>
+    <form action="login" method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Login" />
+    </form>
+    <hr/>
+    <p>If you can't remember your password you can click the button below and we''l send you and SMS with your password.</p>
+    <input type="button" value="SMS Password"></input>
+    <hr/>
+    <p>Currently registration is only available to Investec ProMaths learners.</p>
+    <p>If you are a ProMaths learner but can't login, click the button below and we''l get you connected.</p>
+    <input type="button" value="Get Connected"></input>
+{% endblock %}
