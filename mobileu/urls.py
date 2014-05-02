@@ -10,6 +10,5 @@ urlpatterns = patterns('',
 
     (r"^summernote/", include("django_summernote.urls")),
     url(r'^oneplus/', include('oneplus.urls')),
-    url(r'^core/', include('core.urls')),
     url(r'^admin/', include(admin.site.urls))
 )

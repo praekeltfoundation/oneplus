@@ -32,16 +32,21 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    "django.contrib.admin",
-    "django.contrib.auth",
+    #"django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "django.contrib.admin",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "oneplus",
     "core",
-    "south",
+    "gamification",
+    "communication",
+    "content",
+    "auth",
+    "organisation",
     "django_summernote",
+    "south"
 )
 
 MIDDLEWARE_CLASSES = (
@@ -57,6 +62,10 @@ ROOT_URLCONF = "mobileu.urls"
 
 WSGI_APPLICATION = "mobileu.wsgi.application"
 
+# Close the session when user closes the browser
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+AUTH_USER_MODEL = "auth.CustomUser"
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases

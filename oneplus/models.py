@@ -1,5 +1,6 @@
 from django.db import models
-from core.models import *
+from content.models import TestingQuestion
+from core.models import Participant
 from django.db.models.query import Q
 import random
 

@@ -1,0 +1,49 @@
+from django.db import models
+from organisation.models import Module
+
+# BadgeTemplates can be specified and linked to a Course and Scenario. A BadgeTemplate has a name, an image (jpg, png,
+# gif) and a description. Badges are instances of a BadgeTemplate awarded to a specific user.
+class GamificationPointBonus(models.Model):
+    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=50, blank=True)
+    image = models.URLField("Image", null=True, blank=False)
+    value = models.PositiveIntegerField("Value", null=True, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Point Bonus"
+        verbose_name_plural = "Point Bonuses"
+
+
+# PointBonuses are also linked to a Course and Scenario and award the user extra points for achieving a specific
+# scenario. A PointBonus has a name, an image (jpg, png, gif), a description and the number of points to be awarding.
+class GamificationBadgeTemplate(models.Model):
+    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=50, blank=True)
+    image = models.URLField("Image", null=True, blank=False)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Badge Template"
+        verbose_name_plural = "Badge Templates"
+
+# Gamification is one of the hardest problems to solve elegantly on this platform. We want to be able to hand out extra
+# points and badges based on specific conditions (scenarios) being met by the user.
+class GamificationScenario(models.Model):
+    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=50, blank=True)
+    module = models.ForeignKey(Module, null=True, blank=False)
+    event = models.CharField("Event", max_length=50, blank=True)
+    point = models.ForeignKey(GamificationPointBonus, null=True, blank=True)
+    badge = models.ForeignKey(GamificationBadgeTemplate, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Scenario"
+        verbose_name_plural = "Scenarios"

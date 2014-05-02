@@ -1,6 +1,8 @@
 from django.conf.urls import url
+from django.conf import settings
+from django.conf.urls.static import static
 from oneplus import views
-
+from oneplus.views import *
 
 urlpatterns = [
     # Auth
@@ -18,7 +20,7 @@ urlpatterns = [
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),
-    url(r"^inbox/(?P<messageid>\d+)$", views.inbox, name="com.inbox.id"),
+    #url(r"^inbox/(?P<messageid>\d+)$", views.inbox, name="com.inbox.id"),
     url(r"^inbox/new$", views.inbox, name="com.inbox.new"),
 
     url(r"^chat$", views.chat, name="com.chat"),
@@ -26,7 +28,7 @@ urlpatterns = [
     url(r"^chat/(?P<chatid>\d+)/new$", views.chat, name="com.chat.new"),
 
     url(r"^blog$", views.blog, name="com.blog"),
-    url(r"^blog/(?P<blogid>\d+)$", views.blog, name="com.blog.id"),
+    #url(r"^blog/(?P<blogid>\d+)$", views.blog, name="com.blog.id"),
 
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
@@ -38,5 +40,5 @@ urlpatterns = [
     url(r"^about$", views.about, name="misc.about"),
     url(r"^contact$", views.contact, name="misc.contact"),
     url(r"^investec$", views.investec, name="misc.investec"),
-    url(r"^preakelt$", views.preakelt, name="misc.preakelt"),
+    url(r"^preakelt$", views.preakelt, name="misc.preakelt")
 ]

@@ -3,7 +3,13 @@
 {% block title %}BADGES{% endblock %}
 
 {% block content %}
-    badges
+    <h1>Your Badges</h1>
+    {% for badge in participant.badgetemplate.all %}
+        <div>
+            <img src="{{ badge.image }}" style="width:50px; height: 50px;" />
+            {{ badge.name }}<br/>
+        </div>
+    {% endfor %}
 
 
 {% endblock %}

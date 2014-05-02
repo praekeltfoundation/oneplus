@@ -3,7 +3,26 @@
 {% block title %}BLOG{% endblock %}
 
 {% block content %}
-    blog
 
+    {% autoescape off %}
+    <h1>{{ post.name }}</h1>
+    <br/>
+    <p>{{ post.content }}</p>
+    {% endautoescape %}
+
+
+    {% if state.page > 0 %}
+        <form name="PREVIOUS_PAGER" method="post" action="?">{% csrf_token %}
+            <input type="hidden" name="previous" value="1">
+            <button type="submit" name="menu" value="PREVIOUS">PREVIOUS</button>
+        </form>
+    {% endif %}
+
+    {% if state.page < state.page_max %}
+        <form name="NEXT_PAGER" method="post" action="?">{% csrf_token %}
+            <input type="hidden" name="next" value="1">
+            <button type="submit" name="menu" value="NEXT">NEXT</button>
+        </form>
+    {% endif %}
 
 {% endblock %}
