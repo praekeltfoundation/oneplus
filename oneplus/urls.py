@@ -39,6 +39,4 @@ urlpatterns = [
     # Misc
     url(r"^about$", views.about, name="misc.about"),
     url(r"^contact$", views.contact, name="misc.contact"),
-    url(r"^investec$", views.investec, name="misc.investec"),
-    url(r"^preakelt$", views.preakelt, name="misc.preakelt")
 ]
