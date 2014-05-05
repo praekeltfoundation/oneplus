@@ -3,24 +3,37 @@
 {% block title %}RIGHT{% endblock %}
 
 {% block content %}
-    <h1>CONGRATULATIONS, YOU DID IT</h1>
-    <h2>+{{ question.points }} POINTS</h2>
-    <h2>You now have XXX points</h2>
-
-    <p>XXX Badges Earned</p>
-    <p>X BADGE</p>
-    <p>Y BADGE</p>
-
-    <a href="next">Next Challenge</a>
-
     {% autoescape off %}
-        <h2>Full Solution</h2>
-        <p>{{ question.answer_content }}</p>
-        <h2>The Question</h2>
-        <p>{{ question.question_content }}</p>
+
+    <div class="text heading green"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
+
+        <div class="lightgrey_back">
+            <div class="white_back" style="text-align: center">
+                    <p>
+                        <h1>Correct</h1>
+                        {{ question.points }} Point added, XXX badge earned
+                    </p>
+                <a class="green_button" href="next">Next Question</a>
+            </div>
+
+
+            <div class="green_sub_heading">Solution</div>
+            <p style="margin:0px 20px 20px 20px!important">{{ question.answer_content }}</p>
+        </div>
+
+        <div class="green_sub_heading">Discuss the Challenge</div>
+
+        wefwef<br />
+        wefwef<br />
+        wefwef<br />
+        wefwef<br />
+        <br />
+        <br />
+        <br />
+        <br />
+
+        <br />
+        <br />
+
     {% endautoescape %}
-    <br/>
-    <br/>
-    <a href="#">Read the textbook</a><br/>
-    <a href="#">Discuss this challenge</a><br/>
 {% endblock %}

@@ -6,38 +6,38 @@
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
 </head>
 <body>
-    <div style="width:100%; height:40px; background-color: lightgreen">
-        <div style="float:left">ONEPLUS</div>
-        <div style="float:left; font-size: 70%">Practice makes perfect</div>
-        <div style="float:right">
+    <div class="header">
+        <div style="">
             <form name="DOTHEMENU" method="post" action="?">{% csrf_token %}
                 <input type="hidden" name="switchmenu" value="{{ state.menu_visible }}">
-                <button type="submit" name="menu" value="MENU">MENU</button>
+                <button type="submit" name="menu" value="MENU" class="menu {% if state.menu_visible %}active{% endif %}" />
             </form>
         </div>
     </div>
 
     {% if state.menu_visible %}
-    <div style="width:100%; background-color: lightgreen">
-        <a href="welcome">Home</a><br/>
-        <a href="inbox">Inbox</a><br/>
-        <a href="chat">Chat Groups</a><br/>
-        <a href="blog">Blog</a><br/>
-        <a href="ontrack">OnTrack</a><br/>
-        <a href="leader">Leaderboard</a><br/>
-        <a href="badges">Badges</a><br/>
-        <a href="settings">Settings</a><br/>
-        <a href="help">Help</a><br/>
-        <a href="login">Logout</a>
-    </div>
+        <div class="menu">
+            <a class="item text green" href="ontrack"><li class="icon ontrack"></li><p>On Track</p></a>
+            <a class="item text cyan" href="badges"><li class="icon badges"></li><p>Badges</p></a>
+            <a class="item text blue" href="chat"><li class="icon chat"></li><p>Chat Groups</p></a>
+            <a class="item text purple" href="blog"><li class="icon blog"></li><p>Blog</p></a>
+            <a class="item text red" href="leader"><li class="icon leaderboard"></li><p>Leaderboard</p></a>
+            <a class="item text orange" href="points"><li class="icon points"></li><p>Points</p></a>
+            <a class="item text yellow" href="inbox"><li class="icon inbox"></li><p>Inbox</p></a>
+
+            <a class="item text grey" href="settings"><li class="icon settings"></li><p>Settings</p></a>
+            <a class="item text grey" href="help"><li class="icon help"></li><p>Help</p></a>
+            <a class="item text grey" href="login"><li class="icon user"></li><p>Logout</p></a>
+            <!--<a class="item" href="welcome">Home</a><br/>-->
+        </div>
+    {% else %}
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
     {% endif %}
 
-    <div style="width:100%">
-        {% block content %}{% endblock %}
-    </div>
-
-    <div style="width:100%; height:40px; background-color: lightgreen">
-        <div style="text-align: center">OnePlus is a collaboration between <a href="investec">Investec</a> and the <a href="praekelt">Praekelt Foundation</a></div>
+    <div class="footer">
+        <div style="text-align: center">OnePlus is a collaboration between Investec & Praekelt Foundation</div>
         <div style="text-align: center"><a href="about">About</a> | <a href="contact">Contact</a></div>
     </div>
 </body>

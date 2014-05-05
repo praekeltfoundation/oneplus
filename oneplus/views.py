@@ -1,10 +1,13 @@
 from django.shortcuts import render, get_object_or_404, HttpResponse
 from django.http import HttpResponseRedirect
-from forms import *
-from core.models import *
-from oneplus.models import *
 from django.views.generic import View
-
+from django.contrib.auth import models
+from django.contrib.auth import authenticate, login
+from django.core.exceptions import ObjectDoesNotExist
+from forms import *
+from gamification.models import *
+from communication.models import *
+from oneplus.models import *
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -29,6 +32,8 @@ def oneplus_state_required(f):
         #Manage menu state
         if request.method == "POST" and "switchmenu" in request.POST:
             request.session["state"]["menu_visible"] = request.POST["switchmenu"] != 'True'
+        else:
+            request.session["state"]["menu_visible"] = False
 
         return f(request, state=request.session["state"], *args, **kwargs)
     wrap.__doc__=f.__doc__
@@ -55,31 +60,35 @@ def login(request, state):
     def post():
         form = LoginForm(request.POST)
         if form.is_valid():
-            # Check if this is a registered learner
-            _learner = Learner.objects.filter(
-                username=form.cleaned_data["username"],
-                password=form.cleaned_data["password"]).first()
+            # Check if this is a registered user
+            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+            if user is not None and user.is_active:
+                try:
+                    # Check that the user is a learner
+                    _learner = user.learner
 
-            if _learner is not None:
-                # Check which OnePlus course learner is on
-                _registered = None
-                for _parti in Participant.objects.filter(learner=_learner):
-                    if _parti.classs.course.name == "Grade 12 Math":
-                        _registered = _parti
+                    # Check which OnePlus course learner is on
+                    _registered = None
+                    for _parti in Participant.objects.filter(learner=_learner):
+                        if _parti.classs.course.name == "One Plus Grade 11":
+                            _registered = _parti
 
-                if _parti is not None:
-                    request.session["user"] = {}
-                    request.session["user"]["id"] = _learner.id
-                    request.session["user"]["name"] = _learner.firstname
-                    request.session["user"]["participant_id"] = _registered.id
-                    request.session["user"]["points"] = _registered.points
-                    request.session["user"]["place"] = 0  # TODO
-                    request.session["user"]["badges"] = _registered.badgetemplate.count()
-                    request.session["user"]["latest"] = _registered.badgetemplate.last().name
+                    if _parti is not None:
+                        request.session["user"] = {}
+                        request.session["user"]["id"] = _learner.id
+                        request.session["user"]["name"] = _learner.first_name
+                        request.session["user"]["participant_id"] = _registered.id
+                        request.session["user"]["points"] = _registered.points
+                        request.session["user"]["place"] = 0  # TODO
+                        request.session["user"]["badges"] = _registered.badgetemplate.count()
+                        request.session["user"]["latest"] = _registered.badgetemplate.last().name
 
-                    return HttpResponseRedirect("welcome")
-                else:
-                    return HttpResponseRedirect("getconnected")
+                        #login(request, user)
+                        return HttpResponseRedirect("welcome")
+                    else:
+                        return HttpResponseRedirect("getconnected")
+                except ObjectDoesNotExist:
+                        return HttpResponseRedirect("getconnected")
             else:
                 return HttpResponseRedirect("getconnected")
         else:
@@ -229,13 +238,13 @@ def discuss(request, state, user):
 def inbox(request, state, user):
     #get inbox messages
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:3]
+    _messages = Message.objects.filter(course=_course, direction=1).order_by("publishdate").reverse()[:20]
 
     def get():
-        return render(request, "com/inbox.html", {"state": state})
+        return render(request, "com/inbox.html", {"state": state, "messages": _messages, "message_count":_messages.count()})
 
     def post():
-        return render(request, "com/inbox.html", {"state": state})
+        return render(request, "com/inbox.html", {"state": state, "messages": _messages, "message_count":_messages.count()})
 
     return resolve_http_method(request, [get, post])
 
@@ -314,14 +323,23 @@ def leader(request, state, user):
 def badges(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _badges = _participant.badgetemplate
+    _course = _participant.classs.course
+    _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True).filter(course=_course).prefetch_related("badge")
+    _badges = [scenario.badge for scenario in _allscenarios]
+
+    #Link achieved badges
+    for x in _badges:
+        if _participant.badgetemplate.filter(pk=x.id).count() > 0:
+            x.achieved = True
 
     def get():
         return render(request, "prog/badges.html", {"state": state,
+                                                    "badges": _badges,
                                                     "participant": _participant})
 
     def post():
         return render(request, "prog/badges.html", {"state": state,
+                                                    "badges": _badges,
                                                     "participant": _participant})
 
     return resolve_http_method(request, [get, post])
@@ -347,29 +365,5 @@ def contact(request, state):
 
     def post():
         return render(request, "misc/contact.html", {"state": state})
-
-    return resolve_http_method(request, [get, post])
-
-
-# Investec Screen
-@oneplus_state_required
-def investec(request, state):
-    def get():
-        return render(request, "misc/investec.html", {"state": state})
-
-    def post():
-        return render(request, "misc/investec.html", {"state": state})
-
-    return resolve_http_method(request, [get, post])
-
-
-# Preakelt Screen
-@oneplus_state_required
-def preakelt(request, state):
-    def get():
-        return render(request, "misc/preakelt.html", {"state": state})
-
-    def post():
-        return render(request, "misc/preakelt.html", {"state": state})
 
     return resolve_http_method(request, [get, post])

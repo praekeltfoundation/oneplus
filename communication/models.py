@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from organisation.models import Course
 
 # For the MVP phase of this project we will keep Pages and Posts very simplistic.
@@ -67,6 +68,9 @@ class Message(models.Model):
     course = models.ForeignKey(Course, null=True, blank=False)
     content = models.TextField("Content", blank=True)
     publishdate = models.DateField("Publish Date", null=True, blank=True)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    direction = models.PositiveIntegerField("Direction", choices=(
+        (1, "Outgoing"), (2, "Incoming")), default=1)
 
     def __str__(self):
         return self.name

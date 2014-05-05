@@ -6,39 +6,38 @@
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
 </head>
 <body>
-    <div style="width:100%; height:40px; background-color: lightgreen">
-        <div style="float:left">ONEPLUS</div>
-        <div style="float:left; font-size: 70%">Practice makes perfect</div>
-        <div style="float:right">
-            {{ state.menu_visible }}
+    <div class="header">
+        <div style="">
             <form name="DOTHEMENU" method="post" action="?">{% csrf_token %}
                 <input type="hidden" name="switchmenu" value="{{ state.menu_visible }}">
-                <button type="submit" name="menu" value="MENU">MENU</button>
+                <button type="submit" name="menu" value="MENU" class="menu {% if state.menu_visible %}active{% endif %}" />
             </form>
         </div>
     </div>
 
     {% if state.menu_visible %}
-    <div style="width:100%; background-color: lightgreen">
-        <a href="welcome">Home</a><br/>
-        <a href="inbox">Inbox</a><br/>
-        <a href="chat">Chat Groups</a><br/>
-        <a href="blog">Blog</a><br/>
-        <a href="ontrack">OnTrack</a><br/>
-        <a href="leader">Leaderboard</a><br/>
-        <a href="badges">Badges</a><br/>
-        <a href="settings">Settings</a><br/>
-        <a href="help">Help</a><br/>
-        <a href="login">Logout</a>
-    </div>
+        <div class="menu">
+            <a class="item green" href="ontrack">On Track</a><br/>
+            <a class="item cyan" href="badges">Badges</a><br/>
+            <a class="item blue" href="chat">Chat Groups</a><br/>
+            <a class="item purple" href="blog">Blog</a><br/>
+            <a class="item red" href="leader">Leaderboard</a><br/>
+            <a class="item orange" href="points">Points</a><br/>
+            <a class="item yellow" href="inbox">Inbox</a><br/>
+
+            <a class="item grey" href="settings">Settings</a><br/>
+            <a class="item grey" href="help">Help</a><br/>
+            <a class="item grey" href="login">Logout</a>
+            <!--<a class="item" href="welcome">Home</a><br/>-->
+        </div>
+    {% else %}
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
     {% endif %}
 
-    <div style="width: 100%">
-        {% block content %}{% endblock %}
-    </div>
-
-    <div style="width:100%; height:40px; background-color: lightgreen">
-        <div style="text-align: center">OnePlus is a collaboration between <a href="investec">Investec</a> and the <a href="praekelt">Praekelt Foundation</a></div>
+    <div class="footer">
+        <div style="text-align: center">OnePlus is a collaboration between Investec & Praekelt Foundation</div>
         <div style="text-align: center"><a href="about">About</a> | <a href="contact">Contact</a></div>
     </div>
 </body>

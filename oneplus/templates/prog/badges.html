@@ -3,13 +3,31 @@
 {% block title %}BADGES{% endblock %}
 
 {% block content %}
-    <h1>Your Badges</h1>
-    {% for badge in participant.badgetemplate.all %}
-        <div>
-            <img src="{{ badge.image }}" style="width:50px; height: 50px;" />
-            {{ badge.name }}<br/>
-        </div>
+
+    <div class="text heading cyan"><li class="icon badges"></li><p>Badges</p></div>
+
+    <div>The badges you've earned</div>
+<!--
+        <div class="badgecontainer"><li class="badge harrypotter"></li><div class="text"><p>First Login</p></div></div>
+        <div class="badgecontainer"><li class="badge hunger"></li><div class="text"><p>First Question Correct</p></div></div>
+        <div class="badgecontainer"><li class="badge insaneclown"></li><div class="text"><p>3-in-a-row</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge justinbieber"></li><div class="text"><p>5-in-a-row</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge lotr"></li><div class="text"><p>Great Comment</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge soup"></li><div class="text"><p>15 Questions</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge startrek"></li><div class="text"><p>30 Questions</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge starwars"></li><div class="text"><p>100 Questions</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge twilight"></li><div class="text"><p>Airtime Winner</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge harrypotter"></li><div class="text"><p>Hero Week</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge hunger"></li><div class="text"><p>Suggestion Box</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge insaneclown"></li><div class="text"><p>Term Results</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge justinbieber"></li><div class="text"><p>3 Weeks Awesome</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge lotr"></li><div class="text"><p>50 Points</p></div></div>
+        <div class="badgecontainer disabled"><li class="badge soup"></li><div class="text"><p>100 Points</p></div></div>
+        <div class="clear"></div>
+-->
+
+    {% for badge in badges %}
+        <div class="badgecontainer {% if not badge.achieved %}disabled{% endif %}"><li class="badge" style="background-image: url('{{ badge.image.url }}')"></li><div class="text"><p>{{ badge.name }}</p></div></div>
     {% endfor %}
-
-
+    <div class="clear"></div>
 {% endblock %}

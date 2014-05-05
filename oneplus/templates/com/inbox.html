@@ -3,7 +3,21 @@
 {% block title %}INBOX{% endblock %}
 
 {% block content %}
-    inbox
+    {% autoescape off %}
+
+    <div class="text heading yellow"><li class="icon inbox"></li><p>Inbox</p></div>
+
+    {% if message_count > 0 %}
+        {% for msg in messages.all %}
+            <div class="message_heading">{{ msg.name }}</div>
+            <div class="message">{{ msg.content }}</div>
+        {% endfor %}
+    {% else %}
+        <div class="message_heading">Sorry!</div>
+        <div class="message">You have no messages available at this time</div>
+    {% endif %}
 
 
+
+    {% endautoescape %}
 {% endblock %}

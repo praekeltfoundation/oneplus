@@ -27,8 +27,18 @@ class DiscussionAdmin(admin.ModelAdmin):
         (None,                  {"fields": ["name", "description"]})
     ]
 
+class MessageAdmin(SummernoteModelAdmin):
+    list_display = ("name", "course", "author", "direction", "publishdate")
+    list_filter = ("course", "direction")
+    search_fields = ("name", "author")
+    fieldsets = [
+        (None,                  {"fields": ["name", "course", "author", "direction", "publishdate"]}),
+        ("Content",             {"fields": ["content"]})
+    ]
+
 
 # Communication
 admin.site.register(Page, PageAdmin)
 admin.site.register(Post, PostAdmin)
+admin.site.register(Message, MessageAdmin)
 admin.site.register(Discussion, DiscussionAdmin)

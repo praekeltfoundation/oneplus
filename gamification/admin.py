@@ -10,13 +10,25 @@ class GamificationPointBonusAdmin(admin.ModelAdmin):
 
 
 class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
-    list_display = ("name", "description")
+    list_display = ("name", "description", "image_")
     search_fields = ("name", "description")
     fieldsets = [
         (None,                  {"fields": ["name", "description", "image"]})
     ]
 
 
+class GamificationScenarioAdmin(admin.ModelAdmin):
+    list_display = ("course", "name", "description")
+    list_filter = ("course", )
+    search_fields = ("name", "description")
+    fieldsets = [
+        (None,                  {"fields": ["name", "description", "event", "course"]}),
+        ("Rewards",             {"fields": ["point", "badge"]})
+    ]
+
+
+
 #Gamification
 admin.site.register(GamificationPointBonus, GamificationPointBonusAdmin)
 admin.site.register(GamificationBadgeTemplate, GamificationBadgeTemplateAdmin)
+admin.site.register(GamificationScenario, GamificationScenarioAdmin)

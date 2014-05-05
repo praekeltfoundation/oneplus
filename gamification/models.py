@@ -1,5 +1,5 @@
 from django.db import models
-from organisation.models import Module
+from organisation.models import Course
 
 # BadgeTemplates can be specified and linked to a Course and Scenario. A BadgeTemplate has a name, an image (jpg, png,
 # gif) and a description. Badges are instances of a BadgeTemplate awarded to a specific user.
@@ -22,10 +22,15 @@ class GamificationPointBonus(models.Model):
 class GamificationBadgeTemplate(models.Model):
     name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
-    image = models.URLField("Image", null=True, blank=False)
+    image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
 
     def __str__(self):
         return self.name
+
+    def image_(self):
+        return '<a href="/media/{0}"><img src="/media/{0}"></a>'.format(self.image)
+    image_.allow_tags = True
+
 
     class Meta:
         verbose_name = "Badge Template"
@@ -36,7 +41,7 @@ class GamificationBadgeTemplate(models.Model):
 class GamificationScenario(models.Model):
     name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
-    module = models.ForeignKey(Module, null=True, blank=False)
+    course = models.ForeignKey(Course, null=True, blank=False)
     event = models.CharField("Event", max_length=50, blank=True)
     point = models.ForeignKey(GamificationPointBonus, null=True, blank=True)
     badge = models.ForeignKey(GamificationBadgeTemplate, null=True, blank=True)

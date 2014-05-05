@@ -65,4 +65,5 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
 
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
+admin.site.register(TestingBank, TestingBankAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)

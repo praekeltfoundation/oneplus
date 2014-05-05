@@ -1,11 +1,382 @@
 /*RESET*/
-html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {margin:0; padding:0; border:0; outline:0; font-size:100%; vertical-align:baseline; background:transparent;} body {line-height: 1;}ol, ul{list-style:none;} blockquote, q{quotes:none;} blockquote:before, blockquote:after, q:before, q:after{content:'';content:none;} :focus{outline:0;} ins{text-decoration:none;} del{text-decoration:line-through;} table{border-collapse:collapse; border-spacing:0;}
+table, html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {margin:0; padding:0; border:0; outline:0; font-size:100%; vertical-align:baseline; background:transparent;} body {line-height: 1;}ol, ul{list-style:none;} blockquote, q{quotes:none;} blockquote:before, blockquote:after, q:before, q:after{content:'';content:none;} :focus{outline:0;} ins{text-decoration:none;} del{text-decoration:line-through;} table{border-collapse:collapse; border-spacing:0;}
+
+
 
 /*MAIN*/
 body { 
-	font-size: 1.05em;
-	line-height: 1.25em;
+	font-size: 12px;
 	font-family: Helvetica Neue, Helvetica, Arial;
-	background: #f9f9f9;
+	background-color: #3a3a3a;
 	color: #555;
+}
+
+div{
+    text-align: center;
+}
+
+
+.text {
+    display: table;
+    padding:0px;
+}
+
+.text p {
+    display: table-cell;
+    vertical-align: middle;
+    width: 100%
+}
+
+
+/*
+div.text {
+    height:100%;
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    margin-left: auto;
+    margin-right: auto;
+}
+*/
+.header {
+    height: 50px;
+    line-height: 50px;
+    width: 100%;
+    background-color: #3a3a3a;
+    background-image: url("../img/logo.png");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
+.header .menu {
+    height: 50px;
+    width: 50px;
+    background-color: #3a3a3a;
+    background-image: url("../img/menu.png");
+    background-repeat: no-repeat;
+    background-position: 17px 18px;
+    border: none;
+    float:right;
+}
+
+.header .active {
+    background-color: #2a2a2a;
+}
+
+.menu {
+    background-color: #2a2a2a;
+    width: 100%;
+}
+
+.menu .item {
+    height: 35px;
+    width:100%;
+    text-decoration: none;
+    text-align: left;
+    padding-left: 75px;
+}
+
+.menu .item p {
+    width: 100%;
+}
+
+.grey {
+    background-color: #2a2a2a;
+    border-bottom: solid 1px #252525;
+}
+
+.green {
+    background-color: #28e690;
+    border-bottom: solid 1px #329e99;
+}
+
+.cyan {
+    background-color: #46bbe1;
+    border-bottom: solid 1px #3b7ab0;
+}
+
+.blue {
+    background-color: #4688e1;
+    border-bottom: solid 1px #714da4;
+}
+
+.purple {
+    background-color: #b848c9;
+    border-bottom: solid 1px #a62b5a;
+}
+
+.red {
+    background-color: #e4263e;
+    border-bottom: solid 1px #ba3d2b;
+}
+
+.orange {
+    background-color: #f55d2c;
+    border-bottom: solid 1px #b77e28;
+}
+
+.yellow {
+    background-color: #e4c52f;
+    border-bottom: solid 1px #b77e28;
+}
+
+.footer {
+    height: 50px;
+    width: 100%;
+    color: #646464;
+    background-color: #3a3a3a;
+    padding-top: 12px;
+    padding-bottom: 0px;
+}
+
+.footer a {
+    color: #646464;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.content {
+    width: 100%;
+    background-color: #2a2a2a;
+    padding-bottom: 16px;
+}
+
+.heading {
+    height: 35px;
+    width: 100%;
+    padding-left: 75px;
+    text-align: left;
+}
+
+.heading.green {
+    background-color: #28e690;
+}
+
+.dayheading {
+    height: 40px;
+    width: 100%;
+    background-color: #333333;
+}
+
+.dayheading div {
+    height: 40px;
+    width: 20%;
+    text-align: center;
+    float:left;
+    border-top: solid 1px #202020;
+    border-bottom: solid 1px #202020;
+}
+
+.dayheading .past {
+    color: #5a5a5a;
+    border-bottom: solid 1px #e3643a;
+}
+
+.dayheading .present {
+    color: #e3643a;
+    border-bottom: solid 1px #e3643a;
+}
+
+.dayheading .future {
+    color: #202020;
+    border-bottom: solid 1px #202020;
+}
+
+.orange_button {
+    display: inline-block;
+    height: 35px;
+    line-height: 35px;
+    width: 80%;
+    background-color: #e3643a;
+    border-bottom: solid 1px #1c9d61;
+    color: #2f2f2f;
+    text-decoration: none;
+    text-align: center;
+    margin: 15px;
+}
+
+.weeksummary {
+    height: 70px;
+    width: 100%;
+    background-color: #333333;
+}
+
+.weeksummary div {
+    height: 70px;
+    width: 33%;
+    float:left;
+    border-top: solid 1px #232323;
+    border-bottom: solid 1px #232323;
+
+}
+
+.weeksummary .badge {border-bottom: solid 1px #46bbe1;}
+.weeksummary .point {border-bottom: solid 1px #e3643a;}
+.weeksummary .place {border-bottom: solid 1px #e4263e;}
+
+.white_back {
+    text-align: left;
+    background-color: #ffffff;
+    padding: 20px 20px 40px 20px;
+    margin: 0px 0px 40px 0px;
+
+}
+
+.lightgrey_back {
+    background-color: #3a3a3a;
+}
+
+.green_button {
+    position:absolute;
+    line-height: 35px;
+    width: 180px;
+    background-color: #28e690;
+    border:none;
+    border-bottom: solid 1px #1c9d61;
+    color: #2f2f2f;
+    left: 50%;
+    margin-left: -90px;
+    margin-top: 22px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.green_sub_heading {
+    color: #28e690;
+    text-align: left;
+    width: 100%;
+    line-height:12px;
+    margin: 20px 20px 20px 20px;
+}
+
+.message {
+    margin: 0px 16px 16px 16px;
+    text-align: left;
+}
+
+.message_heading {
+    text-align: left;
+    font-weight: bold;
+    margin: 16px 16px 0px 16px;
+}
+
+li.icon {
+    position: absolute;
+    display: block;
+    width: 34px;
+    height: 34px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    left: 25px;
+}
+
+li.badges {
+    background-image: url("../img/icn_badges.png");
+}
+
+li.blog {
+    background-image: url("../img/icn_blog.png");
+}
+
+li.chat {
+    background-image: url("../img/icn_chat.png");
+}
+
+li.help {
+    background-image: url("../img/icn_help.png");
+}
+
+li.inbox {
+    background-image: url("../img/icn_inbox.png");
+}
+
+li.leaderboard {
+    background-image: url("../img/icn_leaderboard.png");
+}
+
+li.ontrack {
+    background-image: url("../img/icn_ontrack.png");
+}
+
+li.points {
+    background-image: url("../img/icn_points.png");
+}
+
+li.settings {
+    background-image: url("../img/icn_settings.png");
+}
+
+li.user {
+    background-image: url("../img/icn_user.png");
+}
+
+.badgecontainer {
+    display: block;
+    position: relative;
+    height: 100px;
+    width: 80px;
+    float:left;
+    padding: 20px;
+}
+
+.disabled {
+    color: #666666;
+    opacity: 0.15;
+    filter: alpha(opacity=15); /* msie */
+}
+
+.badgecontainer div {
+    margin-top:70px;
+    width:100%;
+}
+
+.clear {
+    clear: both;
+}
+
+li.badge {
+    position: absolute;
+    display: block;
+    width: 62px;
+    height: 64px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    left: 50%;
+    margin-left: -31px;
+}
+
+li.harrypotter {
+    background-image: url("../img/bdg_harrypotter.png");
+}
+
+li.hunger {
+    background-image: url("../img/bdg_hunger.png");
+}
+
+li.insaneclown {
+    background-image: url("../img/bdg_insaneclown.png");
+}
+
+li.justinbieber {
+    background-image: url("../img/bdg_justinbieber.png");
+}
+
+li.lotr {
+    background-image: url("../img/bdg_lotr.png");
+}
+
+li.soup {
+    background-image: url("../img/bdg_soup.png");
+}
+
+li.startrek {
+    background-image: url("../img/bdg_startrek.png");
+}
+
+li.starwars {
+    background-image: url("../img/bdg_starwars.png");
+}
+
+li.twilight {
+    background-image: url("../img/bdg_twilight.png");
 }

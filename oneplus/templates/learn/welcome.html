@@ -3,22 +3,27 @@
 {% block title %}WELCOME{% endblock %}
 
 {% block content %}
-    <h1>Welcome {{ user.name }}</h1>
 
-    <div>
-        <div>{{ user.points }} Points</div>
-        <div>{{ user.position }} Place Overall</div>
+    <div class="text heading"><p>Hello {{ user.name }}. You are busy with XXX.</p></div>
+
+    <div class="dayheading">
+        <div class="text past"><p>1<br/>DAY</p></div>
+        <div class="text past"><p>2<br/>DAY</p></div>
+        <div class="text present"><p>3<br/>DAY</p></div>
+        <div class="text future"><p>4<br/>DAY</p></div>
+        <div class="text future"><p>5<br/>DAY</p></div>
     </div>
 
-    <div>
-        <div>{{ user.badges }} Badges</div>
-        <div>Latest: {{ user.latest }}</div>
-    </div>
+    <div class="text"><p><span>9</span> Tasks Completed</p></div>
+    <div class="text"><p><span>6</span> Correct Answers</p></div>
+    <div class="text"><p><span>4</span> To go to win Airtime</p></div>
 
-    <div>
-        <span style="font-weight: bold">Latest Activity: </span>You've completed {{ challenges }} this week and have got {{ correct }} correct. Get {{ outstanding }} more correct this week and you'll win R5 airtime!
-    </div>
+    <a class="text orange_button" href="next">Go on Take the Challenge</a>
 
-    <a href="next">Next Challenge</a>
+    <div class="weeksummary">
+        <div class="text badge"><p>{{ user.badges }}<br/>Badges</p></div>
+        <div class="text point"><p>{{ user.points }}<br/>Points</p></div>
+        <div class="text place"><p>{{ user.position }}<br/>Place</p></div>
+    </div>
 
 {% endblock %}
