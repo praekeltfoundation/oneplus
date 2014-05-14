@@ -2,6 +2,7 @@ from django.db import models
 from organisation.models import Course
 from auth.models import Learner
 from gamification.models import GamificationPointBonus, GamificationBadgeTemplate
+from content.models import TestingQuestion, TestingQuestionOption
 
 
 # Classes link Users (learners, mentors, etc) and Courses. A user has to be in a class to participate in a modules.
@@ -36,8 +37,23 @@ class Participant(models.Model):
     badgetemplate = models.ManyToManyField(GamificationBadgeTemplate, verbose_name="Badge Templates", blank=True)
 
     def __str__(self):
-        return self.learner.name
+        return self.learner.first_name
 
     class Meta:
         verbose_name = "Participant"
         verbose_name_plural = "Participants"
+
+
+class ParticipantQuestionAnswer(models.Model):
+    participant = models.ForeignKey(Participant, verbose_name="Participant")
+    question = models.ForeignKey(TestingQuestion, verbose_name="Question")
+    option_selected = models.ForeignKey(TestingQuestionOption, verbose_name="Selected")
+    correct = models.BooleanField("Correct")
+    answerdate = models.DateField("Answer Date", null=True, blank=True)
+
+    def __str__(self):
+        return self.participant.learner.name
+
+    class Meta:
+        verbose_name = "Participant Question Response"
+        verbose_name_plural = "Participant Question Responses"

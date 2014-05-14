@@ -3,3 +3,6 @@ Thumbs.db
 
 #ignore pycharm files
 .idea/
+
+#ignore compiled python files
+*.pyc

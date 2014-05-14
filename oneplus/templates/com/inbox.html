@@ -3,21 +3,22 @@
 {% block title %}INBOX{% endblock %}
 
 {% block content %}
-    {% autoescape off %}
 
-    <div class="text heading yellow"><li class="icon inbox"></li><p>Inbox</p></div>
+    <div class="text heading yellow-back darkgrey-front"><li class="icon ontrack"></li><p>Inbox</p></div>
+    <div class="text heading darkgrey-back"><p>Something to say? <a href="inbox" class="yellow-front">Send us a message</a></p></div>
 
-    {% if message_count > 0 %}
-        {% for msg in messages.all %}
-            <div class="message_heading">{{ msg.name }}</div>
-            <div class="message">{{ msg.content }}</div>
-        {% endfor %}
-    {% else %}
-        <div class="message_heading">Sorry!</div>
-        <div class="message">You have no messages available at this time</div>
-    {% endif %}
+    <div class="content">
+        {% autoescape off %}
+            {% if message_count > 0 %}
+                {% for msg in messages.all %}
+                    <div class="message_heading">{{ msg.name }}</div>
+                    <div class="message">{{ msg.content }}</div>
+                {% endfor %}
+            {% else %}
+                <div class="message_heading">Sorry!</div>
+                <div class="message">You have no messages available at this time</div>
+            {% endif %}
+        {% endautoescape %}
+    </div>
 
-
-
-    {% endautoescape %}
 {% endblock %}

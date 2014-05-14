@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from organisation.models import Course
 
+
 # For the MVP phase of this project we will keep Pages and Posts very simplistic.
 # The instance has a Landing page.
 # Each instance has an About page.
@@ -27,8 +28,11 @@ class Post(models.Model):
     name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
+    big_image = models.ImageField("Big Image", upload_to="img/", blank=True, null=True)
+    small_image = models.ImageField("Small Image", upload_to="img/", blank=True, null=True)
     content = models.TextField("Content", blank=True)
-    publishdate = models.DateField("Publish Date", null=True, blank=True)
+    publishdate = models.DateTimeField ("Publish Date", null=True, blank=True)
+    moderated = models.NullBooleanField("Moderated", null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -50,8 +54,8 @@ class Discussion(models.Model):
     name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     content = models.TextField("Content", blank=True)
-    #author = models.ForeignKey(settings.AUTH_USER_MODEL)
-    publishdate = models.DateField("Publish Date", null=True, blank=True)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    publishdate = models.DateTimeField ("Publish Date", null=True, blank=True)
     moderated = models.NullBooleanField("Moderated", null=True, blank=True)
 
     def __str__(self):
@@ -67,7 +71,7 @@ class Message(models.Model):
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     content = models.TextField("Content", blank=True)
-    publishdate = models.DateField("Publish Date", null=True, blank=True)
+    publishdate = models.DateTimeField ("Publish Date", null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     direction = models.PositiveIntegerField("Direction", choices=(
         (1, "Outgoing"), (2, "Incoming")), default=1)
@@ -96,9 +100,9 @@ class ChatGroup(models.Model):
 
 class ChatMessage(models.Model):
     chatgroup = models.ForeignKey(ChatGroup, null=True, blank=False)
-    #learner = models.ForeignKey(Learner, null=True, blank=False)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     content = models.TextField("Content", blank=True)
-    publishdate = models.DateField("Publish Date", null=True, blank=True)
+    publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
 
     def __str__(self):
         return self.content

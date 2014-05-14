@@ -3,7 +3,16 @@
 {% block title %}ON TRACK{% endblock %}
 
 {% block content %}
-    <div class="text heading green"><li class="icon ontrack"></li><p>On Track</p></div>
 
+    <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>On Track</p></div>
+    <div class="text heading darkgrey-back"><p>Your progress so far</p></div>
+
+    <div class="menu">
+        {% for mod in modules %}
+            <div class="item text grey-back {% if mod.score > 80 %}green-front{% elif mod.score > 56 %}orange-front{% elif mod.score > -1 %}red-front{% else %}white-front{% endif %}"><p>{{ mod.name }}<span class="right large-font">{% if mod.score > -1 %}{{ mod.score }}% {% else %}<li class="icon ontrack"></li>{% endif %}</span></p></div>
+        {% endfor %}
+    </div>
+
+    <p class="darkgrey-back grey-front center-font">Just remember: Your On Track score does not necessarily guarantee results in school.</p>
 
 {% endblock %}

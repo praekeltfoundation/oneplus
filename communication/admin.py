@@ -16,7 +16,16 @@ class PostAdmin(SummernoteModelAdmin):
     search_fields = ("name", "description")
     fieldsets = [
         (None,                  {"fields": ["name", "description", "course", "publishdate"]}),
-        ("Content",             {"fields": ["content"]})
+        ("Content",             {"fields": ["big_image", "small_image", "moderated", "content"]})
+    ]
+
+
+class ChatGroupAdmin(SummernoteModelAdmin):
+    list_display = ("name", "course", "description")
+    list_filter = ("course", )
+    search_fields = ("name", "description")
+    fieldsets = [
+        (None,                  {"fields": ["name", "description", "course"]})
     ]
 
 
@@ -41,4 +50,5 @@ class MessageAdmin(SummernoteModelAdmin):
 admin.site.register(Page, PageAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Message, MessageAdmin)
+admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(Discussion, DiscussionAdmin)

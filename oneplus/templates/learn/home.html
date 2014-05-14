@@ -1,0 +1,42 @@
+{% extends "core/main.html" %}
+
+{% block title %}WELCOME{% endblock %}
+
+{% block content %}
+
+    <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
+
+    <div class="dayheading">
+        <div class="text past"><p>1<br/>DAY</p></div>
+        <div class="text past"><p>2<br/>DAY</p></div>
+        <div class="text present"><p>3<br/>DAY</p></div>
+        <div class="text future"><p>4<br/>DAY</p></div>
+        <div class="text future"><p>5<br/>DAY</p></div>
+    </div>
+
+    <div class="content">
+        <p><span class="green-front xlarge-font">19</span> Tasks Completed</p>
+        <p><span class="green-front xlarge-font">06</span> Correct Answers</p>
+        <p class="green-front"><span class="green-front xlarge-font">04</span> To go to win Airtime</p>
+        <a class="button green-back" href="next">Go on Take the Challenge</a>
+    </div>
+
+
+    <div class="weeksummary">
+        <div class="text badge">
+            <div class="right-font"><li class="icon badges"></li></div>
+            <div class="left-font"><span class="large-font">{{ user.badges }}</span><br/>BADGES</div>
+        </div>
+        <div class="text point">
+            <div class="right-font"><li class="icon points"></li></div>
+            <div class="left-font"><span class="large-font">{{ user.points }}</span><br/>POINTS</div>
+        </div>
+        <div class="text place">
+            <div class="right-font"><li class="icon leaderboard"></li></div>
+            <div class="left-font"><span class="large-font">{{ user.position }}</span><br/>PLACE</div>
+        </div>
+
+
+    </div>
+
+{% endblock %}

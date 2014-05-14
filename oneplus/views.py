@@ -7,7 +7,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from forms import *
 from gamification.models import *
 from communication.models import *
+from organisation.models import *
+from core.models import *
 from oneplus.models import *
+from datetime import *
+
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -84,7 +88,7 @@ def login(request, state):
                         request.session["user"]["latest"] = _registered.badgetemplate.last().name
 
                         #login(request, user)
-                        return HttpResponseRedirect("welcome")
+                        return HttpResponseRedirect("home")
                     else:
                         return HttpResponseRedirect("getconnected")
                 except ObjectDoesNotExist:
@@ -123,15 +127,27 @@ def getconnected(request, state):
 
 # Welcome Screen
 @oneplus_state_required
-@oneplus_login_required
-def welcome(request, state, user):
+def welcome(request, state):
     def get():
-        return render(request, "learn/welcome.html", {"state": state,
-                                                      "user": user})
+        return render(request, "misc/welcome.html", {"state": state})
 
     def post():
-        return render(request, "learn/welcome.html", {"state": state,
-                                                      "user": user})
+        return render(request, "misc/welcome.html", {"state": state})
+
+    return resolve_http_method(request, [get, post])
+
+
+# Home Screen
+@oneplus_state_required
+@oneplus_login_required
+def home(request, state, user):
+    def get():
+        return render(request, "learn/home.html", {"state": state,
+                                                   "user": user})
+
+    def post():
+        return render(request, "learn/home.html", {"state": state,
+                                                   "user": user})
 
     return resolve_http_method(request, [get, post])
 
@@ -158,13 +174,16 @@ def nextchallenge(request, state, user):
         if "answer" in request.POST.keys():
             _ans_id = request.POST["answer"]
             _option = _learnerstate.active_question.testingquestionoption_set.get(pk=_ans_id)
+
+            _answer = ParticipantQuestionAnswer(participant=Participant.objects.get(pk=user["participant_id"]), question=_learnerstate.active_question, option_selected=_option, correct=_option.correct, answerdate=datetime.now())
+            _answer.save()
+
+            _learnerstate.active_result = _option.correct
+            _learnerstate.save()
+
             if _option.correct:
-                _learnerstate.active_result = True
-                _learnerstate.save()
                 return HttpResponseRedirect("right")
             else:
-                _learnerstate.active_result = False
-                _learnerstate.save()
                 return HttpResponseRedirect("wrong")
         else:
             return get()
@@ -181,14 +200,16 @@ def right(request, state, user):
     def get():
         if _learnerstate.active_result:
             return render(request, "learn/right.html", {"state": state,
-                                                       "question": _learnerstate.active_question})
+                                                        "user": user,
+                                                        "question": _learnerstate.active_question})
         else:
             return HttpResponseRedirect("wrong")
 
     def post():
         if _learnerstate.active_result:
             return render(request, "learn/right.html", {"state": state,
-                                                       "question": _learnerstate.active_question})
+                                                        "user": user,
+                                                        "question": _learnerstate.active_question})
         else:
             return HttpResponseRedirect("wrong")
 
@@ -205,14 +226,16 @@ def wrong(request, state, user):
     def get():
         if not _learnerstate.active_result:
             return render(request, "learn/wrong.html", {"state": state,
-                                                       "question": _learnerstate.active_question})
+                                                        "user": user,
+                                                        "question": _learnerstate.active_question})
         else:
             return HttpResponseRedirect("right")
 
     def post():
         if not _learnerstate.active_result:
             return render(request, "learn/wrong.html", {"state": state,
-                                                       "question": _learnerstate.active_question})
+                                                        "user": user,
+                                                        "question": _learnerstate.active_question})
         else:
             return HttpResponseRedirect("right")
 
@@ -241,10 +264,41 @@ def inbox(request, state, user):
     _messages = Message.objects.filter(course=_course, direction=1).order_by("publishdate").reverse()[:20]
 
     def get():
-        return render(request, "com/inbox.html", {"state": state, "messages": _messages, "message_count":_messages.count()})
+        return render(request, "com/inbox.html", {"state": state,
+                                                  "user": user,
+                                                  "messages": _messages,
+                                                  "message_count":_messages.count()})
 
     def post():
-        return render(request, "com/inbox.html", {"state": state, "messages": _messages, "message_count":_messages.count()})
+        return render(request, "com/inbox.html", {"state": state,
+                                                  "user": user,
+                                                  "messages": _messages,
+                                                  "message_count":_messages.count()})
+
+    return resolve_http_method(request, [get, post])
+
+
+# Chat Groups Screen
+@oneplus_state_required
+@oneplus_login_required
+def chatgroups(request, state, user):
+    #get chat groups
+    _groups = Participant.objects.get(pk=user["participant_id"]).classs.course.chatgroup_set.all()
+
+    for g in _groups:
+        _last_msg = g.chatmessage_set.order_by("publishdate").reverse().first()
+        if _last_msg is not None:
+            g.last_message = _last_msg
+
+    def get():
+        return render(request, "com/chatgroup.html", {"state": state,
+                                                      "user": user,
+                                                      "groups": _groups})
+
+    def post():
+        return render(request, "com/chatgroup.html", {"state": state,
+                                                      "user": user,
+                                                      "groups": _groups})
 
     return resolve_http_method(request, [get, post])
 
@@ -252,12 +306,92 @@ def inbox(request, state, user):
 # Chat Screen
 @oneplus_state_required
 @oneplus_login_required
-def chat(request, state, user):
+def chat(request, state, user, chatid):
+    #get chat group
+    _group = ChatGroup.objects.get(pk=chatid)
+    request.session["state"]["chat_page_max"] = _group.chatmessage_set.count()
+
     def get():
-        return render(request, "com/chat.html", {"state": state})
+        request.session["state"]["chat_page"] = min(10, request.session["state"]["chat_page_max"])
+        _messages = _group.chatmessage_set.order_by("publishdate").reverse()[:request.session["state"]["chat_page"]]
+        return render(request, "com/chat.html", {"state": state,
+                                                 "user": user,
+                                                 "group": _group,
+                                                 "messages": _messages})
 
     def post():
-        return render(request, "com/chat.html", {"state": state})
+        #new comment created
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _usr = Learner.objects.get(pk=user["id"])
+            _comment = request.POST["comment"]
+            _message = ChatMessage(chatgroup=_group, content=_comment, author=_usr, publishdate=datetime.now())
+            _message.save()
+            request.session["state"]["chat_page_max"] += 1
+
+        #show more comments
+        elif "page" in request.POST.keys():
+            request.session["state"]["chat_page"] += 10
+            if request.session["state"]["chat_page"] > request.session["state"]["chat_page_max"]:
+                request.session["state"]["chat_page"] = request.session["state"]["chat_page_max"]
+
+        _messages = _group.chatmessage_set.order_by("publishdate").reverse()[:request.session["state"]["chat_page"]]
+        return render(request, "com/chat.html", {"state": state,
+                                                 "user": user,
+                                                 "group": _group,
+                                                 "messages": _messages})
+
+    return resolve_http_method(request, [get, post])
+
+
+# Blog Hero Screen
+@oneplus_state_required
+@oneplus_login_required
+def blog_hero(request, state, user):
+    #get blog entry
+    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    request.session["state"]["blog_page_max"] = Post.objects.filter(course=_course).count()
+    _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:4]
+    request.session["state"]["blog_num"] = _posts.count()
+
+    def get():
+        return render(request, "com/bloghero.html", {"state": state,
+                                                     "user": user,
+                                                     "posts": _posts})
+
+    def post():
+        return render(request, "com/bloghero.html", {"state": state,
+                                                     "user": user,
+                                                     "posts": _posts})
+
+    return resolve_http_method(request, [get, post])
+
+
+# Blog List Screen
+@oneplus_state_required
+@oneplus_login_required
+def blog_list(request, state, user):
+    #get blog entry
+    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    request.session["state"]["blog_page_max"] = Post.objects.filter(course=_course).count()
+
+    def get():
+        request.session["state"]["blog_page"] = min(10, request.session["state"]["blog_page_max"])
+        _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:request.session["state"]["blog_page"]]
+        return render(request, "com/bloglist.html", {"state": state,
+                                                     "user": user,
+                                                     "posts": _posts})
+
+    def post():
+        #show more blogs
+        if "page" in request.POST.keys():
+            request.session["state"]["blog_page"] += 10
+            if request.session["state"]["blog_page"] > request.session["state"]["blog_page_max"]:
+                request.session["state"]["blog_page"] = request.session["state"]["blog_page_max"]
+
+        _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:request.session["state"]["blog_page"]]
+        return render(request, "com/bloglist.html", {"state": state,
+                                                     "user": user,
+                                                     "posts": _posts})
 
     return resolve_http_method(request, [get, post])
 
@@ -265,28 +399,34 @@ def chat(request, state, user):
 # Blog Screen
 @oneplus_state_required
 @oneplus_login_required
-def blog(request, state, user):
+def blog(request, state, user, blogid):
     #get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:3]
+    _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()
 
-    request.session["state"]["page_max"] = _posts.count()-1
-    if "page" not in state.keys():
-        request.session["state"]["page"] = 0
+    _post = Post.objects.get(pk=blogid)
+    _next = Post.objects.filter(course=_course, publishdate__gt=_post.publishdate).exclude(id=_post.id).order_by("publishdate").first()
+    _previous = Post.objects.filter(course=_course, publishdate__lt=_post.publishdate).exclude(id=_post.id).order_by("publishdate").reverse().first()
 
+    if _next is not None:
+        state["blog_next"] = _next.id
+    else:
+        state["blog_next"] = None
+
+    if _previous is not None:
+        state["blog_previous"] = _previous.id
+    else:
+        state["blog_previous"] = None
 
     def get():
-        return render(request, "com/blog.html", {"state": state, "post": _posts[state["page"]]})
+        return render(request, "com/blog.html", {"state": state,
+                                                 "user": user,
+                                                 "post": _post})
 
     def post():
-        # next/previous action provided
-        if "previous" in request.POST.keys():
-            state["page"] = state["page"] - 1
-
-        if "next" in request.POST.keys():
-            state["page"] = state["page"] + 1
-
-        return render(request, "com/blog.html", {"state": state, "post": _posts[state["page"]]})
+        return render(request, "com/blog.html", {"state": state,
+                                                 "user": user,
+                                                 "post": _post})
 
     return resolve_http_method(request, [get, post])
 
@@ -295,11 +435,28 @@ def blog(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def ontrack(request, state, user):
+    #get on track state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _modules = Module.objects.filter(course=_course)
+
+    # Calculate achieved score
+    for m in _modules:
+        _answers = _participant.participantquestionanswer_set.filter(question__bank__module__id=m.id)
+        if _answers.count() < 10:
+            m.score = -1
+        else:
+            m.score = _answers.filter(correct=True).count() / _answers.count() * 100
+
     def get():
-        return render(request, "prog/ontrack.html", {"state": state})
+        return render(request, "prog/ontrack.html", {"state": state,
+                                                     "user": user,
+                                                     "modules": _modules})
 
     def post():
-        return render(request, "prog/ontrack.html", {"state": state})
+        return render(request, "prog/ontrack.html", {"state": state,
+                                                     "user": user,
+                                                     "modules": _modules})
 
     return resolve_http_method(request, [get, post])
 
@@ -308,11 +465,91 @@ def ontrack(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def leader(request, state, user):
+    #get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant.me = True
+    request.session["state"]["leader_region"] = "Countrywide"
+
     def get():
-        return render(request, "prog/leader.html", {"state": state})
+        request.session["state"]["leader_menu"] = False
+        request.session["state"]["leader_place"] = Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count() + 1
+
+        _learners = \
+            list(Participant.objects.filter(
+                classs=_participant.classs,
+                points__gt=_participant.points).order_by("points")[:4]) \
+            + list([_participant]) \
+            + list(Participant.objects.filter(
+                classs=_participant.classs,
+                points__lt=_participant.points).order_by("points").reverse()[:5])
+
+        return render(request, "prog/leader.html", {"state": state,
+                                                    "user": user,
+                                                    "learners": _learners})
 
     def post():
-        return render(request, "prog/leader.html", {"state": state})
+        #show region menu?
+        if "leader_menu" in request.POST:
+            request.session["state"]["leader_menu"] = request.POST["leader_menu"] != 'True'
+        elif "region" in request.POST:
+            request.session["state"]["leader_menu"] = False
+            request.session["state"]["leader_region"] = request.POST["region"]
+
+        if request.session["state"]["leader_region"] != "Countrywide":
+            _learners = \
+                list(Participant.objects.filter(
+                    classs=_participant.classs,
+                    points__gt=_participant.points,
+                    learner__area=request.session["state"]["leader_region"]).order_by("points")[:4]) \
+                + list([_participant]) \
+                + list(Participant.objects.filter(
+                    classs=_participant.classs,
+                    points__lt=_participant.points,
+                    learner__area=request.session["state"]["leader_region"]).order_by("points").reverse()[:5])
+
+            request.session["state"]["leader_place"] = \
+                Participant.objects.filter(classs=_participant.classs,
+                                           points__gt=_participant.points,
+                                           learner__area=request.session["state"]["leader_region"]).count() + 1
+        else:
+            _learners = \
+                list(Participant.objects.filter(
+                    classs=_participant.classs,
+                    points__gt=_participant.points).order_by("points")[:4]) \
+                + list([_participant]) \
+                + list(Participant.objects.filter(
+                    classs=_participant.classs,
+                    points__lt=_participant.points).order_by("points").reverse()[:5])
+
+            request.session["state"]["leader_place"] = \
+                Participant.objects.filter(classs=_participant.classs,
+                                           points__gt=_participant.points).count() + 1
+
+        request.session["state"]["leader_regions"] = list([{"area":"Countrywide"}]) + list(Learner.objects.values("area").distinct().all())
+
+        return render(request, "prog/leader.html", {"state": state,
+                                                    "user": user,
+                                                    "learners": _learners})
+
+    return resolve_http_method(request, [get, post])
+
+
+# Points Screen
+@oneplus_state_required
+@oneplus_login_required
+def points(request, state, user):
+    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _modules = Module.objects.filter(course=_course)
+
+    def get():
+        return render(request, "prog/points.html", {"state": state,
+                                                    "user": user,
+                                                    "modules": _modules})
+
+    def post():
+        return render(request, "prog/points.html", {"state": state,
+                                                    "user": user,
+                                                    "modules": _modules})
 
     return resolve_http_method(request, [get, post])
 
@@ -334,11 +571,13 @@ def badges(request, state, user):
 
     def get():
         return render(request, "prog/badges.html", {"state": state,
+                                                    "user": user,
                                                     "badges": _badges,
                                                     "participant": _participant})
 
     def post():
         return render(request, "prog/badges.html", {"state": state,
+                                                    "user": user,
                                                     "badges": _badges,
                                                     "participant": _participant})
 
