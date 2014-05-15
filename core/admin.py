@@ -47,9 +47,9 @@ class ParticipantInline(admin.TabularInline):
     #fields = ("learner", "classs", "datejoined", "points", "pointbonus", "badgetemplate")
     fieldsets = [
         (None,                  {"fields": ["learner", "classs", "datejoined"]}),
-        ("Achievements",        {"fields": ["points", "pointbonus", "badgetemplate"]}),
+        #("Achievements",        {"fields": ["points", "pointbonus", "badgetemplate"]}),
     ]
-    filter_vertical = ("pointbonus", "badgetemplate")
+    #filter_vertical = ("pointbonus", "badgetemplate")
 
 
 class ClassAdmin(admin.ModelAdmin):

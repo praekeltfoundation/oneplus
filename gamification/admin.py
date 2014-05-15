@@ -22,10 +22,9 @@ class GamificationScenarioAdmin(admin.ModelAdmin):
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "event", "course"]}),
+        (None,                  {"fields": ["name", "description", "event", "course", "module"]}),
         ("Rewards",             {"fields": ["point", "badge"]})
     ]
-
 
 
 #Gamification

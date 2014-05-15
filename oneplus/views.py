@@ -4,6 +4,7 @@ from django.views.generic import View
 from django.contrib.auth import models
 from django.contrib.auth import authenticate, login
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 from forms import *
 from gamification.models import *
 from communication.models import *
@@ -48,7 +49,7 @@ def oneplus_state_required(f):
 # Action resolver to elegantly handle verbs in the views
 def resolve_http_method(request, methods):
     if isinstance(methods, list):
-        methods = { func.__name__.lower() : func for func in methods }
+        methods = {func.__name__.lower(): func for func in methods}
     if request.method.lower() not in methods.keys():
         return HttpResponse(status=501)
     return methods[request.method.lower()]()
@@ -82,10 +83,11 @@ def login(request, state):
                         request.session["user"]["id"] = _learner.id
                         request.session["user"]["name"] = _learner.first_name
                         request.session["user"]["participant_id"] = _registered.id
-                        request.session["user"]["points"] = _registered.points
+                        #request.session["user"]["points"] = _registered.points
                         request.session["user"]["place"] = 0  # TODO
-                        request.session["user"]["badges"] = _registered.badgetemplate.count()
-                        request.session["user"]["latest"] = _registered.badgetemplate.last().name
+                        #request.session["user"]["badges"] = _registered.badgetemplate.count()
+
+                        _registered.award_scenario("LOGIN", None)
 
                         #login(request, user)
                         return HttpResponseRedirect("home")
@@ -141,6 +143,9 @@ def welcome(request, state):
 @oneplus_state_required
 @oneplus_login_required
 def home(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    request.session["state"]["home_points"] = _participant.points
+
     def get():
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
@@ -157,9 +162,10 @@ def home(request, state, user):
 @oneplus_login_required
 def nextchallenge(request, state, user):
     #get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
     if _learnerstate is None:
-        _learnerstate = LearnerState(participant=Participant.objects.get(pk=user["participant_id"]))
+        _learnerstate = LearnerState(participant=_participant)
 
     # check if new question required then show question
     _learnerstate.getnextquestion()
@@ -175,14 +181,43 @@ def nextchallenge(request, state, user):
             _ans_id = request.POST["answer"]
             _option = _learnerstate.active_question.testingquestionoption_set.get(pk=_ans_id)
 
-            _answer = ParticipantQuestionAnswer(participant=Participant.objects.get(pk=user["participant_id"]), question=_learnerstate.active_question, option_selected=_option, correct=_option.correct, answerdate=datetime.now())
+            #Save answer
+            _answer = ParticipantQuestionAnswer(participant=_participant, question=_learnerstate.active_question, option_selected=_option, correct=_option.correct, answerdate=datetime.now())
             _answer.save()
-
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
 
+            #Check for awards
             if _option.correct:
+                _participant.award_scenario("CORRECT", _learnerstate.active_question.bank.module)
+
+                _total_corect = ParticipantQuestionAnswer.objects.filter(participant=_participant, correct=True).count()
+                if _total_corect == 1:
+                    _participant.award_scenario("1_CORRECT", _learnerstate.active_question.bank.module)
+
+                elif _total_corect == 15:
+                    _participant.award_scenario("15_CORRECT", _learnerstate.active_question.bank.module)
+
+                elif _total_corect == 30:
+                    _participant.award_scenario("30_CORRECT", _learnerstate.active_question.bank.module)
+
+                elif _total_corect == 100:
+                    _participant.award_scenario("100_CORRECT", _learnerstate.active_question.bank.module)
+
+                last_3 = ParticipantQuestionAnswer.objects.filter(
+                    participant=_participant).order_by("answerdate").reverse()[:3]
+
+                if last_3.count() == 3 and len([i for i in last_3 if i.correct]) == 3:
+                    _participant.award_scenario("3_CORRECT_RUNNING", _learnerstate.active_question.bank.module)
+
+                last_5 = ParticipantQuestionAnswer.objects.filter(
+                    participant=_participant).order_by("answerdate").reverse()[:5]
+
+                if last_5.count() == 5 and len([i for i in last_5 if i.correct]) == 5:
+                    _participant.award_scenario("5_CORRECT_RUNNING", _learnerstate.active_question.bank.module)
+
                 return HttpResponseRedirect("right")
+
             else:
                 return HttpResponseRedirect("wrong")
         else:
@@ -538,8 +573,14 @@ def leader(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def points(request, state, user):
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _particpant = Participant.objects.get(pk=user["participant_id"])
+    _course = _particpant.classs.course
     _modules = Module.objects.filter(course=_course)
+    request.session["state"]["points_points"] = _particpant.points
+
+    for m in _modules:
+        m.score = max(ParticipantPointBonusRel.objects.filter(participant=_particpant, scenario__module=m)
+                      .select_related("pointbonus").aggregate(sum=Sum("pointbonus__value"))["sum"], 0)
 
     def get():
         return render(request, "prog/points.html", {"state": state,
