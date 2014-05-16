@@ -1,0 +1,23 @@
+{% extends "core/main.html" %}
+
+{% block title %}INBOX{% endblock %}
+
+{% block content %}
+
+    <div class="text heading yellow-back darkgrey-front"><li class="icon ontrack"></li><p>Inbox ({{ state.inbox_unread }})</p></div>
+    <div class="text heading darkgrey-back"><p>Something to say? <a href="/inbox_send" class="yellow-front">Send us a message</a></p></div>
+
+    <div class="menu">
+        {% autoescape off %}
+            <div class="item-large grey-back white-front">
+                <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
+                    <button type="submit" name="hide" value="{{ message.id }}" class="close grey-back"></button>
+                </form>
+
+                <div>{{ message.name }}</div>
+                <p>{{ message.content }}</p>
+            </div>
+        {% endautoescape %}
+    </div>
+
+{% endblock %}

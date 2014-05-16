@@ -24,8 +24,8 @@ urlpatterns = [
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),
-    #url(r"^inbox/(?P<messageid>\d+)$", views.inbox, name="com.inbox.id"),
-    url(r"^inbox/new$", views.inbox, name="com.inbox.new"),
+    url(r"^inbox/(?P<messageid>\d+)$", views.inbox_detail, name="com.inbox_detail"),
+    url(r"^inbox_send", views.inbox_send, name="com.inbox_send"),
 
     url(r"^chat$", views.chatgroups, name="com.chatgroups"),
     url(r"^chat/(?P<chatid>\d+)$", views.chat, name="com.chat"),

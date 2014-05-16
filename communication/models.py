@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from datetime import datetime
 from organisation.models import Course
 
 
@@ -67,7 +68,7 @@ class Discussion(models.Model):
 
 
 class Message(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=False)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     content = models.TextField("Content", blank=True)
@@ -79,9 +80,61 @@ class Message(models.Model):
     def __str__(self):
         return self.name
 
+    @staticmethod
+    def get_messages(user, course, limit):
+        _msgs = Message.objects.filter(course=course, direction=1).order_by("publishdate").reverse()
+        _result = list()
+        for m in _msgs:
+            _status = MessageStatus.objects.filter(message=m, user=user).first()
+            if _status is None:
+                m.viewed = False
+                _result.append(m)
+            elif not _status.hidden_status:
+                m.viewed = _status.view_status
+                _result.append(m)
+        return _result[:limit]
+
+    @staticmethod
+    def unread_message_count(user, course):
+        _msgs = Message.objects.filter(course=course, direction=1)
+        _counter = 0
+        for m in _msgs:
+            if not MessageStatus.objects.filter(message=m, user=user, view_status=True).exists():
+                _counter += 1
+        return _counter
+
+    def view_message(self, user):
+        _status = MessageStatus.objects.filter(message=self, user=user).first()
+        if _status is None:
+            _status = MessageStatus(message=self, user=user)
+        _status.view_status = True
+        _status.view_date = datetime.now()
+        _status.save()
+
+    def hide_message(self, user):
+        _status = MessageStatus.objects.filter(message=self, user=user).first()
+        if _status is None:
+            _status = MessageStatus(message=self, user=user)
+        _status.hidden_status = True
+        _status.hidden_date = datetime.now()
+        _status.save()
+
     class Meta:
         verbose_name = "Message"
         verbose_name_plural = "Messages"
+
+
+# Message Status indicates if a user has viewed a message and if he has permanently hidden a message
+class MessageStatus(models.Model):
+    message = models.ForeignKey(Message, null=True, blank=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    view_status = models.BooleanField("View Status", default=False)
+    view_date = models.DateTimeField("View Date", null=True, blank=True)
+    hidden_status = models.BooleanField("Hidden Status", default=False)
+    hidden_date = models.DateTimeField("Hidden Date", null=True, blank=True)
+
+    def __str__(self):
+        return self.message.name
 
 
 # Chat groups are Learner only places where messages can be exchanged.

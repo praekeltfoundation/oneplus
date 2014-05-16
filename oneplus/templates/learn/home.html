@@ -3,6 +3,7 @@
 {% block title %}WELCOME{% endblock %}
 
 {% block content %}
+    {% load humanize %}
 
     <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
 
@@ -25,7 +26,7 @@
     <div class="weeksummary">
         <div class="text badge">
             <div class="right-font"><li class="icon badges"></li></div>
-            <div class="left-font"><span class="large-font">{{ user.badges }}</span><br/>BADGES</div>
+            <div class="left-font"><span class="large-font">{{ state.home_badges }}</span><br/>BADGES</div>
         </div>
         <div class="text point">
             <div class="right-font"><li class="icon points"></li></div>
@@ -33,7 +34,7 @@
         </div>
         <div class="text place">
             <div class="right-font"><li class="icon leaderboard"></li></div>
-            <div class="left-font"><span class="large-font">{{ user.position }}</span><br/>PLACE</div>
+            <div class="left-font"><span class="large-font">{{ state.home_position|ordinal }}</span><br/>PLACE</div>
         </div>
 
 

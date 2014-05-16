@@ -145,6 +145,8 @@ def welcome(request, state):
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     request.session["state"]["home_points"] = _participant.points
+    request.session["state"]["home_badges"] = ParticipantBadgeTemplateRel.objects.filter(participant=_participant).count()
+    request.session["state"]["home_position"] = Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count() + 1
 
     def get():
         return render(request, "learn/home.html", {"state": state,
@@ -295,23 +297,85 @@ def discuss(request, state, user):
 @oneplus_login_required
 def inbox(request, state, user):
     #get inbox messages
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    _messages = Message.objects.filter(course=_course, direction=1).order_by("publishdate").reverse()[:20]
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    request.session["state"]["inbox_unread"] = Message.unread_message_count(_participant.learner, _participant.classs.course)
 
     def get():
+        _messages = Message.get_messages(_participant.learner, _participant.classs.course, 20)
         return render(request, "com/inbox.html", {"state": state,
                                                   "user": user,
                                                   "messages": _messages,
-                                                  "message_count":_messages.count()})
+                                                  "message_count": len(_messages)})
 
     def post():
+        # hide message
+        if "hide" in request.POST.keys() and request.POST["hide"] != "":
+            _usr = Learner.objects.get(pk=user["id"])
+            _msg = Message.objects.get(pk=request.POST["hide"])
+            _msg.hide_message(_usr)
+
+        _messages = Message.get_messages(_participant.learner, _participant.classs.course, 20)
         return render(request, "com/inbox.html", {"state": state,
                                                   "user": user,
                                                   "messages": _messages,
-                                                  "message_count":_messages.count()})
+                                                  "message_count": len(_messages)})
 
     return resolve_http_method(request, [get, post])
 
+
+# Inbox Detail Screen
+@oneplus_state_required
+@oneplus_login_required
+def inbox_detail(request, state, user, messageid):
+    #get inbox messages
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    request.session["state"]["inbox_unread"] = Message.unread_message_count(_participant.learner, _participant.classs.course)
+    _message = Message.objects.get(pk=messageid)
+    _message.view_message(_participant.learner)
+
+    def get():
+        return render(request, "com/inbox_detail.html", {"state": state,
+                                                         "user": user,
+                                                         "message": _message})
+
+    def post():
+        # hide message
+        if "hide" in request.POST.keys():
+            _message.hide_message(_participant.learner)
+            return HttpResponseRedirect("inbox")
+
+        return render(request, "com/inbox_detail.html", {"state": state,
+                                                         "user": user,
+                                                         "message": _message})
+
+    return resolve_http_method(request, [get, post])
+
+
+# Inbox Send Screen
+@oneplus_state_required
+@oneplus_login_required
+def inbox_send(request, state, user):
+    #get inbox messages
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    request.session["state"]["inbox_sent"] = False
+
+    def get():
+
+        return render(request, "com/inbox_send.html", {"state": state,
+                                                       "user": user})
+
+    def post():
+        #new message created
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _comment = request.POST["comment"]
+            _message = Message(name="Message from " + _participant.learner.first_name + " " + _participant.learner.last_name, description=_comment, course=_participant.classs.course, content=_comment, publishdate=datetime.now(), author=_participant.learner, direction=2)
+            _message.save()
+            request.session["state"]["inbox_sent"] = True
+
+        return render(request, "com/inbox_send.html", {"state": state,
+                                                       "user": user})
+
+    return resolve_http_method(request, [get, post])
 
 # Chat Groups Screen
 @oneplus_state_required
@@ -607,7 +671,7 @@ def badges(request, state, user):
 
     #Link achieved badges
     for x in _badges:
-        if _participant.badgetemplate.filter(pk=x.id).count() > 0:
+        if ParticipantBadgeTemplateRel.objects.filter(participant=_participant, badgetemplate=x).exists():
             x.achieved = True
 
     def get():
