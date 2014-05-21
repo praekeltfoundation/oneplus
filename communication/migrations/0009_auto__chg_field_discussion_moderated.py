@@ -8,20 +8,14 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'LearnerState'
-        db.create_table(u'oneplus_learnerstate', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('participant', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Participant'], null=True)),
-            ('active_question', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.TestingQuestion'], null=True)),
-            ('active_result', self.gf('django.db.models.fields.NullBooleanField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'oneplus', ['LearnerState'])
 
+        # Changing field 'Discussion.moderated'
+        db.alter_column(u'communication_discussion', 'moderated', self.gf('django.db.models.fields.BooleanField')())
 
     def backwards(self, orm):
-        # Deleting model 'LearnerState'
-        db.delete_table(u'oneplus_learnerstate')
 
+        # Changing field 'Discussion.moderated'
+        db.alter_column(u'communication_discussion', 'moderated', self.gf('django.db.models.fields.NullBooleanField')(null=True))
 
     models = {
         u'auth.customuser': {
@@ -52,17 +46,81 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
             'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
         },
-        u'auth.learner': {
-            'Meta': {'object_name': 'Learner', '_ormbases': [u'auth.CustomUser']},
-            u'customuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.CustomUser']", 'unique': 'True', 'primary_key': 'True'}),
-            'school': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.School']", 'null': 'True'})
-        },
         u'auth.permission': {
             'Meta': {'ordering': "(u'content_type__app_label', u'content_type__model', u'codename')", 'unique_together': "((u'content_type', u'codename'),)", 'object_name': 'Permission'},
             'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contenttypes.ContentType']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+        },
+        u'communication.chatgroup': {
+            'Meta': {'object_name': 'ChatGroup'},
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'})
+        },
+        u'communication.chatmessage': {
+            'Meta': {'object_name': 'ChatMessage'},
+            'author': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.CustomUser']", 'null': 'True', 'blank': 'True'}),
+            'chatgroup': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.ChatGroup']", 'null': 'True'}),
+            'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
+        },
+        u'communication.discussion': {
+            'Meta': {'object_name': 'Discussion'},
+            'author': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.CustomUser']", 'null': 'True', 'blank': 'True'}),
+            'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True', 'blank': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'moderated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'module': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Module']", 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True', 'blank': 'True'}),
+            'response': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Discussion']", 'null': 'True', 'blank': 'True'})
+        },
+        u'communication.message': {
+            'Meta': {'object_name': 'Message'},
+            'author': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.CustomUser']", 'null': 'True', 'blank': 'True'}),
+            'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            'direction': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
+        },
+        u'communication.messagestatus': {
+            'Meta': {'object_name': 'MessageStatus'},
+            'hidden_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'hidden_status': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'message': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Message']", 'null': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.CustomUser']", 'null': 'True', 'blank': 'True'}),
+            'view_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'view_status': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+        },
+        u'communication.page': {
+            'Meta': {'object_name': 'Page'},
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'})
+        },
+        u'communication.post': {
+            'Meta': {'object_name': 'Post'},
+            'big_image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'moderated': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
+            'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'small_image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'})
         },
         u'content.testingbank': {
             'Meta': {'object_name': 'TestingBank'},
@@ -92,48 +150,6 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'core.class': {
-            'Meta': {'object_name': 'Class'},
-            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'enddate': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
-            'startdate': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
-        },
-        u'core.participant': {
-            'Meta': {'object_name': 'Participant'},
-            'badgetemplate': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gamification.GamificationBadgeTemplate']", 'symmetrical': 'False', 'blank': 'True'}),
-            'classs': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Class']"}),
-            'datejoined': ('django.db.models.fields.DateField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'learner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Learner']"}),
-            'pointbonus': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gamification.GamificationPointBonus']", 'symmetrical': 'False', 'blank': 'True'}),
-            'points': ('django.db.models.fields.PositiveIntegerField', [], {})
-        },
-        u'gamification.gamificationbadgetemplate': {
-            'Meta': {'object_name': 'GamificationBadgeTemplate'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'})
-        },
-        u'gamification.gamificationpointbonus': {
-            'Meta': {'object_name': 'GamificationPointBonus'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
-            'value': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'})
-        },
-        u'oneplus.learnerstate': {
-            'Meta': {'object_name': 'LearnerState'},
-            'active_question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True'}),
-            'active_result': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']", 'null': 'True'})
-        },
         u'organisation.course': {
             'Meta': {'object_name': 'Course'},
             'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
@@ -147,24 +163,7 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'})
-        },
-        u'organisation.organisation': {
-            'Meta': {'object_name': 'Organisation'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
-            'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
-        },
-        u'organisation.school': {
-            'Meta': {'object_name': 'School'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
-            'organisation': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Organisation']", 'null': 'True'}),
-            'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
         }
     }
 
-    complete_apps = ['oneplus']
+    complete_apps = ['communication']

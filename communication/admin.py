@@ -2,6 +2,7 @@ from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from models import *
 
+
 class PageAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name", "description")
@@ -30,11 +31,15 @@ class ChatGroupAdmin(SummernoteModelAdmin):
 
 
 class DiscussionAdmin(admin.ModelAdmin):
-    list_display = ("name", "description")
-    search_fields = ("name", "description")
+    list_display = ("course", "module", "question", "author", "publishdate", "content", "moderated")
+    list_filter = ("course", "module", "question", "moderated")
+    search_fields = ("author", "content")
     fieldsets = [
-        (None,                  {"fields": ["name", "description"]})
+        (None,                  {"fields": ["name", "description"]}),
+        ("Content",             {"fields": ["content", "author", "publishdate", "moderated"]}),
+        ("Discussion Group",    {"fields": ["course", "module", "question", "response"]})
     ]
+
 
 class MessageAdmin(SummernoteModelAdmin):
     list_display = ("name", "course", "author", "direction", "publishdate")

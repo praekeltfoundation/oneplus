@@ -1,8 +1,8 @@
 from django.db import models
 from django.conf import settings
 from datetime import datetime
-from organisation.models import Course
-
+from organisation.models import Course, Module
+from content.models import TestingQuestion
 
 # For the MVP phase of this project we will keep Pages and Posts very simplistic.
 # The instance has a Landing page.
@@ -52,15 +52,20 @@ class Post(models.Model):
 # well as any special tags that show moderators etc.
 # The MVP does not have any report abuse functionality.
 class Discussion(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField("Name", max_length=50, null=True, blank=True)
     description = models.CharField("Description", max_length=50, blank=True)
     content = models.TextField("Content", blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
-    publishdate = models.DateTimeField ("Publish Date", null=True, blank=True)
-    moderated = models.NullBooleanField("Moderated", null=True, blank=True)
+    publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
+    moderated = models.BooleanField("Moderated", default=False)
+
+    course = models.ForeignKey(Course, null=True, blank=True)
+    module = models.ForeignKey(Module, null=True, blank=True)
+    question = models.ForeignKey(TestingQuestion, null=True, blank=True)
+    response = models.ForeignKey("self", null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.author.first_name + ": " + self.content
 
     class Meta:
         verbose_name = "Discussion"
