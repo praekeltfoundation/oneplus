@@ -1,0 +1,17 @@
+{% extends "core/main.html" %}
+
+{% block title %}BADGES{% endblock %}
+
+{% block content %}
+
+    <div class="text heading cyan-back darkgrey-front"><li class="icon badges"></li><p>Badges</p></div>
+    <div class="text heading darkgrey-back"><p>The badges you've earned</p></div>
+
+    <div class="content">
+        {% for badge in badges %}
+            <div class="badgecontainer {% if not badge.achieved %}disabled{% endif %}"><li class="badge" style="background-image: url('{{ badge.image.url }}')"></li><div class="text center-font"><p>{{ badge.name }}</p></div></div>
+        {% endfor %}
+        <div class="clear"></div>
+    </div>
+
+{% endblock %}

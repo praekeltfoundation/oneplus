@@ -1,0 +1,22 @@
+{% extends "core/main.html" %}
+
+{% block title %}CHAT GROUPS{% endblock %}
+
+{% block content %}
+    {% load humanize %}
+
+    <div class="text heading blue-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div>
+    <div class="text heading darkgrey-back"><p>Connect with others</p></div>
+
+    <div class="menu">
+    {% for grp in groups %}
+        <div class="item-large grey-back white-front">
+            <h1 class="white-front bold-font">{{ grp.name }}</h1>
+            <div><span class="white-front bold-font">{{ grp.last_message.author.first_name }}</span> <span class="lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</span></div>
+            <p class="white-front">{{ grp.last_message.content }}</p>
+            <a href="chat/{{ grp.id }}" class="blue-front">See more Comments ></a>
+        </div>
+    {% endfor %}
+    </div>
+
+{% endblock %}

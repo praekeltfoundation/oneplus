@@ -1,0 +1,60 @@
+{% extends "core/main.html" %}
+
+{% block title %}BLOG{% endblock %}
+
+{% block content %}
+
+    <div class="text heading purple-back darkgrey-front"><li class="icon blog"></li><p>Blog</p></div>
+    <div class="text heading darkgrey-back"><p>What we have to tell you</p></div>
+
+    <div class="content narrow white-back">
+        <!-- Main Article -->
+        {% if posts.0.big_image %}
+        <div class="blogimage" style="background-image: url('{{ posts.0.big_image.url }}')"></div>
+        {% endif %}
+        <a class="purple-front large-font" href="/blog/{{ posts.0.id }}">{{ posts.0.name }}</a>
+        <div class="darkgrey-front bold-font">{{ posts.0.publishdate|date:"d M" }}</div>
+        <p class="darkgrey-front">{{ posts.0.description|truncatechars:50 }} <a class="purple-front" href="/blog/{{ posts.0.id }}">Read More</a></p>
+        <hr />
+
+        {% if posts.1 %}
+            <div style="width:50%; float:left">
+                <a class="purple-front large-font" href="/blog/{{ posts.1.id }}">{{ posts.1.name }}</a>
+                <div class="darkgrey-front bold-font">{{ posts.1.publishdate|date:"d M" }}</div>
+                <p class="darkgrey-front">{{ posts.1.description|truncatechars:50 }} <a class="purple-front" href="/blog/{{ posts.1.id }}">Read More</a></p>
+            </div>
+        {% endif %}
+
+        {% if posts.2 %}
+            <div style="width:50%; float:right">
+                <a class="purple-front large-font" href="/blog/{{ posts.2.id }}">{{ posts.2.name }}</a>
+                <div class="darkgrey-front bold-font">{{ posts.2.publishdate|date:"d M" }}</div>
+                <p class="darkgrey-front">{{ posts.2.description|truncatechars:50 }} <a class="purple-front" href="/blog/{{ posts.2.id }}">Read More</a></p>
+            </div>
+
+        {% endif %}
+        <div class="clear"></div>
+
+        {% if posts.3 %}
+            <hr />
+            {% if posts.3.small_image %}
+                <div style="width:50%; float:left">
+                    <div class="blogimage" style="background-image: url('{{ posts.3.small_image.url }}')"></div>
+                </div>
+            {% endif %}
+
+            <div style="width:50%; float:left">
+                <a class="purple-front large-font" href="/blog/{{ posts.3.id }}">{{ posts.3.name }}</a>
+                <div class="darkgrey-front bold-font">{{ posts.3.publishdate|date:"d M" }}</div>
+                <p class="darkgrey-front">{{ posts.3.description|truncatechars:50 }} <a class="purple-front" href="/blog/{{ posts.3.id }}">Read More</a></p>
+            </div>
+        {% endif %}
+
+        {% if state.blog_num < state.blog_page_max %}
+            <p>
+                {{ state.blog_num }} of {{ state.blog_page_max }} <a class="purple-front" href="/bloglist">Load older Entries ></a>
+            </p>
+        {% endif %}
+    </div>
+
+{% endblock %}
