@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, HttpResponse
 from django.http import HttpResponseRedirect
 from django.views.generic import View
 from django.contrib.auth import models
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 from forms import *
@@ -99,6 +99,20 @@ def login(request, state):
                 return HttpResponseRedirect("getconnected")
         else:
             return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+# Signout Function
+@oneplus_state_required
+def signout(request, state):
+    logout(request)
+
+    def get():
+        return HttpResponseRedirect("/")
+
+    def post():
+        return HttpResponseRedirect("/")
 
     return resolve_http_method(request, [get, post])
 
