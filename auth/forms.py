@@ -35,7 +35,11 @@ class SystemAdministratorChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    password = ReadOnlyPasswordHashField()
+    password = ReadOnlyPasswordHashField(
+        label="Password",
+        help_text="Raw passwords are not stored, so there is no way to see "
+                  "this user's password, but you can change the password "
+                  "using <a href=\"password/\">this form</a>.")
 
     class Meta:
         model = SystemAdministrator
@@ -79,7 +83,11 @@ class SchoolManagerChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    password = ReadOnlyPasswordHashField()
+    password = ReadOnlyPasswordHashField(
+        label="Password",
+        help_text="Raw passwords are not stored, so there is no way to see "
+                  "this user's password, but you can change the password "
+                  "using <a href=\"password/\">this form</a>.")
 
     class Meta:
         model = SchoolManager
@@ -123,7 +131,11 @@ class CourseManagerChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    password = ReadOnlyPasswordHashField()
+    password = ReadOnlyPasswordHashField(
+        label="Password",
+        help_text="Raw passwords are not stored, so there is no way to see "
+                  "this user's password, but you can change the password "
+                  "using <a href=\"password/\">this form</a>.")
 
     class Meta:
         model = CourseManager
@@ -167,7 +179,11 @@ class CourseMentorChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    password = ReadOnlyPasswordHashField()
+    password = ReadOnlyPasswordHashField(
+        label="Password",
+        help_text="Raw passwords are not stored, so there is no way to see "
+                  "this user's password, but you can change the password "
+                  "using <a href=\"password/\">this form</a>.")
 
     class Meta:
         model = CourseMentor
@@ -182,12 +198,12 @@ class CourseMentorChangeForm(forms.ModelForm):
 class LearnerCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
+    username = forms.CharField(label='Mobile Phone Number', widget=forms.TextInput)
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
 
     class Meta:
         model = Learner
-        fields = ('email', )
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -200,6 +216,7 @@ class LearnerCreationForm(forms.ModelForm):
     def save(self, commit=True):
         # Save the provided password in hashed format
         user = super(LearnerCreationForm, self).save(commit=False)
+        user.mobile = user.username
         user.set_password(self.cleaned_data["password1"])
         if commit:
             user.save()
@@ -211,7 +228,11 @@ class LearnerChangeForm(forms.ModelForm):
     the user, but replaces the password field with admin's
     password hash display field.
     """
-    password = ReadOnlyPasswordHashField()
+    password = ReadOnlyPasswordHashField(
+        label="Password",
+        help_text="Raw passwords are not stored, so there is no way to see "
+                  "this user's password, but you can change the password "
+                  "using <a href=\"password/\">this form</a>.")
 
     class Meta:
         model = Learner
@@ -221,3 +242,11 @@ class LearnerChangeForm(forms.ModelForm):
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial["password"]
+
+    def save(self, commit=True):
+        # Save the provided password in hashed format
+        user = super(LearnerChangeForm, self).save(commit=False)
+        user.mobile = user.username
+        if commit:
+            user.save()
+        return user

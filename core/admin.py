@@ -1,45 +1,6 @@
 from django.contrib import admin
 from core.models import *
 
-"""
-class PageInline(admin.TabularInline):
-    model = Page
-    extra = 1
-    fields = ("name", "description")
-    ordering = ("name", )
-
-
-class PostInline(admin.TabularInline):
-    model = Post
-    extra = 1
-    fields = ("name", "description", "publishdate")
-    ordering = ("publishdate", "name")
-
-
-class LearningChapterInline(admin.TabularInline):
-    model = LearningChapter
-    extra = 1
-    fields = ("order", "name", "description")
-    ordering = ("order", "name")
-
-
-class TestingBankInline(admin.TabularInline):
-    model = TestingBank
-    extra = 1
-    fields = ("order", "name", "description", "question_order")
-    ordering = ("order", "name")
-
-
-class GamificationScenarioInline(admin.TabularInline):
-    model = GamificationScenario
-    extra = 1
-    fields = ("name", "description", "event", "point", "badge")
-    ordering = ("name", )
-
-
-
-"""
-
 
 class ParticipantInline(admin.TabularInline):
     model = Participant

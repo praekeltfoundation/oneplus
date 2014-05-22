@@ -24,7 +24,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")] # os.path.join(BASE_DIR, "oneplus/templates")
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]  # os.path.join(BASE_DIR, "oneplus/templates")
 
 ALLOWED_HOSTS = []
 
@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     #"django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "grappelli",
     "django.contrib.admin",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -47,6 +48,7 @@ INSTALLED_APPS = (
     "organisation",
     "django_summernote",
     "south"
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -99,3 +101,13 @@ STATIC_URL = "/static/"
 MEDIA_ROOT = "/media/"
 MEDIA_URL = "/media/"
 
+GRAPPELLI_ADMIN_TITLE = "MobileU"
+
+#STATICFILES_FINDERS = (
+#    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+#    'django.contrib.staticfiles.finders.FileSystemFinder',
+#)
+
+#TEMPLATE_CONTEXT_PROCESSORS = (
+#    "django.core.context_processors.request",
+#)

@@ -4,82 +4,17 @@ from django.contrib.auth.admin import UserAdmin
 from forms import *
 
 
-
-"""
-class LearnerCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-
-    class Meta:
-        model = Learner
-        fields = ("username", "email", "password1", "password2")
-
-    def save(self, commit=True):
-        user = super(LearnerCreationForm, self).save(commit=False)
-        user.email = self.cleaned_data["email"]
-        if commit:
-            user.save()
-        return user
-"""
-
-
-
-"""
-class LearnerCreationForm(forms.ModelForm):
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
-
-    class Meta:
-        model = ProxyLearner
-        fields = ("username", "email")
-
-    def clean_password2(self):
-        # Check that the two password entries match
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords don't match")
-        return password2
-
-    def save(self, commit=True):
-        # Save the provided password in hashed format
-        user = super(UserCreationForm, self).save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        if commit:
-            user.save()
-        return user
-
-class LearnerChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):
-        model = ProxyLearner
-
-class LearnerAdmin(UserAdmin):
-    form = LearnerChangeForm
-    add_form = LearnerCreationForm
-
-    fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",          {"fields": ("username", "password", "is_active")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
-    )
-"""
-
-
-
-
-
-
-
-
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
     form = SystemAdministratorChangeForm
     add_form = SystemAdministratorCreationForm
 
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('email', )
-    #list_filter = ('is_admin',)
+    list_display = ("username", "last_name", "first_name", "country", "area")
+    list_filter = ("country", "area")
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name")
+    filter_horizontal = ()
+
     fieldsets = (
         ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
         ("Access",          {"fields": ("username", "password", "is_active")}),
@@ -89,14 +24,10 @@ class SystemAdministratorAdmin(UserAdmin):
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2')}
-        ),
+        ("Personal info",           {"fields": ("first_name", "last_name")}),
+        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Region",                  {"fields": ("country",)})
     )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
 
 
 class SchoolManagerAdmin(UserAdmin):
@@ -104,27 +35,25 @@ class SchoolManagerAdmin(UserAdmin):
     form = SchoolManagerChangeForm
     add_form = SchoolManagerCreationForm
 
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('email', )
-    #list_filter = ('is_admin',)
+    list_display = ("username", "last_name", "first_name", "country", "area")
+    list_filter = ("country", "area")
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name")
+    filter_horizontal = ()
+
     fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",          {"fields": ("username", "password", "is_active")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
+        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password", "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city", "school")}),
+        ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2')}
-        ),
+        ("Personal info",           {"fields": ("first_name", "last_name")}),
+        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Region",                  {"fields": ("country", "area", "school")})
     )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
 
 
 class CourseManagerAdmin(UserAdmin):
@@ -132,27 +61,25 @@ class CourseManagerAdmin(UserAdmin):
     form = CourseManagerChangeForm
     add_form = CourseManagerCreationForm
 
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('email', )
-    #list_filter = ('is_admin',)
+    list_display = ("username", "last_name", "first_name", "country", "area")
+    list_filter = ("country", "area")
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name")
+    filter_horizontal = ()
+
     fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",          {"fields": ("username", "password", "is_active")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
+        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password", "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city", "course")}),
+        ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2')}
-        ),
+        ("Personal info",           {"fields": ("first_name", "last_name")}),
+        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Region",                  {"fields": ("country", "area", "course")})
     )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
 
 
 class CourseMentorAdmin(UserAdmin):
@@ -160,27 +87,25 @@ class CourseMentorAdmin(UserAdmin):
     form = CourseMentorChangeForm
     add_form = CourseMentorCreationForm
 
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('email', )
-    #list_filter = ('is_admin',)
+    list_display = ("username", "last_name", "first_name", "country", "area")
+    list_filter = ("country", "area")
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name")
+    filter_horizontal = ()
+
     fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",          {"fields": ("username", "password", "is_active")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
+        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password", "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city", "course")}),
+        ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2')}
-        ),
+        ("Personal info",           {"fields": ("first_name", "last_name")}),
+        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Region",                  {"fields": ("country", "area", "course")})
     )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
 
 
 class LearnerAdmin(UserAdmin):
@@ -191,24 +116,27 @@ class LearnerAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', )
-    #list_filter = ('is_admin',)
+    list_display = ("username", "last_name", "first_name", "country", "area")
+    list_filter = ("country", "area")
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name")
+    filter_horizontal = ()
+    readonly_fields = ("mobile",)
+
     fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",          {"fields": ("username", "password", "is_active")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
+        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password", "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city", "school")}),
+        ("Opt-In Communications",   {"fields": ("optin_sms", "optin_email")}),
+        ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2')}
-        ),
+        ("Personal info",           {"fields": ("first_name", "last_name")}),
+        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Region",                  {"fields": ("country", "area", "school")})
     )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
 
 
 # Auth

@@ -21,6 +21,16 @@ class PostAdmin(SummernoteModelAdmin):
     ]
 
 
+class ChatMessageInline(admin.TabularInline):
+    model = ChatMessage
+    extra = 0
+    readonly_fields = ("author", "content", "publishdate")
+    ordering = ("publishdate",)
+
+    def has_add_permission(self, request):
+        return False
+
+
 class ChatGroupAdmin(SummernoteModelAdmin):
     list_display = ("name", "course", "description")
     list_filter = ("course", )
@@ -28,6 +38,7 @@ class ChatGroupAdmin(SummernoteModelAdmin):
     fieldsets = [
         (None,                  {"fields": ["name", "description", "course"]})
     ]
+    inlines = (ChatMessageInline, )
 
 
 class DiscussionAdmin(admin.ModelAdmin):
@@ -52,7 +63,7 @@ class MessageAdmin(SummernoteModelAdmin):
 
 
 # Communication
-admin.site.register(Page, PageAdmin)
+#admin.site.register(Page, PageAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)

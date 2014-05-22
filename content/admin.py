@@ -55,7 +55,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin):
 class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_display = ("question", "order", "name")
     list_filter = ("question", )
-    search_fields = ("name")
+    search_fields = ("name",)
     fieldsets = [
         (None,                  {"fields": ["name", "question", "order"]}),
         ("Content",             {"fields": ["content", "correct"]})

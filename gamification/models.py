@@ -1,6 +1,7 @@
 from django.db import models
 from organisation.models import Course, Module
 
+
 # BadgeTemplates can be specified and linked to a Course and Scenario. A BadgeTemplate has a name, an image (jpg, png,
 # gif) and a description. Badges are instances of a BadgeTemplate awarded to a specific user.
 class GamificationPointBonus(models.Model):

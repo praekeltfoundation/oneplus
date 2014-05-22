@@ -35,8 +35,10 @@ class Participant(models.Model):
     classs = models.ForeignKey(Class, verbose_name="Class")
     datejoined = models.DateField(verbose_name="Joined")
     points = models.PositiveIntegerField(verbose_name="Points Scored")
-    pointbonus = models.ManyToManyField(GamificationPointBonus, through="ParticipantPointBonusRel", verbose_name="Point Bonuses", blank=True)
-    badgetemplate = models.ManyToManyField(GamificationBadgeTemplate, through="ParticipantBadgeTemplateRel", verbose_name="Badge Templates", blank=True)
+    pointbonus = models.ManyToManyField(GamificationPointBonus, through="ParticipantPointBonusRel",
+                                        verbose_name="Point Bonuses", blank=True)
+    badgetemplate = models.ManyToManyField(GamificationBadgeTemplate, through="ParticipantBadgeTemplateRel",
+                                           verbose_name="Badge Templates", blank=True)
 
     def __str__(self):
         return self.learner.first_name

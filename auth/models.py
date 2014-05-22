@@ -2,9 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from organisation.models import School, Course
 
+
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
-    mobile = models.CharField(verbose_name="Mobile Phone Number", max_length=50, blank=False)
+    mobile = models.CharField(verbose_name="Mobile Phone Number", max_length=50, blank=False, unique=True)
     country = models.CharField(verbose_name="Country", max_length=50, blank=False)
     area = models.CharField(verbose_name="Local Area", max_length=50, blank=True)
     city = models.CharField(verbose_name="City", max_length=50, blank=True)
