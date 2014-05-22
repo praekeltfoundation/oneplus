@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     #"django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "grappelli",
     "django.contrib.admin",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -106,4 +107,8 @@ ONEPLUS_WIN_REQUIRED = 9
 # Airtime to win per week in Rands
 ONEPLUS_WIN_AIRTIME = 5
 
+GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
+FIXTURE_DIRS = (
+   "/fixtures/",
+)
