@@ -1,1 +1,1 @@
-django-mobileu==1.04
+django-mobileu==1.0.5
