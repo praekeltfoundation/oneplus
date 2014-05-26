@@ -112,3 +112,8 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 #TEMPLATE_CONTEXT_PROCESSORS = (
 #    "django.core.context_processors.request",
 #)
+
+try:
+    from production_settings import *
+except ImportError, e:
+    continue
