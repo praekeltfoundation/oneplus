@@ -5,7 +5,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     install_requires=[
-        'django-mobileu==1.04',
+        'django-mobileu==1.0.5',
     ],
     url='www.praekelt.co.za',
     license='',
