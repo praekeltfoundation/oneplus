@@ -16,7 +16,8 @@ class SystemAdministratorAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email", "mobile")}),
+        ("Personal info",   {"fields": ("first_name", "last_name", "email",
+                                        "mobile")}),
         ("Access",          {"fields": ("username", "password", "is_active")}),
         ("Permissions",     {"fields": ("is_staff", "is_superuser")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
@@ -25,7 +26,8 @@ class SystemAdministratorAdmin(UserAdmin):
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Access",                  {"fields": ("username", "password1",
+                                                "password2")}),
         ("Region",                  {"fields": ("country",)})
     )
 
@@ -42,16 +44,20 @@ class SchoolManagerAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password", "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city", "school")}),
+        ("Personal info",           {"fields": ("first_name", "last_name",
+                                                "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password",
+                                                "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city",
+                                                "school")}),
         ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Access",                  {"fields": ("username", "password1",
+                                                "password2")}),
         ("Region",                  {"fields": ("country", "area", "school")})
     )
 
@@ -68,16 +74,20 @@ class CourseManagerAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password", "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city", "course")}),
+        ("Personal info",           {"fields": ("first_name", "last_name",
+                                                "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password",
+                                                "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city",
+                                                "course")}),
         ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Access",                  {"fields": ("username", "password1",
+                                                "password2")}),
         ("Region",                  {"fields": ("country", "area", "course")})
     )
 
@@ -94,16 +104,20 @@ class CourseMentorAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password", "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city", "course")}),
+        ("Personal info",           {"fields": ("first_name", "last_name",
+                                                "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password",
+                                                "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city",
+                                                "course")}),
         ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Access",                  {"fields": ("username", "password1",
+                                                "password2")}),
         ("Region",                  {"fields": ("country", "area", "course")})
     )
 
@@ -124,9 +138,12 @@ class LearnerAdmin(UserAdmin):
     readonly_fields = ("mobile",)
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name", "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password", "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city", "school")}),
+        ("Personal info",           {"fields": ("first_name", "last_name",
+                                                "email", "mobile")}),
+        ("Access",                  {"fields": ("username", "password",
+                                                "is_active")}),
+        ("Region",                  {"fields": ("country", "area", "city",
+                                                "school")}),
         ("Opt-In Communications",   {"fields": ("optin_sms", "optin_email")}),
         ("Important dates",         {"fields": ("last_login", "date_joined")})
     )
@@ -134,7 +151,8 @@ class LearnerAdmin(UserAdmin):
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1", "password2")}),
+        ("Access",                  {"fields": ("username", "password1",
+                                                "password2")}),
         ("Region",                  {"fields": ("country", "area", "school")})
     )
 
