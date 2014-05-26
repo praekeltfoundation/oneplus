@@ -1,10 +1,12 @@
 from django.db import models
 
 
-# An organisations is a container for schools.
-# This exists almost solely for situations where MobileU is deployed as
-# a SAAS with multiple organisations on a single server.
 class Organisation(models.Model):
+    """
+    An organisations is a container for schools.
+    This exists almost solely for situations where MobileU is deployed as
+    a SAAS with multiple organisations on a single server.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
@@ -20,9 +22,11 @@ class Organisation(models.Model):
         verbose_name_plural = "Organisations"
 
 
-# Schools have a name, description and some basic contact details.
-# A school manager has the ability to CRUD courses under a school.
 class School(models.Model):
+    """
+    Schools have a name, description and some basic contact details.
+    A school manager has the ability to CRUD courses under a school.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
@@ -38,11 +42,13 @@ class School(models.Model):
         verbose_name_plural = "Schools"
 
 
-# Courses have a name, description and slug. A courses manager has the
-# ability to CRUD courses content (Modules, Pages & Posts etc). Courses
-# additionally have a series of settings which define the 'business
-# logic' for a courses.
 class Course(models.Model):
+    """
+    Courses have a name, description and slug. A courses manager has the
+    ability to CRUD courses content (Modules, Pages & Posts etc). Courses
+    additionally have a series of settings which define the 'business
+    logic' for a courses.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
@@ -60,9 +66,11 @@ class Course(models.Model):
         verbose_name_plural = "Courses"
 
 
-# Modules have a name, description, learning content, testing content
-# and gamification logic.
 class Module(models.Model):
+    """
+    Modules have a name, description, learning content, testing content
+    and gamification logic.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)

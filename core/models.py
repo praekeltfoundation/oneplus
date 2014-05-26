@@ -8,9 +8,11 @@ from gamification.models import (
 from content.models import TestingQuestion, TestingQuestionOption
 
 
-# Classes link Users (learners, mentors, etc) and Courses. A user has to
-# be in a class to participate in a modules.
 class Class(models.Model):
+    """
+    Classes link Users (learners, mentors, etc) and Courses. A user has to
+    be in a class to participate in a modules.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
@@ -31,9 +33,11 @@ class Class(models.Model):
         verbose_name_plural = "Classes"
 
 
-# Connects a learner to a class. Indicating the learners total points
-# earned as well as individual point and badges earned.
 class Participant(models.Model):
+    """
+    Connects a learner to a class. Indicating the learners total points
+    earned as well as individual point and badges earned.
+    """
     learner = models.ForeignKey(Learner, verbose_name="Learner")
     classs = models.ForeignKey(Class, verbose_name="Class")
     datejoined = models.DateField(verbose_name="Joined")

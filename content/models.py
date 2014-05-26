@@ -3,12 +3,14 @@ from django.core.validators import MaxValueValidator
 from organisation.models import Module
 
 
-# Each modules has learning content which can be broken up into chapters.
-# Essentially this content is HTML and needs to
-# be able to include images, videos, audio clips and hyperlinks to
-# external resources. The management interface will
-# only expose limited formatting options.
 class LearningChapter(models.Model):
+    """
+    Each modules has learning content which can be broken up into chapters.
+    Essentially this content is HTML and needs to
+    be able to include images, videos, audio clips and hyperlinks to
+    external resources. The management interface will
+    only expose limited formatting options.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
@@ -24,9 +26,11 @@ class LearningChapter(models.Model):
         verbose_name_plural = "Learning Chapters"
 
 
-# Each modules has a series of questions. The MVP supports two question
-# types, multiple-choice and free-form entry.
 class TestingBank(models.Model):
+    """
+    Each modules has a series of questions. The MVP supports two question
+    types, multiple-choice and free-form entry.
+    """
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
