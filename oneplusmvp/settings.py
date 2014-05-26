@@ -110,5 +110,5 @@ ONEPLUS_WIN_AIRTIME = 5
 GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
 FIXTURE_DIRS = (
-   "/fixtures/",
+    "/fixtures/",
 )
