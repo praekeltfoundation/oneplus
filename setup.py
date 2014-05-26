@@ -6,6 +6,13 @@ setup(
     packages=['auth', 'auth.migrations', 'core', 'core.migrations', 'content', 'content.migrations', 'mobileu',
               'gamification', 'gamification.migrations', 'organisation', 'organisation.migrations', 'communication',
               'communication.migrations'],
+    install_requires=[
+        'Django==1.6.5',
+        'South==0.8.4',
+        'django-grappelli==2.5.3',
+        'django-summernote==0.5.9',
+        'Pillow==2.4.0',
+    ],
     url='www.preakelt.co.za',
     license='',
     author='preakelt',
