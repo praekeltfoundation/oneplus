@@ -11,10 +11,10 @@ setup(
         'django-summernote==0.5.9',
         'Pillow==2.4.0',
     ],
-    url='www.preakelt.co.za',
+    url='www.praekelt.co.za',
     license='',
-    author='preakelt',
-    author_email='info@preakelt.co.za',
+    author='praekelt',
+    author_email='info@praekelt.co.za',
     description='The MobileU MVP framework allows other developers to '
                 'easily build mobile education sites.'
 )
