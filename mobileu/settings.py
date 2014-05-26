@@ -24,7 +24,8 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]  # os.path.join(BASE_DIR, "oneplus/templates")
+# os.path.join(BASE_DIR, "oneplus/templates")
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]
 
 ALLOWED_HOSTS = []
 
