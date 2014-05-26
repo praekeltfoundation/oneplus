@@ -24,7 +24,8 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]  # os.path.join(BASE_DIR, "oneplus/templates")
+# os.path.join(BASE_DIR, "oneplus/templates")
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]
 
 ALLOWED_HOSTS = []
 
@@ -111,3 +112,8 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 #TEMPLATE_CONTEXT_PROCESSORS = (
 #    "django.core.context_processors.request",
 #)
+
+try:
+    from production_settings import *
+except ImportError, e:
+    continue

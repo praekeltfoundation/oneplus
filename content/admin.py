@@ -22,8 +22,10 @@ class LearningChapterAdmin(SummernoteModelAdmin):
     list_filter = ("module", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "module", "order"]}),
-        ("Content",             {"fields": ["content"]})
+        (None,
+            {"fields": ["name", "description", "module", "order"]}),
+        ("Content",
+            {"fields": ["content"]})
     ]
     ordering = ("module", "order", "name", )
 
@@ -33,8 +35,10 @@ class TestingBankAdmin(SummernoteModelAdmin):
     list_filter = ("module", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "module", "order"]}),
-        ("Content",             {"fields": ["question_order", ]})
+        (None,
+            {"fields": ["name", "description", "module", "order"]}),
+        ("Content",
+            {"fields": ["question_order", ]})
     ]
     inlines = (TestingQuestionInline, )
     ordering = ("module", "order", "name", )
@@ -45,8 +49,11 @@ class TestingQuestionAdmin(SummernoteModelAdmin):
     list_filter = ("bank", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "bank", "order"]}),
-        ("Content",             {"fields": ["question_content", "answer_content", "difficulty", "points"]})
+        (None,
+            {"fields": ["name", "description", "bank", "order"]}),
+        ("Content",
+            {"fields": ["question_content", "answer_content",
+                        "difficulty", "points"]})
     ]
     inlines = (TestingQuestionOptionInline,)
     ordering = ("bank", "order", "name", )

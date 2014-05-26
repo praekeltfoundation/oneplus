@@ -5,12 +5,10 @@ from core.models import *
 class ParticipantInline(admin.TabularInline):
     model = Participant
     extra = 1
-    #fields = ("learner", "classs", "datejoined", "points", "pointbonus", "badgetemplate")
     fieldsets = [
-        (None,                  {"fields": ["learner", "classs", "datejoined"]}),
-        #("Achievements",        {"fields": ["points", "pointbonus", "badgetemplate"]}),
+        (None,
+            {"fields": ["learner", "classs", "datejoined"]}),
     ]
-    #filter_vertical = ("pointbonus", "badgetemplate")
 
 
 class ClassAdmin(admin.ModelAdmin):
@@ -26,8 +24,3 @@ class ClassAdmin(admin.ModelAdmin):
 
 # Organisation
 admin.site.register(Class, ClassAdmin)
-
-
-
-
-

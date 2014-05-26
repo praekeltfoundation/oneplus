@@ -32,7 +32,8 @@ class SchoolAdmin(admin.ModelAdmin):
     list_filter = ("organisation", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "organisation"]}),
+        (None,
+            {"fields": ["name", "description", "organisation"]}),
         ("Contact Information", {"fields": ["website", "email"]}),
     ]
     ordering = ("organisation", "name")

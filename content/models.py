@@ -3,11 +3,16 @@ from django.core.validators import MaxValueValidator
 from organisation.models import Module
 
 
-# Each modules has learning content which can be broken up into chapters. Essentially this content is HTML and needs to
-# be able to include images, videos, audio clips and hyperlinks to external resources. The management interface will
-# only expose limited formatting options.
 class LearningChapter(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    """
+    Each modules has learning content which can be broken up into chapters.
+    Essentially this content is HTML and needs to
+    be able to include images, videos, audio clips and hyperlinks to
+    external resources. The management interface will
+    only expose limited formatting options.
+    """
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
@@ -21,9 +26,13 @@ class LearningChapter(models.Model):
         verbose_name_plural = "Learning Chapters"
 
 
-# Each modules has a series of questions. The MVP supports two question types, multiple-choice and free-form entry.
 class TestingBank(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    """
+    Each modules has a series of questions. The MVP supports two question
+    types, multiple-choice and free-form entry.
+    """
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
@@ -39,15 +48,23 @@ class TestingBank(models.Model):
 
 
 class TestingQuestion(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     bank = models.ForeignKey(TestingBank, null=True, blank=False)
     question_content = models.TextField("Question", blank=True)
     answer_content = models.TextField("Answer", blank=True)
-    difficulty = models.PositiveIntegerField("Difficulty", choices=(
-        (1, "Not Specified"), (2, "Easy"), (3, "Normal"), (4, "Advanced")), default=1)
-    points = models.PositiveIntegerField("Points", validators=[MaxValueValidator(50)], default=0)
+    difficulty = models.PositiveIntegerField(
+        "Difficulty", choices=(
+            (1, "Not Specified"),
+            (2, "Easy"),
+            (3, "Normal"),
+            (4, "Advanced")
+        ),
+        default=1)
+    points = models.PositiveIntegerField(
+        "Points", validators=[MaxValueValidator(50)], default=0)
 
     def __str__(self):
         return self.name
@@ -58,7 +75,8 @@ class TestingQuestion(models.Model):
 
 
 class TestingQuestionOption(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     question = models.ForeignKey(TestingQuestion, null=True, blank=False)
     order = models.PositiveIntegerField("Order", default=1)
     content = models.TextField("Content", blank=True)
