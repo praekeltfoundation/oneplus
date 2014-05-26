@@ -5,13 +5,15 @@ from organisation.models import Course, Module
 from content.models import TestingQuestion
 
 
-# For the MVP phase of this project we will keep Pages and Posts very simplistic.
+# For the MVP phase of this project we will keep Pages and Posts very
+# simplistic.
 # The instance has a Landing page.
 # Each instance has an About page.
 # Each course has a Landing page.
 # These pages are manageable in the administration interface.
 class Page(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
 
@@ -23,15 +25,20 @@ class Page(models.Model):
         verbose_name_plural = "Pages"
 
 
-# Courses can have blog posts which include HTML and images. These posts support basic non-threaded text-only
-# commentary. A blog index page shows a paginated list of the blog posts available with the most recent at the top.
-# 10 posts per page with a blurb and click through to read more.
+# Courses can have blog posts which include HTML and images. These posts
+# support basic non-threaded text-only commentary. A blog index page
+# shows a paginated list of the blog posts available with the most
+# recent at the top. 10 posts per page with a blurb and click through
+# to read more.
 class Post(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
-    big_image = models.ImageField("Big Image", upload_to="img/", blank=True, null=True)
-    small_image = models.ImageField("Small Image", upload_to="img/", blank=True, null=True)
+    big_image = models.ImageField(
+        "Big Image", upload_to="img/", blank=True, null=True)
+    small_image = models.ImageField(
+        "Small Image", upload_to="img/", blank=True, null=True)
     content = models.TextField("Content", blank=True)
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
     moderated = models.NullBooleanField("Moderated", null=True, blank=True)
@@ -48,10 +55,11 @@ class Post(models.Model):
 #   Each Course. This feature can be turned off at the school level.
 #   Each Module. This feature can be turned off at the school level.
 #   Each Question. This feature can be turned off at the school level.
-# The forum experience in the MVP is very basic and does not support threading. Users are simply able to type a reply
-# limited to 1000 characters. As with all other parts of the site, users' avatars are displayed next to their name as
-# well as any special tags that show moderators etc.
-# The MVP does not have any report abuse functionality.
+# The forum experience in the MVP is very basic and does not support
+# threading. Users are simply able to type a reply limited to 1000
+# characters. As with all other parts of the site, users' avatars are
+# displayed next to their name as well as any special tags that show
+# moderators etc. The MVP does not have any report abuse functionality.
 class Discussion(models.Model):
     name = models.CharField("Name", max_length=50, null=True, blank=True)
     description = models.CharField("Description", max_length=50, blank=True)
@@ -74,7 +82,8 @@ class Discussion(models.Model):
 
 
 class Message(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=False)
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=False)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     content = models.TextField("Content", blank=True)
@@ -88,10 +97,12 @@ class Message(models.Model):
 
     @staticmethod
     def get_messages(user, course, limit):
-        _msgs = Message.objects.filter(course=course, direction=1).order_by("publishdate").reverse()
+        _msgs = Message.objects.filter(
+            course=course, direction=1).order_by("publishdate").reverse()
         _result = list()
         for m in _msgs:
-            _status = MessageStatus.objects.filter(message=m, user=user).first()
+            _status = MessageStatus.objects.filter(
+                message=m, user=user).first()
             if _status is None:
                 m.viewed = False
                 _result.append(m)
@@ -105,7 +116,8 @@ class Message(models.Model):
         _msgs = Message.objects.filter(course=course, direction=1)
         _counter = 0
         for m in _msgs:
-            if not MessageStatus.objects.filter(message=m, user=user, view_status=True).exists():
+            if not MessageStatus.objects.filter(
+                    message=m, user=user, view_status=True).exists():
                 _counter += 1
         return _counter
 
@@ -130,7 +142,8 @@ class Message(models.Model):
         verbose_name_plural = "Messages"
 
 
-# Message Status indicates if a user has viewed a message and if he has permanently hidden a message
+# Message Status indicates if a user has viewed a message and if he has
+# permanently hidden a message
 class MessageStatus(models.Model):
     message = models.ForeignKey(Message, null=True, blank=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
@@ -145,7 +158,8 @@ class MessageStatus(models.Model):
 
 # Chat groups are Learner only places where messages can be exchanged.
 class ChatGroup(models.Model):
-    name = models.CharField("Name", max_length=50, null=True, blank=False, unique=True)
+    name = models.CharField(
+        "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
 

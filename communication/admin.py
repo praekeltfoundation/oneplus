@@ -16,8 +16,10 @@ class PostAdmin(SummernoteModelAdmin):
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "course", "publishdate"]}),
-        ("Content",             {"fields": ["big_image", "small_image", "moderated", "content"]})
+        (None,
+            {"fields": ["name", "description", "course", "publishdate"]}),
+        ("Content",
+            {"fields": ["big_image", "small_image", "moderated", "content"]})
     ]
 
 
@@ -42,13 +44,17 @@ class ChatGroupAdmin(SummernoteModelAdmin):
 
 
 class DiscussionAdmin(admin.ModelAdmin):
-    list_display = ("course", "module", "question", "author", "publishdate", "content", "moderated")
+    list_display = ("course", "module", "question", "author", "publishdate",
+                    "content", "moderated")
     list_filter = ("course", "module", "question", "moderated")
     search_fields = ("author", "content")
     fieldsets = [
-        (None,                  {"fields": ["name", "description"]}),
-        ("Content",             {"fields": ["content", "author", "publishdate", "moderated"]}),
-        ("Discussion Group",    {"fields": ["course", "module", "question", "response"]})
+        (None,
+            {"fields": ["name", "description"]}),
+        ("Content",
+            {"fields": ["content", "author", "publishdate", "moderated"]}),
+        ("Discussion Group",
+            {"fields": ["course", "module", "question", "response"]})
     ]
 
 
@@ -57,8 +63,11 @@ class MessageAdmin(SummernoteModelAdmin):
     list_filter = ("course", "direction")
     search_fields = ("name", "author")
     fieldsets = [
-        (None,                  {"fields": ["name", "course", "author", "direction", "publishdate"]}),
-        ("Content",             {"fields": ["content"]})
+        (None,
+            {"fields": ["name", "course", "author", "direction",
+                        "publishdate"]}),
+        ("Content",
+            {"fields": ["content"]})
     ]
 
 
