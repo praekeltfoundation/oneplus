@@ -1,1 +1,1 @@
--e .
+django-mobileu==1.04

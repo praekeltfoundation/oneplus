@@ -112,3 +112,8 @@ GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 FIXTURE_DIRS = (
     "/fixtures/",
 )
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
