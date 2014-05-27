@@ -7,6 +7,12 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("auth", "0001_initial"),
+        ("organisation", "0001_initial"),
+        ("gamification", "0007_auto__add_field_gamificationscenario_module"),
+    )
+
     def forwards(self, orm):
         # Adding model 'Class'
         db.create_table(u'core_class', (
