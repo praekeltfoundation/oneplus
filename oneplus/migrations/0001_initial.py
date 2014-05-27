@@ -7,6 +7,13 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("core", "0005_auto__add_field_participant_points"),
+        ("content", "0001_initial"),
+        ("organisation", "0001_initial"),
+        ("auth", "0001_initial"),
+    )
+
     def forwards(self, orm):
         # Adding model 'LearnerState'
         db.create_table(u'oneplus_learnerstate', (
