@@ -116,4 +116,4 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 try:
     from production_settings import *
 except ImportError, e:
-    continue
+    pass
