@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         ("auth", "0001_initial"),
         ("organisation", "0001_initial"),
         ("content", "0001_initial"),
-        ("communication", "0009_initial"),
+        ("communication", "0009_auto__chg_field_discussion_moderated"),
         ("gamification", "0007_auto__add_field_gamificationscenario_module"),
     )
 
