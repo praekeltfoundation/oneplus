@@ -390,6 +390,14 @@ li.user {
     background-image: url("../img/icn_user.png");
 }
 
+li.information {
+    background-image: url("../img/icn_about.png");
+}
+
+li.contact {
+    background-image: url("../img/icn_conntact.png");
+}
+
 .badgecontainer {
     display: block;
     position: relative;
