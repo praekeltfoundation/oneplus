@@ -1,71 +1,14 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
 from django.db import models
 
-
-class Migration(SchemaMigration):
-
-    depends_on = (
-        ("content", "0001_initial"),
-    )
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Adding model 'Class'
-        db.create_table(u'core_class', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, unique=True, null=True)),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('course', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['organisation.Course'], null=True)),
-            ('type', self.gf('django.db.models.fields.PositiveIntegerField')(default=1)),
-            ('startdate', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('enddate', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-        ))
-        db.send_create_signal(u'core', ['Class'])
-
-        # Adding model 'Participant'
-        db.create_table(u'core_participant', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('learner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Learner'])),
-            ('classs', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Class'])),
-            ('datejoined', self.gf('django.db.models.fields.DateField')()),
-            ('points', self.gf('django.db.models.fields.PositiveIntegerField')()),
-        ))
-        db.send_create_signal(u'core', ['Participant'])
-
-        # Adding M2M table for field pointbonus on 'Participant'
-        m2m_table_name = db.shorten_name(u'core_participant_pointbonus')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('participant', models.ForeignKey(orm[u'core.participant'], null=False)),
-            ('gamificationpointbonus', models.ForeignKey(orm[u'gamification.gamificationpointbonus'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['participant_id', 'gamificationpointbonus_id'])
-
-        # Adding M2M table for field badgetemplate on 'Participant'
-        m2m_table_name = db.shorten_name(u'core_participant_badgetemplate')
-        db.create_table(m2m_table_name, (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('participant', models.ForeignKey(orm[u'core.participant'], null=False)),
-            ('gamificationbadgetemplate', models.ForeignKey(orm[u'gamification.gamificationbadgetemplate'], null=False))
-        ))
-        db.create_unique(m2m_table_name, ['participant_id', 'gamificationbadgetemplate_id'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Class'
-        db.delete_table(u'core_class')
-
-        # Deleting model 'Participant'
-        db.delete_table(u'core_participant')
-
-        # Removing M2M table for field pointbonus on 'Participant'
-        db.delete_table(db.shorten_name(u'core_participant_pointbonus'))
-
-        # Removing M2M table for field badgetemplate on 'Participant'
-        db.delete_table(db.shorten_name(u'core_participant_badgetemplate'))
-
+        from django.core.management import call_command
+        call_command("loaddata", "organisation/fixtures/initial_data.json")
 
     models = {
         u'auth.customuser': {
@@ -83,7 +26,7 @@ class Migration(SchemaMigration):
             'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'mobile': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'mobile': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
             'optin_email': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'optin_sms': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
@@ -108,6 +51,36 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
         },
+        u'content.testingbank': {
+            'Meta': {'object_name': 'TestingBank'},
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'module': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Module']", 'null': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            'question_order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
+        },
+        u'content.testingquestion': {
+            'Meta': {'object_name': 'TestingQuestion'},
+            'answer_content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'bank': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingBank']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            'difficulty': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            'points': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_content': ('django.db.models.fields.TextField', [], {'blank': 'True'})
+        },
+        u'content.testingquestionoption': {
+            'Meta': {'object_name': 'TestingQuestionOption'},
+            'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'correct': ('django.db.models.fields.BooleanField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True'})
+        },
         u'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
             'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
@@ -127,28 +100,64 @@ class Migration(SchemaMigration):
         },
         u'core.participant': {
             'Meta': {'object_name': 'Participant'},
-            'badgetemplate': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gamification.GamificationBadgeTemplate']", 'symmetrical': 'False', 'blank': 'True'}),
+            'badgetemplate': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gamification.GamificationBadgeTemplate']", 'symmetrical': 'False', 'through': u"orm['core.ParticipantBadgeTemplateRel']", 'blank': 'True'}),
             'classs': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Class']"}),
             'datejoined': ('django.db.models.fields.DateField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'learner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Learner']"}),
-            'pointbonus': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gamification.GamificationPointBonus']", 'symmetrical': 'False', 'blank': 'True'}),
+            'pointbonus': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gamification.GamificationPointBonus']", 'symmetrical': 'False', 'through': u"orm['core.ParticipantPointBonusRel']", 'blank': 'True'}),
             'points': ('django.db.models.fields.PositiveIntegerField', [], {})
+        },
+        u'core.participantbadgetemplaterel': {
+            'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2014, 5, 28, 0, 0)', 'null': 'True'}),
+            'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
+            'scenario': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationScenario']"})
+        },
+        u'core.participantpointbonusrel': {
+            'Meta': {'object_name': 'ParticipantPointBonusRel'},
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
+            'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),
+            'scenario': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationScenario']"})
+        },
+        u'core.participantquestionanswer': {
+            'Meta': {'object_name': 'ParticipantQuestionAnswer'},
+            'answerdate': ('django.db.models.fields.DateField', [], {'default': 'datetime.datetime(2014, 5, 28, 0, 0)', 'null': 'True'}),
+            'correct': ('django.db.models.fields.BooleanField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'option_selected': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestionOption']"}),
+            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
+            'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']"})
         },
         u'gamification.gamificationbadgetemplate': {
             'Meta': {'object_name': 'GamificationBadgeTemplate'},
             'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True'}),
+            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'})
         },
         u'gamification.gamificationpointbonus': {
             'Meta': {'object_name': 'GamificationPointBonus'},
             'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True'}),
+            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
             'value': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'})
+        },
+        u'gamification.gamificationscenario': {
+            'Meta': {'object_name': 'GamificationScenario'},
+            'badge': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']", 'null': 'True', 'blank': 'True'}),
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            'event': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'module': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Module']", 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
+            'point': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']", 'null': 'True', 'blank': 'True'})
         },
         u'organisation.course': {
             'Meta': {'object_name': 'Course'},
@@ -156,6 +165,13 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'}),
             'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50', 'blank': 'True'})
+        },
+        u'organisation.module': {
+            'Meta': {'object_name': 'Module'},
+            'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'unique': 'True', 'null': 'True'})
         },
         u'organisation.organisation': {
             'Meta': {'object_name': 'Organisation'},
@@ -177,3 +193,4 @@ class Migration(SchemaMigration):
     }
 
     complete_apps = ['core']
+    symmetrical = True

@@ -10,7 +10,7 @@ setup(
         'django-grappelli==2.5.3',
         'django-summernote==0.5.9',
         'Pillow==2.4.0',
-        'psycopg2'
+        'psycopg2==2.5.3',
     ],
     url='www.praekelt.co.za',
     license='',

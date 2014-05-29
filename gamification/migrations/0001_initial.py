@@ -9,6 +9,7 @@ class Migration(SchemaMigration):
 
     depends_on = (
         ("organisation", "0001_initial"),
+        ("auth", "0001_initial"),
     )
 
     def forwards(self, orm):
