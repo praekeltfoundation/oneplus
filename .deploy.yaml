@@ -7,4 +7,3 @@ dependencies:
  - postgresql-server-dev-all
  - libpq-dev
  - postgresql
- - redis-server
