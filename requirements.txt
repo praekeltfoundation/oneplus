@@ -1,2 +1,2 @@
-django-mobileu==1.0.6
+django-mobileu
 psycopg2
