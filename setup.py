@@ -5,7 +5,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     install_requires=[
-        'django-mobileu==1.0.5',
+        'django-mobileu==1.0.6',
         'psycopg2'
     ],
     url='www.praekelt.co.za',
