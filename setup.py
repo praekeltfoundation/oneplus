@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-mobileu',
-    version='1.0.5',
+    version='1.0.6',
     packages=find_packages(),
     install_requires=[
         'Django==1.6.5',
@@ -10,6 +10,7 @@ setup(
         'django-grappelli==2.5.3',
         'django-summernote==0.5.9',
         'Pillow==2.4.0',
+        'psycopg2==2.5.3',
     ],
     url='www.praekelt.co.za',
     license='',
