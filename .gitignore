@@ -42,3 +42,4 @@ logs/*.log
 
 #ignore thumbnails created by windows
 Thumbs.db
+db.sqlite3
