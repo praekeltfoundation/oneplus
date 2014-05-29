@@ -114,6 +114,6 @@ FIXTURE_DIRS = (
 )
 
 try:
-    from production_settings import *
+    from local_settings import *
 except ImportError, e:
     pass
