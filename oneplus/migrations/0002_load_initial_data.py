@@ -6,15 +6,24 @@ from django.db import models
 from django.core.management import call_command
 
 class Migration(DataMigration):
+    depends_on = (
+        ("organisation", "0001_initial"),
+        ("auth", "0001_initial"),
+        ("communication", "0009_auto__chg_field_discussion_moderated"),
+        ("content", "0001_initial"),
+        ("gamification", "0007_auto__add_field_gamificationscenario_module"),
+        ("core", "0005_auto__add_field_participant_points"),
+        ("oneplus", "0001_initial"),
+    )
 
     def forwards(self, orm):
-        call_command("loaddata", "../fixtures/organisation/initial_data.json")
-        call_command("loaddata", "../fixtures/auth/initial_data.json")
-        call_command("loaddata", "../fixtures/communication/initial_data.json")
-        call_command("loaddata", "../fixtures/content/initial_data.json")
-        call_command("loaddata", "../fixtures/gamification/initial_data.json")
-        call_command("loaddata", "../fixtures/core/initial_data.json")
-        call_command("loaddata", "../fixtures/oneplus/initial_data.json")
+        call_command("loaddata", "organisation_initial_data.json")
+        call_command("loaddata", "auth_initial_data.json")
+        call_command("loaddata", "communication_initial_data.json")
+        call_command("loaddata", "content_initial_data.json")
+        call_command("loaddata", "gamification_initial_data.json")
+        call_command("loaddata", "core_initial_data.json")
+        call_command("loaddata", "oneplus_initial_data.json")
 
     def backwards(self, orm):
         "Write your backwards methods here."
