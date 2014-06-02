@@ -144,6 +144,7 @@ GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
 FIXTURE_DIRS = (
     "/fixtures/",
+    abspath('fixtures'),
 )
 
 try:
