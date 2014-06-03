@@ -19,8 +19,8 @@ class Migration(DataMigration):
     def forwards(self, orm):
         call_command("loaddata", "organisation_initial_data.json")
         call_command("loaddata", "auth_initial_data.json")
-        call_command("loaddata", "communication_initial_data.json")
         call_command("loaddata", "content_initial_data.json")
+        call_command("loaddata", "communication_initial_data.json")
         call_command("loaddata", "gamification_initial_data.json")
         call_command("loaddata", "core_initial_data.json")
         call_command("loaddata", "oneplus_initial_data.json")
