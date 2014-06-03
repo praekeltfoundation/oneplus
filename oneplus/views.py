@@ -78,7 +78,7 @@ def login(request, state):
                         if _parti.classs.course.name == "One Plus Grade 11":
                             _registered = _parti
 
-                    if _parti is not None:
+                    if _registered is not None:
                         request.session["user"] = {}
                         request.session["user"]["id"] = _learner.id
                         request.session["user"]["name"] = _learner.first_name
