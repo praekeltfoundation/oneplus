@@ -3,5 +3,5 @@
 cp -a $REPO ./build/
 
 ${PIP} install -r $REPO/requirements.txt
-${PIP} freeze > build/oneplusmvp/static/pip-freeze.txt
-git -C $REPO log -50 --pretty=format:'%ai - %h %s (%cr) <%an>' > build/oneplusmvp/static/git-commits.log
+${PIP} freeze > build/oneplus/oneplusmvp/static/pip-freeze.txt
+git -C $REPO log -50 --pretty=format:'%ai - %h %s (%cr) <%an>' > build/oneplus/oneplusmvp/static/git-commits.log
