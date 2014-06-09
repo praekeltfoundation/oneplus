@@ -9,7 +9,7 @@
         <div class="text heading darkgrey-back"><p>Q {{ state.next_tasks_today }}/3</p></div>
 
         {% autoescape off %}
-            <div class="content narrow white-back">
+            <div class="content narrow white-back darkgrey-front">
                 <form action="next" method="post" class="pad-bottom">{% csrf_token %}
                         <p>{{ question.question_content }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
