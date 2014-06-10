@@ -194,7 +194,9 @@ def nextchallenge(request, state, user):
     _learnerstate.getnextquestion()
 
     request.session["state"]["next_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
+        ParticipantQuestionAnswer.objects.filter(participant=_participant,
+                                                 answerdate__gte=date.today())\
+                                                .distinct('participant', 'question').count() + 1
 
     def get():
         request.session["state"]["discussion_page_max"] = \
@@ -226,8 +228,9 @@ def nextchallenge(request, state, user):
             _ans_id = request.POST["answer"]
             _option = _learnerstate.active_question.testingquestionoption_set.get(pk=_ans_id)
 
-            #Save answer
-            _answer = ParticipantQuestionAnswer(participant=_participant, question=_learnerstate.active_question, option_selected=_option, correct=_option.correct, answerdate=datetime.now())
+            _answer = ParticipantQuestionAnswer(participant=_participant, question=_learnerstate.active_question,
+                                                option_selected=_option, correct=_option.correct,
+                                                answerdate=datetime.now())
             _answer.save()
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
@@ -328,8 +331,9 @@ def right(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(participant=_participant).first()
     request.session["state"]["right_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
-
+        ParticipantQuestionAnswer.objects.filter(participant=_participant,
+                                                 answerdate__gte=date.today())\
+                                                .distinct('participant', 'question').count()
     def get():
         if _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
@@ -347,10 +351,22 @@ def right(request, state, user):
                                           moderated=True,
                                           response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
 
+            _scenario = GamificationScenario.objects.filter(module=_learnerstate.active_question.bank.module,
+                                                            course=_learnerstate.active_question.bank.module.course,
+                                                            event="CORRECT")
+            _badge = ParticipantBadgeTemplateRel.objects.filter(participant=_participant,
+                                                                scenario__in=_scenario,
+                                                                awarddate__range=[datetime.today()-timedelta(minutes=1),
+                                                                                  datetime.today()]).first()
+            if _badge:
+                _badgetemplate = _badge.badgetemplate
+            else:
+                _badgetemplate = None
             return render(request, "learn/right.html", {"state": state,
                                                         "user": user,
                                                         "question": _learnerstate.active_question,
-                                                        "messages": _messages})
+                                                        "messages": _messages,
+                                                        "badge": _badgetemplate})
         else:
             return HttpResponseRedirect("wrong")
 
@@ -423,7 +439,9 @@ def wrong(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(participant=_participant).first()
     request.session["state"]["wrong_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
+        ParticipantQuestionAnswer.objects.filter(participant=_participant,
+                                                 answerdate__gte=date.today())\
+                                                .distinct('participant', 'question').count()
 
 
     def get():
