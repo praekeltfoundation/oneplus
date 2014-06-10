@@ -425,6 +425,14 @@ li.user {
 .pull-right { float:right;}
 .clear { clear: both; }
 
+div.badge {
+    display: block;
+    width: 62px;
+    height: 64px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
 li.badge {
     position: absolute;
     display: block;

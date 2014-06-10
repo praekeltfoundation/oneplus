@@ -347,10 +347,22 @@ def right(request, state, user):
                                           moderated=True,
                                           response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
 
+            _scenario = GamificationScenario.objects.filter(module=_learnerstate.active_question.bank.module,
+                                                            course=_learnerstate.active_question.bank.module.course,
+                                                            event="CORRECT")
+            _badge = ParticipantBadgeTemplateRel.objects.filter(participant=_participant,
+                                                                scenario__in=_scenario,
+                                                                awarddate__range=[datetime.today()-timedelta(minutes=1),
+                                                                                  datetime.today()]).first()
+            if _badge:
+                _badgetemplate = _badge.badgetemplate
+            else:
+                _badgetemplate = None
             return render(request, "learn/right.html", {"state": state,
                                                         "user": user,
                                                         "question": _learnerstate.active_question,
-                                                        "messages": _messages})
+                                                        "messages": _messages,
+                                                        "badge": _badgetemplate})
         else:
             return HttpResponseRedirect("wrong")
 

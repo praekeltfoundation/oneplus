@@ -11,9 +11,22 @@
         {% autoescape off %}
             <div class="content narrow white-back darkgrey-front">
                 <div class="pad-bottom">
+                    <h1>Correct</h1>
+                    {% if badge %}
+                        <div class="badge" style="background-image: url('{{ badge.image.url }}')"></div>
+                    {% endif %}
                     <p>
-                        <h1>Correct</h1>
-                        {{ question.points }} Point added, XXX badge earned
+                        {{ question.points }}
+                        {% if question.points > 1 %}
+                            points added.
+                        {% else %}
+                            point added.
+                        {% endif %}
+                    </p>
+                    <p>
+                        {% if badge %}
+                            {{ badge.name }} badge earned
+                        {% endif %}
                     </p>
                     {% if state.right_tasks_today >= 3 %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
