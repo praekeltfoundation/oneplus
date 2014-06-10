@@ -82,6 +82,10 @@ class TestingQuestionOption(models.Model):
     content = models.TextField("Content", blank=True)
     correct = models.BooleanField("Correct")
 
+    def link(self):
+        return "<a href='/admin/content/testingquestionoption/%s' target='_blank'>Edit</a>" % str(self.id)
+    link.allow_tags = True
+
     def __str__(self):
         return self.name
 
