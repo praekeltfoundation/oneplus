@@ -12,8 +12,8 @@ class LearningChapter(models.Model):
     only expose limited formatting options.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
     content = models.TextField("Content", blank=True)
@@ -32,8 +32,8 @@ class TestingBank(models.Model):
     types, multiple-choice and free-form entry.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
     question_order = models.PositiveIntegerField("Question Order", choices=(
@@ -49,8 +49,8 @@ class TestingBank(models.Model):
 
 class TestingQuestion(models.Model):
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     bank = models.ForeignKey(TestingBank, null=True, blank=False)
     question_content = models.TextField("Question", blank=True)
@@ -64,7 +64,7 @@ class TestingQuestion(models.Model):
         ),
         default=1)
     points = models.PositiveIntegerField(
-        "Points", validators=[MaxValueValidator(50)], default=0)
+        "Points", validators=[MaxValueValidator(500)], default=0)
 
     def __str__(self):
         return self.name
@@ -76,7 +76,7 @@ class TestingQuestion(models.Model):
 
 class TestingQuestionOption(models.Model):
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
     question = models.ForeignKey(TestingQuestion, null=True, blank=False)
     order = models.PositiveIntegerField("Order", default=1)
     content = models.TextField("Content", blank=True)

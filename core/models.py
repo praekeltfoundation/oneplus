@@ -14,8 +14,8 @@ class Class(models.Model):
     be in a class to participate in a modules.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     type = models.PositiveIntegerField("Type", choices=(
         (1, "Traditional"), (2, "Open Class ")), default=1)
@@ -69,7 +69,7 @@ class Participant(models.Model):
                 if not template_rels.exists():
                     b = ParticipantBadgeTemplateRel(
                         participant=self, badgetemplate=scenario.badge,
-                        scenario=scenario)
+                        scenario=scenario, awarddate=datetime.now())
                     b.save()
 
         # Recalculate total points
