@@ -194,7 +194,9 @@ def nextchallenge(request, state, user):
     _learnerstate.getnextquestion()
 
     request.session["state"]["next_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
+        ParticipantQuestionAnswer.objects.filter(participant=_participant,
+                                                 answerdate__gte=date.today())\
+                                                .distinct('participant', 'question').count()
 
     def get():
         request.session["state"]["discussion_page_max"] = \
@@ -328,8 +330,9 @@ def right(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(participant=_participant).first()
     request.session["state"]["right_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
-
+        ParticipantQuestionAnswer.objects.filter(participant=_participant,
+                                                 answerdate__gte=date.today())\
+                                                .distinct('participant', 'question').count()
     def get():
         if _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
@@ -435,7 +438,9 @@ def wrong(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(participant=_participant).first()
     request.session["state"]["wrong_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
+        ParticipantQuestionAnswer.objects.filter(participant=_participant,
+                                                 answerdate__gte=date.today())\
+                                                .distinct('participant', 'question').count()
 
 
     def get():
