@@ -228,8 +228,9 @@ def nextchallenge(request, state, user):
             _ans_id = request.POST["answer"]
             _option = _learnerstate.active_question.testingquestionoption_set.get(pk=_ans_id)
 
-            #Save answer
-            _answer = ParticipantQuestionAnswer(participant=_participant, question=_learnerstate.active_question, option_selected=_option, correct=_option.correct, answerdate=datetime.now())
+            _answer = ParticipantQuestionAnswer(participant=_participant, question=_learnerstate.active_question,
+                                                option_selected=_option, correct=_option.correct,
+                                                answerdate=datetime.now())
             _answer.save()
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
