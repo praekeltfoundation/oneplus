@@ -820,18 +820,16 @@ def leader(request, state, user):
 
     def get():
         request.session["state"]["leader_menu"] = False
-        request.session["state"]["leader_place"] = Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count() + 1
+        request.session["state"]["leader_place"] = Participant.objects.filter(classs=_participant.classs).count()
 
         _learners = \
-            list(Participant.objects.filter(
-                classs=_participant.classs,
-                points__gt=_participant.points).order_by("points")[:4]) \
-            + list([_participant]) \
-            + list(Participant.objects.filter(
-                classs=_participant.classs,
-                points__lt=_participant.points).order_by("points").reverse()[:5])
+            list(Participant.objects.filter(classs=_participant.classs).order_by("-points")[:10])
 
-        return render(request, "prog/leader.html", {"state": state,
+        try:
+            index = _learners.index(_participant)
+            _learners[index].me = True
+        finally:
+            return render(request, "prog/leader.html", {"state": state,
                                                     "user": user,
                                                     "learners": _learners})
 
@@ -848,30 +846,18 @@ def leader(request, state, user):
                 list(Participant.objects.filter(
                     classs=_participant.classs,
                     points__gt=_participant.points,
-                    learner__area=request.session["state"]["leader_region"]).order_by("points")[:4]) \
-                + list([_participant]) \
-                + list(Participant.objects.filter(
-                    classs=_participant.classs,
-                    points__lt=_participant.points,
-                    learner__area=request.session["state"]["leader_region"]).order_by("points").reverse()[:5])
+                    learner__area=request.session["state"]["leader_region"]).order_by("-points")[:10])
 
             request.session["state"]["leader_place"] = \
                 Participant.objects.filter(classs=_participant.classs,
-                                           points__gt=_participant.points,
-                                           learner__area=request.session["state"]["leader_region"]).count() + 1
+                                           learner__area=request.session["state"]["leader_region"]).count()
         else:
             _learners = \
                 list(Participant.objects.filter(
-                    classs=_participant.classs,
-                    points__gt=_participant.points).order_by("points")[:4]) \
-                + list([_participant]) \
-                + list(Participant.objects.filter(
-                    classs=_participant.classs,
-                    points__lt=_participant.points).order_by("points").reverse()[:5])
+                    classs=_participant.classs).order_by("-points")[:10])
 
             request.session["state"]["leader_place"] = \
-                Participant.objects.filter(classs=_participant.classs,
-                                           points__gt=_participant.points).count() + 1
+                Participant.objects.filter(classs=_participant.classs).count()
 
         request.session["state"]["leader_regions"] = list([{"area":"Countrywide"}]) + list(Learner.objects.values("area").distinct().all())
 
