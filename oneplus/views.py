@@ -820,7 +820,7 @@ def leader(request, state, user):
 
     def leader_position(location):
         if location == "Countrywide":
-            return Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count()
+            return Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count() + 1
 
         if _participant.learner.area == location:
             return Participant.objects.filter(
@@ -835,8 +835,8 @@ def leader(request, state, user):
             return list(Participant.objects.filter(classs=_participant.classs).order_by("-points")[:10])
         else:
             return list(Participant.objects.filter(
-                    classs=_participant.classs,
-                    learner__area=request.session["state"]["leader_region"]).order_by("-points")[:10])
+                        classs=_participant.classs,
+                        learner__area=location).order_by("-points")[:10])
 
     def get():
         request.session["state"]["leader_menu"] = False
