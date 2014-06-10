@@ -27,7 +27,7 @@
 
         {% for participant in learners %}
             <div class="item grey-back {% if participant.me %}red-front{% endif %}">
-                <div class="large-font pull-left">#1</div>
+                <div class="large-font pull-left">{{ forloop.counter }}</div>
                 <div class="large-font pull-left" style="padding-left:40px">{{ participant.learner.first_name }} ({{ participant.learner.area }})</div>
                 <div class="large-font pull-right">{{ participant.points }}</div>
                 <div class="clear"></div>
