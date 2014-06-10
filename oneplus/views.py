@@ -196,7 +196,7 @@ def nextchallenge(request, state, user):
     request.session["state"]["next_tasks_today"] = \
         ParticipantQuestionAnswer.objects.filter(participant=_participant,
                                                  answerdate__gte=date.today())\
-                                                .distinct('participant', 'question').count()
+                                                .distinct('participant', 'question').count() + 1
 
     def get():
         request.session["state"]["discussion_page_max"] = \
