@@ -818,12 +818,33 @@ def leader(request, state, user):
     _participant.me = True
     request.session["state"]["leader_region"] = "Countrywide"
 
+    def leader_position(location):
+        if location == "Countrywide":
+            return Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count()
+
+        if _participant.learner.area == location:
+            return Participant.objects.filter(
+                classs=_participant.classs,
+                points__gt=_participant.points,
+                learner__area=location).count() + 1
+        else:
+            return -1
+
+    def get_leaderboard(location):
+        if location == "Countrywide":
+            return list(Participant.objects.filter(classs=_participant.classs).order_by("-points")[:10])
+        else:
+            return list(Participant.objects.filter(
+                    classs=_participant.classs,
+                    learner__area=request.session["state"]["leader_region"]).order_by("-points")[:10])
+
     def get():
         request.session["state"]["leader_menu"] = False
-        request.session["state"]["leader_place"] = Participant.objects.filter(classs=_participant.classs).count()
 
-        _learners = \
-            list(Participant.objects.filter(classs=_participant.classs).order_by("-points")[:10])
+        #Get leaderboard and position
+        _location = request.session["state"]["leader_region"]
+        _learners = get_leaderboard(_location)
+        request.session["state"]["leader_place"] = leader_position(_location)
 
         try:
             index = _learners.index(_participant)
@@ -841,29 +862,23 @@ def leader(request, state, user):
             request.session["state"]["leader_menu"] = False
             request.session["state"]["leader_region"] = request.POST["region"]
 
-        if request.session["state"]["leader_region"] != "Countrywide":
-            _learners = \
-                list(Participant.objects.filter(
-                    classs=_participant.classs,
-                    points__gt=_participant.points,
-                    learner__area=request.session["state"]["leader_region"]).order_by("-points")[:10])
+        #Get leaderboard and position
+        _location = request.session["state"]["leader_region"]
+        _learners = get_leaderboard(_location)
+        request.session["state"]["leader_place"] = leader_position(_location)
 
-            request.session["state"]["leader_place"] = \
-                Participant.objects.filter(classs=_participant.classs,
-                                           learner__area=request.session["state"]["leader_region"]).count()
-        else:
-            _learners = \
-                list(Participant.objects.filter(
-                    classs=_participant.classs).order_by("-points")[:10])
+        #Get unique regions
+        request.session["state"]["leader_regions"] = list([{"area": "Countrywide"}]) \
+                                                     + list(Learner.objects.values("area").distinct().all())
 
-            request.session["state"]["leader_place"] = \
-                Participant.objects.filter(classs=_participant.classs).count()
-
-        request.session["state"]["leader_regions"] = list([{"area":"Countrywide"}]) + list(Learner.objects.values("area").distinct().all())
-
-        return render(request, "prog/leader.html", {"state": state,
-                                                    "user": user,
-                                                    "learners": _learners})
+        #Tag the user
+        try:
+            index = _learners.index(_participant)
+            _learners[index].me = True
+        finally:
+            return render(request, "prog/leader.html", {"state": state,
+                                                        "user": user,
+                                                        "learners": _learners})
 
     return resolve_http_method(request, [get, post])
 
