@@ -11,10 +11,10 @@
         {% autoescape off %}
             <div class="content narrow white-back darkgrey-front">
                 <div class="pad-bottom">
-                    <p>
-                        <h1>Incorrect</h1>
-                        0 Points added
-                    </p>
+
+                    <div class="xlarge-font center-font pad-bottom">Incorrect</div>
+                    <div class="large-font center-font">Unfortunately that is not the answer</div>
+                    <div class="large-font green-front center-font">Read the Textbook</div>
                     {% if state.wrong_tasks_today >= 3 %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
                     {% else %}

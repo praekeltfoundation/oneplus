@@ -11,23 +11,22 @@
         {% autoescape off %}
             <div class="content narrow white-back darkgrey-front">
                 <div class="pad-bottom">
-                    <h1>Correct</h1>
+                    <div class="xlarge-font center-font pad-bottom">Correct</div>
+                    <div class="large-font-normal center-font">
+                    <span class="large-font center-font">
+                        {% if question.points > 1 %}
+                             {{ question.points }} points
+                        {% else %}
+                             {{ question.points }} point
+                        {% endif %}
+                    </span> added.
+                        {% if badge %}
+                            <span class="large-font center-font">{{ badge.name }}</span> badge earned
+                        {% endif %}
+                    </div>
                     {% if badge %}
                         <div class="badge" style="background-image: url('{{ badge.image.url }}')"></div>
                     {% endif %}
-                    <p>
-                        {{ question.points }}
-                        {% if question.points > 1 %}
-                            points added.
-                        {% else %}
-                            point added.
-                        {% endif %}
-                    </p>
-                    <p>
-                        {% if badge %}
-                            {{ badge.name }} badge earned
-                        {% endif %}
-                    </p>
                     {% if state.right_tasks_today >= 3 %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
                     {% else %}
