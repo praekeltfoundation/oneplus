@@ -13,6 +13,7 @@ from core.models import *
 from oneplus.models import *
 from datetime import *
 from datetime import timedelta
+from django.core.mail import send_mail
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -957,6 +958,14 @@ def contact(request, state):
         return render(request, "misc/contact.html", {"state": state})
 
     def post():
+        #Get message
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _comment = request.POST["comment"]
+
+            #Send email to info@oneplus.co.za
+            send_mail('Contact Us Message', _comment, 'info@oneplus.co.za',['info@oneplus.co.za'], fail_silently=False)
+            state["sent"] = True
+            
         return render(request, "misc/contact.html", {"state": state})
 
     return resolve_http_method(request, [get, post])
