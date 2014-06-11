@@ -15,7 +15,7 @@ class Page(models.Model):
     These pages are manageable in the administration interface.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
 

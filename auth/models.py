@@ -6,12 +6,12 @@ from organisation.models import School, Course
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
     mobile = models.CharField(verbose_name="Mobile Phone Number",
-                              max_length=50, blank=False, unique=True)
-    country = models.CharField(verbose_name="Country", max_length=50,
+                              max_length=500, blank=False, unique=True)
+    country = models.CharField(verbose_name="Country", max_length=500,
                                blank=False)
-    area = models.CharField(verbose_name="Local Area", max_length=50,
+    area = models.CharField(verbose_name="Local Area", max_length=500,
                             blank=True)
-    city = models.CharField(verbose_name="City", max_length=50, blank=True)
+    city = models.CharField(verbose_name="City", max_length=500, blank=True)
     optin_sms = models.BooleanField(verbose_name="Opt-In SMS Communications",
                                     default=False)
     optin_email = models.BooleanField(
