@@ -1,7 +1,7 @@
 from django.db import models
 from content.models import TestingQuestion
-from core.models import Participant
-from django.db.models.query import Q
+from core.models import *
+from datetime import *
 import random
 
 # Participant(Learner) State
@@ -14,8 +14,10 @@ class LearnerState(models.Model):
     # question
     def getnextquestion(self):
         if self.active_question is None or self.active_result is not None:
-            _questionstochoosefrom = TestingQuestion.objects.filter(bank__module__course=self.participant.classs.course)
-            _idx = random.randrange(0, _questionstochoosefrom.count()-1)
+            _answered = ParticipantQuestionAnswer.objects.filter(participant=self.participant,
+                                                                 answerdate__gte=date.today()).distinct().values_list('question')
+            _questionstochoosefrom = TestingQuestion.objects.filter(bank__module__course=self.participant.classs.course).exclude(id__in=_answered)
+            _idx = random.randrange(0, _questionstochoosefrom.count())
             self.active_question = _questionstochoosefrom[_idx]
             self.active_result = None
             self.save()
