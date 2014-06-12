@@ -29,14 +29,16 @@ def oneplus_login_required(f):
 def oneplus_state_required(f):
     def wrap(request, *args, **kwargs):
         #Initialise the oneplus state
-        #request.session.flush()
-        request.session.set_expiry(0) # If value is 0, the user's session cookie will expire when the user's Web browser is closed.
+        # If value is 0, the user's session cookie will expire when the user's
+        # Web browser is closed.
+        request.session.set_expiry(0)
         if "state" not in request.session.keys():
             request.session["state"] = {"menu_visible": False}
 
         #Manage menu state
         if request.method == "POST" and "switchmenu" in request.POST:
-            request.session["state"]["menu_visible"] = request.POST["switchmenu"] != 'True'
+            request.session["state"]["menu_visible"] \
+                = request.POST["switchmenu"] != 'True'
         else:
             request.session["state"]["menu_visible"] = False
 
@@ -66,7 +68,10 @@ def login(request, state):
         form = LoginForm(request.POST)
         if form.is_valid():
             # Check if this is a registered user
-            user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+            user = authenticate(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"]
+            )
             if user is not None and user.is_active:
                 try:
                     # Check that the user is a learner
@@ -82,11 +87,9 @@ def login(request, state):
                         request.session["user"] = {}
                         request.session["user"]["id"] = _learner.id
                         request.session["user"]["name"] = _learner.first_name
-                        request.session["user"]["participant_id"] = _registered.id
-                        #request.session["user"]["points"] = _registered.points
+                        request.session["user"]["participant_id"] \
+                            = _registered.id
                         request.session["user"]["place"] = 0  # TODO
-                        #request.session["user"]["badges"] = _registered.badgetemplate.count()
-
                         _registered.award_scenario("LOGIN", None)
 
                         #login(request, user)
@@ -161,13 +164,35 @@ def home(request, state, user):
     _start_of_week = date.today() - timedelta(date.today().weekday())
 
     request.session["state"]["home_points"] = _participant.points
-    request.session["state"]["home_badges"] = ParticipantBadgeTemplateRel.objects.filter(participant=_participant).count()
-    request.session["state"]["home_position"] = Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count() + 1
+    request.session["state"]["home_badges"] \
+        = ParticipantBadgeTemplateRel.objects\
+        .filter(participant=_participant)\
+        .count()
+    request.session["state"]["home_position"]\
+        = Participant.objects.filter(
+            classs=_participant.classs,
+            points__gt=_participant.points
+        ).count() + 1
     request.session["state"]["home_day"] = date.today().weekday()
-    request.session["state"]["home_tasks_today"] = ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=date.today()).count()
-    request.session["state"]["home_tasks"] = ParticipantQuestionAnswer.objects.filter(participant=_participant, answerdate__gte=_start_of_week).count()
-    request.session["state"]["home_correct"] = ParticipantQuestionAnswer.objects.filter(participant=_participant, correct=True, answerdate__gte=_start_of_week).count()
-    request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]  # todo, should be settting?
+    request.session["state"]["home_tasks_today"]\
+        = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=date.today()
+        ).count()
+    request.session["state"]["home_tasks"]\
+        = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=_start_of_week
+        ).count()
+    request.session["state"]["home_correct"]\
+        = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            correct=True,
+            answerdate__gte=_start_of_week
+        ).count()
+    request.session["state"]["home_goal"]\
+        = settings.ONEPLUS_WIN_REQUIRED\
+        - request.session["state"]["home_correct"]  #TODO:Should be setting
 
     def get():
         return render(request, "learn/home.html", {"state": state,
@@ -186,7 +211,9 @@ def home(request, state, user):
 def nextchallenge(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+    _learnerstate = LearnerState.objects.filter(
+        participant__id=user["participant_id"]
+    ).first()
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
@@ -194,30 +221,45 @@ def nextchallenge(request, state, user):
     _learnerstate.getnextquestion()
 
     request.session["state"]["next_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant,
-                                                 answerdate__gte=date.today())\
-                                                .distinct('participant', 'question').count() + 1
+        ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=date.today()
+        )\
+        .distinct('participant', 'question')\
+        .count() + 1
 
     def get():
         request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(course=_participant.classs.course,
-                                      module=Module.objects.filter(course=_participant.classs.course).first(),
-                                      question=_learnerstate.active_question,
-                                      moderated=True,
-                                      response=None).count()
+            Discussion.objects.filter(
+                course=_participant.classs.course,
+                module=Module.objects.filter(
+                    course=_participant.classs.course
+                ).first(),
+                question=_learnerstate.active_question,
+                moderated=True,
+                response=None
+            ).count()
+
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
-        _messages = \
-            Discussion.objects.filter(course=_participant.classs.course,
-                                      module=Module.objects.filter(course=_participant.classs.course).first(),
-                                      question=_learnerstate.active_question,
-                                      moderated=True,
-                                      response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
 
-        return render(request, "learn/next.html", {"state": state,
-                                                   "user": user,
-                                                   "question": _learnerstate.active_question,
-                                                   "messages": _messages})
+        index = request.session["state"]["discussion_page"]
+        _messages = Discussion.objects.filter(
+            course=_participant.classs.course,
+            module=Module.objects.filter(
+                course=_participant.classs.course
+            ).first(),
+            question=_learnerstate.active_question,
+            moderated=True,
+            response=None
+        ).order_by("publishdate").reverse()[:index]
+
+        return render(request, "learn/next.html", {
+            "state": state,
+            "user": user,
+            "question": _learnerstate.active_question,
+            "messages": _messages
+        })
 
     def post():
         request.session["state"]["discussion_comment"] = False
@@ -226,43 +268,76 @@ def nextchallenge(request, state, user):
         # answer provided
         if "answer" in request.POST.keys():
             _ans_id = request.POST["answer"]
-            _option = _learnerstate.active_question.testingquestionoption_set.get(pk=_ans_id)
+            _option = _learnerstate.active_question.testingquestionoption_set\
+                .get(pk=_ans_id)
 
-            _answer = ParticipantQuestionAnswer(participant=_participant, question=_learnerstate.active_question,
-                                                option_selected=_option, correct=_option.correct,
-                                                answerdate=datetime.now())
+            _answer = ParticipantQuestionAnswer(
+                participant=_participant,
+                question=_learnerstate.active_question,
+                option_selected=_option,
+                correct=_option.correct,
+                answerdate=datetime.now()
+            )
             _answer.save()
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
 
             #Check for awards
             if _option.correct:
-                _participant.award_scenario("CORRECT", _learnerstate.active_question.bank.module)
+                _participant.award_scenario(
+                    "CORRECT",
+                    _learnerstate.active_question.bank.module
+                )
 
-                _total_corect = ParticipantQuestionAnswer.objects.filter(participant=_participant, correct=True).count()
+                _total_corect = ParticipantQuestionAnswer.objects.filter(
+                    participant=_participant,
+                    correct=True
+                ).count()
                 if _total_corect == 1:
-                    _participant.award_scenario("1_CORRECT", _learnerstate.active_question.bank.module)
+                    _participant.award_scenario(
+                        "1_CORRECT",
+                        _learnerstate.active_question.bank.module
+                    )
 
                 elif _total_corect == 15:
-                    _participant.award_scenario("15_CORRECT", _learnerstate.active_question.bank.module)
+                    _participant.award_scenario(
+                        "15_CORRECT",
+                        _learnerstate.active_question.bank.module
+                    )
 
                 elif _total_corect == 30:
-                    _participant.award_scenario("30_CORRECT", _learnerstate.active_question.bank.module)
+                    _participant.award_scenario(
+                        "30_CORRECT",
+                        _learnerstate.active_question.bank.module
+                    )
 
                 elif _total_corect == 100:
-                    _participant.award_scenario("100_CORRECT", _learnerstate.active_question.bank.module)
+                    _participant.award_scenario(
+                        "100_CORRECT",
+                        _learnerstate.active_question.bank.module
+                    )
 
                 last_3 = ParticipantQuestionAnswer.objects.filter(
-                    participant=_participant).order_by("answerdate").reverse()[:3]
+                    participant=_participant
+                ).order_by("answerdate").reverse()[:3]
 
-                if last_3.count() == 3 and len([i for i in last_3 if i.correct]) == 3:
-                    _participant.award_scenario("3_CORRECT_RUNNING", _learnerstate.active_question.bank.module)
+                if last_3.count() == 3 \
+                        and len([i for i in last_3 if i.correct]) == 3:
+                    _participant.award_scenario(
+                        "3_CORRECT_RUNNING",
+                        _learnerstate.active_question.bank.module
+                    )
 
                 last_5 = ParticipantQuestionAnswer.objects.filter(
-                    participant=_participant).order_by("answerdate").reverse()[:5]
+                    participant=_participant
+                ).order_by("answerdate").reverse()[:5]
 
-                if last_5.count() == 5 and len([i for i in last_5 if i.correct]) == 5:
-                    _participant.award_scenario("5_CORRECT_RUNNING", _learnerstate.active_question.bank.module)
+                if last_5.count() == 5 \
+                        and len([i for i in last_5 if i.correct]) == 5:
+                    _participant.award_scenario(
+                        "5_CORRECT_RUNNING",
+                        _learnerstate.active_question.bank.module
+                    )
 
                 return HttpResponseRedirect("right")
 
@@ -270,15 +345,19 @@ def nextchallenge(request, state, user):
                 return HttpResponseRedirect("wrong")
 
         #new comment created
-        elif "comment" in request.POST.keys() and request.POST["comment"] != "":
+        elif "comment" in request.POST.keys() \
+                and request.POST["comment"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
             _message = Discussion(
                 course=_participant.classs.course,
-                module=Module.objects.filter(course=_participant.classs.course).first(),
+                module=Module.objects.filter(
+                    course=_participant.classs.course
+                ).first(),
                 question=_learnerstate.active_question,
                 response=None,
-                content=_comment, author=_usr, publishdate=datetime.now())
+                content=_comment, author=_usr, publishdate=datetime.now()
+            )
             _message.save()
             request.session["state"]["discussion_comment"] = True
             request.session["state"]["discussion_response_id"] = None
@@ -289,36 +368,54 @@ def nextchallenge(request, state, user):
             _parent = Discussion.objects.get(pk=request.POST["reply_button"])
             _message = Discussion(
                 course=_participant.classs.course,
-                module=Module.objects.filter(course=_participant.classs.course).first(),
+                module=Module.objects.filter(
+                    course=_participant.classs.course
+                ).first(),
                 question=_learnerstate.active_question,
                 response=_parent,
                 content=_comment, author=_usr, publishdate=datetime.now())
             _message.save()
-            request.session["state"]["discussion_responded_id"] = request.session["state"]["discussion_response_id"]
+            request.session["state"]["discussion_responded_id"] \
+                = request.session["state"]["discussion_response_id"]
             request.session["state"]["discussion_response_id"] = None
+
 
         #show more comments
         elif "page" in request.POST.keys():
             request.session["state"]["discussion_page"] += 2
-            if request.session["state"]["discussion_page"] > request.session["state"]["discussion_page_max"]:
-                request.session["state"]["discussion_page"] = request.session["state"]["discussion_page_max"]
+            if request.session["state"]["discussion_page"] \
+                    > request.session["state"]["discussion_page_max"]:
+                request.session["state"]["discussion_page"] \
+                    = request.session["state"]["discussion_page_max"]
             request.session["state"]["discussion_response_id"] = None
 
         #show reply to comment comment
         elif "comment_response_button" in request.POST.keys():
-            request.session["state"]["discussion_response_id"] = request.POST["comment_response_button"]
+            request.session["state"]["discussion_response_id"] \
+                = request.POST["comment_response_button"]
 
         _messages = \
-            Discussion.objects.filter(course=_participant.classs.course,
-                                      module=Module.objects.filter(course=_participant.classs.course).first(),
-                                      question=_learnerstate.active_question,
-                                      moderated=True,
-                                      response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
+            Discussion.objects.filter(
+                course=_participant.classs.course,
+                module=Module.objects.filter(
+                    course=_participant.classs.course
+                ).first(),
+                question=_learnerstate.active_question,
+                moderated=True,
+                response=None
+            ).order_by("publishdate")\
+            .reverse()[:request.session["state"]["discussion_page"]]
 
-        return render(request, "learn/next.html", {"state": state,
-                                                   "user": user,
-                                                   "question": _learnerstate.active_question,
-                                                   "messages": _messages})
+        return render(
+            request,
+            "learn/next.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _learnerstate.active_question,
+                "messages": _messages
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -329,44 +426,68 @@ def nextchallenge(request, state, user):
 def right(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _learnerstate = LearnerState.objects.filter(participant=_participant).first()
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
     request.session["state"]["right_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant,
-                                                 answerdate__gte=date.today())\
-                                                .distinct('participant', 'question').count()
+        ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=date.today()
+        ).distinct('participant', 'question').count()
+
     def get():
         if _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
-                Discussion.objects.filter(course=_participant.classs.course,
-                                          module=Module.objects.filter(course=_participant.classs.course).first(),
-                                          question=_learnerstate.active_question,
-                                          moderated=True,
-                                          response=None).count()
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).count()
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
             _messages = \
-                Discussion.objects.filter(course=_participant.classs.course,
-                                          module=Module.objects.filter(course=_participant.classs.course).first(),
-                                          question=_learnerstate.active_question,
-                                          moderated=True,
-                                          response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
 
-            _scenario = GamificationScenario.objects.filter(module=_learnerstate.active_question.bank.module,
-                                                            course=_learnerstate.active_question.bank.module.course,
-                                                            event="CORRECT")
-            _badge = ParticipantBadgeTemplateRel.objects.filter(participant=_participant,
-                                                                scenario__in=_scenario,
-                                                                awarddate__range=[datetime.today()-timedelta(minutes=1),
-                                                                                  datetime.today()]).first()
+            _scenario = GamificationScenario.objects.filter(
+                module=_learnerstate.active_question.bank.module,
+                course=_learnerstate.active_question.bank.module.course,
+                event="CORRECT"
+            )
+            _badge = ParticipantBadgeTemplateRel.objects.filter(
+                participant=_participant,
+                scenario__in=_scenario,
+                awarddate__range=[
+                    datetime.today()-timedelta(minutes=1),datetime.today()
+                ]
+            ).first()
             if _badge:
                 _badgetemplate = _badge.badgetemplate
             else:
                 _badgetemplate = None
-            return render(request, "learn/right.html", {"state": state,
-                                                        "user": user,
-                                                        "question": _learnerstate.active_question,
-                                                        "messages": _messages,
-                                                        "badge": _badgetemplate})
+            return render(
+                request,
+                "learn/right.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question,
+                    "messages": _messages,
+                    "badge": _badgetemplate
+                }
+            )
         else:
             return HttpResponseRedirect("wrong")
 
@@ -376,12 +497,15 @@ def right(request, state, user):
             request.session["state"]["discussion_responded_id"] = None
 
             #new comment created
-            if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            if "comment" in request.POST.keys()\
+                    and request.POST["comment"] != "":
                 _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(course=_participant.classs.course).first(),
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
                     question=_learnerstate.active_question,
                     response=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
@@ -389,42 +513,64 @@ def right(request, state, user):
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
 
-            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
+            elif "reply" in request.POST.keys() \
+                    and request.POST["reply"] != "":
                 _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["reply"]
-                _parent = Discussion.objects.get(pk=request.POST["reply_button"])
+                _parent = Discussion.objects.get(
+                    pk=request.POST["reply_button"]
+                )
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(course=_participant.classs.course).first(),
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
-                    content=_comment, author=_usr, publishdate=datetime.now())
+                    content=_comment, author=_usr,
+                    publishdate=datetime.now()
+                )
                 _message.save()
-                request.session["state"]["discussion_responded_id"] = request.session["state"]["discussion_response_id"]
+                request.session["state"]["discussion_responded_id"] \
+                    = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
 
             #show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
-                if request.session["state"]["discussion_page"] > request.session["state"]["discussion_page_max"]:
-                    request.session["state"]["discussion_page"] = request.session["state"]["discussion_page_max"]
+                if request.session["state"]["discussion_page"]\
+                        > request.session["state"]["discussion_page_max"]:
+                    request.session["state"]["discussion_page"]\
+                        = request.session["state"]["discussion_page_max"]
                 request.session["state"]["discussion_response_id"] = None
 
             #show reply to comment comment
             elif "comment_response_button" in request.POST.keys():
-                request.session["state"]["discussion_response_id"] = request.POST["comment_response_button"]
+                request.session["state"]["discussion_response_id"]\
+                    = request.POST["comment_response_button"]
 
             _messages = \
-                Discussion.objects.filter(course=_participant.classs.course,
-                                          module=Module.objects.filter(course=_participant.classs.course).first(),
-                                          question=_learnerstate.active_question,
-                                          moderated=True,
-                                          response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
 
-            return render(request, "learn/right.html", {"state": state,
-                                                        "user": user,
-                                                        "question": _learnerstate.active_question,
-                                                        "messages": _messages})
+            return render(
+                request,
+                "learn/right.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question,
+                    "messages": _messages
+                }
+            )
         else:
             return HttpResponseRedirect("wrong")
 
@@ -437,34 +583,49 @@ def right(request, state, user):
 def wrong(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _learnerstate = LearnerState.objects.filter(participant=_participant).first()
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
     request.session["state"]["wrong_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(participant=_participant,
-                                                 answerdate__gte=date.today())\
-                                                .distinct('participant', 'question').count()
+        ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+             answerdate__gte=date.today()
+        ).distinct('participant', 'question').count()
 
 
     def get():
         if not _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
-                Discussion.objects.filter(course=_participant.classs.course,
-                                          module=Module.objects.filter(course=_participant.classs.course).first(),
-                                          question=_learnerstate.active_question,
-                                          moderated=True,
-                                          response=None).count()
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    module=Module.objects.filter(course=_participant.classs.course).first(),
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).count()
+
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
-            _messages = \
-                Discussion.objects.filter(course=_participant.classs.course,
-                                          module=Module.objects.filter(course=_participant.classs.course).first(),
-                                          question=_learnerstate.active_question,
-                                          moderated=True,
-                                          response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
 
-            return render(request, "learn/wrong.html", {"state": state,
-                                                        "user": user,
-                                                        "question": _learnerstate.active_question,
-                                                        "messages": _messages})
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None).order_by("publishdate")\
+                    .reverse()[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/wrong.html",
+                {"state": state,
+                "user": user,
+                "question": _learnerstate.active_question,
+                "messages": _messages}
+            )
         else:
             return HttpResponseRedirect("right")
 
@@ -474,12 +635,15 @@ def wrong(request, state, user):
             request.session["state"]["discussion_responded_id"] = None
 
             #new comment created
-            if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            if "comment" in request.POST.keys() \
+                    and request.POST["comment"] != "":
                 _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(course=_participant.classs.course).first(),
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
                     question=_learnerstate.active_question,
                     response=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
@@ -487,41 +651,62 @@ def wrong(request, state, user):
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
 
-            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
+            elif "reply" in request.POST.keys() \
+                    and request.POST["reply"] != "":
                 _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["reply"]
-                _parent = Discussion.objects.get(pk=request.POST["reply_button"])
+                _parent = Discussion.objects.get(
+                    pk=request.POST["reply_button"]
+                )
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(course=_participant.classs.course).first(),
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
-                    content=_comment, author=_usr, publishdate=datetime.now())
+                    content=_comment, author=_usr, publishdate=datetime.now()
+                )
                 _message.save()
-                request.session["state"]["discussion_responded_id"] = request.session["state"]["discussion_response_id"]
+                request.session["state"]["discussion_responded_id"] \
+                    = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
 
             #show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
-                if request.session["state"]["discussion_page"] > request.session["state"]["discussion_page_max"]:
-                    request.session["state"]["discussion_page"] = request.session["state"]["discussion_page_max"]
+                if request.session["state"]["discussion_page"] \
+                        > request.session["state"]["discussion_page_max"]:
+                    request.session["state"]["discussion_page"] \
+                        = request.session["state"]["discussion_page_max"]
                 request.session["state"]["discussion_response_id"] = None
 
             #show reply to comment comment
             elif "comment_response_button" in request.POST.keys():
-                request.session["state"]["discussion_response_id"] = request.POST["comment_response_button"]
+                request.session["state"]["discussion_response_id"]\
+                    = request.POST["comment_response_button"]
 
             _messages = \
-                Discussion.objects.filter(course=_participant.classs.course,
-                                          module=Module.objects.filter(course=_participant.classs.course).first(),
-                                          question=_learnerstate.active_question,
-                                          moderated=True,
-                                          response=None).order_by("publishdate").reverse()[:request.session["state"]["discussion_page"]]
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
 
-            return render(request, "learn/wrong.html", {"state": state,
-                                                        "user": user,
-                                                        "question": _learnerstate.active_question})
+            return render(
+                request,
+                "learn/wrong.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question
+                }
+            )
         else:
             return HttpResponseRedirect("right")
 
@@ -547,14 +732,24 @@ def discuss(request, state, user):
 def inbox(request, state, user):
     #get inbox messages
     _participant = Participant.objects.get(pk=user["participant_id"])
-    request.session["state"]["inbox_unread"] = Message.unread_message_count(_participant.learner, _participant.classs.course)
+    request.session["state"]["inbox_unread"] = Message.unread_message_count(
+        _participant.learner,
+        _participant.classs.course
+    )
 
     def get():
-        _messages = Message.get_messages(_participant.learner, _participant.classs.course, 20)
-        return render(request, "com/inbox.html", {"state": state,
-                                                  "user": user,
-                                                  "messages": _messages,
-                                                  "message_count": len(_messages)})
+        _messages = Message.get_messages(
+            _participant.learner,
+            _participant.classs.course, 20
+        )
+        return render(
+            request,
+            "com/inbox.html",
+            {"state": state,
+            "user": user,
+            "messages": _messages,
+            "message_count": len(_messages)}
+        )
 
     def post():
         # hide message
@@ -563,11 +758,21 @@ def inbox(request, state, user):
             _msg = Message.objects.get(pk=request.POST["hide"])
             _msg.hide_message(_usr)
 
-        _messages = Message.get_messages(_participant.learner, _participant.classs.course, 20)
-        return render(request, "com/inbox.html", {"state": state,
-                                                  "user": user,
-                                                  "messages": _messages,
-                                                  "message_count": len(_messages)})
+        _messages = Message.get_messages(
+            _participant.learner,
+            _participant.classs.course,
+            20
+        )
+        return render(
+            request,
+            "com/inbox.html",
+            {
+                "state": state,
+                "user": user,
+                "messages": _messages,
+                "message_count": len(_messages)
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -578,14 +783,20 @@ def inbox(request, state, user):
 def inbox_detail(request, state, user, messageid):
     #get inbox messages
     _participant = Participant.objects.get(pk=user["participant_id"])
-    request.session["state"]["inbox_unread"] = Message.unread_message_count(_participant.learner, _participant.classs.course)
+    request.session["state"]["inbox_unread"] = Message.unread_message_count(
+        _participant.learner, _participant.classs.course
+    )
     _message = Message.objects.get(pk=messageid)
     _message.view_message(_participant.learner)
 
     def get():
-        return render(request, "com/inbox_detail.html", {"state": state,
-                                                         "user": user,
-                                                         "message": _message})
+        return render(
+            request,
+            "com/inbox_detail.html",
+            {"state": state,
+             "user": user,
+             "message": _message}
+        )
 
     def post():
         # hide message
@@ -593,9 +804,14 @@ def inbox_detail(request, state, user, messageid):
             _message.hide_message(_participant.learner)
             return HttpResponseRedirect("inbox")
 
-        return render(request, "com/inbox_detail.html", {"state": state,
-                                                         "user": user,
-                                                         "message": _message})
+        return render(request,
+                      "com/inbox_detail.html",
+                      {
+                          "state": state,
+                          "user": user,
+                          "message": _message
+                      }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -617,7 +833,18 @@ def inbox_send(request, state, user):
         #new message created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _comment = request.POST["comment"]
-            _message = Message(name="Message from " + _participant.learner.first_name + " " + _participant.learner.last_name, description=_comment, course=_participant.classs.course, content=_comment, publishdate=datetime.now(), author=_participant.learner, direction=2)
+            _message = Message(
+                name="Message from " +
+                     _participant.learner.first_name +
+                     " " +
+                     _participant.learner.last_name,
+                description=_comment,
+                course=_participant.classs.course,
+                content=_comment,
+                publishdate=datetime.now(),
+                author=_participant.learner,
+                direction=2
+            )
             _message.save()
             request.session["state"]["inbox_sent"] = True
 
@@ -631,7 +858,9 @@ def inbox_send(request, state, user):
 @oneplus_login_required
 def chatgroups(request, state, user):
     #get chat groups
-    _groups = Participant.objects.get(pk=user["participant_id"]).classs.course.chatgroup_set.all()
+    _groups = Participant.objects.get(
+        pk=user["participant_id"]
+    ).classs.course.chatgroup_set.all()
 
     for g in _groups:
         _last_msg = g.chatmessage_set.order_by("publishdate").reverse().first()
@@ -639,9 +868,15 @@ def chatgroups(request, state, user):
             g.last_message = _last_msg
 
     def get():
-        return render(request, "com/chatgroup.html", {"state": state,
-                                                      "user": user,
-                                                      "groups": _groups})
+        return render(
+            request,
+            "com/chatgroup.html",
+            {
+                "state": state,
+                "user": user,
+                "groups": _groups
+            }
+        )
 
     def post():
         return render(request, "com/chatgroup.html", {"state": state,
@@ -660,8 +895,11 @@ def chat(request, state, user, chatid):
     request.session["state"]["chat_page_max"] = _group.chatmessage_set.count()
 
     def get():
-        request.session["state"]["chat_page"] = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set.order_by("publishdate").reverse()[:request.session["state"]["chat_page"]]
+        request.session["state"]["chat_page"] \
+            = min(10, request.session["state"]["chat_page_max"])
+        _messages = _group.chatmessage_set\
+                        .order_by("publishdate")\
+                        .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
@@ -672,21 +910,35 @@ def chat(request, state, user, chatid):
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
-            _message = ChatMessage(chatgroup=_group, content=_comment, author=_usr, publishdate=datetime.now())
+            _message = ChatMessage(
+                chatgroup=_group,
+                content=_comment,
+                author=_usr,
+                publishdate=datetime.now()
+            )
             _message.save()
             request.session["state"]["chat_page_max"] += 1
 
         #show more comments
         elif "page" in request.POST.keys():
             request.session["state"]["chat_page"] += 10
-            if request.session["state"]["chat_page"] > request.session["state"]["chat_page_max"]:
-                request.session["state"]["chat_page"] = request.session["state"]["chat_page_max"]
+            if request.session["state"]["chat_page"] \
+                    > request.session["state"]["chat_page_max"]:
+                request.session["state"]["chat_page"]\
+                    = request.session["state"]["chat_page_max"]
 
-        _messages = _group.chatmessage_set.order_by("publishdate").reverse()[:request.session["state"]["chat_page"]]
-        return render(request, "com/chat.html", {"state": state,
-                                                 "user": user,
-                                                 "group": _group,
-                                                 "messages": _messages})
+        _messages = _group.chatmessage_set.order_by("publishdate")\
+            .reverse()[:request.session["state"]["chat_page"]]
+        return render(
+            request,
+            "com/chat.html",
+            {
+                "state": state,
+                "user": user,
+                "group": _group,
+                "messages": _messages
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -697,19 +949,35 @@ def chat(request, state, user, chatid):
 def blog_hero(request, state, user):
     #get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    request.session["state"]["blog_page_max"] = Post.objects.filter(course=_course).count()
-    _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:4]
+    request.session["state"]["blog_page_max"] = Post.objects.filter(
+        course=_course
+    ).count()
+    _posts = Post.objects.filter(
+        course=_course
+    ).order_by("publishdate").reverse()[:4]
     request.session["state"]["blog_num"] = _posts.count()
 
     def get():
-        return render(request, "com/bloghero.html", {"state": state,
-                                                     "user": user,
-                                                     "posts": _posts})
+        return render(
+            request,
+            "com/bloghero.html",
+            {
+                "state": state,
+                "user": user,
+                "posts": _posts
+            }
+        )
 
     def post():
-        return render(request, "com/bloghero.html", {"state": state,
-                                                     "user": user,
-                                                     "posts": _posts})
+        return render(
+            request,
+            "com/bloghero.html",
+            {
+                "state": state,
+                "user": user,
+                "posts": _posts
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -720,11 +988,16 @@ def blog_hero(request, state, user):
 def blog_list(request, state, user):
     #get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    request.session["state"]["blog_page_max"] = Post.objects.filter(course=_course).count()
+    request.session["state"]["blog_page_max"]\
+        = Post.objects.filter(course=_course).count()
 
     def get():
-        request.session["state"]["blog_page"] = min(10, request.session["state"]["blog_page_max"])
-        _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:request.session["state"]["blog_page"]]
+        request.session["state"]["blog_page"] \
+            = min(10, request.session["state"]["blog_page_max"])
+        _posts = Post.objects.filter(course=_course)\
+            .order_by("publishdate")\
+            .reverse()[:request.session["state"]["blog_page"]]
+
         return render(request, "com/bloglist.html", {"state": state,
                                                      "user": user,
                                                      "posts": _posts})
@@ -733,13 +1006,25 @@ def blog_list(request, state, user):
         #show more blogs
         if "page" in request.POST.keys():
             request.session["state"]["blog_page"] += 10
-            if request.session["state"]["blog_page"] > request.session["state"]["blog_page_max"]:
-                request.session["state"]["blog_page"] = request.session["state"]["blog_page_max"]
+            if request.session["state"]["blog_page"] \
+                    > request.session["state"]["blog_page_max"]:
+                request.session["state"]["blog_page"] \
+                    = request.session["state"]["blog_page_max"]
 
-        _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()[:request.session["state"]["blog_page"]]
-        return render(request, "com/bloglist.html", {"state": state,
-                                                     "user": user,
-                                                     "posts": _posts})
+        _posts = Post.objects.filter(
+            course=_course
+        ).order_by("publishdate") \
+            .reverse()[:request.session["state"]["blog_page"]]
+
+        return render(
+            request,
+            "com/bloglist.html",
+            {
+                "state": state,
+                "user": user,
+                "posts": _posts
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -753,8 +1038,14 @@ def blog(request, state, user, blogid):
     _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()
 
     _post = Post.objects.get(pk=blogid)
-    _next = Post.objects.filter(course=_course, publishdate__gt=_post.publishdate).exclude(id=_post.id).order_by("publishdate").first()
-    _previous = Post.objects.filter(course=_course, publishdate__lt=_post.publishdate).exclude(id=_post.id).order_by("publishdate").reverse().first()
+    _next = Post.objects.filter(
+        course=_course,
+        publishdate__gt=_post.publishdate
+    ).exclude(id=_post.id).order_by("publishdate").first()
+    _previous = Post.objects.filter(
+        course=_course,
+        publishdate__lt=_post.publishdate
+    ).exclude(id=_post.id).order_by("publishdate").reverse().first()
 
     if _next is not None:
         state["blog_next"] = _next.id
@@ -767,14 +1058,23 @@ def blog(request, state, user, blogid):
         state["blog_previous"] = None
 
     def get():
-        return render(request, "com/blog.html", {"state": state,
-                                                 "user": user,
-                                                 "post": _post})
+        return render(
+            request,
+            "com/blog.html",
+            {"state": state,
+             "user": user,
+             "post": _post}
+        )
 
     def post():
-        return render(request, "com/blog.html", {"state": state,
-                                                 "user": user,
-                                                 "post": _post})
+        return render(
+            request,
+            "com/blog.html",
+            {"state": state,
+             "user": user,
+             "post": _post
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -790,21 +1090,35 @@ def ontrack(request, state, user):
 
     # Calculate achieved score
     for m in _modules:
-        _answers = _participant.participantquestionanswer_set.filter(question__bank__module__id=m.id)
+        _answers = _participant.participantquestionanswer_set.filter(
+            question__bank__module__id=m.id)
         if _answers.count() < 10:
             m.score = -1
         else:
-            m.score = _answers.filter(correct=True).count() / _answers.count() * 100
+            m.score = _answers.filter(correct=True).count()\
+                      / _answers.count() * 100
 
     def get():
-        return render(request, "prog/ontrack.html", {"state": state,
-                                                     "user": user,
-                                                     "modules": _modules})
+        return render(
+            request,
+            "prog/ontrack.html",
+            {
+                "state": state,
+                "user": user,
+                "modules": _modules
+            }
+        )
 
     def post():
-        return render(request, "prog/ontrack.html", {"state": state,
-                                                     "user": user,
-                                                     "modules": _modules})
+        return render(
+            request,
+            "prog/ontrack.html",
+            {
+                "state": state,
+                "user": user,
+                "modules": _modules
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -820,7 +1134,9 @@ def leader(request, state, user):
 
     def leader_position(location):
         if location == "Countrywide":
-            return Participant.objects.filter(classs=_participant.classs, points__gt=_participant.points).count() + 1
+            return Participant.objects.filter(
+                classs=_participant.classs,
+                points__gt=_participant.points).count() + 1
 
         if _participant.learner.area == location:
             return Participant.objects.filter(
@@ -832,7 +1148,8 @@ def leader(request, state, user):
 
     def get_leaderboard(location):
         if location == "Countrywide":
-            return list(Participant.objects.filter(classs=_participant.classs).order_by("-points")[:10])
+            return list(Participant.objects.filter(classs=_participant.classs)
+                            .order_by("-points")[:10])
         else:
             return list(Participant.objects.filter(
                         classs=_participant.classs,
@@ -850,14 +1167,21 @@ def leader(request, state, user):
             index = _learners.index(_participant)
             _learners[index].me = True
         finally:
-            return render(request, "prog/leader.html", {"state": state,
-                                                    "user": user,
-                                                    "learners": _learners})
+            return render(
+                request,
+                "prog/leader.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "learners": _learners
+                }
+            )
 
     def post():
         #show region menu?
         if "leader_menu" in request.POST:
-            request.session["state"]["leader_menu"] = request.POST["leader_menu"] != 'True'
+            request.session["state"]["leader_menu"] \
+                = request.POST["leader_menu"] != 'True'
         elif "region" in request.POST:
             request.session["state"]["leader_menu"] = False
             request.session["state"]["leader_region"] = request.POST["region"]
@@ -868,17 +1192,24 @@ def leader(request, state, user):
         request.session["state"]["leader_place"] = leader_position(_location)
 
         #Get unique regions
-        request.session["state"]["leader_regions"] = list([{"area": "Countrywide"}]) \
-                                                     + list(Learner.objects.values("area").distinct().all())
+        request.session["state"]["leader_regions"] \
+            = list([{"area": "Countrywide"}]) \
+            + list(Learner.objects.values("area").distinct().all())
 
         #Tag the user
         try:
             index = _learners.index(_participant)
             _learners[index].me = True
         finally:
-            return render(request, "prog/leader.html", {"state": state,
-                                                        "user": user,
-                                                        "learners": _learners})
+            return render(
+                request,
+                "prog/leader.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "learners": _learners
+                }
+            )
 
     return resolve_http_method(request, [get, post])
 
@@ -893,18 +1224,34 @@ def points(request, state, user):
     request.session["state"]["points_points"] = _particpant.points
 
     for m in _modules:
-        m.score = max(ParticipantPointBonusRel.objects.filter(participant=_particpant, scenario__module=m)
-                      .select_related("pointbonus").aggregate(sum=Sum("pointbonus__value"))["sum"], 0)
+        m.score = max(
+            ParticipantPointBonusRel.objects.filter(
+                participant=_particpant,
+                scenario__module=m)
+            .select_related("pointbonus")
+            .aggregate(sum=Sum("pointbonus__value"))["sum"], 0)
 
     def get():
-        return render(request, "prog/points.html", {"state": state,
-                                                    "user": user,
-                                                    "modules": _modules})
+        return render(
+            request,
+            "prog/points.html",
+            {
+                "state": state,
+                "user": user,
+                "modules": _modules
+            }
+        )
 
     def post():
-        return render(request, "prog/points.html", {"state": state,
-                                                    "user": user,
-                                                    "modules": _modules})
+        return render(
+            request,
+            "prog/points.html",
+            {
+                "state": state,
+                "user": user,
+                "modules": _modules
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -916,25 +1263,37 @@ def badges(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
-    _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True).filter(course=_course).prefetch_related("badge")
+    _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
+        .filter(course=_course).prefetch_related("badge")
     _badges = [scenario.badge for scenario in _allscenarios]
 
     #Link achieved badges
     for x in _badges:
-        if ParticipantBadgeTemplateRel.objects.filter(participant=_participant, badgetemplate=x).exists():
+        if ParticipantBadgeTemplateRel.objects.filter(
+                participant=_participant,
+                badgetemplate=x
+        ).exists():
             x.achieved = True
 
     def get():
-        return render(request, "prog/badges.html", {"state": state,
-                                                    "user": user,
-                                                    "badges": _badges,
-                                                    "participant": _participant})
+        return render(request, "prog/badges.html", {
+            "state": state,
+            "user": user,
+            "badges": _badges,
+            "participant": _participant
+        })
 
     def post():
-        return render(request, "prog/badges.html", {"state": state,
-                                                    "user": user,
-                                                    "badges": _badges,
-                                                    "participant": _participant})
+        return render(
+            request,
+            "prog/badges.html",
+            {
+                "state": state,
+                "user": user,
+                "badges": _badges,
+                "participant": _participant
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
