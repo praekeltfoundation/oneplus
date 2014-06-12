@@ -1,22 +1,37 @@
 from django.db import models
 from content.models import TestingQuestion
-from core.models import Participant
-from django.db.models.query import Q
+from core.models import Participant, ParticipantQuestionAnswer
+from datetime import date
 import random
+
 
 # Participant(Learner) State
 class LearnerState(models.Model):
     participant = models.ForeignKey(Participant, null=True, blank=False)
-    active_question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    active_question = models.ForeignKey(
+        TestingQuestion,
+        null=True,
+        blank=False
+    )
     active_result = models.NullBooleanField()
 
-    # If current question result has been achieved, assign next question randomly and return. Otherwise return current
+    # If current question result has been achieved
+    #- Assign next question randomly and return.
+    #- Otherwise return current
     # question
     def getnextquestion(self):
         if self.active_question is None or self.active_result is not None:
-            _questionstochoosefrom = TestingQuestion.objects.filter(bank__module__course=self.participant.classs.course)
-            _idx = random.randrange(0, _questionstochoosefrom.count()-1)
-            self.active_question = _questionstochoosefrom[_idx]
+
+            answered = ParticipantQuestionAnswer.objects.filter(
+                participant=self.participant,
+                answerdate__gte=date.today()
+            ).distinct().values_list('question')
+
+            questions = TestingQuestion.objects.filter(
+                bank__module__course=self.participant.classs.course
+            ).exclude(id__in=answered)
+
+            self.active_question = questions.order_by('?')[0]
             self.active_result = None
             self.save()
 
