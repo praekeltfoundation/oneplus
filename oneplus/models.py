@@ -30,9 +30,8 @@ class LearnerState(models.Model):
             questions = TestingQuestion.objects.filter(
                 bank__module__course=self.participant.classs.course
             ).exclude(id__in=answered)
-            idx = random.randrange(0, questions.count())
 
-            self.active_question = questions[idx]
+            self.active_question = questions.order_by('?')[0]
             self.active_result = None
             self.save()
 
