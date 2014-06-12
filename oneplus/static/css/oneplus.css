@@ -11,11 +11,6 @@ body {
     box-sizing: border-box;
 }
 
-input {
-    -webkit-appearance: none;
-    border-radius: 0;
-}
-
 .white-front { color: #d5d5d5; }
 .darkgrey-front { color: #191919; }
 .grey-front { color: #2a2a2a; }
