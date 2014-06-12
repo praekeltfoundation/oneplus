@@ -10,6 +10,8 @@ from oneplus.models import *
 from datetime import *
 from datetime import timedelta
 
+COUNTRYWIDE = "Countrywide"
+
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
     def wrap(request, *args, **kwargs):
@@ -594,7 +596,9 @@ def wrong(request, state, user):
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(course=_participant.classs.course).first(),
+                    module=Module.objects.filter(
+                        course=_participant.classs.course
+                    ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
@@ -1126,30 +1130,34 @@ def leader(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _participant.me = True
-    request.session["state"]["leader_region"] = "Countrywide"
+    request.session["state"]["leader_region"] = COUNTRYWIDE
 
     def leader_position(location):
-        if location == "Countrywide":
+        if location == COUNTRYWIDE:
             return Participant.objects.filter(
                 classs=_participant.classs,
-                points__gt=_participant.points).count() + 1
+                points__gt=_participant.points
+            ).count() + 1
 
         if _participant.learner.area == location:
             return Participant.objects.filter(
                 classs=_participant.classs,
                 points__gt=_participant.points,
-                learner__area=location).count() + 1
+                learner__area=location
+            ).count() + 1
         else:
             return -1
 
     def get_leaderboard(location):
-        if location == "Countrywide":
-            return list(Participant.objects.filter(classs=_participant.classs)
-                            .order_by("-points")[:10])
+        if location == COUNTRYWIDE:
+            return Participant.objects.filter(
+                classs=_participant.classs
+            ).order_by("-points")[:10]
         else:
-            return list(Participant.objects.filter(
-                        classs=_participant.classs,
-                        learner__area=location).order_by("-points")[:10])
+            return Participant.objects.filter(
+                classs=_participant.classs,
+                learner__area=location
+            ).order_by("-points")[:10]
 
     def get():
         request.session["state"]["leader_menu"] = False
@@ -1189,7 +1197,7 @@ def leader(request, state, user):
 
         #Get unique regions
         request.session["state"]["leader_regions"] \
-            = list([{"area": "Countrywide"}]) \
+            = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
 
         #Tag the user
