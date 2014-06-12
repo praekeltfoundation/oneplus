@@ -1,12 +1,8 @@
-from django.shortcuts import render, get_object_or_404, HttpResponse
+from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
-from django.views.generic import View
-from django.contrib.auth import models
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Sum
 from forms import *
-from gamification.models import *
 from communication.models import *
 from organisation.models import *
 from core.models import *
