@@ -3,7 +3,17 @@
 {% block title %}GET CONNECTED{% endblock %}
 
 {% block content %}
-    get connected
 
+<p>
+    You seem to have entered an incorrect password. Please click <a href={% url 'auth.login' %}>here</a> to try again or click
+    <form name="sms_form" method="post" action="?">
+        {% csrf_token %}
+        <input type="hidden" name="msisdn" value="{{ request.username }}" />
+        <button type="submit" name="sms_button" class="link">
+            here
+        </button>
+    </form>
+    to have your password SMS'd to you.
+</p>
 
 {% endblock %}
