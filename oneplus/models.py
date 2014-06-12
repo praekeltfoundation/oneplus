@@ -4,10 +4,15 @@ from core.models import Participant, ParticipantQuestionAnswer
 from datetime import date
 import random
 
+
 # Participant(Learner) State
 class LearnerState(models.Model):
     participant = models.ForeignKey(Participant, null=True, blank=False)
-    active_question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    active_question = models.ForeignKey(
+        TestingQuestion,
+        null=True,
+        blank=False
+    )
     active_result = models.NullBooleanField()
 
     # If current question result has been achieved
@@ -17,17 +22,17 @@ class LearnerState(models.Model):
     def getnextquestion(self):
         if self.active_question is None or self.active_result is not None:
 
-            _answered = ParticipantQuestionAnswer.objects.filter(
+            answered = ParticipantQuestionAnswer.objects.filter(
                 participant=self.participant,
                 answerdate__gte=date.today()
             ).distinct().values_list('question')
 
-            _questionstochoosefrom = TestingQuestion.objects.filter(
+            questions = TestingQuestion.objects.filter(
                 bank__module__course=self.participant.classs.course
-            ).exclude(id__in=_answered)
-            _idx = random.randrange(0, _questionstochoosefrom.count())
+            ).exclude(id__in=answered)
+            idx = random.randrange(0, questions.count())
 
-            self.active_question = _questionstochoosefrom[_idx]
+            self.active_question = questions[idx]
             self.active_result = None
             self.save()
 
