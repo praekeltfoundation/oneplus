@@ -1129,7 +1129,6 @@ def ontrack(request, state, user):
 def leader(request, state, user):
     #get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _participant.me = True
     request.session["state"]["leader_region"] = COUNTRYWIDE
 
     def leader_position(location):
@@ -1164,7 +1163,7 @@ def leader(request, state, user):
 
         #Get leaderboard and position
         _location = request.session["state"]["leader_region"]
-        _learners = get_leaderboard(_location)
+        _learners = list(get_leaderboard(_location))
         request.session["state"]["leader_place"] = leader_position(_location)
 
         try:
