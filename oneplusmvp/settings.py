@@ -30,7 +30,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")] # os.path.join(BASE_DIR, "oneplus/templates")
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]
 
 ALLOWED_HOSTS = []
 
@@ -134,7 +134,6 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 

@@ -2,15 +2,21 @@ from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
-from forms import *
-from communication.models import *
-from organisation.models import *
-from core.models import *
-from oneplus.models import *
-from datetime import *
+from forms import LoginForm
+from communication.models import Post, Discussion, Message, ChatGroup,\
+    ChatMessage
+from organisation.models import Module
+from core.models import Participant, Learner, ParticipantQuestionAnswer, \
+    ParticipantPointBonusRel, ParticipantBadgeTemplateRel
+from gamification.models import GamificationScenario
+from oneplus.models import LearnerState
+from datetime import datetime, date
 from datetime import timedelta
+from django.db.models import Sum
+import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
+
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -18,8 +24,8 @@ def oneplus_login_required(f):
         if "user" not in request.session.keys():
             return HttpResponseRedirect("login")
         return f(request, user=request.session["user"], *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
     return wrap
 
 
@@ -106,7 +112,7 @@ def login(request, state):
 
 # Signout Function
 @oneplus_state_required
-def signout(request, state):
+def signout(request):
     logout(request)
 
     def get():
@@ -190,7 +196,7 @@ def home(request, state, user):
         ).count()
     request.session["state"]["home_goal"]\
         = settings.ONEPLUS_WIN_REQUIRED\
-        - request.session["state"]["home_correct"]  #TODO:Should be setting
+        - request.session["state"]["home_correct"]
 
     def get():
         return render(request, "learn/home.html", {"state": state,
@@ -377,7 +383,6 @@ def nextchallenge(request, state, user):
                 = request.session["state"]["discussion_response_id"]
             request.session["state"]["discussion_response_id"] = None
 
-
         #show more comments
         elif "page" in request.POST.keys():
             request.session["state"]["discussion_page"] += 2
@@ -468,7 +473,8 @@ def right(request, state, user):
                 participant=_participant,
                 scenario__in=_scenario,
                 awarddate__range=[
-                    datetime.today()-timedelta(minutes=1),datetime.today()
+                    datetime.today()-timedelta(minutes=1),
+                    datetime.today()
                 ]
             ).first()
             if _badge:
@@ -587,9 +593,8 @@ def wrong(request, state, user):
     request.session["state"]["wrong_tasks_today"] = \
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
-             answerdate__gte=date.today()
+            answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
-
 
     def get():
         if not _learnerstate.active_result:
@@ -615,8 +620,9 @@ def wrong(request, state, user):
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None).order_by("publishdate")\
-                    .reverse()[:request.session["state"]["discussion_page"]]
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -685,18 +691,6 @@ def wrong(request, state, user):
             elif "comment_response_button" in request.POST.keys():
                 request.session["state"]["discussion_response_id"]\
                     = request.POST["comment_response_button"]
-
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course
-                    ).first(),
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -804,13 +798,14 @@ def inbox_detail(request, state, user, messageid):
             _message.hide_message(_participant.learner)
             return HttpResponseRedirect("inbox")
 
-        return render(request,
-                      "com/inbox_detail.html",
-                      {
-                          "state": state,
-                          "user": user,
-                          "message": _message
-                      }
+        return render(
+            request,
+            "com/inbox_detail.html",
+            {
+                "state": state,
+                "user": user,
+                "message": _message
+            }
         )
 
     return resolve_http_method(request, [get, post])
@@ -852,6 +847,7 @@ def inbox_send(request, state, user):
                                                        "user": user})
 
     return resolve_http_method(request, [get, post])
+
 
 # Chat Groups Screen
 @oneplus_state_required
@@ -897,9 +893,8 @@ def chat(request, state, user, chatid):
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set\
-                        .order_by("publishdate")\
-                        .reverse()[:request.session["state"]["chat_page"]]
+        _messages = _group.chatmessage_set.order_by("publishdate")\
+            .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
@@ -1035,8 +1030,6 @@ def blog_list(request, state, user):
 def blog(request, state, user, blogid):
     #get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    _posts = Post.objects.filter(course=_course).order_by("publishdate").reverse()
-
     _post = Post.objects.get(pk=blogid)
     _next = Post.objects.filter(
         course=_course,
@@ -1070,9 +1063,10 @@ def blog(request, state, user, blogid):
         return render(
             request,
             "com/blog.html",
-            {"state": state,
-             "user": user,
-             "post": _post
+            {
+                "state": state,
+                "user": user,
+                "post": _post
             }
         )
 
@@ -1095,8 +1089,9 @@ def ontrack(request, state, user):
         if _answers.count() < 10:
             m.score = -1
         else:
-            m.score = _answers.filter(correct=True).count()\
-                      / _answers.count() * 100
+            m.score = _answers.filter(
+                correct=True
+            ).count()/_answers.count() * 100
 
     def get():
         return render(
@@ -1191,7 +1186,7 @@ def leader(request, state, user):
 
         #Get leaderboard and position
         _location = request.session["state"]["leader_region"]
-        _learners = get_leaderboard(_location)
+        _learners = list(get_leaderboard(_location))
         request.session["state"]["leader_place"] = leader_position(_location)
 
         #Get unique regions
