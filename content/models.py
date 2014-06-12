@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator
 from organisation.models import Module
+from django.core.urlresolvers import reverse
 
 
 class LearningChapter(models.Model):
@@ -75,15 +76,15 @@ class TestingQuestion(models.Model):
 
 
 class TestingQuestionOption(models.Model):
-    name = models.CharField(
-        "Name", max_length=500, null=True, blank=False, unique=True)
+    name = models.CharField("Name", max_length=500, null=True, blank=False, unique=True)
     question = models.ForeignKey(TestingQuestion, null=True, blank=False)
     order = models.PositiveIntegerField("Order", default=1)
     content = models.TextField("Content", blank=True)
     correct = models.BooleanField("Correct")
 
     def link(self):
-        return "<a href='/admin/content/testingquestionoption/%s' target='_blank'>Edit</a>" % str(self.id)
+        return "<a href='%s' target='_blank'>Edit</a>" \
+               % reverse('admin:content_testingquestionoption_change', args=[self.id])
     link.allow_tags = True
 
     def __str__(self):

@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from models import *
-from django.core.urlresolvers import reverse
-from django.utils.html import format_html
+from models import TestingBank, TestingQuestion, TestingQuestionOption, LearningChapter
+
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
