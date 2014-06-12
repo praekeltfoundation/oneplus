@@ -14,11 +14,7 @@
                     <div class="xlarge-font center-font pad-bottom">Correct</div>
                     <div class="large-font-normal center-font">
                     <span class="large-font center-font">
-                        {% if question.points > 1 %}
-                             {{ question.points }} points
-                        {% else %}
-                             {{ question.points }} point
-                        {% endif %}
+                        {{ question.points }} point{{ questions.points|pluralize }}
                     </span> added.
                         {% if badge %}
                             <span class="large-font center-font">{{ badge.name }}</span> badge earned
