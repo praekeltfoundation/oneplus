@@ -6,7 +6,11 @@
     {% load humanize %}
 
     <div class="text heading red-back darkgrey-front"><li class="icon leaderboard"></li><p>Leaderboard</p></div>
-    <div class="text heading darkgrey-back"><p>Well done, you're in <span class="red-front">{{ state.leader_place|ordinal }} Place</span>
+    <div class="text heading darkgrey-back">{% if state.leader_place > 0 %}
+        <p>Well done, you're in <span class="red-front">{{ state.leader_place|ordinal }} Place</span>
+    {% else %}
+        <p>You do not live here, thus you don't have a ranking</p>
+    {% endif %}
 
     </p>
 
@@ -27,7 +31,7 @@
 
         {% for participant in learners %}
             <div class="item grey-back {% if participant.me %}red-front{% endif %}">
-                <div class="large-font pull-left">#1</div>
+                <div class="large-font pull-left">#{{ forloop.counter }}</div>
                 <div class="large-font pull-left" style="padding-left:40px">{{ participant.learner.first_name }} ({{ participant.learner.area }})</div>
                 <div class="large-font pull-right">{{ participant.points }}</div>
                 <div class="clear"></div>

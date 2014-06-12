@@ -11,6 +11,11 @@ body {
     box-sizing: border-box;
 }
 
+input[type=submit], input[type=text] {
+    -webkit-appearance: none;
+    border-radius: 0;
+}
+
 .white-front { color: #d5d5d5; }
 .darkgrey-front { color: #191919; }
 .grey-front { color: #2a2a2a; }
@@ -435,7 +440,7 @@ li.contact {
 .pull-right { float:right;}
 .clear { clear: both; }
 
-div.badge {
+div.award-badge {
     display: block;
     width: 62px;
     height: 64px;
@@ -498,6 +503,7 @@ li.down_red {
 
 .bold-font { font-weight: bold; }
 .large-font {font-size: 20px; font-weight: bold}
+.large-font-normal {font-size: 20px; font-weight: normal}
 .xlarge-font {font-size: 39px; font-weight: bold}
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
