@@ -2,7 +2,6 @@ from django.db import models
 from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import date
-import random
 
 
 # Participant(Learner) State
