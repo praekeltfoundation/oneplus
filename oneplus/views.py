@@ -2,13 +2,18 @@ from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
-from forms import *
-from communication.models import *
-from organisation.models import *
-from core.models import *
-from oneplus.models import *
-from datetime import *
+from forms import LoginForm
+from communication.models import Post, Discussion, Message, ChatGroup,\
+    ChatMessage
+from organisation.models import Module
+from core.models import Participant, Learner, ParticipantQuestionAnswer, \
+    ParticipantPointBonusRel, ParticipantBadgeTemplateRel
+from gamification.models import GamificationScenario
+from oneplus.models import LearnerState
+from datetime import datetime, date
 from datetime import timedelta
+from django.db.models import Sum
+import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
 
@@ -18,8 +23,8 @@ def oneplus_login_required(f):
         if "user" not in request.session.keys():
             return HttpResponseRedirect("login")
         return f(request, user=request.session["user"], *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
     return wrap
 
 
