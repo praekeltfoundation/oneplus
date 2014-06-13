@@ -139,15 +139,16 @@ STATICFILES_FINDERS = (
 
 
 # Which HTML tags are allowed
-BLEACH_ALLOWED_TAGS = ['p', 'b', 'i', 'u', 'em', 'strong', 'a']
+BLEACH_ALLOWED_TAGS = ['img', 'p', 'b', 'i', 'u', 'em', 'strong', 'a']
 
 # Which HTML attributes are allowed
-BLEACH_ALLOWED_ATTRIBUTES = ['href', 'title', 'style']
+BLEACH_ALLOWED_ATTRIBUTES = ['href', 'title', 'style','src']
 
 # Which CSS properties are allowed in 'style' attributes (assuming
 # style is an allowed attribute)
 BLEACH_ALLOWED_STYLES = [
-    'font-family', 'font-weight', 'text-decoration', 'font-variant']
+    'font-family', 'font-weight', 'text-decoration', 'font-variant',
+    'width', 'height']
 
 # Strip unknown tags if True, replace with HTML escaped characters if
 # False
