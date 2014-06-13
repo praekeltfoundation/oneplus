@@ -1,8 +1,5 @@
 from django.conf.urls import url
-from django.conf import settings
-from django.conf.urls.static import static
 from oneplus import views
-from oneplus.views import *
 
 urlpatterns = [
     # Misc
@@ -13,7 +10,9 @@ urlpatterns = [
     # Auth
     url(r"^login$", views.login, name="auth.login"),
     url(r"^signout", views.signout, name="auth.signout"),
-    url(r"^smspassword/(?P<msisdn>\d+)$", views.smspassword, name="auth.smspassword"),
+    url(r"^smspassword/(?P<msisdn>\d+)$",
+        views.smspassword,
+        name="auth.smspassword"),
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
 
     # Learn
@@ -25,7 +24,9 @@ urlpatterns = [
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),
-    url(r"^inbox/(?P<messageid>\d+)$", views.inbox_detail, name="com.inbox_detail"),
+    url(r"^inbox/(?P<messageid>\d+)$",
+        views.inbox_detail,
+        name="com.inbox_detail"),
     url(r"^inbox_send", views.inbox_send, name="com.inbox_send"),
 
     url(r"^chat$", views.chatgroups, name="com.chatgroups"),
@@ -39,6 +40,8 @@ urlpatterns = [
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
     url(r"^leader$", views.leader, name="prog.leader"),
     url(r"^points$", views.points, name="prog.points"),
-    url(r"^leader/(?P<areaid>\d+)$", views.leader, name="prog.leader.id"),
+    url(r"^leader/(?P<areaid>\d+)$",
+        views.leader,
+        name="prog.leader.id"),
     url(r"^badges$", views.badges, name="prog.badges")
 ]
