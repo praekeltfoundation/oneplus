@@ -26,5 +26,5 @@ Run Tests
 
 
 
-.. |mobileu-ci| image:: https://magnum.travis-ci.com/praekelt/mobileu.svg?token=fFyy7nhP4syfyy2MySbK&branch=feature/issue-7-add-a-readme
-.. _mobileu-ci: https://magnum.travis-ci.com/praekelt/mobileu
+.. |mobileu-ci| image:: https://travis-ci.org/praekelt/mobileu.svg?branch=develop
+.. _mobileu-ci: https://travis-ci.org/praekelt/mobileu
