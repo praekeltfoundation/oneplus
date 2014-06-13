@@ -6,7 +6,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'django-mobileu',
-        'psycopg2'
+        'psycopg2',
+        'django_bleach'
     ],
     url='www.praekelt.co.za',
     license='',

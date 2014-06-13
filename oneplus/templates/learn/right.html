@@ -1,5 +1,5 @@
 {% extends "core/main.html" %}
-
+{% load bleach_tags %}
 {% block title %}RIGHT{% endblock %}
 
 {% block content %}
@@ -30,9 +30,9 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="content narrow white-back">
+            <div class="content narrow white-back darkgrey-front">
                 <h1 class="green-front">Solution</h1>
-                <p>{{ question.answer_content }}</p>
+                <p>{{ question.answer_content| bleach  }}</p>
             </div>
         {% endautoescape %}
 
