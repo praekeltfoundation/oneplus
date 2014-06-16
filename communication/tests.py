@@ -4,6 +4,7 @@ from django.test import TestCase
 from communication.models import Message
 from organisation.models import Course
 
+from datetime import datetime
 
 class TestMessage(TestCase):
 
@@ -27,9 +28,23 @@ class TestMessage(TestCase):
 
     def test_get_messages(self):
         # unused
-        self.create_message(self.user, self.course, name="msg1")
-        msg2 = self.create_message(self.user, self.course, name="msg2")
-        msg3 = self.create_message(self.user, self.course, name="msg3")
+        self.create_message(
+            self.user,
+            self.course,
+            name="msg1",
+            publishdate=datetime.now()
+        )
+        msg2 = self.create_message(
+            self.user,
+            self.course, name="msg2",
+            publishdate=datetime.now()
+        )
+        msg3 = self.create_message(
+            self.user,
+            self.course,
+            name="msg3",
+            publishdate=datetime.now()
+        )
         # should return the most recent two in descending order of publishdate
         self.assertEqual(
             [msg3, msg2], Message.get_messages(self.user, self.course, 2))
