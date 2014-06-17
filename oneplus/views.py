@@ -13,6 +13,7 @@ from oneplus.models import LearnerState
 from datetime import datetime, date
 from datetime import timedelta
 from django.db.models import Sum
+from auth.models import CustomUser
 import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
@@ -61,6 +62,25 @@ def resolve_http_method(request, methods):
     return methods[request.method.lower()]()
 
 
+def is_registered(user):
+    # Check which OnePlus course learner is on
+    registered = None
+    for participant in Participant.objects.filter(learner=user.learner):
+        if participant.classs.course.name == "One Plus Grade 11":
+            registered = participant
+
+    return registered
+
+
+def save_user_session(request, registered, user):
+    request.session["user"] = {}
+    request.session["user"]["id"] = user.learner.id
+    request.session["user"]["name"] = user.learner.first_name
+    request.session["user"]["participant_id"] \
+        = registered.id
+    request.session["user"]["place"] = 0  # TODO
+    registered.award_scenario("LOGIN", None)
+
 # Login Screen
 @oneplus_state_required
 def login(request, state):
@@ -78,25 +98,9 @@ def login(request, state):
             )
             if user is not None and user.is_active:
                 try:
-                    # Check that the user is a learner
-                    _learner = user.learner
-
-                    # Check which OnePlus course learner is on
-                    _registered = None
-                    for _parti in Participant.objects.filter(learner=_learner):
-                        if _parti.classs.course.name == "One Plus Grade 11":
-                            _registered = _parti
-
-                    if _registered is not None:
-                        request.session["user"] = {}
-                        request.session["user"]["id"] = _learner.id
-                        request.session["user"]["name"] = _learner.first_name
-                        request.session["user"]["participant_id"] \
-                            = _registered.id
-                        request.session["user"]["place"] = 0  # TODO
-                        _registered.award_scenario("LOGIN", None)
-
-                        #login(request, user)
+                    registered = is_registered(user)
+                    if registered is not None:
+                        save_user_session(request, registered, user)
                         return HttpResponseRedirect("home")
                     else:
                         return HttpResponseRedirect("getconnected")
@@ -110,9 +114,35 @@ def login(request, state):
     return resolve_http_method(request, [get, post])
 
 
+def autologin(request, token):
+    def get():
+        #Get user based on token
+        user = CustomUser.objects.filter(unique_token=token)
+        if user.first():
+            #Login the user
+            if user is not None and user.is_active:
+                try:
+                    registered = is_registered(user)
+                    if registered is not None:
+                        save_user_session(request, registered, user)
+                        return HttpResponseRedirect("home")
+                    else:
+                        return HttpResponseRedirect("getconnected")
+                except ObjectDoesNotExist:
+                        return HttpResponseRedirect("login")
+
+        #If token is not valid, render login screen
+        return render(request, "auth/login.html", {"state": None,
+                                                   "form": LoginForm()})
+
+    def post():
+        return HttpResponseRedirect("/")
+
+    return resolve_http_method(request, [get, post])
+
 # Signout Function
-@oneplus_state_required
-def signout(request):
+@oneplus_login_required
+def signout(request, user):
     logout(request)
 
     def get():
