@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from organisation.models import School, Course
 import uuid
-from base64 import b64decode
+from base64 import b64encode
 from datetime import datetime, timedelta
 
 # Base class for custom MobileU user model
@@ -34,11 +34,11 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         # TODO: Check uniqueness
         #Generate unique guid
-        self.unique_token = b64decode(uuid.uuid4())
-        self.unique_token_expiry = datetime.now() + timedelta(months=1)
+        self.unique_token = b64encode(uuid.uuid1().bytes)
+        self.unique_token_expiry = datetime.now() + timedelta(days=30)
 
         #Save object
-        super(CustomUser,self).save(*args,**kwargs)
+        super(CustomUser, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.username
