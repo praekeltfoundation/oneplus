@@ -44,7 +44,12 @@ input[type=submit], input[type=text] {
 div { box-sizing: border-box; }
 h1 { margin: 0px 0px 16px 0px; }
 p { margin: 16px 0px 16px 0px; line-height: 1.1em; }
-a { padding: 0px 0px 5px 0px; text-decoration: none; display: block; text-align: left; }
+a { padding: 0px 0px 5px 0px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    color: #28e690;
+}
 button {white-space: nowrap; }
 
 
