@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from models import *
+from models import TestingBank, TestingQuestion, TestingQuestionOption, LearningChapter
 
 
 class TestingQuestionInline(admin.TabularInline):
@@ -13,9 +13,9 @@ class TestingQuestionInline(admin.TabularInline):
 class TestingQuestionOptionInline(admin.TabularInline):
     model = TestingQuestionOption
     extra = 1
-    fields = ("order", "name", "correct")
+    fields = ("order", "name", "correct","link")
+    readonly_fields = ('link', )
     ordering = ("order", "name")
-
 
 class LearningChapterAdmin(SummernoteModelAdmin):
     list_display = ("module", "order", "name", "description")
@@ -74,3 +74,4 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingBank, TestingBankAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
+admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)

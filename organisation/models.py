@@ -8,8 +8,8 @@ class Organisation(models.Model):
     a SAAS with multiple organisations on a single server.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     website = models.URLField("Website", max_length=200, blank=True)
     email = models.EmailField("E-Mail", max_length=75, blank=True)
     #schools
@@ -28,8 +28,8 @@ class School(models.Model):
     A school manager has the ability to CRUD courses under a school.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     organisation = models.ForeignKey(Organisation, null=True, blank=False)
     website = models.URLField("Website", max_length=200, blank=True)
     email = models.EmailField("E-Mail", max_length=75, blank=True)
@@ -50,8 +50,8 @@ class Course(models.Model):
     logic' for a courses.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     slug = models.SlugField("Slug", blank=True)
     #modulees
     #pages
@@ -72,8 +72,8 @@ class Module(models.Model):
     and gamification logic.
     """
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=50, blank=True)
+        "Name", max_length=500, null=True, blank=False, unique=True)
+    description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     #learning
     #testing
