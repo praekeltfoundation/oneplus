@@ -31,11 +31,14 @@ class CustomUser(AbstractUser):
         blank=True
     )
 
+    def generate_token(self):
+        self.unique_token = b64encode(uuid.uuid1().bytes).replace("/", "_")
+        self.unique_token_expiry = datetime.now() + timedelta(days=30)
+
     def save(self, *args, **kwargs):
         # TODO: Check uniqueness on generation
         #Generate unique uuid, base64 encodes it and makes it url safe
-        self.unique_token = b64encode(uuid.uuid1().bytes).replace("/", "_")
-        self.unique_token_expiry = datetime.now() + timedelta(days=30)
+        self.generate_token()
 
         #Save object
         super(CustomUser, self).save(*args, **kwargs)
