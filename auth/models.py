@@ -32,9 +32,9 @@ class CustomUser(AbstractUser):
     )
 
     def save(self, *args, **kwargs):
-        # TODO: Check uniqueness
-        #Generate unique guid
-        self.unique_token = b64encode(uuid.uuid1().bytes)
+        # TODO: Check uniqueness on generation
+        #Generate unique uuid, base64 encodes it and makes it url safe
+        self.unique_token = b64encode(uuid.uuid1().bytes).replace("/", "_")
         self.unique_token_expiry = datetime.now() + timedelta(days=30)
 
         #Save object
