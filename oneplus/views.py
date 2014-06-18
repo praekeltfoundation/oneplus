@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
@@ -116,24 +116,33 @@ def login(request, state):
 
 def autologin(request, token):
     def get():
-        #Get user based on token
-        user = CustomUser.objects.filter(unique_token__startswith=token)
-        if user.first():
+        #Get user based on token + expiry date
+        user = CustomUser.objects.filter(
+            unique_token__startswith=token,
+            unique_token_expiry__gte=datetime.now()
+        ).first()
+        if user:
             #Login the user
             if user is not None and user.is_active:
                 try:
                     registered = is_registered(user)
                     if registered is not None:
                         save_user_session(request, registered, user)
-                        return HttpResponseRedirect("home")
+                        return redirect("learn.home")
                     else:
-                        return HttpResponseRedirect("getconnected")
+                        return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
-                        return HttpResponseRedirect("login")
+                        return redirect("auth.login")
 
         #If token is not valid, render login screen
-        return render(request, "auth/login.html", {"state": None,
-                                                   "form": LoginForm()})
+        return render(
+            request,
+            "auth/login.html",
+            {
+                "state": None,
+                 "form": LoginForm()
+            }
+        )
 
     def post():
         return HttpResponseRedirect("/")
