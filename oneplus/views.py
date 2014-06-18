@@ -117,7 +117,7 @@ def login(request, state):
 def autologin(request, token):
     def get():
         #Get user based on token
-        user = CustomUser.objects.filter(unique_token=token)
+        user = CustomUser.objects.filter(unique_token__startswith=token)
         if user.first():
             #Login the user
             if user is not None and user.is_active:
