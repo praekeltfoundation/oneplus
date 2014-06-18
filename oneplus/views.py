@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
 from forms import *
+from auth.models import CustomUser
 from communication.models import *
 from organisation.models import *
 from core.models import *
@@ -71,6 +72,7 @@ def login(request, state):
                 username=form.cleaned_data["username"],
                 password=form.cleaned_data["password"]
             )
+
             if user is not None and user.is_active:
                 try:
                     # Check that the user is a learner
@@ -98,6 +100,14 @@ def login(request, state):
                 except ObjectDoesNotExist:
                         return HttpResponseRedirect("getconnected")
             else:
+                #Check if user is registered
+                exists = CustomUser.objects.filter(
+                    username=form.cleaned_data["username"]
+                ).exists()
+                request.session["user_exists"] = exists
+
+                #Save provided username
+                request.session["username"] = form.cleaned_data["username"]
                 return HttpResponseRedirect("getconnected")
         else:
             return get()
@@ -121,7 +131,7 @@ def signout(request, state):
 
 # SMS Password Screen
 @oneplus_state_required
-def smspassword(request, state):
+def smspassword(request, state, msisdn):
     def get():
         return render(request, "auth/smspassword.html", {"state": state})
 
@@ -135,10 +145,26 @@ def smspassword(request, state):
 @oneplus_state_required
 def getconnected(request, state):
     def get():
-        return render(request, "auth/getconnected.html", {"state": state})
+        return render(
+            request,
+            "auth/getconnected.html",
+            {
+                "state": state,
+                "exists": request.session["user_exists"],
+                "provided_username": request.session["username"]
+            }
+        )
 
     def post():
-        return render(request, "auth/getconnected.html", {"state": state})
+        return render(
+            request,
+            "auth/getconnected.html",
+            {
+                "state": state,
+                "exists": request.session["user_exists"],
+                "provided_username": request.session["username"]
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 

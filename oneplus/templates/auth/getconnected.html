@@ -5,11 +5,11 @@
 {% block content %}
 <form name="sms_form" method="post" action="?">
 {% csrf_token %}
-    {% if request.user %}
+    {% if exists %}
         <p>
             You seem to have entered an incorrect password.
             Please click  <a href={% url 'auth.login' %}>here</a> to try again or
-            click <a href={% url 'auth.smspassword' '08290425202' %}>here</a>
+            click <a href={% url 'auth.smspassword' provided_username %}>here</a>
             to reset your password.
         </p>
     {% else %}
@@ -18,8 +18,9 @@
             As your cell number is not registered,
             you are not able to access the platform.
             If you believe you should have access and are registered,
-            please reach out to us <a href={% url 'misc.contact' %}>here</a>
-
+            please reach out to us <a href={% url 'misc.contact' %}>here</a>.
+        </p>
+        <p>
             For more information about OnePlus please email
             <a href="mailto:info@oneplus.co.za" class="green-front bold-font">
                 info@oneplus.co.za
