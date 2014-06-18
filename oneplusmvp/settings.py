@@ -30,7 +30,8 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")] # os.path.join(BASE_DIR, "oneplus/templates")
+TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]
+ # os.path.join(BASE_DIR, "oneplus/templates")
 
 ALLOWED_HOSTS = []
 
@@ -151,6 +152,13 @@ FIXTURE_DIRS = (
     abspath('fixtures'),
 )
 
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = '2025'
+SERVER_EMAIL = 'info@oneplus.co.za'
+EMAIL_SUBJECT_PREFIX = '[ONE-PLUS] '
+MANAGERS = (
+    ('Jane', 'info@oneplus.co.za')
+)
 try:
     from local_settings import *
 except ImportError, e:

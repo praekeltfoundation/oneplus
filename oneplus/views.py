@@ -10,7 +10,7 @@ from core.models import *
 from oneplus.models import *
 from datetime import *
 from datetime import timedelta
-from django.core.mail import send_mail
+from django.core.mail import send_mail, mail_managers, BadHeaderError
 
 COUNTRYWIDE = "Countrywide"
 
@@ -859,7 +859,10 @@ def inbox_send(request, state, user):
     def post():
         #new message created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            #Get comment
             _comment = request.POST["comment"]
+
+            #Create and save message
             _message = Message(
                 name="Message from " +
                      _participant.learner.first_name +
@@ -873,10 +876,27 @@ def inbox_send(request, state, user):
                 direction=2
             )
             _message.save()
-            request.session["state"]["inbox_sent"] = True
 
-        return render(request, "com/inbox_send.html", {"state": state,
-                                                       "user": user})
+            try:
+                #Send email to info@oneplus.co.za
+                mail_managers(
+                    subject='Inbox Send Message',
+                    message=_comment,
+                    fail_silently=False
+                )
+                #Set inbox send to true
+                request.session["state"]["inbox_sent"] = True
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+
+        return render(
+            request,
+            "com/inbox_send.html",
+            {
+                "state": state,
+                "user": user
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -1352,7 +1372,12 @@ def contact(request, state):
             _comment = request.POST["comment"]
 
             #Send email to info@oneplus.co.za
-            send_mail('Contact Us Message', _comment, 'info@oneplus.co.za',['info@oneplus.co.za'], fail_silently=False)
+            mail_managers(
+                subject='Contact Us Message',
+                message=_comment,
+                fail_silently=False
+            )
+
             state["sent"] = True
             
         return render(request, "misc/contact.html", {"state": state})
