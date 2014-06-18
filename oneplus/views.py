@@ -14,6 +14,7 @@ from datetime import datetime, date
 from datetime import timedelta
 from django.db.models import Sum
 from auth.models import CustomUser
+from functools import wraps
 import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
@@ -21,17 +22,17 @@ COUNTRYWIDE = "Countrywide"
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
+    @wraps(f)
     def wrap(request, *args, **kwargs):
         if "user" not in request.session.keys():
             return HttpResponseRedirect("login")
         return f(request, user=request.session["user"], *args, **kwargs)
-    wrap.__doc__ = f.__doc__
-    wrap.__name__ = f.__name__
     return wrap
 
 
 # Code decorator to ensure that view state exists and is properly handled
 def oneplus_state_required(f):
+    @wraps(f)
     def wrap(request, *args, **kwargs):
         #Initialise the oneplus state
         # If value is 0, the user's session cookie will expire when the user's
@@ -48,8 +49,6 @@ def oneplus_state_required(f):
             request.session["state"]["menu_visible"] = False
 
         return f(request, state=request.session["state"], *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
     return wrap
 
 
@@ -140,7 +139,7 @@ def autologin(request, token):
             "auth/login.html",
             {
                 "state": None,
-                 "form": LoginForm()
+                "form": LoginForm()
             }
         )
 
@@ -148,6 +147,7 @@ def autologin(request, token):
         return HttpResponseRedirect("/")
 
     return resolve_http_method(request, [get, post])
+
 
 # Signout Function
 @oneplus_login_required
