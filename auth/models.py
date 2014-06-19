@@ -36,13 +36,15 @@ class CustomUser(AbstractUser):
             self.unique_token_expiry = datetime.now() + timedelta(days=30)
 
     def save(self, *args, **kwargs):
-        #Check uniqueness on generation
-        #Generate unique uuid, base64 encodes it and makes it url safe
-        if self.unique_token_expiry is None or datetime.now() > :
-        self.generate_token()
-        while CustomUser.objects.filter(
-                unique_token=self.unique_token).exists():
+        #Check if unique token needs regenerating
+        if self.unique_token_expiry is None \
+                or datetime.now() > self.unique_token_expiry:
+            #Check uniqueness on generation
+            #Generate unique uuid, base64 encodes it and makes it url safe
             self.generate_token()
+            while CustomUser.objects.filter(
+                    unique_token=self.unique_token).exists():
+                self.generate_token()
 
         #Save object
         super(CustomUser, self).save(*args, **kwargs)
