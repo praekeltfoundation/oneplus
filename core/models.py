@@ -3,8 +3,8 @@ from django.db.models import Sum
 from datetime import datetime
 from organisation.models import Course
 from auth.models import Learner
-from gamification.models import (
-    GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario)
+from gamification.models import \
+    GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption
 
 
