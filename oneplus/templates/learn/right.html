@@ -13,9 +13,14 @@
                 <div class="pad-bottom">
                     <div class="xlarge-font center-font pad-bottom">Correct</div>
                     <div class="large-font-normal center-font">
-                    <span class="large-font center-font">
-                        {{ question.points }} point{{ questions.points|pluralize }}
-                    </span> added.
+
+                        <span class="large-font center-font">
+                        {% if points %}
+                            {{ points.value }} point{{ points.value|pluralize }}
+                        {% else %}
+                            0 points
+                        {% endif %}
+                        </span> added.
                         {% if badge %}
                             <span class="large-font center-font">{{ badge.name }}</span> badge earned
                         {% endif %}
