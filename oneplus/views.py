@@ -440,6 +440,7 @@ def right(request, state, user):
 
     def get():
         if _learnerstate.active_result:
+            #Max discussion page
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -450,8 +451,12 @@ def right(request, state, user):
                     moderated=True,
                     response=None
                 ).count()
+
+            #Discussion page?
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
+
+            #Messages for discussion page
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -464,11 +469,14 @@ def right(request, state, user):
                 ).order_by("publishdate")\
                 .reverse()[:request.session["state"]["discussion_page"]]
 
+            #Gameification scenario for correct question
             _scenario = GamificationScenario.objects.filter(
                 module=_learnerstate.active_question.bank.module,
                 course=_learnerstate.active_question.bank.module.course,
                 event="CORRECT"
             )
+
+            #Get relevant badge related to scenario
             _badge = ParticipantBadgeTemplateRel.objects.filter(
                 participant=_participant,
                 scenario__in=_scenario,
@@ -481,6 +489,10 @@ def right(request, state, user):
                 _badgetemplate = _badge.badgetemplate
             else:
                 _badgetemplate = None
+
+            #Get points
+            _points = _scenario.first().point
+
             return render(
                 request,
                 "learn/right.html",
@@ -489,7 +501,8 @@ def right(request, state, user):
                     "user": user,
                     "question": _learnerstate.active_question,
                     "messages": _messages,
-                    "badge": _badgetemplate
+                    "badge": _badgetemplate,
+                    "points": _points
                 }
             )
         else:
