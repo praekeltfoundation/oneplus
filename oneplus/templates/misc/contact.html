@@ -4,8 +4,16 @@
 
 {% block content %}
 
-    <div class="text heading darkgrey-back darkgrey-front"><li class="icon contact"></li><p>Contact Us</p></div>
+    <div class="text heading darkgrey-back lightgrey-front"><li class="icon contact"></li><p>Contact Us</p></div>
 
-    <p class="white-front">For more information please email <a href="mailto:info@oneplus.co.za" class="green-front bold-font">info@oneplus.co.za</a></p>
+    <div class="content narrow darkgrey-back">
+        {% if state.sent %}<div class="large-font green-front">Your message has been sent</div> {% endif %}
+        <p class="white-front">For more information please email <a href="mailto:info@oneplus.co.za" class="green-front bold-font">info@oneplus.co.za</a></p>
+        <p class="white-front"><span class="bold-font">or</span> send us a message</p>
+        <form name="contact_form" method="post" action="?" class="comment">{% csrf_token %}
+            <button type="submit" name="contact_button" class="button green-back" value="Submit"></button>
+            <textarea type="text" name="comment" value="" ></textarea>
+        </form>
+    </div>
 
 {% endblock %}

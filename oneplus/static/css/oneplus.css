@@ -44,7 +44,12 @@ input[type=submit], input[type=text] {
 div { box-sizing: border-box; }
 h1 { margin: 0px 0px 16px 0px; }
 p { margin: 16px 0px 16px 0px; line-height: 1.1em; }
-a { padding: 0px 0px 5px 0px; text-decoration: none; display: block; text-align: left; }
+a { padding: 0px 0px 5px 0px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    color: #28e690;
+}
 button {white-space: nowrap; }
 
 
@@ -67,6 +72,8 @@ button {white-space: nowrap; }
 }
 
 input[type=text] { width: 100%; background-color: #444444; height: 35px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+textarea { width: 100%; background-color: #444444; height: 80px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+
 .login label { z-index: 1; display: block; }
 
 .text {
@@ -425,6 +432,12 @@ li.down_red {
     padding-right: 50px;
     margin-top:10px;
 }
+
+.comment > textarea{
+    padding-right: 50px;
+    margin-top:10px;
+}
+
 
 .comment > button{
     background-color: #444444;
