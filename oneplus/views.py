@@ -876,11 +876,11 @@ def inbox_send(request, state, user):
             _comment = request.POST["comment"]
 
             #Subject
-            subject = [
+            subject = ' '.join([
                 "Message from",
                 _participant.learner.first_name,
                 _participant.learner.last_name
-            ].join(' ')
+            ])
 
             #Create and save message
             _message = Message(
