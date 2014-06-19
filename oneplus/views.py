@@ -875,13 +875,17 @@ def inbox_send(request, state, user):
             #Get comment
             _comment = request.POST["comment"]
 
+            #Subject
+            subject = ' '.join([
+                "Message from",
+                _participant.learner.first_name,
+                _participant.learner.last_name
+            ])
+
             #Create and save message
             _message = Message(
-                name="Message from " +
-                     _participant.learner.first_name +
-                     " " +
-                     _participant.learner.last_name,
-                description=_comment,
+                name=subject[:50],
+                description=_comment[:50],
                 course=_participant.classs.course,
                 content=_comment,
                 publishdate=datetime.now(),
@@ -893,7 +897,7 @@ def inbox_send(request, state, user):
             try:
                 #Send email to info@oneplus.co.za
                 mail_managers(
-                    subject='Inbox Send Message',
+                    subject=subject,
                     message=_comment,
                     fail_silently=False
                 )
