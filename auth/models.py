@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from organisation.models import School, Course
-
+import uuid
+from base64 import b64encode
+from datetime import datetime, timedelta
 
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
@@ -16,6 +18,36 @@ class CustomUser(AbstractUser):
                                     default=False)
     optin_email = models.BooleanField(
         verbose_name="Opt-In Email Communications", default=False)
+
+    unique_token = models.CharField(
+        verbose_name="Unique Login Token",
+        max_length=500,
+        blank=True
+    )
+
+    unique_token_expiry = models.DateTimeField(
+        verbose_name="Unique Login Token Expiry",
+        null=True,
+        blank=True
+    )
+
+    def generate_token(self):
+            self.unique_token = b64encode(uuid.uuid1().bytes).replace("/", "_")
+            self.unique_token_expiry = datetime.now() + timedelta(days=30)
+
+    def save(self, *args, **kwargs):
+        #Check if unique token needs regenerating
+        if self.unique_token_expiry is None \
+                or datetime.now() > self.unique_token_expiry:
+            #Check uniqueness on generation
+            #Generate unique uuid, base64 encodes it and makes it url safe
+            self.generate_token()
+            while CustomUser.objects.filter(
+                    unique_token=self.unique_token).exists():
+                self.generate_token()
+
+        #Save object
+        super(CustomUser, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.username
