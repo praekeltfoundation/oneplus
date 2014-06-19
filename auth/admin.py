@@ -130,7 +130,8 @@ class LearnerAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ("username", "last_name", "first_name", "country", "area","unique_token")
+    list_display = ("username", "last_name", "first_name", "country", "area",
+                    "unique_token")
     list_filter = ("country", "area")
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
@@ -141,7 +142,7 @@ class LearnerAdmin(UserAdmin):
         ("Personal info",           {"fields": ("first_name", "last_name",
                                                 "email", "mobile")}),
         ("Access",                  {"fields": ("username", "password",
-                                                "is_active","unique_token")}),
+                                                "is_active", "unique_token")}),
         ("Region",                  {"fields": ("country", "area", "city",
                                                 "school")}),
         ("Opt-In Communications",   {"fields": ("optin_sms", "optin_email")}),
