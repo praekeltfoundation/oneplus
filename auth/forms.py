@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from models import (
     SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Learner)
-
+import csv
+from organisation.models import School, Course
 
 class SystemAdministratorCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -257,3 +258,24 @@ class LearnerChangeForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class LearnerUpload(forms.Form):
+    file = forms.FileField()
+    place = forms.ModelChoiceField(queryset=Learner.objects.all())
+
+    def save(self):
+        records = csv.reader(self.cleaned_data["file"])
+        for row in records:
+            learner = Learner(
+                username=row[0],
+                mobile=row[1],
+                country=row[2],
+                area=row[3],
+                city=row[4],
+                school=School.objects.filter(name=row[5]).first(),
+                optin_sms=True,
+                optin_email=False
+            )
+            learner.generate_token()
+            learner.save()
