@@ -260,7 +260,7 @@ class LearnerChangeForm(forms.ModelForm):
         return user
 
 
-class LearnerUpload(forms.Form):
+class LearnerImport(forms.Form):
     file = forms.FileField()
     place = forms.ModelChoiceField(queryset=Learner.objects.all())
 
@@ -277,5 +277,5 @@ class LearnerUpload(forms.Form):
                 optin_sms=True,
                 optin_email=False
             )
-            learner.generate_token()
+            learner.generate_unique_token()
             learner.save()

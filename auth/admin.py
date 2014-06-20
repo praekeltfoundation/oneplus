@@ -1,7 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
-from forms import *
+from auth.models import Learner, SystemAdministrator, SchoolManager,\
+    CourseManager, CourseMentor
+from forms import SystemAdministratorChangeForm, \
+    SystemAdministratorCreationForm, SchoolManagerChangeForm,\
+    SchoolManagerCreationForm, CourseManagerChangeForm, \
+    CourseManagerCreationForm, CourseMentorChangeForm, \
+    CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm, \
+    LearnerImport
+
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -156,6 +164,7 @@ class LearnerAdmin(UserAdmin):
                                                 "password2")}),
         ("Region",                  {"fields": ("country", "area", "school")})
     )
+
 
 
 # Auth
