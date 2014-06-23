@@ -258,24 +258,3 @@ class LearnerChangeForm(forms.ModelForm):
         if commit:
             user.save()
         return user
-
-
-class LearnerImport(forms.Form):
-    file = forms.FileField()
-    place = forms.ModelChoiceField(queryset=Learner.objects.all())
-
-    def save(self):
-        records = csv.reader(self.cleaned_data["file"])
-        for row in records:
-            learner = Learner(
-                username=row[0],
-                mobile=row[1],
-                country=row[2],
-                area=row[3],
-                city=row[4],
-                school=School.objects.filter(name=row[5]).first(),
-                optin_sms=True,
-                optin_email=False
-            )
-            learner.generate_unique_token()
-            learner.save()

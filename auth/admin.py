@@ -3,13 +3,15 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
+from organisation.models import School
 from forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
-    CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm, \
-    LearnerImport
-
+    CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
+from datetime import datetime
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -130,10 +132,38 @@ class CourseMentorAdmin(UserAdmin):
     )
 
 
-class LearnerAdmin(UserAdmin):
+class LearnerResource(resources.ModelResource):
+
+    class Meta:
+        model = Learner
+        exclude = (
+            'customuser_ptr', 'password', 'last_login', 'is_superuser',
+            'groups', 'user_permissions', 'is_staff', 'is_active',
+            'date_joined', 'unique_token', 'unique_token_expiry'
+        )
+
+    def get_or_init_instance(self, instance_loader, row):
+        row[u'is_staff'] = False
+        row[u'is_superuser'] = False
+        row[u'is_active'] = True
+        row[u'date_joined'] = datetime.now()
+        return super(resources.ModelResource, self) \
+            .get_or_init_instance(instance_loader, row)
+
+    def import_obj(self, obj, data, dry_run):
+        school, created = School.objects.get_or_create(name=data[u'school'])
+        data[u'school'] = school.id
+        return super(resources.ModelResource, self)\
+            .import_obj(obj, data, dry_run)
+
+
+
+
+class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
     add_form = LearnerCreationForm
+    resource_class = LearnerResource
 
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
@@ -164,7 +194,6 @@ class LearnerAdmin(UserAdmin):
                                                 "password2")}),
         ("Region",                  {"fields": ("country", "area", "school")})
     )
-
 
 
 # Auth
