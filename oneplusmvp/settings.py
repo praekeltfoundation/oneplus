@@ -176,7 +176,7 @@ EMAIL_PORT = '25'
 SERVER_EMAIL = 'info@oneplus.co.za'
 EMAIL_SUBJECT_PREFIX = '[ONE-PLUS] '
 MANAGERS = (
-    ('Jane', 'info@oneplus.co.za')
+    ('Jane', 'info@oneplus.co.za'),
 )
 try:
     from local_settings import *
