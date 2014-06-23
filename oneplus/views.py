@@ -11,8 +11,15 @@ from core.models import Participant, Learner, ParticipantQuestionAnswer, \
 from gamification.models import GamificationScenario
 from oneplus.models import LearnerState
 from datetime import datetime, date
+from auth.models import CustomUser
+from communication.models import *
+from organisation.models import *
+from core.models import *
+from oneplus.models import *
+from datetime import *
 from datetime import timedelta
 from django.db.models import Sum
+from django.core.mail import send_mail, mail_managers, BadHeaderError
 import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
@@ -76,6 +83,7 @@ def login(request, state):
                 username=form.cleaned_data["username"],
                 password=form.cleaned_data["password"]
             )
+
             if user is not None and user.is_active:
                 try:
                     # Check that the user is a learner
@@ -103,6 +111,14 @@ def login(request, state):
                 except ObjectDoesNotExist:
                         return HttpResponseRedirect("getconnected")
             else:
+                #Check if user is registered
+                exists = CustomUser.objects.filter(
+                    username=form.cleaned_data["username"]
+                ).exists()
+                request.session["user_exists"] = exists
+
+                #Save provided username
+                request.session["username"] = form.cleaned_data["username"]
                 return HttpResponseRedirect("getconnected")
         else:
             return get()
@@ -112,7 +128,7 @@ def login(request, state):
 
 # Signout Function
 @oneplus_state_required
-def signout(request):
+def signout(request, state):
     logout(request)
 
     def get():
@@ -126,7 +142,7 @@ def signout(request):
 
 # SMS Password Screen
 @oneplus_state_required
-def smspassword(request, state):
+def smspassword(request, state, msisdn):
     def get():
         return render(request, "auth/smspassword.html", {"state": state})
 
@@ -140,10 +156,26 @@ def smspassword(request, state):
 @oneplus_state_required
 def getconnected(request, state):
     def get():
-        return render(request, "auth/getconnected.html", {"state": state})
+        return render(
+            request,
+            "auth/getconnected.html",
+            {
+                "state": state,
+                "exists": request.session["user_exists"],
+                "provided_username": request.session["username"]
+            }
+        )
 
     def post():
-        return render(request, "auth/getconnected.html", {"state": state})
+        return render(
+            request,
+            "auth/getconnected.html",
+            {
+                "state": state,
+                "exists": request.session["user_exists"],
+                "provided_username": request.session["username"]
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -440,6 +472,7 @@ def right(request, state, user):
 
     def get():
         if _learnerstate.active_result:
+            #Max discussion page
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -450,8 +483,12 @@ def right(request, state, user):
                     moderated=True,
                     response=None
                 ).count()
+
+            #Discussion page?
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
+
+            #Messages for discussion page
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -464,11 +501,14 @@ def right(request, state, user):
                 ).order_by("publishdate")\
                 .reverse()[:request.session["state"]["discussion_page"]]
 
+            #Gameification scenario for correct question
             _scenario = GamificationScenario.objects.filter(
                 module=_learnerstate.active_question.bank.module,
                 course=_learnerstate.active_question.bank.module.course,
                 event="CORRECT"
             )
+
+            #Get relevant badge related to scenario
             _badge = ParticipantBadgeTemplateRel.objects.filter(
                 participant=_participant,
                 scenario__in=_scenario,
@@ -481,6 +521,10 @@ def right(request, state, user):
                 _badgetemplate = _badge.badgetemplate
             else:
                 _badgetemplate = None
+
+            #Get points
+            _points = _scenario.first().point
+
             return render(
                 request,
                 "learn/right.html",
@@ -489,7 +533,8 @@ def right(request, state, user):
                     "user": user,
                     "question": _learnerstate.active_question,
                     "messages": _messages,
-                    "badge": _badgetemplate
+                    "badge": _badgetemplate,
+                    "points": _points
                 }
             )
         else:
@@ -827,13 +872,20 @@ def inbox_send(request, state, user):
     def post():
         #new message created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            #Get comment
             _comment = request.POST["comment"]
+
+            #Subject
+            subject = ' '.join([
+                "Message from",
+                _participant.learner.first_name,
+                _participant.learner.last_name
+            ])
+
+            #Create and save message
             _message = Message(
-                name="Message from " +
-                     _participant.learner.first_name +
-                     " " +
-                     _participant.learner.last_name,
-                description=_comment,
+                name=subject[:50],
+                description=_comment[:50],
                 course=_participant.classs.course,
                 content=_comment,
                 publishdate=datetime.now(),
@@ -841,10 +893,27 @@ def inbox_send(request, state, user):
                 direction=2
             )
             _message.save()
-            request.session["state"]["inbox_sent"] = True
 
-        return render(request, "com/inbox_send.html", {"state": state,
-                                                       "user": user})
+            try:
+                #Send email to info@oneplus.co.za
+                mail_managers(
+                    subject=subject,
+                    message=_comment,
+                    fail_silently=False
+                )
+                #Set inbox send to true
+                request.session["state"]["inbox_sent"] = True
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+
+        return render(
+            request,
+            "com/inbox_send.html",
+            {
+                "state": state,
+                "user": user
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -893,8 +962,9 @@ def chat(request, state, user, chatid):
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set.order_by("publishdate")\
-            .reverse()[:request.session["state"]["chat_page"]]
+        _messages = _group.chatmessage_set\
+                        .order_by("publishdate")\
+                        .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
@@ -1315,6 +1385,19 @@ def contact(request, state):
         return render(request, "misc/contact.html", {"state": state})
 
     def post():
+        #Get message
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _comment = request.POST["comment"]
+
+            #Send email to info@oneplus.co.za
+            mail_managers(
+                subject='Contact Us Message',
+                message=_comment,
+                fail_silently=False
+            )
+
+            state["sent"] = True
+            
         return render(request, "misc/contact.html", {"state": state})
 
     return resolve_http_method(request, [get, post])
