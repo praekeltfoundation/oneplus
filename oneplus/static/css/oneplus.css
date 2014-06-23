@@ -11,7 +11,7 @@ body {
     box-sizing: border-box;
 }
 
-input[type=submit], input[type=text] {
+input[type=submit], input[type=text], input[type=password] {
     -webkit-appearance: none;
     border-radius: 0;
 }
@@ -71,7 +71,7 @@ button {white-space: nowrap; }
     border:none;
 }
 
-input[type=text] { width: 100%; background-color: #444444; height: 35px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+input[type=text],input[type=password] { width: 100%; background-color: #444444; height: 35px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
 textarea { width: 100%; background-color: #444444; height: 80px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
 
 .login label { z-index: 1; display: block; }
