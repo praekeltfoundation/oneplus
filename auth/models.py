@@ -85,10 +85,43 @@ class CourseMentor(CustomUser):
         verbose_name_plural = "Course Mentors"
 
 
+#A sms
+class Sms(models.Model):
+    message = models.TextField(
+        verbose_name="Message",
+        blank=False
+    )
+    date_sent = models.DateTimeField(
+        verbose_name="Time Sms is sent",
+        blank=False
+    )
+
+    class Meta:
+        verbose_name = "Sms"
+        verbose_name_plural = "Smses"
+
 # A learner
 class Learner(CustomUser):
     school = models.ForeignKey(School, null=True, blank=False)
+    last_maths_result = models.FloatField(
+        verbose_name="Last Terms Mathematics Result",
+        blank=True,
+        null=True
+    )
+    grade = models.CharField(
+        verbose_name="User Grade",
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    welcome_message_sent = models.BooleanField(
+        verbose_name="Welcome SMS Sent",
+        blank=True,
+        default=False
+    )
+    welcome_message = models.ForeignKey(Sms, null=True, blank=False)
 
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
+
