@@ -67,14 +67,14 @@ class VumiSmsApi:
         if u'success' in response.keys() and response[u'success'] is not False:
             # Create sms object
             sms = Sms.objects.create(
-                identifier="",
+                uuid="",
                 message=message
             )
             sms.save()
         else:
             # Create sms object
             sms = Sms.objects.create(
-                identifier=response[u'message_id'],
+                uuid=response[u'message_id'],
                 message=message,
                 date_sent=response[u'timestamp']
             )
