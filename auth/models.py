@@ -22,7 +22,8 @@ class CustomUser(AbstractUser):
     unique_token = models.CharField(
         verbose_name="Unique Login Token",
         max_length=500,
-        blank=True
+        blank=True,
+        null=True
     )
 
     unique_token_expiry = models.DateTimeField(
@@ -100,6 +101,7 @@ class Sms(models.Model):
         verbose_name = "Sms"
         verbose_name_plural = "Smses"
 
+
 # A learner
 class Learner(CustomUser):
     school = models.ForeignKey(School, null=True, blank=False)
@@ -119,7 +121,11 @@ class Learner(CustomUser):
         blank=True,
         default=False
     )
-    welcome_message = models.ForeignKey(Sms, null=True, blank=False)
+    welcome_message = models.ForeignKey(
+        Sms,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = "Learner"
