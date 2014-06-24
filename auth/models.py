@@ -5,7 +5,7 @@ import uuid
 from base64 import b64encode
 from datetime import datetime, timedelta
 from communication.models import Sms
-
+from django.utils import timezone
 
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
@@ -41,7 +41,7 @@ class CustomUser(AbstractUser):
     def generate_unique_token(self):
         #Check if unique token needs regenerating
         if self.unique_token_expiry is None \
-                or datetime.now() > self.unique_token_expiry:
+                or timezone.now() > self.unique_token_expiry:
             #Check uniqueness on generation
             #Generate unique uuid, base64 encodes it and makes it url safe
             self.generate_valid_token()
