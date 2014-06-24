@@ -49,7 +49,8 @@ INSTALLED_APPS = (
     "auth",
     "organisation",
     "django_summernote",
-    "south"
+    "south",
+    "requests"
 )
 
 MIDDLEWARE_CLASSES = (

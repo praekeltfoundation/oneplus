@@ -72,15 +72,6 @@ class MessageAdmin(SummernoteModelAdmin):
             {"fields": ["content"]})
     ]
 
-def send_sms(modeladmin, request, queryset):
-    vumi = VumiSmsApi()
-    message = None #
-    for learners in queryset:
-        vumi.send(
-            learners.username,
-            message=message,
-
-        )
 
 # Communication
 admin.site.register(Post, PostAdmin)

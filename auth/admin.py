@@ -1,10 +1,17 @@
 from datetime import datetime
-
+from django.shortcuts import render_to_response, redirect
+from django.http import HttpResponseRedirect
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
+from communication.utils import VumiSmsApi
+from random import randint
+import hashlib
+from auth.forms import SendWelcomeSmsForm
+from django import template
+
 
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
@@ -14,7 +21,7 @@ from forms import SystemAdministratorChangeForm, \
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
-
+import koremutake
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -163,15 +170,11 @@ class LearnerResource(resources.ModelResource):
             .import_obj(obj, data, dry_run)
 
 
-#send_sms.short_description = "Send sms to learners"
-
-
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
     add_form = LearnerCreationForm
     resource_class = LearnerResource
-    actions = ['send_sms']
 
 
     # The fields to be used in displaying the User model.
@@ -204,9 +207,47 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Region",                  {"fields": ("country", "area", "school")})
     )
 
+    def send_sms(self, request, queryset):
+        form = None
+        if 'apply' in request.POST:
+            form = SendWelcomeSmsForm(request.POST)
+
+            if form.is_valid():
+                vumi = VumiSmsApi()
+                message = form.cleaned_data["message"]
+                for learner in queryset:
+                    #Generate password
+                    password = koremutake.encode(randint(10000, 100000))
+                    learner.password = hashlib.md5(password)
+
+                    #Generate autologin link
+                    learner.generate_unique_token()
+
+                    #Save user
+                    learner.save()
+
+                    #Send
+                    vumi.send(
+                        learner.username,
+                        message=message,
+                        password=password,
+                        autologin=learner.unique_token
+                    )
+                return HttpResponseRedirect(request.get_full_path())
+        if not form:
+            form = SendWelcomeSmsForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+        return render_to_response(
+            'admin/auth/send_sms.html',
+            {
+                'sms_form': form,
+                'learners': queryset
+            },
+            context_instance=template.RequestContext(request)
+        )
+    send_sms.short_description = "Send sms to learners"
+    actions = ['send_sms']
 
 # Auth
-admin.site.unregister(Group)
 admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
 admin.site.register(SchoolManager, SchoolManagerAdmin)
 admin.site.register(CourseManager, CourseManagerAdmin)

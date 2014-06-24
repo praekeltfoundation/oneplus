@@ -258,3 +258,10 @@ class LearnerChangeForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class SendWelcomeSmsForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    message = forms.CharField(
+        widget=forms.Textarea
+    )
