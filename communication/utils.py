@@ -14,27 +14,22 @@ class VumiSmsApi:
 
     def templatize(self, message, password, autologin):
         if password is not None:
-            message.replace("|password|", password)
+            message = message.replace("|password|", password)
         if autologin is not None:
-            message.replace("|autologin|", autologin)
+            message = message.replace("|autologin|", autologin)
         return message
 
     def get_sms_url(self):
         return "/".join((
             settings.VUMI_GO_BASE_URL,
-            self.account_key,
+            self.conversation_key,
             'messages.json'
         ))
 
-    def get_auth_string(self):
-        auth = base64.encodestring(
-            '%s:%s' % (self.conversation_key, self.account_token)
-        ).replace('\n', '')
-        return "Basic %s" % auth
 
     def send(self, msisdn, message, password, autologin):
         #Send the url
-        url = self.get_request_url()
+        url = self.get_sms_url()
         message = self.templatize(message, password, autologin)
 
         #Headers
@@ -59,24 +54,26 @@ class VumiSmsApi:
             url,
             data=data,
             headers=headers,
-            auth=(self.conversation_key, self.account_token)
-        ).json()
+            auth=(self.account_key, self.account_token)
+        )
 
-        if response.success is True:
-            # Create sms object
-            sms = Sms.objects.create(
-                identifier=response.message_id,
-                message=message,
-                date_sent=response.timestamp,
-                status='sent'
-            )
-            sms.save()
-        else:
+        response = response.json()
+
+        if u'success' in response.keys() and response[u'success'] is not False:
             # Create sms object
             sms = Sms.objects.create(
                 identifier="",
                 message=message,
                 status=response.reason
+            )
+            sms.save()
+        else:
+            # Create sms object
+            sms = Sms.objects.create(
+                identifier=response[u'message_id'],
+                message=message,
+                date_sent=response[u'timestamp'],
+                status='sent'
             )
             sms.save()
 
