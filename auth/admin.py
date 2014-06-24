@@ -227,12 +227,15 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     learner.save()
 
                     #Send
-                    vumi.send(
+                    learner.welcome_message, learner.welcome_message_sent = vumi.send(
                         learner.username,
                         message=message,
                         password=password,
                         autologin=learner.unique_token
                     )
+
+                    learner.save()
+
                 return HttpResponseRedirect(request.get_full_path())
         if not form:
             form = SendWelcomeSmsForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
