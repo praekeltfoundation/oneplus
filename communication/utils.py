@@ -3,7 +3,12 @@ import json
 import base64
 from communication.models import Sms
 import requests
+from django.core.urlresolvers import reverse
 
+def get_autologin_link(request, unique_token):
+    return request.build_absolute_uri(
+        reverse('auth:autolink',)
+    )
 
 class VumiSmsApi:
     """Sends vumi http api requests"""
@@ -58,13 +63,12 @@ class VumiSmsApi:
         )
 
         response = response.json()
-
+        sent = False
         if u'success' in response.keys() and response[u'success'] is not False:
             # Create sms object
             sms = Sms.objects.create(
                 identifier="",
-                message=message,
-                status=response.reason
+                message=message
             )
             sms.save()
         else:
@@ -72,9 +76,11 @@ class VumiSmsApi:
             sms = Sms.objects.create(
                 identifier=response[u'message_id'],
                 message=message,
-                date_sent=response[u'timestamp'],
-                status='sent'
+                date_sent=response[u'timestamp']
             )
             sms.save()
+            sent = True
+
+        return sms, sent
 
 
