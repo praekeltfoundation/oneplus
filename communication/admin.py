@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from models import *
+from models import Sms
+from utils import VumiSmsApi
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -70,9 +72,17 @@ class MessageAdmin(SummernoteModelAdmin):
             {"fields": ["content"]})
     ]
 
+def send_sms(modeladmin, request, queryset):
+    vumi = VumiSmsApi()
+    message = None #
+    for learners in queryset:
+        vumi.send(
+            learners.username,
+            message=message,
+
+        )
 
 # Communication
-#admin.site.register(Page, PageAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)

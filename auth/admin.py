@@ -1,6 +1,11 @@
+from datetime import datetime
+
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
+
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
 from organisation.models import School
@@ -9,9 +14,7 @@ from forms import SystemAdministratorChangeForm, \
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
-from import_export import resources
-from import_export.admin import ImportExportModelAdmin
-from datetime import datetime
+
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -159,7 +162,7 @@ class LearnerResource(resources.ModelResource):
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
 
-#def send_sms(modeladmin, request, queryset):
+
 #send_sms.short_description = "Send sms to learners"
 
 
@@ -168,6 +171,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     form = LearnerChangeForm
     add_form = LearnerCreationForm
     resource_class = LearnerResource
+    actions = ['send_sms']
+
 
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin

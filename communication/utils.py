@@ -1,16 +1,16 @@
 from django.conf import settings
 import json
 import base64
-from auth.models import Sms
+from communication.models import Sms
 import requests
 
-class VumiHttpApi:
-    """Sends vumi http api requests"""
 
-    def __init__(self, conversation_key, account_key, account_token):
-        self.conversation_key = conversation_key
-        self.account_key = account_key
-        self.account_token = account_token
+class VumiSmsApi:
+    """Sends vumi http api requests"""
+    def __init__(self):
+        self.conversation_key = settings.VUMI_GO_CONVERSATION_KEY
+        self.account_key = settings.VUMI_GO_ACCOUNT_KEY
+        self.account_token = settings.VUMI_GO_ACCOUNT_TOKEN
 
     def templatize(self, message, password, autologin):
         if password is not None:

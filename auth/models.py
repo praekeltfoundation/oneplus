@@ -4,6 +4,8 @@ from organisation.models import School, Course
 import uuid
 from base64 import b64encode
 from datetime import datetime, timedelta
+from communication.models import Sms
+
 
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
@@ -84,28 +86,6 @@ class CourseMentor(CustomUser):
     class Meta:
         verbose_name = "Course Mentor"
         verbose_name_plural = "Course Mentors"
-
-
-#A sms
-class Sms(models.Model):
-    uuid = models.CharField(
-        verbose_name="identifier",
-        max_length=50,
-        blank=False,
-        null=True
-    )
-    message = models.TextField(
-        verbose_name="Message",
-        blank=False
-    )
-    date_sent = models.DateTimeField(
-        verbose_name="Time Sms is sent",
-        blank=False
-    )
-
-    class Meta:
-        verbose_name = "Sms"
-        verbose_name_plural = "Smses"
 
 
 # A learner
