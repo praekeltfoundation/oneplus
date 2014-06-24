@@ -13,7 +13,6 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from datetime import datetime
 
-
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
     form = SystemAdministratorChangeForm
@@ -140,6 +139,7 @@ class LearnerResource(resources.ModelResource):
             'customuser_ptr', 'password', 'last_login', 'is_superuser',
             'groups', 'user_permissions', 'is_staff', 'is_active',
             'date_joined', 'unique_token', 'unique_token_expiry'
+            'welcome_message_sent', 'welcome_message'
         )
 
     def get_or_init_instance(self, instance_loader, row):
@@ -147,6 +147,9 @@ class LearnerResource(resources.ModelResource):
         row[u'is_superuser'] = False
         row[u'is_active'] = True
         row[u'date_joined'] = datetime.now()
+        row[u'welcome_message_sent'] = None
+        row[u'welcome_message'] = None
+
         return super(resources.ModelResource, self) \
             .get_or_init_instance(instance_loader, row)
 
@@ -156,7 +159,8 @@ class LearnerResource(resources.ModelResource):
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
 
-
+#def send_sms(modeladmin, request, queryset):
+#send_sms.short_description = "Send sms to learners"
 
 
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
