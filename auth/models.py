@@ -88,6 +88,12 @@ class CourseMentor(CustomUser):
 
 #A sms
 class Sms(models.Model):
+    uuid = models.CharField(
+        verbose_name="identifier",
+        max_length=50,
+        blank=False,
+        null=True
+    )
     message = models.TextField(
         verbose_name="Message",
         blank=False
