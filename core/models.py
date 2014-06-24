@@ -109,7 +109,7 @@ class ParticipantQuestionAnswer(models.Model):
         "Answer Date", null=True, blank=False, default=datetime.now())
 
     def __str__(self):
-        return self.participant.learner.name
+        return self.participant.learner.username
 
     class Meta:
         verbose_name = "Participant Question Response"
