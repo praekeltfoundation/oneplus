@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from models import (
     SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Learner)
-
+import csv
+from organisation.models import School, Course
 
 class SystemAdministratorCreationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
@@ -257,3 +258,10 @@ class LearnerChangeForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class SendWelcomeSmsForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    message = forms.CharField(
+        widget=forms.Textarea
+    )
