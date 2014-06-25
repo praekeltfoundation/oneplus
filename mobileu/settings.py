@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     #"django.contrib.auth",
+    "import_export",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "grappelli",
@@ -48,8 +49,10 @@ INSTALLED_APPS = (
     "auth",
     "organisation",
     "django_summernote",
-    "south"
-
+    "south",
+    "requests",
+    "koremutake",
+    "import_export"
 )
 
 MIDDLEWARE_CLASSES = (

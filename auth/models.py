@@ -4,6 +4,8 @@ from organisation.models import School, Course
 import uuid
 from base64 import b64encode
 from datetime import datetime, timedelta
+from communication.models import Sms
+from django.utils import timezone
 
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
@@ -22,7 +24,8 @@ class CustomUser(AbstractUser):
     unique_token = models.CharField(
         verbose_name="Unique Login Token",
         max_length=500,
-        blank=True
+        blank=True,
+        null=True
     )
 
     unique_token_expiry = models.DateTimeField(
@@ -32,15 +35,19 @@ class CustomUser(AbstractUser):
     )
 
     def generate_valid_token(self):
-        self.unique_token = b64encode(uuid.uuid1().bytes).replace("/", "_")
+        #Base 64 encode from random uuid bytes and make url safe
+        self.unique_token = b64encode(uuid.uuid1().bytes)\
+            .replace("/", "_")\
+            .replace('=', '')
+
+        #Calculate expiry date
         self.unique_token_expiry = datetime.now() + timedelta(days=30)
 
     def generate_unique_token(self):
         #Check if unique token needs regenerating
         if self.unique_token_expiry is None \
-                or datetime.now() > self.unique_token_expiry:
+                or timezone.now() > self.unique_token_expiry:
             #Check uniqueness on generation
-            #Generate unique uuid, base64 encodes it and makes it url safe
             self.generate_valid_token()
             while CustomUser.objects.filter(
                     unique_token=self.unique_token).exists():
@@ -88,7 +95,29 @@ class CourseMentor(CustomUser):
 # A learner
 class Learner(CustomUser):
     school = models.ForeignKey(School, null=True, blank=False)
+    last_maths_result = models.FloatField(
+        verbose_name="Last Terms Mathematics Result",
+        blank=True,
+        null=True
+    )
+    grade = models.CharField(
+        verbose_name="User Grade",
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    welcome_message_sent = models.BooleanField(
+        verbose_name="Welcome SMS Sent",
+        blank=True,
+        default=False
+    )
+    welcome_message = models.ForeignKey(
+        Sms,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
+

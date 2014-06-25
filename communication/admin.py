@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from models import *
+from models import Sms
+from utils import VumiSmsApi
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -72,7 +74,6 @@ class MessageAdmin(SummernoteModelAdmin):
 
 
 # Communication
-#admin.site.register(Page, PageAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)

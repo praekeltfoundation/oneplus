@@ -9,8 +9,11 @@ setup(
         'South==0.8.4',
         'django-grappelli==2.5.3',
         'django-summernote==0.5.12',
+        'django-import-export==0.2.2',
         'Pillow==2.4.0',
         'psycopg2==2.5.3',
+        'koremutake==1.0.5',
+        'requests==2.3.0'
     ],
     url='www.praekelt.co.za',
     license='',

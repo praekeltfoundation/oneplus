@@ -193,3 +193,25 @@ class ChatMessage(models.Model):
     class Meta:
         verbose_name = "Chat Message"
         verbose_name_plural = "Chat Messages"
+
+
+#A sms
+class Sms(models.Model):
+    uuid = models.CharField(
+        verbose_name="identifier",
+        max_length=50,
+        blank=False,
+        null=True
+    )
+    message = models.TextField(
+        verbose_name="Message",
+        blank=False
+    )
+    date_sent = models.DateTimeField(
+        verbose_name="Time Sms is sent",
+        blank=False
+    )
+
+    class Meta:
+        verbose_name = "Sms"
+        verbose_name_plural = "Smses"
