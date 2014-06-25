@@ -166,7 +166,7 @@ def autologin(request, token):
 
 
 # Signout Function
-@oneplus_login_required
+@oneplus_state_required
 def signout(request, state):
     logout(request)
 
