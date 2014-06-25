@@ -30,7 +30,11 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]
+TEMPLATE_DIRS = [
+    os.path.join(BASE_DIR, "templates"),
+]
+
+BASE_URL = 'oneplus.qa.praekeltfoundation.org'
  # os.path.join(BASE_DIR, "oneplus/templates")
 
 ALLOWED_HOSTS = []
@@ -39,10 +43,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    #"django.contrib.auth",
+    "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "grappelli",
+    "mobileu",
+    "import_export",
     "django.contrib.admin",
     "django.contrib.messages",
     "django.contrib.staticfiles",
@@ -138,6 +144,13 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
+#Base url for vumi requests
+VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"
+VUMI_GO_CONVERSATION_KEY = "61237dd28e2d4e668a0ff212cea5f03d"
+VUMI_GO_ACCOUNT_KEY = "b365f245538841a08586a29b5b568c6c"
+VUMI_GO_ACCOUNT_TOKEN = "oneplus_qa"
+
+IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 # Which HTML tags are allowed
 BLEACH_ALLOWED_TAGS = ['img', 'p', 'b', 'i', 'u', 'em', 'strong', 'a']
