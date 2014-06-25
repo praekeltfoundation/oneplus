@@ -51,7 +51,8 @@ INSTALLED_APPS = (
     "django_summernote",
     "south",
     "requests",
-    "koremutake"
+    "koremutake",
+    "import_export"
 )
 
 MIDDLEWARE_CLASSES = (
