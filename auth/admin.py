@@ -11,6 +11,7 @@ from random import randint
 import hashlib
 from auth.forms import SendWelcomeSmsForm
 from django import template
+from communication.utils import get_autologin_link
 
 
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
@@ -231,7 +232,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                         learner.username,
                         message=message,
                         password=password,
-                        autologin=learner.unique_token
+                        autologin=get_autologin_link(learner.unique_token)
                     )
 
                     learner.save()
