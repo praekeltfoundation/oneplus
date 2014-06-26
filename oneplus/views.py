@@ -20,6 +20,7 @@ from datetime import *
 from datetime import timedelta
 from django.db.models import Sum
 from django.core.mail import send_mail, mail_managers, BadHeaderError
+from django.contrib.auth.decorators import user_passes_test
 import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
@@ -454,6 +455,41 @@ def nextchallenge(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+
+@user_passes_test(lambda u: u.is_superuser)
+def adminpreview(request, state, user, question):
+
+    def get():
+
+        request.session["state"]["next_tasks_today"] = 1
+        request.session["state"]["discussion_page_max"] = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).count()
+
+        request.session["state"]["discussion_page"] = \
+            min(2, request.session["state"]["discussion_page_max"])
+
+        index = request.session["state"]["discussion_page"]
+
+        messages = Discussion.objects.filter(
+            course=question.bank.module.course,
+            module=question.bank.module,
+            question=question,
+            moderated=True,
+            response=None
+        ).order_by("publishdate").reverse()[:index]
+
+        return render(request, "learn/next.html", {
+            "state": state,
+            "user": user,
+            "question": question,
+            "messages": messages
+        })
 
 # Right Answer Screen
 @oneplus_state_required
