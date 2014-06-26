@@ -22,8 +22,7 @@ class LearnerState(models.Model):
         if self.active_question is None or self.active_result is not None:
 
             answered = ParticipantQuestionAnswer.objects.filter(
-                participant=self.participant,
-                answerdate__gte=date.today()
+                participant=self.participant
             ).distinct().values_list('question')
 
             questions = TestingQuestion.objects.filter(
