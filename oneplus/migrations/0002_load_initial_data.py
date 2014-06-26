@@ -13,7 +13,10 @@ class Migration(DataMigration):
         ("content", "0001_initial"),
         ("gamification", "0007_auto__add_field_gamificationscenario_module"),
         ("core", "0005_auto__add_field_participant_points"),
+        ("auth", "0002_auto__add_unique_customuser_mobile"),
         ("auth", "0003_auto__add_field_customuser_unique_token__add_field_customuser_unique_t"),
+        ("communication", "0011_auto__add_sms"),
+        ("auth", "0004_auto__chg_field_customuser_unique_token__add_field_learner_last_maths_"),
         ("oneplus", "0001_initial"),
 
     )

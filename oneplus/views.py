@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
@@ -19,7 +19,9 @@ from oneplus.models import *
 from datetime import *
 from datetime import timedelta
 from django.db.models import Sum
+from auth.models import CustomUser
 from django.core.mail import send_mail, mail_managers, BadHeaderError
+from functools import wraps
 import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
@@ -27,17 +29,17 @@ COUNTRYWIDE = "Countrywide"
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
+    @wraps(f)
     def wrap(request, *args, **kwargs):
         if "user" not in request.session.keys():
             return HttpResponseRedirect("login")
         return f(request, user=request.session["user"], *args, **kwargs)
-    wrap.__doc__ = f.__doc__
-    wrap.__name__ = f.__name__
     return wrap
 
 
 # Code decorator to ensure that view state exists and is properly handled
 def oneplus_state_required(f):
+    @wraps(f)
     def wrap(request, *args, **kwargs):
         #Initialise the oneplus state
         # If value is 0, the user's session cookie will expire when the user's
@@ -54,8 +56,6 @@ def oneplus_state_required(f):
             request.session["state"]["menu_visible"] = False
 
         return f(request, state=request.session["state"], *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
     return wrap
 
 
@@ -67,6 +67,25 @@ def resolve_http_method(request, methods):
         return HttpResponse(status=501)
     return methods[request.method.lower()]()
 
+
+def is_registered(user):
+    # Check which OnePlus course learner is on
+    registered = None
+    for participant in Participant.objects.filter(learner=user.learner):
+        if participant.classs.course.name == "One Plus Grade 11":
+            registered = participant
+
+    return registered
+
+
+def save_user_session(request, registered, user):
+    request.session["user"] = {}
+    request.session["user"]["id"] = user.learner.id
+    request.session["user"]["name"] = user.learner.first_name
+    request.session["user"]["participant_id"] \
+        = registered.id
+    request.session["user"]["place"] = 0  # TODO
+    registered.award_scenario("LOGIN", None)
 
 # Login Screen
 @oneplus_state_required
@@ -86,25 +105,9 @@ def login(request, state):
 
             if user is not None and user.is_active:
                 try:
-                    # Check that the user is a learner
-                    _learner = user.learner
-
-                    # Check which OnePlus course learner is on
-                    _registered = None
-                    for _parti in Participant.objects.filter(learner=_learner):
-                        if _parti.classs.course.name == "One Plus Grade 11":
-                            _registered = _parti
-
-                    if _registered is not None:
-                        request.session["user"] = {}
-                        request.session["user"]["id"] = _learner.id
-                        request.session["user"]["name"] = _learner.first_name
-                        request.session["user"]["participant_id"] \
-                            = _registered.id
-                        request.session["user"]["place"] = 0  # TODO
-                        _registered.award_scenario("LOGIN", None)
-
-                        #login(request, user)
+                    registered = is_registered(user)
+                    if registered is not None:
+                        save_user_session(request, registered, user)
                         return HttpResponseRedirect("home")
                     else:
                         return HttpResponseRedirect("getconnected")
@@ -122,6 +125,42 @@ def login(request, state):
                 return HttpResponseRedirect("getconnected")
         else:
             return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+def autologin(request, token):
+    def get():
+        #Get user based on token + expiry date
+        user = CustomUser.objects.filter(
+            unique_token__startswith=token,
+            unique_token_expiry__gte=datetime.now()
+        ).first()
+        if user:
+            #Login the user
+            if user is not None and user.is_active:
+                try:
+                    registered = is_registered(user)
+                    if registered is not None:
+                        save_user_session(request, registered, user)
+                        return redirect("learn.home")
+                    else:
+                        return redirect("auth.getconnected")
+                except ObjectDoesNotExist:
+                        return redirect("auth.login")
+
+        #If token is not valid, render login screen
+        return render(
+            request,
+            "auth/login.html",
+            {
+                "state": None,
+                "form": LoginForm()
+            }
+        )
+
+    def post():
+        return HttpResponseRedirect("/")
 
     return resolve_http_method(request, [get, post])
 
