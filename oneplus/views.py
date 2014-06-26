@@ -558,6 +558,7 @@ def nextchallenge(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+
 @user_passes_test(lambda u: u.is_superuser)
 def adminpreview(request, questionid):
     def get():
@@ -730,6 +731,7 @@ def adminpreview_wrong(request, questionid):
         )
 
     return resolve_http_method(request, [get])
+
 
 # Right Answer Screen
 @oneplus_state_required
