@@ -22,6 +22,7 @@ from django.db.models import Sum
 from auth.models import CustomUser
 from django.core.mail import send_mail, mail_managers, BadHeaderError
 from functools import wraps
+from django.contrib.auth.decorators import user_passes_test
 import oneplusmvp.settings as settings
 
 COUNTRYWIDE = "Countrywide"
@@ -493,6 +494,178 @@ def nextchallenge(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+@user_passes_test(lambda u: u.is_superuser)
+def adminpreview(request, questionid):
+    def get():
+        question = TestingQuestion.objects.get(id=questionid)
+        request.session["state"]["next_tasks_today"] = 1
+        request.session["state"]["discussion_page_max"] = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).count()
+
+        request.session["state"]["discussion_page"] = \
+            min(2, request.session["state"]["discussion_page_max"])
+
+        index = request.session["state"]["discussion_page"]
+
+        messages = Discussion.objects.filter(
+            course=question.bank.module.course,
+            module=question.bank.module,
+            question=question,
+            moderated=True,
+            response=None
+        ).order_by("publishdate").reverse()[:index]
+
+        return render(request, "learn/next.html", {
+            "question": question,
+            "messages": messages,
+            "preview": True
+        })
+
+    def post():
+        request.session["state"]["discussion_comment"] = False
+        request.session["state"]["discussion_responded_id"] = None
+        question = TestingQuestion.objects.get(id=questionid)
+        # answer provided
+        if "answer" in request.POST.keys():
+            ans_id = request.POST["answer"]
+            option = question.testingquestionoption_set.get(pk=ans_id)
+
+            #Check for awards
+            if option.correct:
+                return HttpResponseRedirect("right/%s" % questionid)
+
+            else:
+                return HttpResponseRedirect("wrong/%s" % questionid)
+
+        request.session["state"]["next_tasks_today"] = 1
+        request.session["state"]["discussion_page_max"] = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).count()
+
+        request.session["state"]["discussion_page"] = \
+            min(2, request.session["state"]["discussion_page_max"])
+
+        index = request.session["state"]["discussion_page"]
+        messages = Discussion.objects.filter(
+            course=question.bank.module.course,
+            module=question.bank.module,
+            question=question,
+            moderated=True,
+            response=None
+        ).order_by("publishdate").reverse()[:index]
+
+        return render(request, "learn/next.html", {
+            "question": question,
+            "messages": messages,
+            "preview": True
+        })
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def adminpreview_right(request, questionid):
+    def get():
+        question = TestingQuestion.objects.get(id=questionid)
+        request.session["state"]["next_tasks_today"] = 1
+        request.session["state"]["discussion_page_max"] = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).count()
+
+        #Discussion page?
+        request.session["state"]["discussion_page"] = \
+            min(2, request.session["state"]["discussion_page_max"])
+
+        #Messages for discussion page
+        messages = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).order_by("publishdate")\
+            .reverse()[:request.session["state"]["discussion_page"]]
+
+        #Gameification scenario for correct question
+        scenario = GamificationScenario.objects.filter(
+            course=question.bank.module.course,
+            module=question.bank.module,
+            event="CORRECT"
+        )
+        if scenario.exists():
+            point = scenario.first().point
+        else:
+            point = None
+
+        return render(
+            request,
+            "learn/right.html",
+            {
+                "question": question,
+                "messages": messages,
+                "points": point
+            }
+        )
+
+    return resolve_http_method(request, [get])
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def adminpreview_wrong(request, questionid):
+    def get():
+        question = TestingQuestion.objects.get(id=questionid)
+        request.session["state"]["next_tasks_today"] = 1
+        request.session["state"]["discussion_page_max"] = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).count()
+
+        #Discussion page?
+        request.session["state"]["discussion_page"] = \
+            min(2, request.session["state"]["discussion_page_max"])
+
+        #Messages for discussion page
+        messages = \
+            Discussion.objects.filter(
+                course=question.bank.module.course,
+                module=question.bank.module,
+                question=question,
+                moderated=True,
+                response=None
+            ).order_by("publishdate")\
+            .reverse()[:request.session["state"]["discussion_page"]]
+
+        return render(
+            request,
+            "learn/wrong.html",
+            {
+                "question": question,
+                "messages": messages,
+            }
+        )
+
+    return resolve_http_method(request, [get])
 
 # Right Answer Screen
 @oneplus_state_required
@@ -562,7 +735,10 @@ def right(request, state, user):
                 _badgetemplate = None
 
             #Get points
-            _points = _scenario.first().point
+            if _scenario.exists():
+                _points = _scenario.first().point
+            else:
+                _points = None
 
             return render(
                 request,
@@ -1002,8 +1178,8 @@ def chat(request, state, user, chatid):
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
         _messages = _group.chatmessage_set\
-                        .order_by("publishdate")\
-                        .reverse()[:request.session["state"]["chat_page"]]
+            .order_by("publishdate")\
+            .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
