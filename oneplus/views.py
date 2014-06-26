@@ -70,9 +70,7 @@ def resolve_http_method(request, methods):
 
 def is_registered(user):
     # Check learner is registered
-    registered = None
-    for participant in Participant.objects.filter(learner=user.learner):
-            registered = participant
+    registered = Participant.objects.get(learner=user.learner)
 
     return registered
 
