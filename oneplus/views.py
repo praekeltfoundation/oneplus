@@ -535,6 +535,7 @@ def adminpreview(request, questionid):
     return resolve_http_method(request, [get, post])
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
@@ -587,6 +588,7 @@ def adminpreview_right(request, questionid):
     return resolve_http_method(request, [get])
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def adminpreview_wrong(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
