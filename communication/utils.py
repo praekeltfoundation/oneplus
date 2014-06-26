@@ -1,13 +1,19 @@
 from django.conf import settings
 import json
-import base64
 from communication.models import Sms
 import requests
-from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+
+
 
 def get_autologin_link(unique_token):
-    return 'http://%s/%s/%s' % (settings.BASE_URL, 'autologin', unique_token)
+    if unique_token is not None:
+        return 'http://%s/%s/%s' % (
+            settings.BASE_URL,
+            'autologin',
+            unique_token
+        )
+    else:
+        return None
 
 class VumiSmsApi:
     """Sends vumi http api requests"""
