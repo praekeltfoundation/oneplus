@@ -32,7 +32,7 @@ def oneplus_login_required(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
         if "user" not in request.session.keys():
-            return HttpResponseRedirect("login")
+            return redirect("auth.login")
         return f(request, user=request.session["user"], *args, **kwargs)
     return wrap
 
