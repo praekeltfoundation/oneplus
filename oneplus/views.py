@@ -69,10 +69,9 @@ def resolve_http_method(request, methods):
 
 
 def is_registered(user):
-    # Check which OnePlus course learner is on
+    # Check learner is registered
     registered = None
     for participant in Participant.objects.filter(learner=user.learner):
-        if participant.classs.course.name == "One Plus Grade 11":
             registered = participant
 
     return registered
