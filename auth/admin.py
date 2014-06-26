@@ -1,19 +1,15 @@
 from datetime import datetime
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from communication.utils import VumiSmsApi
 from random import randint
-import hashlib
 from auth.forms import SendWelcomeSmsForm
 from django import template
 from communication.utils import get_autologin_link
-
-
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
 from organisation.models import School
@@ -23,6 +19,9 @@ from forms import SystemAdministratorChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
 import koremutake
+from django.contrib.auth.hashers import make_password
+from django.utils.translation import ugettext_lazy as _
+from organisation.models import Course
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -171,19 +170,28 @@ class LearnerResource(resources.ModelResource):
             .import_obj(obj, data, dry_run)
 
 
+class CourseFilter(admin.SimpleListFilter):
+    title = _('Course')
+    parameter_name = 'id'
+
+    def lookups(self, request, model_admin):
+        return Course.objects.all().values_list('id', 'name')
+
+    def queryset(self, request, queryset):
+        return queryset.filter(participant__classs__course_id=self.value())
+
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
     add_form = LearnerCreationForm
     resource_class = LearnerResource
 
-
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "last_name", "first_name", "country", "area",
                     "unique_token")
-    list_filter = ("country", "area")
+    list_filter = ("country", "area", CourseFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
@@ -216,24 +224,41 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             if form.is_valid():
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
+
+                #Check if a password or autologin message
+                is_welcome_message = False
+                is_autologin_message = False
+                if "|password|" in message:
+                    is_welcome_message = True
+                    queryset = queryset.filter(
+                        welcome_message_sent=False
+                    )
+                if "|autologin|" in message:
+                    is_autologin_message = True
+
                 for learner in queryset:
-                    #Generate password
-                    password = koremutake.encode(randint(10000, 100000))
-                    learner.password = hashlib.md5(password)
-
-                    #Generate autologin link
-                    learner.generate_unique_token()
-
-                    #Save user
+                    password = None
+                    if is_welcome_message:
+                        #Generate password
+                        password = koremutake.encode(randint(10000, 100000))
+                        learner.password = make_password(password)
+                    if is_autologin_message:
+                        #Generate autologin link
+                        learner.generate_unique_token()
                     learner.save()
 
-                    #Send
-                    learner.welcome_message, learner.welcome_message_sent = vumi.send(
+                    #Send sms
+                    sms, sent = vumi.send(
                         learner.username,
                         message=message,
                         password=password,
                         autologin=get_autologin_link(learner.unique_token)
                     )
+
+                    #Save welcome message details
+                    if is_welcome_message:
+                        learner.welcome_message = sms
+                        learner.welcome_message_sent = True
 
                     learner.save()
 
