@@ -692,7 +692,10 @@ def right(request, state, user):
                 _badgetemplate = None
 
             #Get points
-            _points = _scenario.first().point
+            if _scenario.exists():
+                _points = _scenario.first().point
+            else:
+                _points = None
 
             return render(
                 request,
