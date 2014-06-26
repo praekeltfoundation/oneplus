@@ -215,28 +215,43 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             if form.is_valid():
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
-                for learner in queryset.filter(date_sent=None):
-                    if learner.date_sent is None:
+
+                #Check if a password or autologin message
+                is_welcome_message = False
+                is_autologin_message = False
+                if "|password|" in message:
+                    is_welcome_message = True
+                    queryset = queryset.filter(
+                        welcome_message_sent=False
+                    )
+                if "|autologin|" in message:
+                    is_autologin_message = True
+
+                for learner in queryset:
+
+                    if is_welcome_message:
                         #Generate password
                         password = koremutake.encode(randint(10000, 100000))
                         learner.password = make_password(password)
-
+                    if is_autologin_message:
                         #Generate autologin link
                         learner.generate_unique_token()
+                    learner.save()
 
-                        #Save user
-                        learner.save()
+                    #Send sms
+                    sms, sent = vumi.send(
+                        learner.username,
+                        message=message,
+                        password=password,
+                        autologin=get_autologin_link(learner.unique_token)
+                    )
 
-                        #Send
-                        learner.welcome_message, learner.welcome_message_sent \
-                            = vumi.send(
-                                learner.username,
-                                message=message,
-                                password=password,
-                                autologin=get_autologin_link(learner.unique_token)
-                            )
+                    #Save welcome message details
+                    if is_welcome_message:
+                        learner.welcome_message = sms
+                        learner.welcome_message_sent = True
 
-                        learner.save()
+                    learner.save()
 
                 return HttpResponseRedirect(request.get_full_path())
         if not form:
