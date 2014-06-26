@@ -215,27 +215,28 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             if form.is_valid():
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
-                for learner in queryset:
-                    #Generate password
-                    password = koremutake.encode(randint(10000, 100000))
-                    learner.password = make_password(password)
+                for learner in queryset.filter(date_sent=None):
+                    if learner.date_sent is None:
+                        #Generate password
+                        password = koremutake.encode(randint(10000, 100000))
+                        learner.password = make_password(password)
 
-                    #Generate autologin link
-                    learner.generate_unique_token()
+                        #Generate autologin link
+                        learner.generate_unique_token()
 
-                    #Save user
-                    learner.save()
+                        #Save user
+                        learner.save()
 
-                    #Send
-                    learner.welcome_message, learner.welcome_message_sent \
-                        = vumi.send(
-                            learner.username,
-                            message=message,
-                            password=password,
-                            autologin=get_autologin_link(learner.unique_token)
-                        )
+                        #Send
+                        learner.welcome_message, learner.welcome_message_sent \
+                            = vumi.send(
+                                learner.username,
+                                message=message,
+                                password=password,
+                                autologin=get_autologin_link(learner.unique_token)
+                            )
 
-                    learner.save()
+                        learner.save()
 
                 return HttpResponseRedirect(request.get_full_path())
         if not form:
@@ -244,7 +245,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             'admin/auth/send_sms.html',
             {
                 'sms_form': form,
-                'learners': queryset
+                'learners': queryset.filter(date_sent=None)
             },
             context_instance=template.RequestContext(request)
         )
