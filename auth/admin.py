@@ -1,14 +1,12 @@
 from datetime import datetime
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from communication.utils import VumiSmsApi
 from random import randint
-import hashlib
 from auth.forms import SendWelcomeSmsForm
 from django import template
 from communication.utils import get_autologin_link
@@ -22,6 +20,8 @@ from forms import SystemAdministratorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
 import koremutake
 from django.contrib.auth.hashers import make_password
+from django.utils.translation import ugettext_lazy as _
+from organisation.models import Course
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -170,19 +170,28 @@ class LearnerResource(resources.ModelResource):
             .import_obj(obj, data, dry_run)
 
 
+class CourseFilter(admin.SimpleListFilter):
+    title = _('Course')
+    parameter_name = 'id'
+
+    def lookups(self, request, model_admin):
+        return Course.objects.all().values_list('id', 'name')
+
+    def queryset(self, request, queryset):
+        return queryset.filter(participant__classs__course_id=self.value())
+
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
     add_form = LearnerCreationForm
     resource_class = LearnerResource
 
-
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "last_name", "first_name", "country", "area",
                     "unique_token")
-    list_filter = ("country", "area")
+    list_filter = ("country", "area", CourseFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
