@@ -2,16 +2,8 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
 from django.core.exceptions import ObjectDoesNotExist
-from forms import LoginForm
-from communication.models import Post, Discussion, Message, ChatGroup,\
-    ChatMessage
-from organisation.models import Module
-from core.models import Participant, Learner, ParticipantQuestionAnswer, \
-    ParticipantPointBonusRel, ParticipantBadgeTemplateRel
-from gamification.models import GamificationScenario
-from oneplus.models import LearnerState
-from datetime import datetime, date
-from auth.models import CustomUser
+from forms import LoginForm, SmsPasswordForm
+from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from organisation.models import *
 from core.models import *
@@ -20,10 +12,16 @@ from datetime import *
 from datetime import timedelta
 from django.db.models import Sum
 from auth.models import CustomUser
-from django.core.mail import send_mail, mail_managers, BadHeaderError
 from functools import wraps
 from django.contrib.auth.decorators import user_passes_test
+from communication.utils import VumiSmsApi
 import oneplusmvp.settings as settings
+import koremutake
+import hashlib
+from random import randint
+from communication.utils import get_autologin_link
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.hashers import make_password
 
 COUNTRYWIDE = "Countrywide"
 
@@ -182,12 +180,78 @@ def signout(request, state):
 
 # SMS Password Screen
 @oneplus_state_required
-def smspassword(request, state, msisdn):
+def smspassword(request, state):
     def get():
-        return render(request, "auth/smspassword.html", {"state": state})
+        return render(
+            request,
+            "auth/smspassword.html",
+            {
+                "state": state,
+                "form": SmsPasswordForm()
+            }
+        )
 
     def post():
-        return render(request, "auth/smspassword.html", {"state": state})
+        form = SmsPasswordForm(request.POST)
+        if form.is_valid():
+            #Initialize vumigo sms
+            vumi = VumiSmsApi()
+
+            try:
+                #Lookup user
+                learner = Learner.objects\
+                    .get(username=form.cleaned_data["msisdn"])
+
+                #Generate password
+                password = koremutake.encode(randint(10000, 100000))
+                learner.password = make_password(password)
+
+                #Message
+                message = "Your new password for OnePlus is '|password|' " \
+                          "or use the following link to login: |autologin|"
+
+                #Generate autologin link
+                learner.generate_unique_token()
+
+                sms, sent = vumi.send(
+                    learner.username,
+                    message=message,
+                    password=password,
+                    autologin=get_autologin_link(learner.unique_token)
+                )
+
+                if sent:
+                    message = "Your new password has been smsed to you. " \
+                              "Click here to login"
+                else:
+                    message = "Oops! Something went wrong! " \
+                              "Please try enter your number again or " \
+                              "click here to contact us"
+
+                learner.save()
+
+                return render(
+                    request,
+                    "auth/smspassword.html",
+                    {
+                        "state": state,
+                        "sent": True,
+                        "message": message
+                    }
+                )
+
+            except ObjectDoesNotExist:
+                return HttpResponseRedirect("getconnected")
+
+            return render(request, "auth/smspassword.html", {"state": state})
+        else:
+            form = SmsPasswordForm()
+
+        return render(
+            request,
+            "auth/smspassword.html",
+            {"state": state, "form": form}
+        )
 
     return resolve_http_method(request, [get, post])
 
