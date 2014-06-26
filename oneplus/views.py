@@ -534,6 +534,7 @@ def adminpreview(request, questionid):
 
     return resolve_http_method(request, [get, post])
 
+
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
@@ -584,6 +585,7 @@ def adminpreview_right(request, questionid):
         )
 
     return resolve_http_method(request, [get])
+
 
 def adminpreview_wrong(request, questionid):
     def get():
@@ -1135,8 +1137,8 @@ def chat(request, state, user, chatid):
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
         _messages = _group.chatmessage_set\
-                        .order_by("publishdate")\
-                        .reverse()[:request.session["state"]["chat_page"]]
+            .order_by("publishdate")\
+            .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
