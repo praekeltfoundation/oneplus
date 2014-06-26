@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'CustomUser.unique_token'
         db.add_column(u'auth_customuser', 'unique_token',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=500, blank=True),
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=500, blank=True, null=True),
                       keep_default=False)
 
         # Adding field 'CustomUser.unique_token_expiry'

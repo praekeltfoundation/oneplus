@@ -8,13 +8,18 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Sms'
-        db.create_table(u'auth_sms', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('message', self.gf('django.db.models.fields.TextField')()),
-            ('date_sent', self.gf('django.db.models.fields.DateTimeField')()),
-        ))
-        db.send_create_signal(u'auth', ['Sms'])
+
+        # Changing field 'CustomUser.unique_token'
+        db.alter_column(u'auth_customuser', 'unique_token', self.gf('django.db.models.fields.CharField')(max_length=500, null=True))
+        # Adding field 'Learner.last_maths_result'
+        db.add_column(u'auth_learner', 'last_maths_result',
+                      self.gf('django.db.models.fields.FloatField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Learner.grade'
+        db.add_column(u'auth_learner', 'grade',
+                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True),
+                      keep_default=False)
 
         # Adding field 'Learner.welcome_message_sent'
         db.add_column(u'auth_learner', 'welcome_message_sent',
@@ -23,13 +28,19 @@ class Migration(SchemaMigration):
 
         # Adding field 'Learner.welcome_message'
         db.add_column(u'auth_learner', 'welcome_message',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.Sms'], null=True),
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['communication.Sms'], null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting model 'Sms'
-        db.delete_table(u'auth_sms')
+
+        # Changing field 'CustomUser.unique_token'
+        db.alter_column(u'auth_customuser', 'unique_token', self.gf('django.db.models.fields.CharField')(default='', max_length=500))
+        # Deleting field 'Learner.last_maths_result'
+        db.delete_column(u'auth_learner', 'last_maths_result')
+
+        # Deleting field 'Learner.grade'
+        db.delete_column(u'auth_learner', 'grade')
 
         # Deleting field 'Learner.welcome_message_sent'
         db.delete_column(u'auth_learner', 'welcome_message_sent')
@@ -68,7 +79,7 @@ class Migration(SchemaMigration):
             'optin_email': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'optin_sms': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'unique_token': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
+            'unique_token': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'unique_token_expiry': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
@@ -85,7 +96,7 @@ class Migration(SchemaMigration):
             'grade': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'last_maths_result': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'school': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.School']", 'null': 'True'}),
-            'welcome_message': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Sms']", 'null': 'True'}),
+            'welcome_message': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Sms']", 'null': 'True', 'blank': 'True'}),
             'welcome_message_sent': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
         },
         u'auth.permission': {
@@ -100,15 +111,16 @@ class Migration(SchemaMigration):
             u'customuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.CustomUser']", 'unique': 'True', 'primary_key': 'True'}),
             'school': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.School']", 'null': 'True'})
         },
-        u'auth.sms': {
-            'Meta': {'object_name': 'Sms'},
-            'date_sent': ('django.db.models.fields.DateTimeField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'message': ('django.db.models.fields.TextField', [], {})
-        },
         u'auth.systemadministrator': {
             'Meta': {'object_name': 'SystemAdministrator', '_ormbases': [u'auth.CustomUser']},
             u'customuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.CustomUser']", 'unique': 'True', 'primary_key': 'True'})
+        },
+        u'communication.sms': {
+            'Meta': {'object_name': 'Sms'},
+            'date_sent': ('django.db.models.fields.DateTimeField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'message': ('django.db.models.fields.TextField', [], {}),
+            'uuid': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'})
         },
         u'contenttypes.contenttype': {
             'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
