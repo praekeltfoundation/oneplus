@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from communication.models import Sms
 from django.utils import timezone
 
+
 # Base class for custom MobileU user model
 class CustomUser(AbstractUser):
     mobile = models.CharField(verbose_name="Mobile Phone Number",
@@ -120,4 +121,5 @@ class Learner(CustomUser):
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
+
 
