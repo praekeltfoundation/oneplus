@@ -228,7 +228,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     is_autologin_message = True
 
                 for learner in queryset:
-
+                    password = None
                     if is_welcome_message:
                         #Generate password
                         password = koremutake.encode(randint(10000, 100000))
@@ -260,7 +260,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             'admin/auth/send_sms.html',
             {
                 'sms_form': form,
-                'learners': queryset.filter(date_sent=None)
+                'learners': queryset
             },
             context_instance=template.RequestContext(request)
         )

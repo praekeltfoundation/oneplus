@@ -1,10 +1,8 @@
 from django.conf import settings
 import json
-import base64
 from communication.models import Sms
 import requests
-from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+
 
 
 def get_autologin_link(unique_token):
