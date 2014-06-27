@@ -53,6 +53,6 @@ urlpatterns = [
     url(r"^leader/(?P<areaid>\d+)$",
         views.leader,
         name="prog.leader.id"),
-    url(r"^badges$", views.badges, name="prog.badges")
+    url(r"^badges$", views.badges, name="prog.badges"))
 
 ]
