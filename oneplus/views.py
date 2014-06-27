@@ -102,6 +102,12 @@ def login(request, state):
                 password=form.cleaned_data["password"]
             )
 
+            #Check if user is registered
+            exists = CustomUser.objects.filter(
+                username=form.cleaned_data["username"]
+            ).exists()
+            request.session["user_exists"] = exists
+
             if user is not None and user.is_active:
                 try:
                     registered = is_registered(user)
@@ -111,14 +117,9 @@ def login(request, state):
                     else:
                         return HttpResponseRedirect("getconnected")
                 except ObjectDoesNotExist:
+
                         return HttpResponseRedirect("getconnected")
             else:
-                #Check if user is registered
-                exists = CustomUser.objects.filter(
-                    username=form.cleaned_data["username"]
-                ).exists()
-                request.session["user_exists"] = exists
-
                 #Save provided username
                 request.session["username"] = form.cleaned_data["username"]
                 return HttpResponseRedirect("getconnected")
