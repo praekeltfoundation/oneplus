@@ -28,10 +28,10 @@ class LearnerState(models.Model):
             questions = TestingQuestion.objects.filter(
                 bank__module__course=self.participant.classs.course
             ).exclude(id__in=answered)
-
-            self.active_question = questions.order_by('?')[0]
-            self.active_result = None
-            self.save()
+            if questions.exists:
+                self.active_question = questions.order_by('?')[0]
+                self.active_result = None
+                self.save()
 
         return self.active_question
 
