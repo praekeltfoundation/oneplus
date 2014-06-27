@@ -15,15 +15,11 @@
                 <form action="/preview/{{ question.id }}" method="post" class="pad-bottom">{% csrf_token %}
             {% else %}
                 <form action="next" method="post" class="pad-bottom">{% csrf_token %}
-<<<<<<< HEAD
             {% endif %}
-                        <p>{{ question.question_content | bleach }}</p>
-=======
                         <p>{{ question.question_content | bleach | format_width }}</p>
->>>>>>> feature/picture_size
                         {% for opt in question.testingquestionoption_set.all %}
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}">
-                            <label for="answer_{{ opt.id }}">{{ opt.name }} {{ opt.content }}</label><br></br>
+                            <label for="answer_{{ opt.id }}">{{ opt.name }} {{ opt.content }}</label></br></br>
                         {% endfor %}
                         <button class="button green-back grey-front drop" type="submit">Submit Answer</button>
                 </form>
