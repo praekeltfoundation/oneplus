@@ -1,5 +1,7 @@
 from django.conf.urls import url
 from oneplus import views
+from django.conf import settings
+from django.views.generic import RedirectView
 
 urlpatterns = [
     # Misc
@@ -53,5 +55,10 @@ urlpatterns = [
     url(r"^leader/(?P<areaid>\d+)$",
         views.leader,
         name="prog.leader.id"),
-    url(r"^badges$", views.badges, name="prog.badges")
+    url(r"^badges$", views.badges, name="prog.badges"),
+
+    #favicon
+    url (r'^favicon\.ico$',
+         RedirectView.as_view(url=settings.STATIC_URL + 'img/favicon.ico')),
+
 ]
