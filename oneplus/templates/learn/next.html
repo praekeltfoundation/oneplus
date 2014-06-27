@@ -18,7 +18,7 @@
                         <p>{{ question.question_content | bleach }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}">
-                            <label for="answer_{{ opt.id }}">{{ opt.name }} {{ opt.content }}</label>
+                            <label for="answer_{{ opt.id }}">{{ opt.name }} {{ opt.content }}</label><br></br>
                         {% endfor %}
                         <button class="button green-back grey-front drop" type="submit">Submit Answer</button>
                 </form>
