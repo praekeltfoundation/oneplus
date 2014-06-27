@@ -1,3 +1,4 @@
 django-mobileu==1.0.15
 psycopg2
 django_bleach
+beautifulsoup4
