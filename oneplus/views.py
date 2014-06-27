@@ -117,7 +117,6 @@ def login(request, state):
                     else:
                         return HttpResponseRedirect("getconnected")
                 except ObjectDoesNotExist:
-
                         return HttpResponseRedirect("getconnected")
             else:
                 #Save provided username
@@ -261,24 +260,35 @@ def smspassword(request, state):
 @oneplus_state_required
 def getconnected(request, state):
     def get():
+        exists = False
+        username = None
+        if "user_exists" in request.session:
+            exists = request.session["user_exists"]
+        if "username" in request.session:
+            username = request.session["username"]
         return render(
             request,
             "auth/getconnected.html",
             {
                 "state": state,
-                "exists": request.session["user_exists"],
-                "provided_username": request.session["username"]
+                "exists": exists,
+                "provided_username": username
             }
         )
 
     def post():
+        exists = False
+        if "user_exists" in request.session:
+            exists = request.session["user_exists"]
+        if "username" in request.session:
+            username = request.session["username"]
         return render(
             request,
             "auth/getconnected.html",
             {
                 "state": state,
-                "exists": request.session["user_exists"],
-                "provided_username": request.session["username"]
+                "exists": exists,
+                "provided_username": username
             }
         )
 
