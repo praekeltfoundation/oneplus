@@ -62,7 +62,8 @@ INSTALLED_APPS = (
     "organisation",
     "django_summernote",
     "south",
-    "django_bleach"
+    "django_bleach",
+    "bs4"
 )
 
 MIDDLEWARE_CLASSES = (
