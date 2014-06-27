@@ -53,10 +53,6 @@ urlpatterns = [
     url(r"^leader/(?P<areaid>\d+)$",
         views.leader,
         name="prog.leader.id"),
-    url(r"^badges$", views.badges, name="prog.badges"),
-
-    #favicon
-    url (r'^favicon\.ico$',
-         RedirectView.as_view(url=settings.STATIC_URL + 'img/favicon.ico')),
+    url(r"^badges$", views.badges, name="prog.badges")
 
 ]
