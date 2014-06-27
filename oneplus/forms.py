@@ -9,3 +9,9 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput
     )
 
+
+class SmsPasswordForm(forms.Form):
+    msisdn = forms.CharField(label="Phone Number")
+
+
+

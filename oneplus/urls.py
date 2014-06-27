@@ -9,10 +9,8 @@ urlpatterns = [
 
     # Auth
     url(r"^login$", views.login, name="auth.login"),
-    url(r"^signout", views.signout, name="auth.signout"),
-    url(r"^smspassword/(?P<msisdn>\d+)$",
-        views.smspassword,
-        name="auth.smspassword"),
+    url(r"^signout$", views.signout, name="auth.signout"),
+    url(r"^smspassword$", views.smspassword, name="auth.smspassword"),
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
     url(r"^autologin/(?P<token>\w+)$", views.autologin, name="auth.autologin"),
 
