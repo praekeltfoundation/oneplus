@@ -1,5 +1,6 @@
 {% extends "core/main.html" %}
 {% load bleach_tags %}
+{% load oneplus_extras %}
 {% block title %}NEXT{% endblock %}
 
 {% block content %}
@@ -11,7 +12,7 @@
         {% autoescape off %}
             <div class="content narrow white-back darkgrey-front">
                 <form action="next" method="post" class="pad-bottom">{% csrf_token %}
-                        <p>{{ question.question_content | bleach }}</p>
+                        <p>{{ question.question_content | bleach | format_width }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}">
                             <label for="answer_{{ opt.id }}">{{ opt.name }} {{ opt.content }}</label>
