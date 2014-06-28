@@ -77,12 +77,12 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 .login label { z-index: 1; display: block; }
 
 .text {
-    display: table;
+    display: block;
     padding:0px;
 }
 
 .text > * {
-    display: table-cell;
+    display: inline-block;
     vertical-align: middle;
     width: 100%
 }
