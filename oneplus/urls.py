@@ -11,7 +11,7 @@ urlpatterns = [
 
     # Auth
     url(r"^login$", views.login, name="auth.login"),
-    url(r"^signout", views.signout, name="auth.signout"),
+    url(r"^signout$", views.signout, name="auth.signout"),
     url(r"^smspassword$",
         views.smspassword,
         name="auth.smspassword"),
