@@ -1645,7 +1645,7 @@ def badges(request, state, user):
         return render(request, "prog/badges.html", {
             "state": state,
             "user": user,
-            "badges": _badges,
+            "badges": reversed(_badges),
             "participant": _participant
         })
 
