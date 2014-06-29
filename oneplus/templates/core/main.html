@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 </head>
 <body>
-    <div class="header">
+    <a href='{% url 'learn.home' %}'><div class="header">
 
             {% if user.name %}
                 <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
@@ -17,7 +17,7 @@
                 <a href="login" class="menu-login green-front">Sign In</a>
             {% endif %}
     </div>
-
+    </a>
     {% if state.menu_visible %}
         <div class="menu">
             <a class="item text green-back darkgrey-front" href="/ontrack"><li class="icon ontrack"></li><p>On Track</p></a>
