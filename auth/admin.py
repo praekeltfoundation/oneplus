@@ -148,6 +148,8 @@ class CourseMentorAdmin(UserAdmin):
 
 class LearnerResource(resources.ModelResource):
     course = fields.Field(column_name=u'course')
+    completed_questions = fields.Field(column_name=u'completed_questions')
+    percentage_correct = fields.Field(column_name=u'percentage_correct')
 
     class Meta:
         model = Learner
@@ -157,6 +159,37 @@ class LearnerResource(resources.ModelResource):
             'date_joined', 'unique_token', 'unique_token_expiry'
             'welcome_message_sent', 'welcome_message'
         )
+        export_order = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'school',
+            'area',
+            'completed_questions',
+            'percentage_correct'
+        )
+
+    def dehydrate_school(self, learner):
+        if learner.school is not None:
+            return learner.school.name
+        else:
+            return ""
+
+    def dehydrate_completed_questions(self, learner):
+        return ParticipantQuestionAnswer.objects.filter(
+            participant__learner=learner
+        ).count()
+
+    def dehydrate_percentage_correct(self, learner):
+        complete = self.dehydrate_completed_questions(learner)
+        if complete > 0:
+            return ParticipantQuestionAnswer.objects.filter(
+                participant__learner=learner,
+                correct=True
+            ).count()*100/complete
+        else:
+            return 0
 
     def get_or_init_instance(self, instance_loader, row):
         row[u'is_staff'] = False
@@ -174,8 +207,6 @@ class LearnerResource(resources.ModelResource):
         data[u'school'] = school.id
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
-
-
 
 
 class CourseFilter(admin.SimpleListFilter):
@@ -301,7 +332,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             return ParticipantQuestionAnswer.objects.filter(
                 participant__learner=learner,
                 correct=True
-            ).count()/complete*100
+            ).count()*100/complete
         else:
             return 0
     percentage_correct.short_description = "Percentage correct"
