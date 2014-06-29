@@ -35,6 +35,16 @@ def oneplus_login_required(f):
         return f(request, user=request.session["user"], *args, **kwargs)
     return wrap
 
+# Code decorator to check if user is logged in or not
+def oneplus_check_user(f):
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        if "user" in request.session.keys():
+            return f(request, user=request.session["user"], *args, **kwargs)
+        else:
+            return f(request, user=None, *args, **kwargs)
+    return wrap
+
 
 # Code decorator to ensure that view state exists and is properly handled
 def oneplus_state_required(f):
@@ -1656,21 +1666,23 @@ def badges(request, state, user):
 
 # About Screen
 @oneplus_state_required
-def about(request, state):
+@oneplus_check_user
+def about(request, state, user):
     def get():
-        return render(request, "misc/about.html", {"state": state})
+        return render(request, "misc/about.html", {"state": state, "user": user})
 
     def post():
-        return render(request, "misc/about.html", {"state": state})
+        return render(request, "misc/about.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
 
 
 # Contact Screen
 @oneplus_state_required
-def contact(request, state):
+@oneplus_check_user
+def contact(request, state, user):
     def get():
-        return render(request, "misc/contact.html", {"state": state})
+        return render(request, "misc/contact.html", {"state": state, "user": user})
 
     def post():
         #Get message
@@ -1686,6 +1698,6 @@ def contact(request, state):
 
             state["sent"] = True
             
-        return render(request, "misc/contact.html", {"state": state})
+        return render(request, "misc/contact.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
