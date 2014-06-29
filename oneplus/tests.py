@@ -37,7 +37,7 @@ class GeneralTests(TestCase):
         return Participant.objects.create(learner=learner, classs=classs, **kwargs)
 
     def create_testing_bank(self, name, module, **kwargs):
-        return TestingBank.objects.create(name=name,module=module, **kwargs)
+        return TestingBank.objects.create(name=name, module=module, **kwargs)
 
     def create_test_question(self, name, bank, **kwargs):
         return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
@@ -56,7 +56,11 @@ class GeneralTests(TestCase):
         self.classs = self.create_class('class name', self.course)
         self.organisation = self.create_organisation()
         self.school = self.create_school('school name', self.organisation)
-        self.learner = self.create_learner(self.school, username="+27123456789", country="country", unique_token='abc123',unique_token_expiry=datetime.now() + timedelta(days=30) )
+        self.learner = self.create_learner(self.school,
+                                           username="+27123456789",
+                                           country="country",
+                                           unique_token='abc123',
+                                           unique_token_expiry=datetime.now() + timedelta(days=30))
         self.participant = self.create_participant(self.learner, self.classs, datejoined=datetime.now())
         self.module = self.create_module('module name', self.course)
         self.testbank = self.create_testing_bank('testbank name', self.module)
@@ -71,9 +75,6 @@ class GeneralTests(TestCase):
             point=self.pointbonus,
             badge=self.badge_template
         )
-
-
-
 
     def test_get_next_question(self):
         question1 = self.create_test_question('question1', self.testbank)
@@ -92,7 +93,7 @@ class GeneralTests(TestCase):
     def test_home(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
         resp = self.client.get(reverse('learn.home'))
-        self.assertEquals(resp.status_code,200)
+        self.assertEquals(resp.status_code, 200)
 
     def test_nextchallenge(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -105,16 +106,12 @@ class GeneralTests(TestCase):
         )
 
         resp = self.client.get(reverse('learn.next'))
-        self.assertEquals(resp.status_code,200)
+        self.assertEquals(resp.status_code, 200)
 
-        self.assertContains(resp,'test question')
-        self.assertContains(resp,'questionanswer1')
+        self.assertContains(resp, 'test question')
+        self.assertContains(resp, 'questionanswer1')
 
         resp = self.client.post(reverse('learn.next'), data={'answer': questionoption1.id})
-
-
-
-
 
     def test_rightanswer(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -126,7 +123,7 @@ class GeneralTests(TestCase):
         )
 
         resp = self.client.get(reverse('learn.right'))
-        self.assertEquals(resp.status_code,200)
+        self.assertEquals(resp.status_code, 200)
 
     def test_wronganswer(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -137,7 +134,7 @@ class GeneralTests(TestCase):
             active_result=False,
         )
         resp = self.client.get(reverse('learn.wrong'))
-        self.assertEquals(resp.status_code,200)
+        self.assertEquals(resp.status_code, 200)
 
     def test_inbox(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -149,8 +146,8 @@ class GeneralTests(TestCase):
         )
 
         resp = self.client.get(reverse('com.inbox'))
-        self.assertEquals(resp.status_code,200)
-        self.assertContains(resp,'test message')
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'test message')
 
     def test_inbox_detail(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -161,9 +158,9 @@ class GeneralTests(TestCase):
             content='test message'
         )
 
-        resp = self.client.get(reverse('com.inbox_detail', kwargs={'messageid':msg.id}))
-        self.assertEquals(resp.status_code,200)
-        self.assertContains(resp,'test message')
+        resp = self.client.get(reverse('com.inbox_detail', kwargs={'messageid': msg.id}))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'test message')
 
     def test_chat(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -172,15 +169,15 @@ class GeneralTests(TestCase):
             course=self.course
         )
         chatmsg1 = ChatMessage.objects.create(
-            chatgroup = chatgroup,
-            author = self.learner,
-            content = 'chatmsg1content',
-            publishdate = datetime.now()
+            chatgroup=chatgroup,
+            author=self.learner,
+            content='chatmsg1content',
+            publishdate=datetime.now()
         )
 
-        resp = self.client.get(reverse('com.chat',kwargs={'chatid':chatgroup.id}))
-        self.assertEquals(resp.status_code,200)
-        self.assertContains(resp,'chatmsg1content')
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'chatmsg1content')
 
 
 
