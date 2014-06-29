@@ -5,6 +5,8 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer
+
+
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
     extra = 1
@@ -73,20 +75,17 @@ class TestingQuestionResource(resources.ModelResource):
     incorrect = fields.Field(column_name=u'incorrect')
     percentage_correct = fields.Field(column_name=u'percentage_correct')
 
-
     def dehydrate_correct(self, question):
         return ParticipantQuestionAnswer.objects.filter(
             question=question,
             correct=True
         ).count()
 
-
     def dehydrate_incorrect(self, question):
         return ParticipantQuestionAnswer.objects.filter(
             question=question,
             correct=False
         ).count()
-
 
     def dehydrate_percentage_correct(self, question):
         correct = ParticipantQuestionAnswer.objects.filter(
@@ -98,6 +97,7 @@ class TestingQuestionResource(resources.ModelResource):
         ).count()
 
         return 100*correct/total
+
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_display = ("bank", "order", "name", "description",
@@ -142,7 +142,6 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     ]
     inlines = (TestingQuestionOptionInline,)
     resource_class = TestingQuestionResource
-
 
 
 class TestingQuestionOptionAdmin(SummernoteModelAdmin):
