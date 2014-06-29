@@ -8,6 +8,7 @@ urlpatterns = [
     url(r"^$", views.welcome, name="misc.welcome"),
     url(r"^about$", views.about, name="misc.about"),
     url(r"^contact$", views.contact, name="misc.contact"),
+    url(r"^menu$", views.menu, name="core.menu"),
 
     # Auth
     url(r"^login$", views.login, name="auth.login"),

@@ -1663,6 +1663,17 @@ def badges(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+# Menu Screen
+@oneplus_state_required
+@oneplus_login_required
+def menu(request, state, user):
+    def get():
+        return render(request, "core/menu.html", {"state": state, "user": user})
+
+    def post():
+        return render(request, "core/menu.html", {"state": state, "user": user})
+
+    return resolve_http_method(request, [get, post])
 
 # About Screen
 @oneplus_state_required
