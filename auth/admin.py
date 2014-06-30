@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
+from import_export import fields
 from communication.utils import VumiSmsApi
 from random import randint
 from auth.forms import SendWelcomeSmsForm
@@ -22,6 +23,10 @@ import koremutake
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import ugettext_lazy as _
 from organisation.models import Course
+from core.models import ParticipantQuestionAnswer
+from django.core.exceptions import ObjectDoesNotExist
+from core.models import Participant, Class
+
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -142,6 +147,9 @@ class CourseMentorAdmin(UserAdmin):
 
 
 class LearnerResource(resources.ModelResource):
+    course = fields.Field(column_name=u'course')
+    completed_questions = fields.Field(column_name=u'completed_questions')
+    percentage_correct = fields.Field(column_name=u'percentage_correct')
 
     class Meta:
         model = Learner
@@ -151,6 +159,37 @@ class LearnerResource(resources.ModelResource):
             'date_joined', 'unique_token', 'unique_token_expiry'
             'welcome_message_sent', 'welcome_message'
         )
+        export_order = (
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'school',
+            'area',
+            'completed_questions',
+            'percentage_correct'
+        )
+
+    def dehydrate_school(self, learner):
+        if learner.school is not None:
+            return learner.school.name
+        else:
+            return ""
+
+    def dehydrate_completed_questions(self, learner):
+        return ParticipantQuestionAnswer.objects.filter(
+            participant__learner=learner
+        ).count()
+
+    def dehydrate_percentage_correct(self, learner):
+        complete = self.dehydrate_completed_questions(learner)
+        if complete > 0:
+            return ParticipantQuestionAnswer.objects.filter(
+                participant__learner=learner,
+                correct=True
+            ).count()*100/complete
+        else:
+            return 0
 
     def get_or_init_instance(self, instance_loader, row):
         row[u'is_staff'] = False
@@ -178,7 +217,11 @@ class CourseFilter(admin.SimpleListFilter):
         return Course.objects.all().values_list('id', 'name')
 
     def queryset(self, request, queryset):
-        return queryset.filter(participant__classs__course_id=self.value())
+        if self.value() is None:
+            return queryset
+        else:
+            return queryset.filter(participant__classs__course_id=self.value())
+
 
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
@@ -189,8 +232,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ("username", "last_name", "first_name", "country", "area",
-                    "unique_token")
+    list_display = ("username", "last_name", "first_name", "school",
+                    "area", "completed_questions", "percentage_correct")
     list_filter = ("country", "area", CourseFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
@@ -275,6 +318,25 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         )
     send_sms.short_description = "Send sms to learners"
     actions = ['send_sms']
+
+    def completed_questions(self, learner):
+        return ParticipantQuestionAnswer.objects.filter(
+            participant__learner=learner
+        ).count()
+    completed_questions.short_description = "Completed Questions"
+    completed_questions.allow_tags = True
+
+    def percentage_correct(self, learner):
+        complete = self.completed_questions(learner)
+        if complete > 0:
+            return ParticipantQuestionAnswer.objects.filter(
+                participant__learner=learner,
+                correct=True
+            ).count()*100/complete
+        else:
+            return 0
+    percentage_correct.short_description = "Percentage correct"
+    percentage_correct.allow_tags = True
 
 # Auth
 admin.site.register(SystemAdministrator, SystemAdministratorAdmin)

@@ -22,5 +22,13 @@ class ClassAdmin(admin.ModelAdmin):
     inlines = (ParticipantInline,)
 
 
+class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
+    list_display = ("participant", "question", "option_selected","correct")
+    list_filter = ("participant", "question")
+    search_fields = ("participant",)
+    inline = (ParticipantInline,)
+
+
 # Organisation
 admin.site.register(Class, ClassAdmin)
+admin.site.register(ParticipantQuestionAnswer,ParticipantQuestionAnswerAdmin)
