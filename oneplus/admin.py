@@ -3,7 +3,7 @@ from content.admin import TestingQuestionAdmin, TestingQuestion
 
 
 class TestingQuestionLinkAdmin(TestingQuestionAdmin):
-    list_display = ("bank", "order", "name", "description", "preview_link")
+    list_display = TestingQuestionAdmin.list_display + ("preview_link",)
 
     def preview_link(self, question):
         return u'<a href="/preview/%s">Preview</a>' % question.id
