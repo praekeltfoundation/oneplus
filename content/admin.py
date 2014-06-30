@@ -96,7 +96,10 @@ class TestingQuestionResource(resources.ModelResource):
             question=question
         ).count()
 
-        return 100*correct/total
+        if total > 0:
+            return 100*correct/total
+        else:
+            return 0
 
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
