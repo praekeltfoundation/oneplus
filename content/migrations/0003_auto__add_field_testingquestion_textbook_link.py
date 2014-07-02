@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'TestingQuestion.textbook_link'
         db.add_column(u'content_testingquestion', 'textbook_link',
-                      self.gf('django.db.models.fields.TextField')(null=True, blank=True),
+                      self.gf('django.db.models.fields.CharField')(max_length=500, null=True, blank=True),
                       keep_default=False)
 
 
@@ -49,7 +49,7 @@ class Migration(SchemaMigration):
             'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'points': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'question_content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'textbook_link': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
+            'textbook_link': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'})
         },
         u'content.testingquestionoption': {
             'Meta': {'object_name': 'TestingQuestionOption'},
