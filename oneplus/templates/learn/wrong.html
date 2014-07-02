@@ -15,6 +15,13 @@
 
                     <div class="xlarge-font center-font pad-bottom">Incorrect</div>
                     <div class="large-font center-font">Unfortunately that is not the answer</div>
+                    {% if question.textbook_link %}
+                        <a href="{{  question.textbook_link  }}">
+                            <div class="large-font center-font green-front">
+                                Read the Textbook
+                            </div>
+                        </a>
+                    {% endif %}
                     {% if state.wrong_tasks_today >= 3 %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
                     {% else %}
