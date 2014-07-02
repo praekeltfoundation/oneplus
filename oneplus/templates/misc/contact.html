@@ -15,8 +15,8 @@
             <p class="white-front">For more information or to give us feedback, please email <a href="mailto:info@oneplus.co.za" class="green-front bold-font">info@oneplus.co.za</a> or send us a message</p>
             <p class="white-front"><span class="bold-font">or</span> send us a message</p>
             <form name="contact_form" method="post" action="?" class="comment">{% csrf_token %}
-                <button type="submit" name="contact_button" class="button green-back" value="Submit"></button>
                 <textarea type="text" name="comment" value="" ></textarea>
+                <button type="submit" name="contact_button" class="button green-back grey-front" value="Submit">Submit</button>
             </form>
         {% endif %}
     </div>
