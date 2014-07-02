@@ -66,6 +66,7 @@ class TestingQuestion(models.Model):
         default=1)
     points = models.PositiveIntegerField(
         "Points", validators=[MaxValueValidator(500)], default=0)
+    textbook_link = models.TextField("Textbook Link", blank=True, null=True)
 
     def __str__(self):
         return self.name
