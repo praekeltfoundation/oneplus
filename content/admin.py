@@ -132,7 +132,10 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
         total = ParticipantQuestionAnswer.objects.filter(
             question=question
         ).count()
-        return 100*correct/total
+        if total > 0:
+            return 100*correct/total
+        else:
+            return 0
     percentage_correct.allow_tags = True
     percentage_correct.short_description = "Percentage Correct"
 
