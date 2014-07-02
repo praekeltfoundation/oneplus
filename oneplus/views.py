@@ -25,7 +25,6 @@ from django.contrib.auth.hashers import make_password
 
 COUNTRYWIDE = "Countrywide"
 
-
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
     @wraps(f)
@@ -82,8 +81,8 @@ def is_registered(user):
     return Participant.objects.get(learner=user.learner)
            
 
-
 def save_user_session(request, registered, user):
+
     request.session["user"] = {}
     request.session["user"]["id"] = user.learner.id
     request.session["user"]["name"] = user.learner.first_name
@@ -91,6 +90,10 @@ def save_user_session(request, registered, user):
         = registered.id
     request.session["user"]["place"] = 0  # TODO
     registered.award_scenario("LOGIN", None)
+
+    # update last login date
+    user.last_login = datetime.now()
+    user.save()
 
 # Login Screen
 @oneplus_state_required
