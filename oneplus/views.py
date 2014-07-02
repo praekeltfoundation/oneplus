@@ -95,6 +95,7 @@ def save_user_session(request, registered, user):
     user.last_login = datetime.now()
     user.save()
 
+
 # Login Screen
 @oneplus_state_required
 def login(request, state):
