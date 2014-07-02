@@ -143,7 +143,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
         (None,
             {"fields": ["name", "description", "bank", "order"]}),
         ("Content",
-            {"fields": ["question_content", "answer_content",
+            {"fields": ["question_content", "answer_content", "textbook_link",
                         "difficulty", "points"]})
     ]
     inlines = (TestingQuestionOptionInline,)
