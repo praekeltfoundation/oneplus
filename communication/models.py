@@ -211,6 +211,11 @@ class Sms(models.Model):
         verbose_name="Time Sms is sent",
         blank=False
     )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = "Sms"
