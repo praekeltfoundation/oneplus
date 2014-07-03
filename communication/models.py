@@ -211,10 +211,11 @@ class Sms(models.Model):
         verbose_name="Time Sms is sent",
         blank=False
     )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True
+    msisdn = models.CharField(
+        verbose_name="Mobile Phone Number",
+        max_length=50,
+        blank=True,
+        null=True
     )
 
     class Meta:

@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Sms.user'
-        db.add_column(u'communication_sms', 'user',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.CustomUser'], null=True, blank=True),
+        # Adding field 'Sms.msisdn'
+        db.add_column(u'communication_sms', 'msisdn',
+                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'Sms.user'
-        db.delete_column(u'communication_sms', 'user_id')
+        # Deleting field 'Sms.msisdn'
+        db.delete_column(u'communication_sms', 'msisdn')
 
 
     models = {
@@ -131,7 +131,7 @@ class Migration(SchemaMigration):
             'date_sent': ('django.db.models.fields.DateTimeField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'message': ('django.db.models.fields.TextField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.CustomUser']", 'null': 'True', 'blank': 'True'}),
+            'msisdn': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'uuid': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'})
         },
         u'content.testingbank': {
