@@ -211,6 +211,12 @@ class Sms(models.Model):
         verbose_name="Time Sms is sent",
         blank=False
     )
+    msisdn = models.CharField(
+        verbose_name="Mobile Phone Number",
+        max_length=50,
+        blank=True,
+        null=True
+    )
 
     class Meta:
         verbose_name = "Sms"

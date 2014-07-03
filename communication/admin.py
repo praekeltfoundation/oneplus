@@ -73,7 +73,12 @@ class MessageAdmin(SummernoteModelAdmin):
     ]
 
 
+class SmsAdmin(SummernoteModelAdmin):
+    list_display = ("msisdn", "date_sent", "message")
+
+
 # Communication
+admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
