@@ -8,7 +8,7 @@ def format_width(value):
     tags = soup.find_all('img')
     for tag in tags:
             if tag is not None:
-                if tag['style'] > 'width: 480px':
+                if tag['style'] > 'width: 280px':
                     tag['style'] = 'width:100%'
 
     return soup
