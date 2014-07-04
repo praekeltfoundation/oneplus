@@ -21,15 +21,15 @@
 
     {% if state.menu_visible %}
         <div class="menu">
-            <div class="item text green-back darkgrey-front" onclick="window.location='/ontrack'"><li class="icon ontrack"></li><p>On Track</p></div>
-            <div class="item text cyan-back darkgrey-front" onclick="window.location='/badges'"><li class="icon badges"></li><p>Badges</p></div>
-            <div class="item text blue-back darkgrey-front" onclick="window.location='/chat'"><li class="icon chat"></li><p>Chat Groups</p></div>
-            <div class="item text purple-back darkgrey-front" onclick="window.location='/blog'"><li class="icon blog"></li><p>Blog</p></div>
-            <div class="item text red-back darkgrey-front" onclick="window.location='/leader'"><li class="icon leaderboard"></li><p>Leaderboard</p></div>
-            <div class="item text orange-back darkgrey-front" onclick="window.location='/points'"><li class="icon points"></li><p>Points</p></div>
-            <div class="item text yellow-back darkgrey-front" onclick="window.location='/inbox'"><li class="icon inbox"></li><p>Inbox</p></div>
-            <div class="item text grey-back white-front" onclick="window.location='/home'"><li class="icon home"></li><p>Home</p></div>
-            <div class="item text grey-back white-front" onclick="window.location='/signout'"><li class="icon user"></li><p>Logout</p></div>
+            <a href="/ontrack"><div class="item text green-back darkgrey-front"><li class="icon ontrack"></li><p>On Track</p></div></a>
+            <a href="/badges"><div class="item text cyan-back darkgrey-front"><li class="icon badges"></li><p>Badges</p></div></a>
+            <a href="/chat"><div class="item text blue-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
+            <a href="/blog"><div class="item text purple-back darkgrey-front"><li class="icon blog"></li><p>Blog</p></div></a>
+            <a href="/leader"><div class="item text red-back darkgrey-front"><li class="icon leaderboard"></li><p>Leaderboard</p></div></a>
+            <a href="/points"><div class="item text orange-back darkgrey-front"><li class="icon points"></li><p>Points</p></div></a>
+            <a href="/inbox"><div class="item text yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox</p></div></a>
+            <a href="/home"><div class="item text grey-back white-front"><li class="icon home"></li><p>Home</p></div></a>
+            <a href="/signout"><div class="item text grey-back white-front"><li class="icon user"></li><p>Logout</p></div></a>
         </div>
     {% else %}
         <div class="container">
