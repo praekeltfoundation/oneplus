@@ -9,9 +9,10 @@ def format_width(value):
     tags = soup.find_all('img')
     for tag in tags:
             if tag is not None:
-                width = re.findall(r'\d+', tag['style'])
-                if int(width[0]) > 280:
-                    tag['style'] = 'width:100%'
+                if "style" in str(tag):
+                    width = re.findall(r'\d+', tag['style'])
+                    if int(width[0]) > 280:
+                        tag['style'] = 'width:100%'
 
     return soup
 
