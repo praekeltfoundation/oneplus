@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from django import template
+import re
 
 register = template.Library()
 
@@ -8,7 +9,8 @@ def format_width(value):
     tags = soup.find_all('img')
     for tag in tags:
             if tag is not None:
-                if tag['style'] > 'width: 280px':
+                width = re.findall(r'\d+', tag['style'])
+                if int(width[0]) > 280:
                     tag['style'] = 'width:100%'
 
     return soup
