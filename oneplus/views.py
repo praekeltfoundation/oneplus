@@ -366,6 +366,18 @@ def home(request, state, user):
         - request.session["state"]["home_correct"]
 
     def get():
+        _learner = Learner.objects.get(id=user['id'])
+
+
+        if _learner.last_active_date < datetime.now() - timedelta(days=1):
+            _learner.last_active_date = datetime.now()
+            _learner.save()
+            update_metric(
+                "running.active.participants",
+                1,
+                "SUM"
+            )
+
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
 

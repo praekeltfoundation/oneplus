@@ -53,6 +53,46 @@
         },{
             "type": "diamondash.widgets.lvalue.LValueWidget",
             "time_range": "1d",
+            "name": "Number of active learners in past 24 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "2d",
+            "name": "Number of active learners in past 48 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "7d",
+            "name": "Number of active learners in past 7 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "32d",
+            "name": "Number of active learners in past month",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
             "name": "Answered Questions in past 24 hours",
             "target": {
                 "metric_type": "account",
