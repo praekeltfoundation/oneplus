@@ -367,7 +367,8 @@ def home(request, state, user):
 
     def get():
         _learner = Learner.objects.get(id=user['id'])
-
+        if _learner.last_active_date is None:
+            _learner.last_active_date = datetime.now() - timedelta(days=1)
 
         if _learner.last_active_date < datetime.now() - timedelta(days=1):
             _learner.last_active_date = datetime.now()
