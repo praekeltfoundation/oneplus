@@ -121,6 +121,10 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 }
 
+.menu-wrapper a{
+   padding: 0px;
+
+}
 .header .menu {
     height: 50px;
     width: 50px;
