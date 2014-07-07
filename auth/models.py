@@ -120,7 +120,6 @@ class Learner(CustomUser):
     last_active_date = models.DateTimeField(
         null=True,
         blank=True,
-        default=datetime.now()
     )
 
     class Meta:
