@@ -8,6 +8,10 @@
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 </head>
 <body>
+{% load google_analytics_tags %}
+<div style="display:none">
+    <img src="{% google_analytics request %}" width="0" height="0" />
+</div>
 <div class="menu">
     <a href="/home"><div class="header">
 

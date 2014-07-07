@@ -39,7 +39,10 @@ BASE_URL = 'oneplus.qa.praekeltfoundation.org'
 
 ALLOWED_HOSTS = []
 
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
+)
 # Application definition
 
 INSTALLED_APPS = (
@@ -63,7 +66,8 @@ INSTALLED_APPS = (
     "django_summernote",
     "south",
     "django_bleach",
-    "bs4"
+    "bs4",
+    "google_analytics"
 )
 
 MIDDLEWARE_CLASSES = (
@@ -96,6 +100,10 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
+}
+
+GOOGLE_ANALYTICS = {
+    'google_analytics_id': 'UA-52417331-1',
 }
 
 # Internationalization
