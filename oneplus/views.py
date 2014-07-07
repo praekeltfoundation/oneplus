@@ -316,6 +316,12 @@ def welcome(request, state):
     return resolve_http_method(request, [get, post])
 
 
+def get_week_day():
+    home_day = date.today().weekday()
+    if home_day == 5 or home_day == 6:
+        home_day = 0
+    return home_day
+
 # Home Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -333,7 +339,9 @@ def home(request, state, user):
             classs=_participant.classs,
             points__gt=_participant.points
         ).count() + 1
-    request.session["state"]["home_day"] = date.today().weekday()
+
+    # Force week day to be Monday, when Saturday or Sunday
+    request.session["state"]["home_day"] = get_week_day()
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
