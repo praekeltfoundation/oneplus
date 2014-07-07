@@ -97,9 +97,19 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     background-position: 50% 50%;
 }
 
+.logo {
+    height: 50px;
+    float: left;
+    width: calc(100% - 50px);
+}
+
 .header .menu-login {
     float:right;
     margin: 0px 17px 0px 0px;
+    padding: 0px;
+}
+
+.header a {
     padding: 0px;
 }
 

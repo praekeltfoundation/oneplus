@@ -8,9 +8,10 @@
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 </head>
 <body>
-<div class="menu">
-    <a href="/home"><div class="header">
 
+<div class="header">
+<a href="/home"> <div class="logo">
+</div></a>
             {% if user.name %}
                 <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
                     <button type="submit" name="switchmenu" value="{{ state.menu_visible }}" class="menu {% if state.menu_visible %}active{% endif %}" />
@@ -18,8 +19,8 @@
             {% else %}
                 <a href="login" class="menu-login green-front">Sign In</a>
             {% endif %}
-    </div></a>
-</div>
+    </div>
+
 
     {% if state.menu_visible %}
         <div class="menu">
