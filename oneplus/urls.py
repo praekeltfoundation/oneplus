@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from oneplus import views
 from django.conf import settings
 from django.views.generic import RedirectView
@@ -57,4 +57,5 @@ urlpatterns = [
         views.leader,
         name="prog.leader.id"),
     url(r"^badges$", views.badges, name="prog.badges"),
+    url(r'^djga/', include('google_analytics.urls')),
 ]

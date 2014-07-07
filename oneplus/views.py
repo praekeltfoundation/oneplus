@@ -17,7 +17,6 @@ from django.contrib.auth.decorators import user_passes_test
 from communication.utils import VumiSmsApi
 import oneplusmvp.settings as settings
 import koremutake
-import hashlib
 from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
@@ -123,15 +122,15 @@ def login(request, state):
                     registered = is_registered(user)
                     if registered is not None:
                         save_user_session(request, registered, user)
-                        return HttpResponseRedirect("home")
+                        return redirect("learn.home")
                     else:
-                        return HttpResponseRedirect("getconnected")
+                        return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
-                        return HttpResponseRedirect("getconnected")
+                        return redirect("auth.getconnected")
             else:
                 #Save provided username
                 request.session["username"] = form.cleaned_data["username"]
-                return HttpResponseRedirect("getconnected")
+                return redirect("auth.getconnected")
         else:
             return get()
 
