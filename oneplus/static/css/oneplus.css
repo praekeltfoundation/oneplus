@@ -90,18 +90,15 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 .header {
     height: 50px;
     line-height: 50px;
-    width: 100%;
     background-color: #3a3a3a;
     background-image: url("../img/logo.png");
     background-repeat: no-repeat;
     background-position: 50% 50%;
+    width: 100%;
+
 }
 
-.logo {
-    height: 50px;
-    float: left;
-    width: calc(100% - 50px);
-}
+
 
 .header .menu-login {
     float:right;
@@ -111,6 +108,17 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 .header a {
     padding: 0px;
+}
+
+.header .logo {
+    height: 50px;
+    overflow: hidden;
+}
+
+.header .menu-wrapper {
+    height: 50px;
+    float: right;
+
 }
 
 .header .menu {
