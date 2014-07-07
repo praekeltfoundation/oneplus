@@ -17,7 +17,7 @@ urlpatterns = [
         views.smspassword,
         name="auth.smspassword"),
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
-    url(r"^autologin/(?P<token>\w+)$", views.autologin, name="auth.autologin"),
+    url(r"^autologin/(?P<token>\S+)$", views.autologin, name="auth.autologin"),
 
     # Learn
     url(r"^home", views.home, name="learn.home"),
