@@ -11,8 +11,9 @@ def format_width(value):
             if tag is not None:
                 if "style" in str(tag):
                     width = re.findall(r'\d+', tag['style'])
-                    if int(width[0]) > 280:
-                        tag['style'] = 'width:100%'
+                    if width:
+                        if int(width[0]) > 280:
+                            tag['style'] = 'width:100%'
 
     return soup
 
