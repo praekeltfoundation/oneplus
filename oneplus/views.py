@@ -583,6 +583,8 @@ def nextchallenge(request, state, user):
 def adminpreview(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
+        if "state" not in request.session.keys():
+            request.session["state"] = {}
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
@@ -663,6 +665,8 @@ def adminpreview(request, questionid):
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
+        if "state" not in request.session.keys():
+            request.session["state"] = {}
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
@@ -716,6 +720,8 @@ def adminpreview_right(request, questionid):
 def adminpreview_wrong(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
+        if "state" not in request.session.keys():
+            request.session["state"] = {}
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
