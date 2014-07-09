@@ -22,6 +22,7 @@ from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
+from go_http import HttpApiSender
 
 COUNTRYWIDE = "Countrywide"
 
@@ -79,7 +80,15 @@ def resolve_http_method(request, methods):
 def is_registered(user):
     # Check learner is registered
     return Participant.objects.get(learner=user.learner)
-           
+
+
+def update_metric(name, value, metric_type):
+    sender = HttpApiSender(
+        account_key=settings.VUMI_GO_ACCOUNT_KEY,
+        conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
+        conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
+    )
+    sender.fire_metric(name, value, agg=metric_type)
 
 def save_user_session(request, registered, user):
 
@@ -422,6 +431,27 @@ def nextchallenge(request, state, user):
             "messages": _messages
         })
 
+    def update_num_question_metric():
+        update_metric(
+            "answered.questions",
+            1,
+            "sum"
+        )
+
+    def update_perc_correct_answers():
+        total = ParticipantQuestionAnswer.objects.count()
+        if total > 0:
+            value = ParticipantQuestionAnswer.objects.filter(
+                correct=True
+            ).count()/total
+        else:
+            value = 0
+        update_metric(
+            "percentage.correct",
+            value,
+            "last"
+        )
+
     def post():
         request.session["state"]["discussion_comment"] = False
         request.session["state"]["discussion_responded_id"] = None
@@ -442,6 +472,8 @@ def nextchallenge(request, state, user):
             _answer.save()
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
+
+            update_num_question_metric()
 
             #Check for awards
             if _option.correct:

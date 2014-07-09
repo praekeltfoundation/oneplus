@@ -1,4 +1,5 @@
-django-mobileu==1.0.19
+django-mobileu==1.0.20
 psycopg2
 django_bleach
 beautifulsoup4
+go_http
