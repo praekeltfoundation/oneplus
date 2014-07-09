@@ -37,7 +37,7 @@ TEMPLATE_DIRS = [
 BASE_URL = 'oneplus.qa.praekeltfoundation.org'
  # os.path.join(BASE_DIR, "oneplus/templates")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
