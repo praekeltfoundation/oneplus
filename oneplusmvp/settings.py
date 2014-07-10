@@ -45,6 +45,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 # Application definition
 
+SITE_ID = 1
+
 INSTALLED_APPS = (
     #"django.contrib.auth",
     "django.contrib.contenttypes",
