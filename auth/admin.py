@@ -164,10 +164,17 @@ class LearnerResource(resources.ModelResource):
             'username',
             'first_name',
             'last_name',
+            'email',
+            'mobile',
             'school',
+            'country'
             'area',
+            'city',
+            'optin_sms',
+            'optin_email',
             'completed_questions',
-            'percentage_correct'
+            'percentage_correct',
+            'course',
         )
 
     def dehydrate_school(self, learner):
@@ -207,6 +214,7 @@ class LearnerResource(resources.ModelResource):
         data[u'school'] = school.id
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
+
 
 
 class CourseFilter(admin.SimpleListFilter):
