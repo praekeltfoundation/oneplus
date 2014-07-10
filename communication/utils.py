@@ -2,13 +2,14 @@ from django.conf import settings
 import json
 from communication.models import Sms
 import requests
+from django.contrib.sites.models import Site
 
 
 
 def get_autologin_link(unique_token):
     if unique_token is not None:
         return 'http://%s/%s/%s' % (
-            settings.BASE_URL,
+            Site.objects.get_current().domain,
             'autologin',
             unique_token
         )
