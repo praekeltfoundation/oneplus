@@ -97,7 +97,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "questions.correct",
+                "name": "questions.correct.24hr",
                 "aggregator": "last"
             }
         },{
@@ -107,7 +107,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "questions.correct",
+                "name": "questions.correct.48hr",
                 "aggregator": "last"
             }
         },{
@@ -117,7 +117,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "questions.correct",
+                "name": "questions.correct.7days",
                 "aggregator": "last"
             }
         },{
@@ -127,7 +127,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "questions.correct",
+                "name": "questions.correct.32days",
                 "aggregator": "last"
             }
         },{

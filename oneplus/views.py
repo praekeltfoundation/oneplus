@@ -1,7 +1,7 @@
+from __future__ import division
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from django.core.exceptions import ObjectDoesNotExist
 from forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
@@ -17,12 +17,12 @@ from django.contrib.auth.decorators import user_passes_test
 from communication.utils import VumiSmsApi
 import oneplusmvp.settings as settings
 import koremutake
-import hashlib
 from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from go_http import HttpApiSender
+
 
 COUNTRYWIDE = "Countrywide"
 
@@ -433,24 +433,39 @@ def nextchallenge(request, state, user):
 
     def update_num_question_metric():
         update_metric(
-            "answered.questions",
+            "total.questions",
             1,
-            "sum"
+            metric_type="SUM"
         )
 
-    def update_perc_correct_answers():
-        total = ParticipantQuestionAnswer.objects.count()
+    def update_perc_correct_answers(name, days_ago):
+        date_range = (
+            datetime.now().date()-timedelta(days=days_ago),
+            datetime.now().date(),
+        )
+        total = ParticipantQuestionAnswer.objects.filter(
+            answerdate__range=date_range
+        ).count()
         if total > 0:
             value = ParticipantQuestionAnswer.objects.filter(
+                answerdate__range=date_range,
                 correct=True
             ).count()/total
         else:
             value = 0
         update_metric(
-            "percentage.correct",
-            value,
-            "last"
+            "questions.correct."+name,
+            value*100,
+            "LAST"
         )
+
+    def update_all_perc_correct_answers():
+        # Update metrics
+        update_perc_correct_answers('24hr', 1)
+        update_perc_correct_answers('48hr', 2)
+        update_perc_correct_answers('7days', 7)
+        update_perc_correct_answers('32days', 32)
+
 
     def post():
         request.session["state"]["discussion_comment"] = False
@@ -473,7 +488,9 @@ def nextchallenge(request, state, user):
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
 
+            # Update metrics
             update_num_question_metric()
+            update_all_perc_correct_answers()
 
             #Check for awards
             if _option.correct:
