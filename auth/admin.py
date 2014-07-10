@@ -167,7 +167,7 @@ class LearnerResource(resources.ModelResource):
             'email',
             'mobile',
             'school',
-            'country'
+            'country',
             'area',
             'city',
             'optin_sms',
