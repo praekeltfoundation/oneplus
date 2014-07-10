@@ -1717,10 +1717,14 @@ def contact(request, state, user):
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _comment = request.POST["comment"]
 
+        #Get contact details
+        if "contact" in request.POST.keys() and request.POST["contact"] != "":
+            _contact = request.POST["contact"]
+
             #Send email to info@oneplus.co.za
             mail_managers(
-                subject='Contact Us Message',
-                message=_comment,
+                subject='Contact Us Message - ' + _contact,
+                message=_comment +" - " +_contact,
                 fail_silently=False
             )
 
