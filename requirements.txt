@@ -1,4 +1,4 @@
-django-mobileu==1.0.21
+django-mobileu==1.0.22
 django-google-analytics-app==1.0.0
 psycopg2
 django_bleach
