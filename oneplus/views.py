@@ -71,7 +71,7 @@ def oneplus_state_required(f):
 # Action resolver to elegantly handle verbs in the views
 def resolve_http_method(request, methods):
     if isinstance(methods, list):
-        methods = {func.__name__.lower(): func for func in methods}
+        methods = dict([(func.__name__.lower(), func) for func in methods])
     if request.method.lower() not in methods.keys():
         return HttpResponse(status=501)
     return methods[request.method.lower()]()
@@ -125,15 +125,15 @@ def login(request, state):
                     registered = is_registered(user)
                     if registered is not None:
                         save_user_session(request, registered, user)
-                        return HttpResponseRedirect("home")
+                        return redirect("learn.home")
                     else:
-                        return HttpResponseRedirect("getconnected")
+                        return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
-                        return HttpResponseRedirect("getconnected")
+                        return redirect("auth.getconnected")
             else:
                 #Save provided username
                 request.session["username"] = form.cleaned_data["username"]
-                return HttpResponseRedirect("getconnected")
+                return redirect("auth.getconnected")
         else:
             return get()
 
@@ -319,6 +319,12 @@ def welcome(request, state):
     return resolve_http_method(request, [get, post])
 
 
+def get_week_day():
+    home_day = date.today().weekday()
+    if home_day == 5 or home_day == 6:
+        home_day = 0
+    return home_day
+
 # Home Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -336,7 +342,9 @@ def home(request, state, user):
             classs=_participant.classs,
             points__gt=_participant.points
         ).count() + 1
-    request.session["state"]["home_day"] = date.today().weekday()
+
+    # Force week day to be Monday, when Saturday or Sunday
+    request.session["state"]["home_day"] = get_week_day()
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
@@ -625,6 +633,8 @@ def nextchallenge(request, state, user):
 def adminpreview(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
+        if "state" not in request.session.keys():
+            request.session["state"] = {}
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
@@ -705,6 +715,8 @@ def adminpreview(request, questionid):
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
+        if "state" not in request.session.keys():
+            request.session["state"] = {}
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
@@ -758,6 +770,8 @@ def adminpreview_right(request, questionid):
 def adminpreview_wrong(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
+        if "state" not in request.session.keys():
+            request.session["state"] = {}
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
@@ -1745,10 +1759,14 @@ def contact(request, state, user):
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _comment = request.POST["comment"]
 
+        #Get contact details
+        if "contact" in request.POST.keys() and request.POST["contact"] != "":
+            _contact = request.POST["contact"]
+
             #Send email to info@oneplus.co.za
             mail_managers(
-                subject='Contact Us Message',
-                message=_comment,
+                subject='Contact Us Message - ' + _contact,
+                message=_comment +" - " +_contact,
                 fail_silently=False
             )
 

@@ -37,10 +37,15 @@ TEMPLATE_DIRS = [
 BASE_URL = 'oneplus.qa.praekeltfoundation.org'
  # os.path.join(BASE_DIR, "oneplus/templates")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
+)
 # Application definition
+
+SITE_ID = 1
 
 INSTALLED_APPS = (
     #"django.contrib.auth",
@@ -53,6 +58,7 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "django.contrib.sites",
     "oneplus",
     "core",
     "gamification",
@@ -63,7 +69,8 @@ INSTALLED_APPS = (
     "django_summernote",
     "south",
     "django_bleach",
-    "bs4"
+    "bs4",
+    "google_analytics"
 )
 
 MIDDLEWARE_CLASSES = (
@@ -96,6 +103,10 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
+}
+
+GOOGLE_ANALYTICS = {
+    'google_analytics_id': 'UA-52417331-1',
 }
 
 # Internationalization

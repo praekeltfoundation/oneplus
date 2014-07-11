@@ -90,12 +90,15 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 .header {
     height: 50px;
     line-height: 50px;
-    width: 100%;
     background-color: #3a3a3a;
     background-image: url("../img/logo.png");
     background-repeat: no-repeat;
     background-position: 50% 50%;
+    width: 100%;
+
 }
+
+
 
 .header .menu-login {
     float:right;
@@ -103,6 +106,25 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     padding: 0px;
 }
 
+.header a {
+    padding: 0px;
+}
+
+.header .logo {
+    height: 50px;
+    overflow: hidden;
+}
+
+.header .menu-wrapper {
+    height: 50px;
+    float: right;
+
+}
+
+.menu-wrapper a{
+   padding: 0px;
+
+}
 .header .menu {
     height: 50px;
     width: 50px;
@@ -156,6 +178,11 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 .menu .item p {
     width: 100%;
 }
+
+.menu a{
+    padding: 0px;
+}
+
 
 .footer {
     height: 60px;
@@ -366,7 +393,7 @@ li.contact {
     height: 100px;
     width: 80px;
     float:left;
-    padding: 20px;
+    padding: 15px;
     box-sizing: content-box;
 }
 

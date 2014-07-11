@@ -8,34 +8,33 @@
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 </head>
 <body>
-    <div class="header" onclick="window.location='/home'">
+{% load google_analytics_tags %}
+<div style="display:none">
+    <img src="{% google_analytics request %}" width="0" height="0" />
+</div>
 
+<div class="header">
+
+    <div class="menu-wrapper">
             {% if user.name %}
-                <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
-                    <button type="submit" name="switchmenu" value="{{ state.menu_visible }}" class="menu {% if state.menu_visible %}active{% endif %}" />
-                </form>
+                    <a href="/menu" class="menu {% if state.menu_visible %}active{% endif %}" ></a>
+
             {% else %}
                 <a href="login" class="menu-login green-front">Sign In</a>
             {% endif %}
     </div>
 
-    {% if state.menu_visible %}
-        <div class="menu">
-            <a class="item text green-back darkgrey-front" href="/ontrack"><li class="icon ontrack"></li><p>On Track</p></a>
-            <a class="item text cyan-back darkgrey-front" href="/badges"><li class="icon badges"></li><p>Badges</p></a>
-            <a class="item text blue-back darkgrey-front" href="/chat"><li class="icon chat"></li><p>Chat Groups</p></a>
-            <a class="item text purple-back darkgrey-front" href="/blog"><li class="icon blog"></li><p>Blog</p></a>
-            <a class="item text red-back darkgrey-front" href="/leader"><li class="icon leaderboard"></li><p>Leaderboard</p></a>
-            <a class="item text orange-back darkgrey-front" href="/points"><li class="icon points"></li><p>Points</p></a>
-            <a class="item text yellow-back darkgrey-front" href="/inbox"><li class="icon inbox"></li><p>Inbox</p></a>
-            <a class="item text grey-back white-front" href="/home"><li class="icon home"></li><p>Home</p></a>
-            <a class="item text grey-back white-front" href="/signout"><li class="icon user"></li><p>Logout</p></a>
-        </div>
-    {% else %}
+    <a href="/home"><div class="logo">
+    </div></a>
+</div>
+
+
+
+
         <div class="container">
             {% block content %}{% endblock %}
         </div>
-    {% endif %}
+
 
     <div class="footer darkgrey-back">
         <div style="text-align: center">OnePlus is a collaboration between Investec & Praekelt Foundation</div>

@@ -3,8 +3,9 @@
 {% block title %}INBOX{% endblock %}
 
 {% block content %}
-
+<div class="menu">
     <a href="/inbox"><div class="text heading yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox ({{ state.inbox_unread }})</p></div></a>
+</div>
     <div class="text heading darkgrey-back"><p>Something to say?</p></div>
 
     {% if not state.inbox_sent %}

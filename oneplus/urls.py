@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from oneplus import views
 from django.conf import settings
 from django.views.generic import RedirectView
@@ -17,7 +17,7 @@ urlpatterns = [
         views.smspassword,
         name="auth.smspassword"),
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
-    url(r"^autologin/(?P<token>\w+)$", views.autologin, name="auth.autologin"),
+    url(r"^autologin/(?P<token>\S+)$", views.autologin, name="auth.autologin"),
 
     # Learn
     url(r"^home", views.home, name="learn.home"),
@@ -57,4 +57,5 @@ urlpatterns = [
         views.leader,
         name="prog.leader.id"),
     url(r"^badges$", views.badges, name="prog.badges"),
+    url(r'^djga/', include('google_analytics.urls')),
 ]

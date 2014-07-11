@@ -3,8 +3,9 @@
 {% block title %}INBOX{% endblock %}
 
 {% block content %}
-
+<div class="menu">
     <a href="/menu"><div class="text heading yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox ({{ state.inbox_unread }})</p></div></a>
+</div>
     <div class="text heading darkgrey-back"><p>Something to say? <a href="/inbox_send" class="yellow-front">Send us a message</a></p></div>
 
     <div class="menu">
