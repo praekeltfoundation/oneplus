@@ -21,7 +21,7 @@ from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
-from go_http import HttpApiSender
+from oneplus.utils import update_metric
 
 
 COUNTRYWIDE = "Countrywide"
@@ -82,13 +82,6 @@ def is_registered(user):
     return Participant.objects.get(learner=user.learner)
 
 
-def update_metric(name, value, metric_type):
-    sender = HttpApiSender(
-        account_key=settings.VUMI_GO_ACCOUNT_KEY,
-        conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
-        conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
-    )
-    sender.fire_metric(name, value, agg=metric_type)
 
 def save_user_session(request, registered, user):
 
@@ -465,7 +458,6 @@ def nextchallenge(request, state, user):
         update_perc_correct_answers('48hr', 2)
         update_perc_correct_answers('7days', 7)
         update_perc_correct_answers('32days', 32)
-
 
     def post():
         request.session["state"]["discussion_comment"] = False
