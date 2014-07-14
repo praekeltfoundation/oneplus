@@ -12,6 +12,3 @@ class LoginForm(forms.Form):
 
 class SmsPasswordForm(forms.Form):
     msisdn = forms.CharField(label="Phone Number")
-
-
-
