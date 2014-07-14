@@ -1,7 +1,7 @@
+from __future__ import division
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from django.core.exceptions import ObjectDoesNotExist
 from forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
@@ -21,6 +21,8 @@ from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
+from oneplus.utils import update_metric
+
 
 COUNTRYWIDE = "Countrywide"
 
@@ -78,6 +80,7 @@ def resolve_http_method(request, methods):
 def is_registered(user):
     # Check learner is registered
     return Participant.objects.get(learner=user.learner)
+
 
 def save_user_session(request, registered, user):
 
@@ -362,6 +365,22 @@ def home(request, state, user):
         - request.session["state"]["home_correct"]
 
     def get():
+        _learner = Learner.objects.get(id=user['id'])
+        if _learner.last_active_date is None:
+            _learner.last_active_date = datetime.now() - timedelta(days=32)
+
+        if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=1):
+            update_metric("running.active.participants24", 1, "SUM")
+            if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=2):
+                update_metric("running.active.participants48", 1, "SUM")
+                if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=7):
+                    update_metric("running.active.participants7d", 1, "SUM")
+                    if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=32):
+                        update_metric("running.active.participantsmonth", 1, "SUM")
+
+        _learner.last_active_date = datetime.now()
+        _learner.save()
+
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
 
@@ -428,6 +447,41 @@ def nextchallenge(request, state, user):
             "messages": _messages
         })
 
+    def update_num_question_metric():
+        update_metric(
+            "total.questions",
+            1,
+            metric_type="SUM"
+        )
+
+    def update_perc_correct_answers(name, days_ago):
+        date_range = (
+            datetime.now().date()-timedelta(days=days_ago),
+            datetime.now().date(),
+        )
+        total = ParticipantQuestionAnswer.objects.filter(
+            answerdate__range=date_range
+        ).count()
+        if total > 0:
+            value = ParticipantQuestionAnswer.objects.filter(
+                answerdate__range=date_range,
+                correct=True
+            ).count()/total
+        else:
+            value = 0
+        update_metric(
+            "questions.correct."+name,
+            value*100,
+            "LAST"
+        )
+
+    def update_all_perc_correct_answers():
+        # Update metrics
+        update_perc_correct_answers('24hr', 1)
+        update_perc_correct_answers('48hr', 2)
+        update_perc_correct_answers('7days', 7)
+        update_perc_correct_answers('32days', 32)
+
     def post():
         request.session["state"]["discussion_comment"] = False
         request.session["state"]["discussion_responded_id"] = None
@@ -448,6 +502,10 @@ def nextchallenge(request, state, user):
             _answer.save()
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
+
+            # Update metrics
+            update_num_question_metric()
+            update_all_perc_correct_answers()
 
             #Check for awards
             if _option.correct:

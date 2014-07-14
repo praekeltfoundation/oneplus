@@ -3,3 +3,4 @@ django-google-analytics-app==1.0.0
 psycopg2
 django_bleach
 beautifulsoup4
+go_http

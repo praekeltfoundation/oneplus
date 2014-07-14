@@ -1,0 +1,212 @@
+{
+    "layout": [
+        {
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
+            "name": "Total Registered Participants",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "registered.participants",
+                "aggregator": "last"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
+            "name": "Number of registered learners in past 24 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.registered.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "2d",
+            "name": "Number of registered learners in past 48 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.registered.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "7d",
+            "name": "Number of registered learners in past 7 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.registered.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "32d",
+            "name": "Number of registered learners in past month",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.registered.participants",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
+            "name": "Number of active learners in past 24 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants24",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "2d",
+            "name": "Number of active learners in past 48 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants48",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "7d",
+            "name": "Number of active learners in past 7 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participants7",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "32d",
+            "name": "Number of active learners in past month",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "running.active.participantsmonth",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
+            "name": "Answered Questions in past 24 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "total.questions",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "2d",
+            "name": "Answered Questions in past 48 hours",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "total.questions",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "7d",
+            "name": "Answered Questions in past 7 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "total.questions",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "32d",
+            "name": "Answered Questions in past 32 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "total.questions",
+                "aggregator": "sum"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
+            "name": "Percentage of questions answered correctly in past 24 hrs",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "questions.correct.24hr",
+                "aggregator": "last"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "2d",
+            "name": "Percentage of questions answered correctly in past 48 hrs",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "questions.correct.48hr",
+                "aggregator": "last"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "7d",
+            "name": "Percentage of questions answered correctly in past 7 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "questions.correct.7days",
+                "aggregator": "last"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "32d",
+            "name": "Percentage of questions answered correctly in past 32 days",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "questions.correct.32days",
+                "aggregator": "last"
+            }
+        },{
+            "type": "diamondash.widgets.lvalue.LValueWidget",
+            "time_range": "1d",
+            "name": "Percentage opt-ins",
+            "target": {
+                "metric_type": "account",
+                "store": "oneplus_qa",
+                "name": "percentage.optin",
+                "aggregator": "last"
+            }
+        },
+        {
+            "type": "diamondash.widgets.graph.GraphWidget",
+            "name": "Total Users and Total Registrations per Week",
+            "width": 12,
+            "time_range": "14d",
+            "bucket_size": "1h",
+            "metrics": [
+                {
+                    "name": "Total Users",
+                    "target": {
+                        "metric_type": "account",
+                        "store": "oneplus_qa",
+                        "name": "unique.participants",
+                        "aggregator": "last"
+                    }
+                },
+                {
+                    "name": "Total Registrations",
+                    "target": {
+                        "metric_type": "account",
+                        "store": "di_mxit_live_app",
+                        "name": "registered.participants",
+                        "aggregator": "last"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -8,7 +8,7 @@ setup(
         'django-mobileu',
         'psycopg2',
         'django_bleach'
-        'beautifulsoup4'
+        'beautifulsoup4',
     ],
     url='www.praekelt.co.za',
     license='',
