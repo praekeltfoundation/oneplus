@@ -57,7 +57,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "running.active.participants",
+                "name": "running.active.participants24",
                 "aggregator": "sum"
             }
         },{
@@ -67,7 +67,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "running.active.participants",
+                "name": "running.active.participants48",
                 "aggregator": "sum"
             }
         },{
@@ -77,7 +77,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "running.active.participants",
+                "name": "running.active.participants7",
                 "aggregator": "sum"
             }
         },{
@@ -87,7 +87,7 @@
             "target": {
                 "metric_type": "account",
                 "store": "oneplus_qa",
-                "name": "running.active.participants",
+                "name": "running.active.participantsmonth",
                 "aggregator": "sum"
             }
         },{

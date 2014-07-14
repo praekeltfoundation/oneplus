@@ -368,16 +368,19 @@ def home(request, state, user):
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
-            _learner.last_active_date = datetime.now() - timedelta(days=1)
+            _learner.last_active_date = datetime.now() - timedelta(days=5)
 
-        if _learner.last_active_date < datetime.now() - timedelta(days=1):
-            _learner.last_active_date = datetime.now()
-            _learner.save()
-            update_metric(
-                "running.active.participants",
-                1,
-                "SUM"
-            )
+        if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=1):
+            update_metric("running.active.participants24", 1, "SUM")
+            if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=2):
+                update_metric("running.active.participants48", 1, "SUM")
+                if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=7):
+                    update_metric("running.active.participants7d", 1, "SUM")
+                    if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=32):
+                        update_metric("running.active.participantsmonth", 1, "SUM")
+
+        _learner.last_active_date = datetime.now()
+        _learner.save()
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
