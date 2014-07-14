@@ -368,7 +368,7 @@ def home(request, state, user):
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
-            _learner.last_active_date = datetime.now() - timedelta(days=5)
+            _learner.last_active_date = datetime.now() - timedelta(days=32)
 
         if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=1):
             update_metric("running.active.participants24", 1, "SUM")
