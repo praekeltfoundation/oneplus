@@ -6,7 +6,7 @@ from auth.models import Learner
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption
-
+from django.db.models import Q
 
 class Class(models.Model):
     """
@@ -53,8 +53,14 @@ class Participant(models.Model):
         return self.learner.first_name
 
     def award_scenario(self, event, module):
-        for scenario in GamificationScenario.objects.filter(
-                event=event, course=self.classs.course, module=module):
+        if module is not None:
+            query = Q(event=event, course=self.classs.course, module=module) \
+                | Q(event=event, course=self.classs.course, module=None)
+        else:
+            query = Q(event=event, course=self.classs.course, module=module)
+
+        for scenario in GamificationScenario.objects.filter(query):
+
             # Points may be awarded multiple times
             if scenario.point is not None:
                 p = ParticipantPointBonusRel(

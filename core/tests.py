@@ -60,25 +60,55 @@ class TestMessage(TestCase):
             badge=self.badge_template
         )
 
+        #create scenario
+        self.scenario_no_module = GamificationScenario.objects.create(
+            name='scenario name no module',
+            event='event name no module',
+            course=self.course,
+            module=None,
+            point=self.pointbonus,
+            badge=self.badge_template
+        )
 
-    def test_award_scenairo(self):
+
+    def test_award_scenario(self):
         participant = self.create_participant(
             self.learner,
             self.classs,
-            datejoined= datetime.now()
+            datejoined=datetime.now()
         )
 
         #participant should have 0 points
-        self.assertEquals(0,participant.points)
+        self.assertEquals(0, participant.points)
 
         #award points to participant
         participant.award_scenario('event name', self.module)
         participant.save()
 
         #participant should have 5 points
-        self.assertEquals(5,participant.points)
+        self.assertEquals(5, participant.points)
 
         #check badge was awarded
         b = ParticipantBadgeTemplateRel.objects.get(participant=participant)
         self.assertTrue(b.awarddate)
 
+    def test_award_scenario_none_module(self):
+        participant = self.create_participant(
+            self.learner,
+            self.classs,
+            datejoined=datetime.now()
+        )
+
+        #participant should have 0 points
+        self.assertEquals(0, participant.points)
+
+        #award points to participant
+        participant.award_scenario('event name no module', None)
+        participant.save()
+
+        #participant should have 5 points
+        self.assertEquals(5, participant.points)
+
+        #check badge was awarded
+        b = ParticipantBadgeTemplateRel.objects.get(participant=participant)
+        self.assertTrue(b.awarddate)
