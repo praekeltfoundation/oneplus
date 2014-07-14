@@ -82,7 +82,6 @@ def is_registered(user):
     return Participant.objects.get(learner=user.learner)
 
 
-
 def save_user_session(request, registered, user):
 
     request.session["user"] = {}
@@ -873,9 +872,13 @@ def right(request, state, user):
 
             #Gameification scenario for correct question
             _scenario = GamificationScenario.objects.filter(
-                module=_learnerstate.active_question.bank.module,
-                course=_learnerstate.active_question.bank.module.course,
-                event="CORRECT"
+                Q(
+                    module=_learnerstate.active_question.bank.module,
+                    course=_learnerstate.active_question.bank.module.course,
+                ) | Q(
+                    module=None,
+                    course=_learnerstate.active_question.bank.module.course,
+                )
             )
 
             #Get relevant badge related to scenario
@@ -886,7 +889,7 @@ def right(request, state, user):
                     datetime.today()-timedelta(minutes=1),
                     datetime.today()
                 ]
-            ).first()
+            ).order_by('-awarddate').first()
             if _badge:
                 _badgetemplate = _badge.badgetemplate
             else:
