@@ -428,6 +428,7 @@ div.award-badge {
     height: 64px;
     background-repeat: no-repeat;
     background-position: 50% 50%;
+    margin: 0 auto;
 }
 
 li.badge {
