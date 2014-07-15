@@ -128,10 +128,12 @@ def login(request, state):
                     else:
                         return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
+                        request.session["wrong_password"] = False
                         return redirect("auth.getconnected")
             else:
                 #Save provided username
                 request.session["username"] = form.cleaned_data["username"]
+                request.session["wrong_password"] = True
                 return redirect("auth.getconnected")
         else:
             return get()
@@ -273,17 +275,21 @@ def getconnected(request, state):
     def get():
         exists = False
         username = None
+        wrong_password = False
         if "user_exists" in request.session:
             exists = request.session["user_exists"]
         if "username" in request.session:
             username = request.session["username"]
+        if "wrong_password" in request.session:
+            wrong_password = request.session["wrong_password"]
         return render(
             request,
             "auth/getconnected.html",
             {
                 "state": state,
                 "exists": exists,
-                "provided_username": username
+                "provided_username": username,
+                "wrong_password" : wrong_password
             }
         )
 

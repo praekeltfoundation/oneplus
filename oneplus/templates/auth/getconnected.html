@@ -7,12 +7,19 @@
 <div class="content narrow darkgrey-back">
 
     {% if exists %}
-        <p>
-            You seem to have entered an incorrect password.
-            Please click  <a href={% url 'auth.login' %}>here</a> to try again or
-            click <a href={% url 'auth.smspassword' %}>here</a>
-            to reset your password.
-        </p>
+        {% if wrong_password %}
+            <p>
+                You seem to have entered an incorrect password.
+                Please click  <a href={% url 'auth.login' %}>here</a> to try again or
+                click <a href={% url 'auth.smspassword' %}>here</a>
+                to reset your password.
+            </p>
+        {% else %}
+            <p>
+                You are not currently linked to a class - <a href={% url 'misc.contact' %}>Contact us</a>
+                to get connected.
+            </p>
+        {% endif %}
     {% else %}
         <p>
             OnePlus is currently in test phase and has a closed user group.
