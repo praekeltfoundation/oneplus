@@ -28,8 +28,7 @@ class OnePlusLearnerResource(LearnerResource):
                 "SUM",
             )
 
-        return super(LearnerResource, self).import_data(dataset, dry_run=False, raise_errors=False,
-            use_transactions=None)
+        return super(LearnerResource, self).import_data(dataset, **kwargs)
 
 
 
