@@ -3,8 +3,9 @@
 {% block title %}GET CONNECTED{% endblock %}
 
 {% block content %}
-<form name="sms_form" method="post" action="?">
-{% csrf_token %}
+<div class="text heading darkgrey-back lightgrey-front"><p>Get Connected</p></div>
+<div class="content narrow darkgrey-back">
+
     {% if exists %}
         <p>
             You seem to have entered an incorrect password.
@@ -27,7 +28,6 @@
             </a>
         </p>
     {% endif %}
-
-</form>
+</div>
 
 {% endblock %}
