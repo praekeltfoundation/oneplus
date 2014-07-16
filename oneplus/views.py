@@ -877,7 +877,7 @@ def right(request, state, user):
                 .reverse()[:request.session["state"]["discussion_page"]]
 
             #Gameification scenario for correct question
-            _scenario = GamificationScenario.objects.filter(
+            _scenariobadge = GamificationScenario.objects.filter(
                 Q(
                     module=_learnerstate.active_question.bank.module,
                     course=_learnerstate.active_question.bank.module.course,
@@ -886,11 +886,12 @@ def right(request, state, user):
                     course=_learnerstate.active_question.bank.module.course,
                 )
             )
+            _badgepoints = None
 
             #Get relevant badge related to scenario
             _badge = ParticipantBadgeTemplateRel.objects.filter(
                 participant=_participant,
-                scenario__in=_scenario,
+                scenario__in=_scenariobadge,
                 awarddate__range=[
                     datetime.today()-timedelta(minutes=1),
                     datetime.today()
@@ -898,14 +899,28 @@ def right(request, state, user):
             ).order_by('-awarddate').first()
             if _badge:
                 _badgetemplate = _badge.badgetemplate
+                _badgepoints = GamificationScenario.objects.get(badge__id=_badgetemplate.id).point
             else:
                 _badgetemplate = None
 
             #Get points
-            if _scenario.exists():
-                _points = _scenario.first().point
+            _pointscenario = GamificationScenario.objects.filter(
+                module=_learnerstate.active_question.bank.module,
+                course=_learnerstate.active_question.bank.module.course,
+                event="CORRECT"
+            )
+
+            if _pointscenario.exists():
+                if _badgepoints is not None and _badgepoints.value > 0:
+                    _points = int(_pointscenario.first().point.value) + int(_badgepoints.value)
+                else:
+                    _points = _pointscenario.first().point.value
             else:
-                _points = None
+                if _badgepoints is not None:
+                    _points = _badgepoints.value
+                else:
+                    _points = None
+
 
             return render(
                 request,
