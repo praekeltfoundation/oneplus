@@ -16,8 +16,8 @@
                     <div class="large-font-normal center-font">
 
                         <span class="large-font center-font">
-                        {% if points %}
-                            {{ points.value }} point{{ points.value|pluralize }}
+                        {% if question.points %}
+                            {{ question.points }} point{{ question.points|pluralize }}
                         {% else %}
                             0 points
                         {% endif %}
