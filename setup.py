@@ -8,7 +8,7 @@ setup(
         'Django==1.6.5',
         'South==0.8.4',
         'django-grappelli==2.5.3',
-        'django-summernote==0.5.12',
+        'django-summernote==0.5.13',
         'django-import-export==0.2.2',
         'Pillow==2.4.0',
         'psycopg2==2.5.3',
