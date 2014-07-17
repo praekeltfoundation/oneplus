@@ -1,5 +1,5 @@
 django-mobileu==1.0.24
-django-google-analytics-app==2.0.0
+django-google-analytics-app==2.0.1
 psycopg2
 django_bleach
 beautifulsoup4
