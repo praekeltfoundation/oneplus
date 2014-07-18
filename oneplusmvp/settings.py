@@ -70,7 +70,8 @@ INSTALLED_APPS = (
     "south",
     "django_bleach",
     "bs4",
-    "google_analytics"
+    "google_analytics",
+    "raven.contrib.django.raven_compat",
 )
 
 MIDDLEWARE_CLASSES = (
