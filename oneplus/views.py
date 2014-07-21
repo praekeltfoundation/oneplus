@@ -446,6 +446,9 @@ def nextchallenge(request, state, user):
             response=None
         ).order_by("publishdate").reverse()[:index]
 
+        if state['next_tasks_today'] > 3:
+            return HttpResponseRedirect("home")
+
         return render(request, "learn/next.html", {
             "state": state,
             "user": user,
