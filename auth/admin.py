@@ -215,6 +215,21 @@ class LearnerResource(resources.ModelResource):
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
 
+    def save_m2m(self, obj, data, dry_run):
+        course = Course.objects.filter(name=data[u'course']).first()
+
+        # If the course and respective class exist, create participant
+        if course:
+            classs = Class.objects.get(course=course)
+            if classs and not dry_run:
+                Participant.objects.create(
+                    learner=obj,
+                    classs=classs,
+                    datejoined=datetime.now(),
+
+                )
+        return super(resources.ModelResource, self)\
+            .save_m2m(obj, data, dry_run)
 
 
 class CourseFilter(admin.SimpleListFilter):
@@ -315,7 +330,13 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
 
                 return HttpResponseRedirect(request.get_full_path())
         if not form:
-            form = SendWelcomeSmsForm(initial={'_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+            form = SendWelcomeSmsForm(
+                initial={
+                    '_selected_action': request.POST.getlist(
+                        admin.ACTION_CHECKBOX_NAME,
+                    ),
+                }
+            )
         return render_to_response(
             'admin/auth/send_sms.html',
             {
