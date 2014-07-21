@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.db.models import Count
+
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -24,7 +26,6 @@ from django.contrib.auth.hashers import make_password
 from django.utils.translation import ugettext_lazy as _
 from organisation.models import Course
 from core.models import ParticipantQuestionAnswer
-from django.core.exceptions import ObjectDoesNotExist
 from core.models import Participant, Class
 
 
@@ -246,6 +247,43 @@ class CourseFilter(admin.SimpleListFilter):
             return queryset.filter(participant__classs__course_id=self.value())
 
 
+class AirtimeFilter(admin.SimpleListFilter):
+    title = _('Airtime')
+    parameter_name = 'name'
+
+    def get_date_range(self):
+        today = datetime.today()
+        start = today - timedelta(days=today.weekday(), weeks=1)
+        end = start + timedelta(days=7)
+        return [start, end]
+
+    def get_learner_ids(self):
+        participants = ParticipantQuestionAnswer.objects.filter(
+            answerdate__range=self.get_date_range()
+        ).values('participant').annotate(Count('participant'))
+
+        filtered_participants = [
+            i for i in participants
+            if i['participant__count'] >= 9]
+
+        return Participant.objects.filter(
+            id__in=filtered_participants
+        ).values_list('learner', flat=True)
+
+    def lookups(self, request, model_admin):
+        return [('airtime_award', _('9 to 15 questions correct'))]
+
+    def queryset(self, request, queryset):
+        if self.value() is None:
+            return queryset
+        else:
+            if self.value() == 'airtime_award':
+                learners = self.get_learner_ids()
+                return queryset.filter(id__in=learners)
+            else:
+                return queryset
+
+
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
@@ -257,7 +295,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # that reference specific fields on auth.User.
     list_display = ("username", "last_name", "first_name", "school",
                     "area", "completed_questions", "percentage_correct")
-    list_filter = ("country", "area", CourseFilter)
+    list_filter = ("country", "area", CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
