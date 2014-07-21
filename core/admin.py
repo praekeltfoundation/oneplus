@@ -23,7 +23,7 @@ class ClassAdmin(admin.ModelAdmin):
 
 
 class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
-    list_display = ("participant", "question", "option_selected","correct")
+    list_display = ("participant", "question", "option_selected", "correct")
     list_filter = ("participant", "question")
     search_fields = ("participant",)
     inline = (ParticipantInline,)
