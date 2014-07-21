@@ -336,6 +336,9 @@ def get_week_day():
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _start_of_week = date.today() - timedelta(date.today().weekday())
+    learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
 
     request.session["state"]["home_points"] = _participant.points
     request.session["state"]["home_badges"] \
@@ -349,7 +352,9 @@ def home(request, state, user):
         ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
-    request.session["state"]["home_day"] = get_week_day()
+    request.session["state"]["home_day"] = learnerstate.get_week_day(
+        learnerstate.get_answered())
+
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
@@ -416,9 +421,7 @@ def nextchallenge(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-        )\
-        .distinct('participant', 'question')\
-        .count() + 1
+        ).distinct('participant', 'question').count() + 1
 
     def get():
         request.session["state"]["discussion_page_max"] = \
@@ -445,6 +448,8 @@ def nextchallenge(request, state, user):
             moderated=True,
             response=None
         ).order_by("publishdate").reverse()[:index]
+
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
 
         return render(request, "learn/next.html", {
             "state": state,

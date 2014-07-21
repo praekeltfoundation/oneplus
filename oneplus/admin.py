@@ -20,7 +20,7 @@ class OnePlusLearnerResource(LearnerResource):
 
     def import_data(self, dataset, **kwargs):
 
-        if kwargs["dry_run"] == False:
+        if not kwargs["dry_run"]:
             count = dataset.height
             update_metric(
                 "running.registered.participants",
@@ -29,9 +29,6 @@ class OnePlusLearnerResource(LearnerResource):
             )
 
         return super(LearnerResource, self).import_data(dataset, **kwargs)
-
-
-
 
 
 class OnePlusLearnerAdmin(LearnerAdmin):
@@ -63,7 +60,6 @@ class OnePlusLearnerAdmin(LearnerAdmin):
                 total - before_total,
                 "SUM",
             )
-
 
 
 class TestingQuestionLinkAdmin(TestingQuestionAdmin):
