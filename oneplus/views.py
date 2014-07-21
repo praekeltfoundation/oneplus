@@ -424,6 +424,10 @@ def nextchallenge(request, state, user):
         ).distinct('participant', 'question').count() + 1
 
     def get():
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+            return HttpResponseRedirect("home")
+
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
                 course=_participant.classs.course,
@@ -448,8 +452,6 @@ def nextchallenge(request, state, user):
             moderated=True,
             response=None
         ).order_by("publishdate").reverse()[:index]
-
-        state["total_tasks_today"] = _learnerstate.get_total_questions()
 
         return render(request, "learn/next.html", {
             "state": state,
@@ -496,6 +498,10 @@ def nextchallenge(request, state, user):
     def post():
         request.session["state"]["discussion_comment"] = False
         request.session["state"]["discussion_responded_id"] = None
+
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+            return HttpResponseRedirect("home")
 
         # answer provided
         if "answer" in request.POST.keys():
@@ -640,6 +646,8 @@ def nextchallenge(request, state, user):
                 response=None
             ).order_by("publishdate")\
             .reverse()[:request.session["state"]["discussion_page"]]
+
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
 
         return render(
             request,
@@ -1042,6 +1050,7 @@ def wrong(request, state, user):
             participant=_participant,
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
+    state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     def get():
         if not _learnerstate.active_result:

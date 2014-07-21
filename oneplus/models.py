@@ -80,7 +80,7 @@ class LearnerState(models.Model):
             ).exclude(id__in=answered)
 
             # If a question exists
-            if questions.exists:
+            if questions.count() > 0:
                 self.active_question = questions.order_by('?')[0]
                 self.active_result = None
                 self.save()
