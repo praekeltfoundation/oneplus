@@ -41,7 +41,8 @@ class Participant(models.Model):
     learner = models.ForeignKey(Learner, verbose_name="Learner")
     classs = models.ForeignKey(Class, verbose_name="Class")
     datejoined = models.DateField(verbose_name="Joined")
-    points = models.PositiveIntegerField(verbose_name="Points Scored", default=0)
+    points = models.PositiveIntegerField(verbose_name="Points Scored",
+                                         default=0)
     pointbonus = models.ManyToManyField(
         GamificationPointBonus, through="ParticipantPointBonusRel",
         verbose_name="Point Bonuses", blank=True)
