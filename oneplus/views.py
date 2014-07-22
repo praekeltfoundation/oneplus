@@ -22,7 +22,7 @@ from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
-
+from django.db.models import Q
 
 COUNTRYWIDE = "Countrywide"
 
@@ -336,6 +336,9 @@ def get_week_day():
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _start_of_week = date.today() - timedelta(date.today().weekday())
+    learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
 
     request.session["state"]["home_points"] = _participant.points
     request.session["state"]["home_badges"] \
@@ -349,12 +352,21 @@ def home(request, state, user):
         ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
-    request.session["state"]["home_day"] = get_week_day()
+    request.session["state"]["home_day"] = learnerstate.get_week_day(
+        learnerstate.get_all_answered())
+
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
         ).count()
+
+    request.session["state"]["home_tasks_week"]\
+        = learnerstate.get_questions_answered_week()
+
+    request.session["state"]["home_required_tasks"]\
+        = learnerstate.get_total_questions()
+
     request.session["state"]["home_tasks"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
@@ -375,14 +387,17 @@ def home(request, state, user):
         if _learner.last_active_date is None:
             _learner.last_active_date = datetime.now() - timedelta(days=32)
 
-        if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=1):
+        last_active = _learner.last_active_date.date()
+        now = datetime.now().date()
+        if last_active < now - timedelta(days=1):
             update_metric("running.active.participants24", 1, "SUM")
-            if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=2):
+            if last_active < now - timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
-                if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=7):
+                if last_active < now - timedelta(days=7):
                     update_metric("running.active.participants7d", 1, "SUM")
-                    if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=32):
-                        update_metric("running.active.participantsmonth", 1, "SUM")
+                    if last_active < now - timedelta(days=32):
+                        update_metric("running.active.participantsmonth", 1,
+                                      "SUM")
 
         _learner.last_active_date = datetime.now()
         _learner.save()
@@ -416,11 +431,13 @@ def nextchallenge(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-        )\
-        .distinct('participant', 'question')\
-        .count() + 1
+        ).distinct('participant', 'question').count() + 1
 
     def get():
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+            return HttpResponseRedirect("home")
+
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
                 course=_participant.classs.course,
@@ -494,6 +511,10 @@ def nextchallenge(request, state, user):
     def post():
         request.session["state"]["discussion_comment"] = False
         request.session["state"]["discussion_responded_id"] = None
+
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+            return HttpResponseRedirect("home")
 
         # answer provided
         if "answer" in request.POST.keys():
@@ -638,6 +659,8 @@ def nextchallenge(request, state, user):
                 response=None
             ).order_by("publishdate")\
             .reverse()[:request.session["state"]["discussion_page"]]
+
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
 
         return render(
             request,
@@ -1040,6 +1063,7 @@ def wrong(request, state, user):
             participant=_participant,
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
+    state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     def get():
         if not _learnerstate.active_result:
