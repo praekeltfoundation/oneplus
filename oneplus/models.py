@@ -2,7 +2,7 @@ from django.db import models
 from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta
-
+from utils import get_today
 
 # Participant(Learner) State
 class LearnerState(models.Model):
@@ -19,28 +19,26 @@ class LearnerState(models.Model):
     SATURDAY = 5
     SUNDAY = 6
 
-    # So can be overridden in tests.
     def today(self):
         return datetime.today()
 
     def get_week_range(self):
         today = self.today()
         start = today - timedelta(days=today.weekday())
-        end = start - timedelta(days=1)
+        end = today - timedelta(days=1) # Exclude current day
         return [start, end]
 
-    def get_number_questions(self, answered, week_day):
-        answered_count = len(answered)
+    def get_number_questions(self, answered_count, week_day):
         required_count = (week_day+1)*self.QUESTIONS_PER_DAY
         return required_count - answered_count
 
     def is_weekend(self, week_day):
         return week_day == self.SATURDAY or week_day == self.SUNDAY
 
-    def get_week_day(self, answered_count):
-        week_day = datetime.today().weekday()
+    def get_week_day(self, total_answered_count):
+        week_day = self.today().weekday()
         if self.is_weekend(week_day):
-            if answered_count <= self.QUESTIONS_PER_DAY:
+            if total_answered_count < self.QUESTIONS_PER_DAY:
                 return self.MONDAY
             else:
                 return self.FRIDAY
@@ -59,13 +57,62 @@ class LearnerState(models.Model):
             answerdate__range=self.get_week_range(),
         ).distinct().values_list('question')
 
-    def get_total_questions(self):
-        # Get list of answered questions for this week
-        answered = self.get_answered()
+    def get_all_answered(self):
+        return ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant,
+        ).distinct().values_list('question')
 
-        # If weekend, calculate most appropriate day to mimic
-        week_day = self.get_week_day(len(answered))
-        return self.get_number_questions(answered, week_day)
+    def get_questions_answered_week(self):
+        return len(self.get_answered()) \
+            + len(self.get_training_questions()) \
+            + self.get_num_questions_answered_today()
+
+    def check_monday_after_training(self, total_answered):
+        week_day = self.today().weekday()
+        return week_day == self.MONDAY \
+            and total_answered <= self.QUESTIONS_PER_DAY
+
+    def get_training_questions(self):
+        answered = list(ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant,
+        ).distinct().order_by('answerdate'))
+        training_questions = []
+        for x in answered:
+            if self.is_weekend(x.answerdate.weekday()):
+                training_questions.append(x)
+            else:
+                break
+
+        return training_questions
+
+    def is_training_week(self, training_questions):
+        # Check if training questions were answered within
+        if len(training_questions) == 0:
+            return False
+        first_question = training_questions[0]
+
+        today = self.today()
+        diff = timedelta(today.weekday() + 2)
+        last_week_saturday = today - diff
+        if first_question.answerdate >= last_week_saturday.date():
+            return True
+        else:
+            return False
+
+    def get_total_questions(self):
+        answered_this_week = self.get_answered()
+        num_answered_this_week = len(answered_this_week)
+        answered_in_total = self.get_all_answered()
+        training_questions = self.get_training_questions()
+
+        # If it is a training week, then add on the training questions
+        if self.is_training_week(training_questions):
+            num_answered_this_week += len(training_questions)
+
+        # Get the day of the week - that saturday and sunday will mimic
+        week_day = self.get_week_day(len(answered_in_total))
+        total = self.get_number_questions(num_answered_this_week, week_day)
+        return total
 
     def getnextquestion(self):
         if self.active_question is None or self.active_result is not None:

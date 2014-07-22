@@ -27,9 +27,9 @@
             <p class="green-front"><span class="green-front xlarge-font">R{{ 5|stringformat:"01d" }}</span> Airtime Won</p>
         {% endif %}
 
-        {% if state.home_tasks_today >= 3 and state.home_day > 4 %}
+        {% if state.home_tasks_week >= 15 %}
             <p class="green-front large-font">This week's revision complete. Come back Monday for more.</p>
-        {% elif state.home_tasks_today >= 3 %}
+        {% elif state.home_tasks_today >= state.home_required_tasks %}
             <p class="green-front large-font">Today's revision complete. Come back tomorrow for more.</p>
         {% else %}
             <a class="button green-back grey-front" href="next">Go on Take the Challenge</a>

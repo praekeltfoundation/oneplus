@@ -22,7 +22,7 @@ from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
-
+from django.db.models import Q
 
 COUNTRYWIDE = "Countrywide"
 
@@ -353,13 +353,20 @@ def home(request, state, user):
 
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day(
-        learnerstate.get_answered())
+        learnerstate.get_all_answered())
 
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
         ).count()
+
+    request.session["state"]["home_tasks_week"]\
+        = learnerstate.get_questions_answered_week()
+
+    request.session["state"]["home_required_tasks"]\
+        = learnerstate.get_total_questions()
+
     request.session["state"]["home_tasks"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
@@ -380,14 +387,17 @@ def home(request, state, user):
         if _learner.last_active_date is None:
             _learner.last_active_date = datetime.now() - timedelta(days=32)
 
-        if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=1):
+        last_active = _learner.last_active_date.date()
+        now = datetime.now().date()
+        if last_active < now - timedelta(days=1):
             update_metric("running.active.participants24", 1, "SUM")
-            if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=2):
+            if last_active < now - timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
-                if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=7):
+                if last_active < now - timedelta(days=7):
                     update_metric("running.active.participants7d", 1, "SUM")
-                    if _learner.last_active_date.date() < datetime.now().date() - timedelta(days=32):
-                        update_metric("running.active.participantsmonth", 1, "SUM")
+                    if last_active < now - timedelta(days=32):
+                        update_metric("running.active.participantsmonth", 1,
+                                      "SUM")
 
         _learner.last_active_date = datetime.now()
         _learner.save()
