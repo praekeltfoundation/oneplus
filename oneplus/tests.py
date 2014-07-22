@@ -11,10 +11,6 @@ from communication.models import Message, ChatGroup, ChatMessage
 from oneplus.models import LearnerState
 from mock import patch
 
-
-def mocked_today_sunday():
-    return datetime(2014, 7, 20, 1, 1, 1)
-
 class GeneralTests(TestCase):
 
     def create_course(self, name="course name", **kwargs):
