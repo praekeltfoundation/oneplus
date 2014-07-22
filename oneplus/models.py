@@ -2,7 +2,6 @@ from django.db import models
 from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta
-from utils import get_today
 
 # Participant(Learner) State
 class LearnerState(models.Model):
