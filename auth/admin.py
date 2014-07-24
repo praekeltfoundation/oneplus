@@ -340,6 +340,9 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 if "|autologin|" in message:
                     is_autologin_message = True
 
+                successful = 0
+                fail = []
+
                 for learner in queryset:
                     password = None
                     if is_welcome_message:
@@ -352,12 +355,21 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     learner.save()
 
                     #Send sms
-                    sms, sent = vumi.send(
-                        learner.username,
-                        message=message,
-                        password=password,
-                        autologin=get_autologin_link(learner.unique_token)
+                    try:
+                        sms, sent = vumi.send(
+                            learner.username,
+                            message=message,
+                            password=password,
+                            autologin=get_autologin_link(learner.unique_token)
                     )
+                    except:
+                        sent = False
+                        pass
+
+                    if sent:
+                        successful += 1
+                    else:
+                        fail += learner.username
 
                     #Save welcome message details
                     if is_welcome_message:
@@ -365,8 +377,15 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                         learner.welcome_message_sent = True
 
                     learner.save()
+                return render_to_response(
+                    'admin/auth/sms_result.html',
+                    {
+                        'redirect': request.get_full_path(),
+                        'success_num': successful,
+                        'fail' : fail
+                    },
+                )
 
-                return HttpResponseRedirect(request.get_full_path())
         if not form:
             form = SendWelcomeSmsForm(
                 initial={
