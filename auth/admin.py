@@ -361,7 +361,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                             message=message,
                             password=password,
                             autologin=get_autologin_link(learner.unique_token)
-                    )
+                        )
                     except:
                         sent = False
                         pass
@@ -369,7 +369,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     if sent:
                         successful += 1
                     else:
-                        fail += learner.username
+                        fail.append(learner.username)
 
                     #Save welcome message details
                     if is_welcome_message:
