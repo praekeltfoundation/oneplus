@@ -339,6 +339,9 @@ def home(request, state, user):
     learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
+    if learnerstate is None:
+        learnerstate = LearnerState(participant=_participant)
+
 
     request.session["state"]["home_points"] = _participant.points
     request.session["state"]["home_badges"] \
@@ -354,6 +357,7 @@ def home(request, state, user):
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day(
         learnerstate.get_all_answered())
+
 
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
