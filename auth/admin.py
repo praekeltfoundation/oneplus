@@ -217,18 +217,17 @@ class LearnerResource(resources.ModelResource):
             .import_obj(obj, data, dry_run)
 
     def save_m2m(self, obj, data, dry_run):
-        course = Course.objects.filter(name=data[u'course']).first()
+        classs = Class.objects.filter(name=data[u'course']).first()
 
         # If the course and respective class exist, create participant
-        if course:
-            classs = Class.objects.get(course=course)
-            if classs and not dry_run:
-                Participant.objects.create(
-                    learner=obj,
-                    classs=classs,
-                    datejoined=datetime.now(),
+        if classs and not dry_run:
+            Participant.objects.create(
+                learner=obj,
+                classs=classs,
+                datejoined=datetime.now(),
 
-                )
+            )
+
         return super(resources.ModelResource, self)\
             .save_m2m(obj, data, dry_run)
 
