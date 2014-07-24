@@ -389,6 +389,7 @@ def home(request, state, user):
 
         last_active = _learner.last_active_date.date()
         now = datetime.now().date()
+
         if last_active < now - timedelta(days=1):
             update_metric("running.active.participants24", 1, "SUM")
             if last_active < now - timedelta(days=2):
@@ -463,7 +464,8 @@ def nextchallenge(request, state, user):
             response=None
         ).order_by("publishdate").reverse()[:index]
 
-        if state['next_tasks_today'] > 3:
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
             return HttpResponseRedirect("home")
 
         return render(request, "learn/next.html", {
