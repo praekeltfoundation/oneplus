@@ -435,10 +435,6 @@ def nextchallenge(request, state, user):
         ).distinct('participant', 'question').count() + 1
 
     def get():
-        state["total_tasks_today"] = _learnerstate.get_total_questions()
-        if state['next_tasks_today'] > state["total_tasks_today"]:
-            return HttpResponseRedirect("home")
-
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
                 course=_participant.classs.course,
@@ -513,10 +509,6 @@ def nextchallenge(request, state, user):
     def post():
         request.session["state"]["discussion_comment"] = False
         request.session["state"]["discussion_responded_id"] = None
-
-        state["total_tasks_today"] = _learnerstate.get_total_questions()
-        if state['next_tasks_today'] > state["total_tasks_today"]:
-            return HttpResponseRedirect("home")
 
         # answer provided
         if "answer" in request.POST.keys():
@@ -872,6 +864,7 @@ def right(request, state, user):
             participant=_participant,
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
+    state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     def get():
         if _learnerstate.active_result:
@@ -927,7 +920,8 @@ def right(request, state, user):
             ).order_by('-awarddate').first()
             if _badge:
                 _badgetemplate = _badge.badgetemplate
-                _badgepoints = GamificationScenario.objects.get(badge__id=_badgetemplate.id).point
+                _badgepoints = GamificationScenario.objects.get(
+                    badge__id=_badgetemplate.id).point
             else:
                 _badgetemplate = None
 
@@ -948,7 +942,6 @@ def right(request, state, user):
                     _points = _badgepoints.value
                 else:
                     _points = None
-
 
             return render(
                 request,

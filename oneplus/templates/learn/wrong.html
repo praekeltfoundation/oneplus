@@ -22,7 +22,7 @@
                             </div>
                         </a>
                     {% endif %}
-                    {% if state.wrong_tasks_today >= 3 %}
+                    {% if state.wrong_tasks_today >= state.total_tasks_today %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
                     {% else %}
                         <a class="button green-back grey-front drop" href="next">Next Question</a>
