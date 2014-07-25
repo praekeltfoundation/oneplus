@@ -238,8 +238,8 @@ def smspassword(request, state):
                     success = True
                 else:
                     message = "Oops! Something went wrong! " \
-                              "Please try enter your number again or " \
-                              "click here to contact us"
+                              "Please try enter your number again or "
+
                     success = False
                 learner.save()
 
