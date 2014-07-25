@@ -5,6 +5,12 @@ import requests
 from django.contrib.sites.models import Site
 from go_http import HttpApiSender
 
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 def get_autologin_link(unique_token):
     if unique_token is not None:
@@ -54,6 +60,7 @@ class VumiSmsApi:
             response = sender.send_text(to_addr=msisdn, content=message)
         except requests.exceptions.RequestException as e:
             sent = False
+            logger.error(e)
             return None, sent
 
         if u'success' in response.keys() and response[u'success'] is False:
