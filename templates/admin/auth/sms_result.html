@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n %}
+{% block content %}
+
+
+
+<p>{{ success_num }} sms' were sent successfully.</p>
+
+    {% if fail %}
+    <p>The following users did not receive an sms:</p>
+    {% for user in fail %}
+    <p>{{ user }}</p>
+    {% endfor %}
+    {% endif %}
+
+<a href="{{ redirect }}"><input type="button" value="OK"></a>
+
+{% endblock %}

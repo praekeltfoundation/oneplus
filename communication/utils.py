@@ -3,7 +3,13 @@ import json
 from communication.models import Sms
 import requests
 from django.contrib.sites.models import Site
+from go_http import HttpApiSender
 
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 def get_autologin_link(unique_token):
@@ -30,63 +36,40 @@ class VumiSmsApi:
             message = message.replace("|autologin|", autologin)
         return message
 
-    def get_sms_url(self):
-        return "/".join((
-            settings.VUMI_GO_BASE_URL,
-            self.conversation_key,
-            'messages.json'
-        ))
-
+    def save_sms_log(self, uuid, message, timestamp, msisdn):
+        # Create sms object
+        sms = Sms.objects.create(
+            uuid=uuid,
+            message=message,
+            date_sent=timestamp,
+            msisdn=msisdn
+        )
+        sms.save()
+        return sms
 
     def send(self, msisdn, message, password, autologin):
         #Send the url
-        url = self.get_sms_url()
         message = self.templatize(message, password, autologin)
 
-        #Headers
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
+        try:
+            sender = HttpApiSender(
+                account_key=settings.VUMI_GO_ACCOUNT_KEY,
+                conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
+                conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
+            )
+            response = sender.send_text(to_addr=msisdn, content=message)
+        except requests.exceptions.RequestException as e:
+            sent = False
+            logger.error(e)
+            return None, sent
 
-        #create request data
-        data = json.dumps({
-            "in_reply_to": None,
-            "session_event": None,
-            "to_addr": msisdn,
-            "content": message,
-            "transport_type": "sms",
-            "transport_metadata": {},
-            "helper_metadata": {}
-        })
-
-        #Create request
-        response = requests.put(
-            url,
-            data=data,
-            headers=headers,
-            auth=(self.account_key, self.account_token)
-        )
-
-        response = response.json()
-        sent = False
         if u'success' in response.keys() and response[u'success'] is False:
-            # Create sms object
-            sms = Sms.objects.create(
-                uuid="",
-                message=message,
-                msisdn=msisdn
-            )
-            sms.save()
+            sms = self.save_sms_log(response[u'success'], message,
+                                    None, msisdn)
+            sent = False
         else:
-            # Create sms object
-            sms = Sms.objects.create(
-                uuid=response[u'message_id'],
-                message=message,
-                date_sent=response[u'timestamp'],
-                msisdn=msisdn
-            )
-            sms.save()
+            sms = self.save_sms_log(response[u'message_id'], message,
+                                    response[u'timestamp'], msisdn)
             sent = True
 
         return sms, sent
