@@ -398,8 +398,8 @@ li.contact {
 }
 
 .disabled {
-    color: #666666;
-    opacity: 0.15;
+    color: #ffffff;
+    opacity: 0.20;
     filter: alpha(opacity=15); /* msie */
 }
 
