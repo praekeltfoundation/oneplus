@@ -234,13 +234,13 @@ def smspassword(request, state):
                 )
 
                 if sent:
-                    message = "Your new password has been smsed to you. " \
-                              "Click here to login"
+                    message = "Your new password has been smsed to you. "
+                    success = True
                 else:
                     message = "Oops! Something went wrong! " \
                               "Please try enter your number again or " \
                               "click here to contact us"
-
+                    success = False
                 learner.save()
 
                 return render(
@@ -249,7 +249,8 @@ def smspassword(request, state):
                     {
                         "state": state,
                         "sent": True,
-                        "message": message
+                        "message": message,
+                        "success": success
                     }
                 )
 
