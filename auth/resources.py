@@ -8,7 +8,7 @@ from core.models import Participant, Class
 
 
 class LearnerResource(resources.ModelResource):
-    klass = fields.Field(column_name=u'class')
+    class_name = fields.Field(column_name=u'class')
     completed_questions = fields.Field(column_name=u'completed_questions')
     percentage_correct = fields.Field(column_name=u'percentage_correct')
 
@@ -35,13 +35,13 @@ class LearnerResource(resources.ModelResource):
             'optin_email',
             'completed_questions',
             'percentage_correct',
-            'class',
+            'class_name',
         )
 
-    def dehydrate_class(self, learner):
-        participant = Participant.objects.get(learner=learner)
-        if participant is not None:
-            return participant.classs.name
+    def dehydrate_class_name(self, learner):
+        participant = Participant.objects.filter(learner=learner)
+        if participant.first() is not None:
+            return participant.first().classs.name
         else:
             return ""
 
@@ -73,7 +73,6 @@ class LearnerResource(resources.ModelResource):
         row[u'date_joined'] = datetime.now()
         row[u'welcome_message_sent'] = None
         row[u'welcome_message'] = None
-        row[u'mobile'] = row[u'username']
 
         return super(resources.ModelResource, self) \
             .get_or_init_instance(instance_loader, row)
@@ -81,10 +80,12 @@ class LearnerResource(resources.ModelResource):
     def import_obj(self, obj, data, dry_run):
         school, created = School.objects.get_or_create(name=data[u'school'])
         data[u'school'] = school.id
+        data[u'mobile'] = data[u'username']
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
 
     def save_m2m(self, obj, data, dry_run):
+        obj.class_name = data[u'class']
         classs = Class.objects.filter(name=data[u'class']).first()
 
         # If the course and respective class exist, create participant
@@ -94,6 +95,10 @@ class LearnerResource(resources.ModelResource):
                 classs=classs,
                 datejoined=datetime.now(),
             )
+        elif not classs and data[u'class'] is not None:
+            error = ("Invalid class '%s' provided for user %s"
+                     % (data[u'class'], data["username"]))
+            raise Exception(error)
 
         return super(resources.ModelResource, self)\
             .save_m2m(obj, data, dry_run)
