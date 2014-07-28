@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from organisation.models import School, Course
-import uuid
-from base64 import b64encode
+import random
+import string
 from datetime import datetime, timedelta
 from communication.models import Sms
 from django.utils import timezone
@@ -37,9 +37,7 @@ class CustomUser(AbstractUser):
 
     def generate_valid_token(self):
         #Base 64 encode from random uuid bytes and make url safe
-        self.unique_token = b64encode(uuid.uuid1().bytes)\
-            .replace("/", "_")\
-            .replace('=', '')
+        self.unique_token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
 
         #Calculate expiry date
         self.unique_token_expiry = datetime.now() + timedelta(days=30)
