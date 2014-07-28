@@ -29,6 +29,19 @@ class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
     inline = (ParticipantInline,)
 
 
+class ParticipantPointInline(admin.TabularInline):
+    model = Participant.pointbonus.through
+    list_display = ("pointbonus", "scenario")
+
+
+class ParticipantAdmin(admin.ModelAdmin):
+    list_display = ("learner", "classs")
+    list_filter = ("learner", "classs")
+    search_fields = ("learner",)
+    inlines = [ParticipantPointInline, ]
+
+
 # Organisation
 admin.site.register(Class, ClassAdmin)
 admin.site.register(ParticipantQuestionAnswer,ParticipantQuestionAnswerAdmin)
+admin.site.register(Participant, ParticipantAdmin)
