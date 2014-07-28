@@ -29,6 +29,12 @@ class VumiSmsApi:
         self.account_key = settings.VUMI_GO_ACCOUNT_KEY
         self.account_token = settings.VUMI_GO_ACCOUNT_TOKEN
 
+        self.sender = HttpApiSender(
+            account_key=settings.VUMI_GO_ACCOUNT_KEY,
+            conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
+            conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
+        )
+
     def templatize(self, message, password, autologin):
         if password is not None:
             message = message.replace("|password|", password)
@@ -52,12 +58,7 @@ class VumiSmsApi:
         message = self.templatize(message, password, autologin)
 
         try:
-            sender = HttpApiSender(
-                account_key=settings.VUMI_GO_ACCOUNT_KEY,
-                conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
-                conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
-            )
-            response = sender.send_text(to_addr=msisdn, content=message)
+            response = self.sender.send_text(to_addr=msisdn, content=message)
         except requests.exceptions.RequestException as e:
             sent = False
             logger.error(e)
