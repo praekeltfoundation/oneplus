@@ -26,5 +26,7 @@ def align(value):
     if tags:
         for tag in tags:
             return tag
+    else:
+        return soup
 
 register.filter('align', align)
