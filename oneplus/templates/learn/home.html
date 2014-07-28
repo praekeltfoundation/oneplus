@@ -5,8 +5,9 @@
 {% block content %}
     {% load humanize %}
 
-    <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
-
+    {% if state.home_tasks_today < state.home_required_tasks %}
+        <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
+    {% endif %}
     <div class="dayheading">
         <div class="text {% if state.home_day == 0 %} present {% elif state.home_day > 0 %} past {% elif state.home_day < 0 %} future {% endif %}"><p>1<br/>DAY</p></div>
         <div class="text {% if state.home_day == 1 %} present {% elif state.home_day > 1 %} past {% elif state.home_day < 1 %} future {% endif %}"><p>2<br/>DAY</p></div>
