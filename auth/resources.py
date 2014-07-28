@@ -26,7 +26,6 @@ class LearnerResource(resources.ModelResource):
             'first_name',
             'last_name',
             'email',
-            'mobile',
             'school',
             'country',
             'area',
