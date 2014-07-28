@@ -1819,6 +1819,7 @@ def about(request, state, user):
 @oneplus_check_user
 def contact(request, state, user):
     def get():
+        state["sent"] = False
         return render(request, "misc/contact.html", {"state": state, "user": user})
 
     def post():
@@ -1830,12 +1831,7 @@ def contact(request, state, user):
         if "contact" in request.POST.keys() and request.POST["contact"] != "":
             _contact = request.POST["contact"]
 
-            #Send email to info@oneplus.co.za
-            mail_managers(
-                subject='Contact Us Message - ' + _contact,
-                message=_comment +" - " +_contact,
-                fail_silently=False
-            )
+
 
             state["sent"] = True
             
