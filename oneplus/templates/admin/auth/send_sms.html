@@ -3,7 +3,9 @@
 {% block content %}
 
 <p>Write message:</p>
-
+<p>The following syntax can be used when messaging learners:<br/>
+         |autologin| will be replaced with an automatic login link for that learner. <br/>
+         |password| will send the learner their password (only usable once).</p>
 <form action="" method="post">
     {% csrf_token %}
     {{ sms_form }}
