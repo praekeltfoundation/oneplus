@@ -261,9 +261,7 @@ class AirtimeFilter(admin.SimpleListFilter):
             answerdate__range=self.get_date_range()
         ).values('participant').annotate(Count('participant'))
 
-        filtered_participants = [
-            i for i in participants
-            if i['participant__count'] >= 9]
+        filtered_participants = participants.filter(participant__count__gte=9).values('participant')
 
         return Participant.objects.filter(
             id__in=filtered_participants
