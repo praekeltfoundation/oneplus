@@ -2,18 +2,19 @@
 {% load i18n l10n %}
 {% block content %}
 
-<p>Write message:</p>
-<p>The following syntax can be used when messaging learners:<br/>
-         |autologin| will be replaced with an automatic login link for that learner. <br/>
-         |password| will send the learner their password (only usable once).</p>
+<div class="h1">Write message:</div><br><br/>
+<p>The following syntax can be used when messaging learners:</p><br/>
+         <p>|autologin| will be replaced with an automatic login link for that learner. <br/>
+         |password| will send the learner their password (only usable once).</p><br><br/>
 <form action="" method="post">
     {% csrf_token %}
-    {{ sms_form }}
-
+    <p>Message:</p>
+    {{ sms_form.message }}
+    <br><br/>
     <p>The sms will be sent to:</p>
 
     <ul>{{ learners|unordered_list }}</ul>
-
+    <br><br/>
     <input type="hidden" name="action" value="send_sms" />
     <input type="hidden" name="post" value="yes" />
     <input type="submit" name="apply" value="Send smses" />
