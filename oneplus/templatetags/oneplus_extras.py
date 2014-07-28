@@ -18,3 +18,15 @@ def format_width(value):
     return soup
 
 register.filter('format_width', format_width)
+
+
+def align(value):
+    soup = BeautifulSoup(value)
+    tags = soup.find_all('img')
+    if tags:
+        for tag in tags:
+            return tag
+    else:
+        return soup
+
+register.filter('align', align)
