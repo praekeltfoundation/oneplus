@@ -517,8 +517,17 @@ def nextchallenge(request, state, user):
         # answer provided
         if "answer" in request.POST.keys():
             _ans_id = request.POST["answer"]
-            _option = _learnerstate.active_question.testingquestionoption_set\
-                .get(pk=_ans_id)
+
+            options = _learnerstate.active_question.testingquestionoption_set
+            try:
+                _option = options.get(pk=_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                _option = None
+
+            if _option is None:
+                 # This means user has navigated back so options wont match
+                 # Learner state, thus redirect to same page.
+                return HttpResponseRedirect("next")
 
             _answer = ParticipantQuestionAnswer(
                 participant=_participant,
