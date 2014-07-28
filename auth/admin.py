@@ -115,7 +115,7 @@ class CourseMentorAdmin(UserAdmin):
     add_form = CourseMentorCreationForm
 
     list_display = ("username", "last_name", "first_name", "country", "area")
-    list_filter = ("country", "area", "welcome_message_sent")
+    list_filter = ("country", "area")
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
@@ -149,8 +149,10 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "last_name", "first_name", "school",
-                    "area", "completed_questions", "percentage_correct")
-    list_filter = ("country", "area", CourseFilter, AirtimeFilter)
+                    "area", "completed_questions", "percentage_correct",
+                    "welcome_message_sent")
+    list_filter = ("country", "area", "welcome_message_sent",
+                   CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
@@ -234,7 +236,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     {
                         'redirect': request.get_full_path(),
                         'success_num': successful,
-                        'fail' : fail
+                        'fail': fail
                     },
                 )
 
