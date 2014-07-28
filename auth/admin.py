@@ -149,8 +149,10 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "last_name", "first_name", "school",
-                    "area", "completed_questions", "percentage_correct")
-    list_filter = ("country", "area", CourseFilter, AirtimeFilter)
+                    "area", "completed_questions", "percentage_correct",
+                    "welcome_message_sent")
+    list_filter = ("country", "area", "welcome_message_sent",
+                   CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
@@ -189,9 +191,6 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 is_autologin_message = False
                 if "|password|" in message:
                     is_welcome_message = True
-                    queryset = queryset.filter(
-                        welcome_message_sent=False
-                    )
                 if "|autologin|" in message:
                     is_autologin_message = True
 
@@ -227,7 +226,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                         fail.append(learner.username)
 
                     #Save welcome message details
-                    if is_welcome_message:
+                    if is_welcome_message and sent:
                         learner.welcome_message = sms
                         learner.welcome_message_sent = True
 
@@ -237,7 +236,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     {
                         'redirect': request.get_full_path(),
                         'success_num': successful,
-                        'fail' : fail
+                        'fail': fail
                     },
                 )
 
