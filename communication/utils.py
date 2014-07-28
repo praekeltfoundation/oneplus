@@ -16,7 +16,7 @@ def get_autologin_link(unique_token):
     if unique_token is not None:
         return 'http://%s/%s/%s' % (
             Site.objects.get_current().domain,
-            'autologin',
+            'a',
             unique_token
         )
     else:
