@@ -115,7 +115,7 @@ class CourseMentorAdmin(UserAdmin):
     add_form = CourseMentorCreationForm
 
     list_display = ("username", "last_name", "first_name", "country", "area")
-    list_filter = ("country", "area")
+    list_filter = ("country", "area", "welcome_message_sent")
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
@@ -189,9 +189,6 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 is_autologin_message = False
                 if "|password|" in message:
                     is_welcome_message = True
-                    queryset = queryset.filter(
-                        welcome_message_sent=False
-                    )
                 if "|autologin|" in message:
                     is_autologin_message = True
 
@@ -227,7 +224,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                         fail.append(learner.username)
 
                     #Save welcome message details
-                    if is_welcome_message:
+                    if is_welcome_message and sent:
                         learner.welcome_message = sms
                         learner.welcome_message_sent = True
 
