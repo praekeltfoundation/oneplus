@@ -1819,6 +1819,7 @@ def about(request, state, user):
 @oneplus_check_user
 def contact(request, state, user):
     def get():
+        state["sent"] = False
         return render(request, "misc/contact.html", {"state": state, "user": user})
 
     def post():
