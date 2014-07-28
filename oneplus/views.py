@@ -53,7 +53,7 @@ def oneplus_state_required(f):
         #Initialise the oneplus state
         # If value is 0, the user's session cookie will expire when the user's
         # Web browser is closed.
-        request.session.set_expiry(0)
+        request.session.set_expiry(31536000)
         if "state" not in request.session.keys():
             request.session["state"] = {"menu_visible": False}
 
