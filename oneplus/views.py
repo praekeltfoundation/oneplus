@@ -1820,21 +1820,60 @@ def about(request, state, user):
 def contact(request, state, user):
     def get():
         state["sent"] = False
+        state['fname'] = ""
+        state['sname'] = ""
+        state['comment'] = ""
+        state['contact'] = ""
+        state['school'] = ""
+        state['valid_message'] = ""
+
         return render(request, "misc/contact.html", {"state": state, "user": user})
 
     def post():
         #Get message
-        if "comment" in request.POST.keys() and request.POST["comment"] != "":
-            _comment = request.POST["comment"]
+        state['valid'] = True
+        state['valid_message'] = ["Please complete the following fields:"]
+
 
         #Get contact details
-        if "contact" in request.POST.keys() and request.POST["contact"] != "":
+        if "fname" in request.POST.keys() and len(request.POST["fname"]) >= 3:
+            _fname = request.POST["fname"]
+            state['fname'] = _fname
+        else:
+            state['valid'] = False
+            state['valid_message'].append("First Name")
+
+        if "sname" in request.POST.keys() and len(request.POST["sname"]) >= 3:
+            _sname = request.POST["sname"]
+            state['sname'] = _sname
+        else:
+            state['valid'] = False
+            state['valid_message'].append("Last Name")
+
+        if "contact" in request.POST.keys() and len(request.POST["contact"]) >= 3:
             _contact = request.POST["contact"]
+            state['contact'] = _contact
+        else:
+            state['valid'] = False
+            state['valid_message'].append("Mobile number or Email")
+
+        if "comment" in request.POST.keys() and len(request.POST["comment"]) >= 3:
+            _comment = request.POST["comment"]
+            state['comment'] = _comment
+        else:
+            state['valid'] = False
+            state['valid_message'].append("Message")
+
+        if "school" in request.POST.keys():
+            _school = request.POST["school"]
+            state['school'] = _school
+
+        if state['valid']:
 
             #Send email to info@oneplus.co.za
             mail_managers(
                 subject='Contact Us Message - ' + _contact,
-                message=_comment +" - " +_contact,
+                message=_comment + " - " + _fname + _sname + " - " + _contact + " - " + _school,
                 fail_silently=False
             )
 
