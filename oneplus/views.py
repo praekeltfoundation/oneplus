@@ -352,6 +352,8 @@ def home(request, state, user):
 
     if not questions:
         request.session["state"]["questions_complete"] = True
+    else:
+        request.session["state"]["questions_complete"] = False
 
     request.session["state"]["home_points"] = _participant.points
     request.session["state"]["home_badges"] \
@@ -440,12 +442,18 @@ def nextchallenge(request, state, user):
         _learnerstate = LearnerState(participant=_participant)
 
     # check if new question required then show question
-    _last_question = _learnerstate.active_question
-
     _learnerstate.getnextquestion()
 
-    if _last_question == _learnerstate.active_question:
-        return HttpResponseRedirect("home")
+    answered = ParticipantQuestionAnswer.objects.filter(
+                participant=_learnerstate.participant
+            ).distinct().values_list('question')
+    questions = TestingQuestion.objects.filter(
+                bank__module__course=_learnerstate.participant.classs.course
+            ).exclude(id__in=answered)
+
+    if not questions:
+            return HttpResponseRedirect("home")
+
 
     request.session["state"]["next_tasks_today"] = \
         ParticipantQuestionAnswer.objects.filter(
@@ -464,6 +472,7 @@ def nextchallenge(request, state, user):
                 moderated=True,
                 response=None
             ).count()
+
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
