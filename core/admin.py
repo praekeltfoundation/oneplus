@@ -9,6 +9,7 @@ class ParticipantInline(admin.TabularInline):
         (None,
             {"fields": ["learner", "classs", "datejoined"]}),
     ]
+    raw_id_fields = ('learner',)
 
 
 class ClassAdmin(admin.ModelAdmin):
