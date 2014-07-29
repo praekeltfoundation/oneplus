@@ -522,12 +522,7 @@ def nextchallenge(request, state, user):
             try:
                 _option = options.get(pk=_ans_id)
             except TestingQuestionOption.DoesNotExist:
-                _option = None
-
-            if _option is None:
-                 # This means user has navigated back so options wont match
-                 # Learner state, thus redirect to same page.
-                return HttpResponseRedirect("next")
+                return redirect("learn.next")
 
             _answer = ParticipantQuestionAnswer(
                 participant=_participant,
