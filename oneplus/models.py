@@ -24,7 +24,7 @@ class LearnerState(models.Model):
     def get_week_range(self):
         today = self.today()
         start = today - timedelta(days=today.weekday())
-        end = today - timedelta(days=1) # Exclude current day
+        end = today - timedelta(days=1)  # Exclude current day
         return [start, end]
 
     def get_number_questions(self, answered_count, week_day):
@@ -84,16 +84,26 @@ class LearnerState(models.Model):
 
         return training_questions
 
-    def is_training_week(self, training_questions):
-        # Check if training questions were answered within
-        if len(training_questions) == 0:
-            return False
-        first_question = training_questions[0]
+    def is_training_weekend(self):
+        # Get date joined
+        date_joined = self.participant.learner.date_joined
+        week_day = date_joined.weekday()
+        monday_after_signup = date_joined + timedelta(days=7-week_day)
 
-        today = self.today()
-        diff = timedelta(today.weekday() + 2)
-        last_week_saturday = today - diff
-        if first_question.answerdate >= last_week_saturday.date():
+        # If today is less than the first monday after signup
+        if self.today() < monday_after_signup.replace(tzinfo=None):
+            return True
+        else:
+            return False
+
+    def is_training_week(self):
+        # Get date joined
+        date_joined = self.participant.learner.date_joined
+
+        week_day = date_joined.weekday()
+        next_monday_after_signup = date_joined + timedelta(days=14-week_day)
+
+        if self.today() < next_monday_after_signup.replace(tzinfo=None):
             return True
         else:
             return False
@@ -105,7 +115,8 @@ class LearnerState(models.Model):
         training_questions = self.get_training_questions()
 
         # If it is a training week, then add on the training questions
-        if self.is_training_week(training_questions):
+        if self.is_training_week():
+
             num_answered_this_week += len(training_questions)
 
         # Get the day of the week - that saturday and sunday will mimic

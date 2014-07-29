@@ -11,6 +11,7 @@ from communication.models import Message, ChatGroup, ChatMessage
 from oneplus.models import LearnerState
 from mock import patch
 
+
 class GeneralTests(TestCase):
 
     def create_course(self, name="course name", **kwargs):
@@ -30,7 +31,10 @@ class GeneralTests(TestCase):
             name=name, organisation=organisation, **kwargs)
 
     def create_learner(self, school, **kwargs):
-        return Learner.objects.create(school=school, **kwargs)
+        return Learner.objects.create(
+            school=school,
+            date_joined=datetime(2014, 7, 18, 1, 1, 1),
+            **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):
         return Participant.objects.create(
