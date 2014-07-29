@@ -541,8 +541,12 @@ def nextchallenge(request, state, user):
         # answer provided
         if "answer" in request.POST.keys():
             _ans_id = request.POST["answer"]
-            _option = _learnerstate.active_question.testingquestionoption_set\
-                .get(pk=_ans_id)
+
+            options = _learnerstate.active_question.testingquestionoption_set
+            try:
+                _option = options.get(pk=_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                return redirect("learn.next")
 
             _answer = ParticipantQuestionAnswer(
                 participant=_participant,
