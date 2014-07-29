@@ -65,12 +65,10 @@ button {white-space: nowrap; }
     padding: 0px;
     margin-top:10px;
     margin-bottom: 10px;
-    border-radius: 2px;
-    box-shadow:
-  0 1px 3px #fff,
-  0 -1px 1px #666,
-  inset 0 -1px 3px rgba(0,0,0,0.5),
-  inset 0 2px 3px rgba(255,255,255,0.8);
+    border: 1px solid rgb(237, 246, 223);
+    border-bottom: 1px solid rgb(0, 105, 0);
+    border-right: 1px solid rgb(0, 105, 0);
+    font-size: 120%;
 }
 .link {
     background: none;
