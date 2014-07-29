@@ -6,7 +6,9 @@
     {% load humanize %}
 
     {% if state.home_tasks_today < state.home_required_tasks %}
+        {% if not state.questions_complete %}
         <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
+        {% endif %}
     {% endif %}
     <div class="dayheading">
         <div class="text {% if state.home_day == 0 %} present {% elif state.home_day > 0 %} past {% elif state.home_day < 0 %} future {% endif %}"><p>1<br/>DAY</p></div>
@@ -28,6 +30,7 @@
             <p class="green-front"><span class="green-front xlarge-font">R{{ 5|stringformat:"01d" }}</span> Airtime Won</p>
         {% endif %}
 
+    {% if not state.questions_complete %}
         {% if state.home_tasks_week >= 15 %}
             <p class="green-front large-font">This week's revision complete. Come back Monday for more.</p>
         {% elif state.home_tasks_today >= state.home_required_tasks %}
@@ -35,6 +38,10 @@
         {% else %}
             <a class="button green-back grey-front" href="next">Go on Take the Challenge</a>
         {%  endif %}
+    {% else %}
+         <p class="green-front large-font">You've finished all of the OnePlus questions!
+             We'll send you an SMS when we have more questions for you.</p>
+    {% endif %}
 
     </div>
 
