@@ -10,8 +10,8 @@
     {% csrf_token %}
     <p>Message:</p>
     {% for field in sms_form %}
- +        {{ field }}
- +  {% endfor %}
+         {{ field }}
+    {% endfor %}
     <br><br/>
     <p>The sms will be sent to:</p>
 
