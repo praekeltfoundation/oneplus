@@ -418,7 +418,7 @@ def home(request, state, user):
             if last_active < now - timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
                 if last_active < now - timedelta(days=7):
-                    update_metric("running.active.participants7d", 1, "SUM")
+                    update_metric("running.active.participants7", 1, "SUM")
                     if last_active < now - timedelta(days=32):
                         update_metric("running.active.participantsmonth", 1,
                                       "SUM")
