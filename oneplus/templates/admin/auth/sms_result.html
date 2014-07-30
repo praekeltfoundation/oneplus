@@ -4,10 +4,10 @@
 
 
 
-<p>{{ success_num }} sms' were sent successfully.</p>
+<p>{{ success_num }} SMSes were sent successfully.</p>
 
     {% if fail %}
-    <p>The following users did not receive an sms:</p>
+    <p>The following users did not receive an SMS:</p>
     {% for user in fail %}
     <p>{{ user }}</p>
     {% endfor %}

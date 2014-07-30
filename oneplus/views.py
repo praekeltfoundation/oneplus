@@ -234,7 +234,7 @@ def smspassword(request, state):
                 )
 
                 if sent:
-                    message = "Your new password has been smsed to you. "
+                    message = "Your new password has been SMSed to you. "
                     success = True
                 else:
                     message = "Oops! Something went wrong! " \
