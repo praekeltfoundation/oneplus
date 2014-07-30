@@ -33,7 +33,8 @@ class AirtimeFilter(admin.SimpleListFilter):
 
     def get_learner_ids(self):
         participants = ParticipantQuestionAnswer.objects.filter(
-            answerdate__range=self.get_date_range()
+            answerdate__range=self.get_date_range(),
+            correct=True
         ).values('participant').annotate(Count('participant'))
 
         filtered_participants = participants.filter(
