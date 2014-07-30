@@ -18,8 +18,8 @@
             {% endif %}
                         <p>{{ question.question_content | bleach | format_width }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
-                            <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}">
-                            <label for="answer_{{ opt.id }}">
+                            <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                            <label style="padding-top: 8px;padding-bottom: 8px" for="answer_{{ opt.id }}">
                             {% if opt.content %}
                                 {{ opt.content | align }} </label></br></br>
                             {% else %}
