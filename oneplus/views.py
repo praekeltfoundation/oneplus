@@ -1873,7 +1873,11 @@ def contact(request, state, user):
             #Send email to info@oneplus.co.za
             mail_managers(
                 subject='Contact Us Message - ' + _contact,
-                message=_comment + " - " + _fname + _sname + " - " + _contact + " - " + _school,
+                message="First Name: " + _fname +
+                        "\nLast Name: " + _sname +
+                        "\nSchool: " + _school +
+                        "\nContact: " + _contact +
+                        "\n" + _comment,
                 fail_silently=False
             )
 
