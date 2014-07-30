@@ -407,6 +407,8 @@ def home(request, state, user):
         now = datetime.now().date()
 
         if last_active < now - timedelta(days=1):
+            _learner.last_active_date = datetime.now()
+            _learner.save()
             update_metric("running.active.participants24", 1, "SUM")
             if last_active < now - timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
@@ -416,8 +418,7 @@ def home(request, state, user):
                         update_metric("running.active.participantsmonth", 1,
                                       "SUM")
 
-        _learner.last_active_date = datetime.now()
-        _learner.save()
+
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
