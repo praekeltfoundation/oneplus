@@ -11,6 +11,7 @@ from communication.models import Message, ChatGroup, ChatMessage
 from oneplus.models import LearnerState
 from mock import patch
 
+
 class GeneralTests(TestCase):
 
     def create_course(self, name="course name", **kwargs):
@@ -55,7 +56,12 @@ class GeneralTests(TestCase):
         return TestingQuestionOption.objects.create(
             name=name, question=question, correct=True)
 
-    def create_test_answer(self, participant, question, option_selected, answerdate):
+    def create_test_answer(
+            self,
+            participant,
+            question,
+            option_selected,
+            answerdate):
         return ParticipantQuestionAnswer.objects.create(
             participant=participant,
             question=question,
@@ -120,11 +126,11 @@ class GeneralTests(TestCase):
             active_question=None,
         )
 
-        #get next question
+        # get next question
         learnerstate.getnextquestion()
         learnerstate.save()
 
-        #check active question
+        # check active question
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
     def test_home(self):

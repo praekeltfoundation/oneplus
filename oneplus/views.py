@@ -2,7 +2,7 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from forms import LoginForm, SmsPasswordForm
+from .forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from organisation.models import *
@@ -27,6 +27,8 @@ from django.db.models import Q
 COUNTRYWIDE = "Countrywide"
 
 # Code decorator to ensure that the user is logged in
+
+
 def oneplus_login_required(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
@@ -36,6 +38,8 @@ def oneplus_login_required(f):
     return wrap
 
 # Code decorator to check if user is logged in or not
+
+
 def oneplus_check_user(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
@@ -50,14 +54,14 @@ def oneplus_check_user(f):
 def oneplus_state_required(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
-        #Initialise the oneplus state
+        # Initialise the oneplus state
         # If value is 0, the user's session cookie will expire when the user's
         # Web browser is closed.
         request.session.set_expiry(31536000)
         if "state" not in request.session.keys():
             request.session["state"] = {"menu_visible": False}
 
-        #Manage menu state
+        # Manage menu state
         if request.method == "POST" and "switchmenu" in request.POST:
             request.session["state"]["menu_visible"] \
                 = request.POST["switchmenu"] != 'True'
@@ -113,7 +117,7 @@ def login(request, state):
                 password=form.cleaned_data["password"]
             )
 
-            #Check if user is registered
+            # Check if user is registered
             exists = CustomUser.objects.filter(
                 username=form.cleaned_data["username"]
             ).exists()
@@ -128,10 +132,10 @@ def login(request, state):
                     else:
                         return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
-                        request.session["wrong_password"] = False
-                        return redirect("auth.getconnected")
+                    request.session["wrong_password"] = False
+                    return redirect("auth.getconnected")
             else:
-                #Save provided username
+                # Save provided username
                 request.session["username"] = form.cleaned_data["username"]
                 request.session["wrong_password"] = True
                 return redirect("auth.getconnected")
@@ -143,13 +147,13 @@ def login(request, state):
 
 def autologin(request, token):
     def get():
-        #Get user based on token + expiry date
+        # Get user based on token + expiry date
         user = CustomUser.objects.filter(
             unique_token__startswith=token,
             unique_token_expiry__gte=datetime.now()
         ).first()
         if user:
-            #Login the user
+            # Login the user
             if user is not None and user.is_active:
                 try:
                     registered = is_registered(user)
@@ -159,9 +163,9 @@ def autologin(request, token):
                     else:
                         return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
-                        return redirect("auth.login")
+                    return redirect("auth.login")
 
-        #If token is not valid, render login screen
+        # If token is not valid, render login screen
         return render(
             request,
             "auth/login.html",
@@ -207,23 +211,23 @@ def smspassword(request, state):
     def post():
         form = SmsPasswordForm(request.POST)
         if form.is_valid():
-            #Initialize vumigo sms
+            # Initialize vumigo sms
             vumi = VumiSmsApi()
 
             try:
-                #Lookup user
+                # Lookup user
                 learner = Learner.objects\
                     .get(username=form.cleaned_data["msisdn"])
 
-                #Generate password
+                # Generate password
                 password = koremutake.encode(randint(10000, 100000))
                 learner.password = make_password(password)
 
-                #Message
+                # Message
                 message = "Your new password for OnePlus is '|password|' " \
                           "or use the following link to login: |autologin|"
 
-                #Generate autologin link
+                # Generate autologin link
                 learner.generate_unique_token()
 
                 sms, sent = vumi.send(
@@ -290,7 +294,7 @@ def getconnected(request, state):
                 "state": state,
                 "exists": exists,
                 "provided_username": username,
-                "wrong_password" : wrong_password
+                "wrong_password": wrong_password
             }
         )
 
@@ -332,6 +336,8 @@ def get_week_day():
     return home_day
 
 # Home Screen
+
+
 @oneplus_state_required
 @oneplus_login_required
 def home(request, state, user):
@@ -344,11 +350,11 @@ def home(request, state, user):
         learnerstate = LearnerState(participant=_participant)
 
     answered = ParticipantQuestionAnswer.objects.filter(
-                participant=learnerstate.participant
-            ).distinct().values_list('question')
+        participant=learnerstate.participant
+    ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-                bank__module__course=learnerstate.participant.classs.course
-            ).exclude(id__in=answered)
+        bank__module__course=learnerstate.participant.classs.course
+    ).exclude(id__in=answered)
 
     if not questions:
         request.session["state"]["questions_complete"] = True
@@ -364,18 +370,17 @@ def home(request, state, user):
         = Participant.objects.filter(
             classs=_participant.classs,
             points__gt=_participant.points
-        ).count() + 1
+    ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day(
         learnerstate.get_all_answered())
 
-
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-        ).count()
+    ).count()
 
     request.session["state"]["home_tasks_week"]\
         = learnerstate.get_questions_answered_week()
@@ -387,13 +392,13 @@ def home(request, state, user):
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=_start_of_week
-        ).count()
+    ).count()
     request.session["state"]["home_correct"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             correct=True,
             answerdate__gte=_start_of_week
-        ).count()
+    ).count()
     request.session["state"]["home_goal"]\
         = settings.ONEPLUS_WIN_REQUIRED\
         - request.session["state"]["home_correct"]
@@ -418,8 +423,6 @@ def home(request, state, user):
                         update_metric("running.active.participantsmonth", 1,
                                       "SUM")
 
-
-
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
 
@@ -434,7 +437,7 @@ def home(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def nextchallenge(request, state, user):
-    #get learner state
+    # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
         participant__id=user["participant_id"]
@@ -446,21 +449,20 @@ def nextchallenge(request, state, user):
     _learnerstate.getnextquestion()
 
     answered = ParticipantQuestionAnswer.objects.filter(
-                participant=_learnerstate.participant
-            ).distinct().values_list('question')
+        participant=_learnerstate.participant
+    ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-                bank__module__course=_learnerstate.participant.classs.course
-            ).exclude(id__in=answered)
+        bank__module__course=_learnerstate.participant.classs.course
+    ).exclude(id__in=answered)
 
     if not questions:
-            return HttpResponseRedirect("home")
-
+        return HttpResponseRedirect("home")
 
     request.session["state"]["next_tasks_today"] = \
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-        ).distinct('participant', 'question').count() + 1
+    ).distinct('participant', 'question').count() + 1
 
     def get():
         request.session["state"]["discussion_page_max"] = \
@@ -472,8 +474,7 @@ def nextchallenge(request, state, user):
                 question=_learnerstate.active_question,
                 moderated=True,
                 response=None
-            ).count()
-
+        ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -509,7 +510,7 @@ def nextchallenge(request, state, user):
 
     def update_perc_correct_answers(name, days_ago):
         date_range = (
-            datetime.now().date()-timedelta(days=days_ago),
+            datetime.now().date() - timedelta(days=days_ago),
             datetime.now().date(),
         )
         total = ParticipantQuestionAnswer.objects.filter(
@@ -519,12 +520,12 @@ def nextchallenge(request, state, user):
             value = ParticipantQuestionAnswer.objects.filter(
                 answerdate__range=date_range,
                 correct=True
-            ).count()/total
+            ).count() / total
         else:
             value = 0
         update_metric(
-            "questions.correct."+name,
-            value*100,
+            "questions.correct." + name,
+            value * 100,
             "LAST"
         )
 
@@ -564,7 +565,7 @@ def nextchallenge(request, state, user):
             update_num_question_metric()
             update_all_perc_correct_answers()
 
-            #Check for awards
+            # Check for awards
             if _option.correct:
                 _participant.award_scenario(
                     "CORRECT",
@@ -626,7 +627,7 @@ def nextchallenge(request, state, user):
             else:
                 return HttpResponseRedirect("wrong")
 
-        #new comment created
+        # new comment created
         elif "comment" in request.POST.keys() \
                 and request.POST["comment"] != "":
             _usr = Learner.objects.get(pk=user["id"])
@@ -661,7 +662,7 @@ def nextchallenge(request, state, user):
                 = request.session["state"]["discussion_response_id"]
             request.session["state"]["discussion_response_id"] = None
 
-        #show more comments
+        # show more comments
         elif "page" in request.POST.keys():
             request.session["state"]["discussion_page"] += 2
             if request.session["state"]["discussion_page"] \
@@ -670,7 +671,7 @@ def nextchallenge(request, state, user):
                     = request.session["state"]["discussion_page_max"]
             request.session["state"]["discussion_response_id"] = None
 
-        #show reply to comment comment
+        # show reply to comment comment
         elif "comment_response_button" in request.POST.keys():
             request.session["state"]["discussion_response_id"] \
                 = request.POST["comment_response_button"]
@@ -717,7 +718,7 @@ def adminpreview(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).count()
+        ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -747,7 +748,7 @@ def adminpreview(request, questionid):
             ans_id = request.POST["answer"]
             option = question.testingquestionoption_set.get(pk=ans_id)
 
-            #Check for awards
+            # Check for awards
             if option.correct:
                 return HttpResponseRedirect("right/%s" % questionid)
 
@@ -762,7 +763,7 @@ def adminpreview(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).count()
+        ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -799,13 +800,13 @@ def adminpreview_right(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).count()
+        ).count()
 
-        #Discussion page?
+        # Discussion page?
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
 
-        #Messages for discussion page
+        # Messages for discussion page
         messages = \
             Discussion.objects.filter(
                 course=question.bank.module.course,
@@ -816,7 +817,7 @@ def adminpreview_right(request, questionid):
             ).order_by("publishdate")\
             .reverse()[:request.session["state"]["discussion_page"]]
 
-        #Gameification scenario for correct question
+        # Gameification scenario for correct question
         scenario = GamificationScenario.objects.filter(
             course=question.bank.module.course,
             module=question.bank.module,
@@ -854,13 +855,13 @@ def adminpreview_wrong(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).count()
+        ).count()
 
-        #Discussion page?
+        # Discussion page?
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
 
-        #Messages for discussion page
+        # Messages for discussion page
         messages = \
             Discussion.objects.filter(
                 course=question.bank.module.course,
@@ -887,7 +888,7 @@ def adminpreview_wrong(request, questionid):
 @oneplus_state_required
 @oneplus_login_required
 def right(request, state, user):
-    #get learner state
+    # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
@@ -896,12 +897,12 @@ def right(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-        ).distinct('participant', 'question').count()
+    ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     def get():
         if _learnerstate.active_result:
-            #Max discussion page
+            # Max discussion page
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -911,13 +912,13 @@ def right(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).count()
+            ).count()
 
-            #Discussion page?
+            # Discussion page?
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
 
-            #Messages for discussion page
+            # Messages for discussion page
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -930,7 +931,7 @@ def right(request, state, user):
                 ).order_by("publishdate")\
                 .reverse()[:request.session["state"]["discussion_page"]]
 
-            #Gameification scenario for correct question
+            # Gameification scenario for correct question
             _scenariobadge = GamificationScenario.objects.filter(
                 Q(
                     module=_learnerstate.active_question.bank.module,
@@ -942,12 +943,12 @@ def right(request, state, user):
             )
             _badgepoints = None
 
-            #Get relevant badge related to scenario
+            # Get relevant badge related to scenario
             _badge = ParticipantBadgeTemplateRel.objects.filter(
                 participant=_participant,
                 scenario__in=_scenariobadge,
                 awarddate__range=[
-                    datetime.today()-timedelta(minutes=1),
+                    datetime.today() - timedelta(minutes=1),
                     datetime.today()
                 ]
             ).order_by('-awarddate').first()
@@ -958,7 +959,7 @@ def right(request, state, user):
             else:
                 _badgetemplate = None
 
-            #Get points
+            # Get points
             _pointscenario = GamificationScenario.objects.filter(
                 module=_learnerstate.active_question.bank.module,
                 course=_learnerstate.active_question.bank.module.course,
@@ -967,7 +968,9 @@ def right(request, state, user):
 
             if _pointscenario.exists():
                 if _badgepoints is not None and _badgepoints.value > 0:
-                    _points = int(_pointscenario.first().point.value) + int(_badgepoints.value)
+                    _points = int(
+                        _pointscenario.first().point.value) + \
+                              int(_badgepoints.value)
                 else:
                     _points = _pointscenario.first().point.value
             else:
@@ -996,7 +999,7 @@ def right(request, state, user):
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
 
-            #new comment created
+            # new comment created
             if "comment" in request.POST.keys()\
                     and request.POST["comment"] != "":
                 _usr = Learner.objects.get(pk=user["id"])
@@ -1035,7 +1038,7 @@ def right(request, state, user):
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
 
-            #show more comments
+            # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
                 if request.session["state"]["discussion_page"]\
@@ -1044,7 +1047,7 @@ def right(request, state, user):
                         = request.session["state"]["discussion_page_max"]
                 request.session["state"]["discussion_response_id"] = None
 
-            #show reply to comment comment
+            # show reply to comment comment
             elif "comment_response_button" in request.POST.keys():
                 request.session["state"]["discussion_response_id"]\
                     = request.POST["comment_response_button"]
@@ -1081,7 +1084,7 @@ def right(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def wrong(request, state, user):
-    #get learner state
+    # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
@@ -1090,7 +1093,7 @@ def wrong(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-        ).distinct('participant', 'question').count()
+    ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     def get():
@@ -1104,7 +1107,7 @@ def wrong(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).count()
+            ).count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
@@ -1125,9 +1128,9 @@ def wrong(request, state, user):
                 request,
                 "learn/wrong.html",
                 {"state": state,
-                "user": user,
-                "question": _learnerstate.active_question,
-                "messages": _messages}
+                 "user": user,
+                 "question": _learnerstate.active_question,
+                 "messages": _messages}
             )
         else:
             return HttpResponseRedirect("right")
@@ -1137,7 +1140,7 @@ def wrong(request, state, user):
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
 
-            #new comment created
+            # new comment created
             if "comment" in request.POST.keys() \
                     and request.POST["comment"] != "":
                 _usr = Learner.objects.get(pk=user["id"])
@@ -1175,7 +1178,7 @@ def wrong(request, state, user):
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
 
-            #show more comments
+            # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
                 if request.session["state"]["discussion_page"] \
@@ -1184,7 +1187,7 @@ def wrong(request, state, user):
                         = request.session["state"]["discussion_page_max"]
                 request.session["state"]["discussion_response_id"] = None
 
-            #show reply to comment comment
+            # show reply to comment comment
             elif "comment_response_button" in request.POST.keys():
                 request.session["state"]["discussion_response_id"]\
                     = request.POST["comment_response_button"]
@@ -1221,7 +1224,7 @@ def discuss(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def inbox(request, state, user):
-    #get inbox messages
+    # get inbox messages
     _participant = Participant.objects.get(pk=user["participant_id"])
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner,
@@ -1237,9 +1240,9 @@ def inbox(request, state, user):
             request,
             "com/inbox.html",
             {"state": state,
-            "user": user,
-            "messages": _messages,
-            "message_count": len(_messages)}
+             "user": user,
+             "messages": _messages,
+             "message_count": len(_messages)}
         )
 
     def post():
@@ -1272,7 +1275,7 @@ def inbox(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def inbox_detail(request, state, user, messageid):
-    #get inbox messages
+    # get inbox messages
     _participant = Participant.objects.get(pk=user["participant_id"])
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner, _participant.classs.course
@@ -1312,7 +1315,7 @@ def inbox_detail(request, state, user, messageid):
 @oneplus_state_required
 @oneplus_login_required
 def inbox_send(request, state, user):
-    #get inbox messages
+    # get inbox messages
     _participant = Participant.objects.get(pk=user["participant_id"])
     request.session["state"]["inbox_sent"] = False
 
@@ -1322,19 +1325,19 @@ def inbox_send(request, state, user):
                                                        "user": user})
 
     def post():
-        #new message created
+        # new message created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
-            #Get comment
+            # Get comment
             _comment = request.POST["comment"]
 
-            #Subject
+            # Subject
             subject = ' '.join([
                 "Message from",
                 _participant.learner.first_name,
                 _participant.learner.last_name
             ])
 
-            #Create and save message
+            # Create and save message
             _message = Message(
                 name=subject[:50],
                 description=_comment[:50],
@@ -1347,13 +1350,13 @@ def inbox_send(request, state, user):
             _message.save()
 
             try:
-                #Send email to info@oneplus.co.za
+                # Send email to info@oneplus.co.za
                 mail_managers(
                     subject=subject,
                     message=_comment,
                     fail_silently=False
                 )
-                #Set inbox send to true
+                # Set inbox send to true
                 request.session["state"]["inbox_sent"] = True
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
@@ -1374,7 +1377,7 @@ def inbox_send(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def chatgroups(request, state, user):
-    #get chat groups
+    # get chat groups
     _groups = Participant.objects.get(
         pk=user["participant_id"]
     ).classs.course.chatgroup_set.all()
@@ -1407,7 +1410,7 @@ def chatgroups(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def chat(request, state, user, chatid):
-    #get chat group
+    # get chat group
     _group = ChatGroup.objects.get(pk=chatid)
     request.session["state"]["chat_page_max"] = _group.chatmessage_set.count()
 
@@ -1423,7 +1426,7 @@ def chat(request, state, user, chatid):
                                                  "messages": _messages})
 
     def post():
-        #new comment created
+        # new comment created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
@@ -1436,7 +1439,7 @@ def chat(request, state, user, chatid):
             _message.save()
             request.session["state"]["chat_page_max"] += 1
 
-        #show more comments
+        # show more comments
         elif "page" in request.POST.keys():
             request.session["state"]["chat_page"] += 10
             if request.session["state"]["chat_page"] \
@@ -1464,7 +1467,7 @@ def chat(request, state, user, chatid):
 @oneplus_state_required
 @oneplus_login_required
 def blog_hero(request, state, user):
-    #get blog entry
+    # get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
     request.session["state"]["blog_page_max"] = Post.objects.filter(
         course=_course
@@ -1503,7 +1506,7 @@ def blog_hero(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def blog_list(request, state, user):
-    #get blog entry
+    # get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
     request.session["state"]["blog_page_max"]\
         = Post.objects.filter(course=_course).count()
@@ -1520,7 +1523,7 @@ def blog_list(request, state, user):
                                                      "posts": _posts})
 
     def post():
-        #show more blogs
+        # show more blogs
         if "page" in request.POST.keys():
             request.session["state"]["blog_page"] += 10
             if request.session["state"]["blog_page"] \
@@ -1550,7 +1553,7 @@ def blog_list(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def blog(request, state, user, blogid):
-    #get blog entry
+    # get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
     _post = Post.objects.get(pk=blogid)
     _next = Post.objects.filter(
@@ -1599,7 +1602,7 @@ def blog(request, state, user, blogid):
 @oneplus_state_required
 @oneplus_login_required
 def ontrack(request, state, user):
-    #get on track state
+    # get on track state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
     _modules = Module.objects.filter(course=_course)
@@ -1613,7 +1616,7 @@ def ontrack(request, state, user):
         else:
             m.score = _answers.filter(
                 correct=True
-            ).count()/_answers.count() * 100
+            ).count() / _answers.count() * 100
 
     def get():
         return render(
@@ -1644,7 +1647,7 @@ def ontrack(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def leader(request, state, user):
-    #get learner state
+    # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     request.session["state"]["leader_region"] = COUNTRYWIDE
 
@@ -1678,7 +1681,7 @@ def leader(request, state, user):
     def get():
         request.session["state"]["leader_menu"] = False
 
-        #Get leaderboard and position
+        # Get leaderboard and position
         _location = request.session["state"]["leader_region"]
         _learners = list(get_leaderboard(_location))
         request.session["state"]["leader_place"] = leader_position(_location)
@@ -1698,7 +1701,7 @@ def leader(request, state, user):
             )
 
     def post():
-        #show region menu?
+        # show region menu?
         if "leader_menu" in request.POST:
             request.session["state"]["leader_menu"] \
                 = request.POST["leader_menu"] != 'True'
@@ -1706,17 +1709,17 @@ def leader(request, state, user):
             request.session["state"]["leader_menu"] = False
             request.session["state"]["leader_region"] = request.POST["region"]
 
-        #Get leaderboard and position
+        # Get leaderboard and position
         _location = request.session["state"]["leader_region"]
         _learners = list(get_leaderboard(_location))
         request.session["state"]["leader_place"] = leader_position(_location)
 
-        #Get unique regions
+        # Get unique regions
         request.session["state"]["leader_regions"] \
             = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
 
-        #Tag the user
+        # Tag the user
         try:
             index = _learners.index(_participant)
             _learners[index].me = True
@@ -1780,14 +1783,14 @@ def points(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def badges(request, state, user):
-    #get learner state
+    # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
     _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
         .filter(course=_course).prefetch_related("badge")
     _badges = [scenario.badge for scenario in _allscenarios]
 
-    #Link achieved badges
+    # Link achieved badges
     for x in _badges:
         if ParticipantBadgeTemplateRel.objects.filter(
                 participant=_participant,
@@ -1818,26 +1821,34 @@ def badges(request, state, user):
     return resolve_http_method(request, [get, post])
 
 # Menu Screen
+
+
 @oneplus_state_required
 @oneplus_login_required
 def menu(request, state, user):
     def get():
-        return render(request, "core/menu.html", {"state": state, "user": user})
+        return render(
+            request, "core/menu.html", {"state": state, "user": user})
 
     def post():
-        return render(request, "core/menu.html", {"state": state, "user": user})
+        return render(
+            request, "core/menu.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
 
 # About Screen
+
+
 @oneplus_state_required
 @oneplus_check_user
 def about(request, state, user):
     def get():
-        return render(request, "misc/about.html", {"state": state, "user": user})
+        return render(
+            request, "misc/about.html", {"state": state, "user": user})
 
     def post():
-        return render(request, "misc/about.html", {"state": state, "user": user})
+        return render(
+            request, "misc/about.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
 
@@ -1855,15 +1866,15 @@ def contact(request, state, user):
         state['school'] = ""
         state['valid_message'] = ""
 
-        return render(request, "misc/contact.html", {"state": state, "user": user})
+        return render(
+            request, "misc/contact.html", {"state": state, "user": user})
 
     def post():
-        #Get message
+        # Get message
         state['valid'] = True
         state['valid_message'] = ["Please complete the following fields:"]
 
-
-        #Get contact details
+        # Get contact details
         if "fname" in request.POST.keys() and len(request.POST["fname"]) >= 3:
             _fname = request.POST["fname"]
             state['fname'] = _fname
@@ -1878,14 +1889,16 @@ def contact(request, state, user):
             state['valid'] = False
             state['valid_message'].append("Last Name")
 
-        if "contact" in request.POST.keys() and len(request.POST["contact"]) >= 3:
+        if "contact" in request.POST.keys() and len(
+                request.POST["contact"]) >= 3:
             _contact = request.POST["contact"]
             state['contact'] = _contact
         else:
             state['valid'] = False
             state['valid_message'].append("Mobile number or Email")
 
-        if "comment" in request.POST.keys() and len(request.POST["comment"]) >= 3:
+        if "comment" in request.POST.keys() and len(
+                request.POST["comment"]) >= 3:
             _comment = request.POST["comment"]
             state['comment'] = _comment
         else:
@@ -1898,15 +1911,23 @@ def contact(request, state, user):
 
         if state['valid']:
 
-            #Send email to info@oneplus.co.za
+            # Send email to info@oneplus.co.za
             mail_managers(
-                subject='Contact Us Message - ' + _contact,
-                message=_comment + " - " + _fname + _sname + " - " + _contact + " - " + _school,
-                fail_silently=False
-            )
+                subject='Contact Us Message - ' +
+                _contact,
+                message=_comment +
+                " - " +
+                _fname +
+                _sname +
+                " - " +
+                _contact +
+                " - " +
+                _school,
+                fail_silently=False)
 
             state["sent"] = True
-            
-        return render(request, "misc/contact.html", {"state": state, "user": user})
+
+        return render(
+            request, "misc/contact.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
