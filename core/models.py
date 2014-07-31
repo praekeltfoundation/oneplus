@@ -8,7 +8,9 @@ from gamification.models import \
 from content.models import TestingQuestion, TestingQuestionOption
 from django.db.models import Q
 
+
 class Class(models.Model):
+
     """
     Classes link Users (learners, mentors, etc) and Courses. A user has to
     be in a class to participate in a modules.
@@ -21,9 +23,9 @@ class Class(models.Model):
         (1, "Traditional"), (2, "Open Class ")), default=1)
     startdate = models.DateField("Start Date", null=True, blank=True)
     enddate = models.DateField("End Date", null=True, blank=True)
-    #learners
-    #mentors
-    #managers
+    # learners
+    # mentors
+    # managers
 
     def __str__(self):
         return self.name
@@ -34,6 +36,7 @@ class Class(models.Model):
 
 
 class Participant(models.Model):
+
     """
     Connects a learner to a class. Indicating the learners total points
     earned as well as individual point and badges earned.

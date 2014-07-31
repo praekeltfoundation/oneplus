@@ -17,8 +17,8 @@ class ClassAdmin(admin.ModelAdmin):
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "course"]}),
-        ("Classification",      {"fields": ["type", "startdate", "enddate"]})
+        (None, {"fields": ["name", "description", "course"]}),
+        ("Classification", {"fields": ["type", "startdate", "enddate"]})
     ]
     inlines = (ParticipantInline,)
 
@@ -44,5 +44,5 @@ class ParticipantAdmin(admin.ModelAdmin):
 
 # Organisation
 admin.site.register(Class, ClassAdmin)
-admin.site.register(ParticipantQuestionAnswer,ParticipantQuestionAnswerAdmin)
+admin.site.register(ParticipantQuestionAnswer, ParticipantQuestionAnswerAdmin)
 admin.site.register(Participant, ParticipantAdmin)

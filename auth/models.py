@@ -36,21 +36,24 @@ class CustomUser(AbstractUser):
     )
 
     def generate_valid_token(self):
-        #Base 64 encode from random uuid bytes and make url safe
-        self.unique_token = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
+        # Base 64 encode from random uuid bytes and make url safe
+        self.unique_token = ''.join(
+            random.choice(
+                string.ascii_letters +
+                string.digits) for i in range(8))
 
-        #Calculate expiry date
+        # Calculate expiry date
         self.unique_token_expiry = datetime.now() + timedelta(days=30)
 
     def generate_unique_token(self):
-        #Check if unique token needs regenerating
+        # Check if unique token needs regenerating
         if self.unique_token_expiry is None \
                 or timezone.now() > self.unique_token_expiry:
-            #Check uniqueness on generation
+            # Check uniqueness on generation
             self.generate_valid_token()
             while CustomUser.objects.filter(
                     unique_token=self.unique_token).exists():
-                    self.generate_valid_token()
+                self.generate_valid_token()
 
     def __str__(self):
         return self.username
@@ -123,5 +126,3 @@ class Learner(CustomUser):
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
-
-

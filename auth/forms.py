@@ -1,11 +1,13 @@
 from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from models import (
+from .models import (
     SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Learner)
 import csv
 from organisation.models import School, Course
 
+
 class SystemAdministratorCreationForm(forms.ModelForm):
+
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -34,6 +36,7 @@ class SystemAdministratorCreationForm(forms.ModelForm):
 
 
 class SystemAdministratorChangeForm(forms.ModelForm):
+
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
     password hash display field.
@@ -55,6 +58,7 @@ class SystemAdministratorChangeForm(forms.ModelForm):
 
 
 class SchoolManagerCreationForm(forms.ModelForm):
+
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -83,6 +87,7 @@ class SchoolManagerCreationForm(forms.ModelForm):
 
 
 class SchoolManagerChangeForm(forms.ModelForm):
+
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
     password hash display field.
@@ -104,6 +109,7 @@ class SchoolManagerChangeForm(forms.ModelForm):
 
 
 class CourseManagerCreationForm(forms.ModelForm):
+
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -132,6 +138,7 @@ class CourseManagerCreationForm(forms.ModelForm):
 
 
 class CourseManagerChangeForm(forms.ModelForm):
+
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
     password hash display field.
@@ -153,6 +160,7 @@ class CourseManagerChangeForm(forms.ModelForm):
 
 
 class CourseMentorCreationForm(forms.ModelForm):
+
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -181,6 +189,7 @@ class CourseMentorCreationForm(forms.ModelForm):
 
 
 class CourseMentorChangeForm(forms.ModelForm):
+
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
     password hash display field.
@@ -202,6 +211,7 @@ class CourseMentorChangeForm(forms.ModelForm):
 
 
 class LearnerCreationForm(forms.ModelForm):
+
     """A form for creating new users. Includes all the required
     fields, plus a repeated password."""
     username = forms.CharField(label='Mobile Phone Number',
@@ -232,6 +242,7 @@ class LearnerCreationForm(forms.ModelForm):
 
 
 class LearnerChangeForm(forms.ModelForm):
+
     """A form for updating users. Includes all the fields on
     the user, but replaces the password field with admin's
     password hash display field.

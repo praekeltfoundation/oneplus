@@ -22,8 +22,11 @@ def get_autologin_link(unique_token):
     else:
         return None
 
+
 class VumiSmsApi:
+
     """Sends vumi http api requests"""
+
     def __init__(self):
         self.conversation_key = settings.VUMI_GO_CONVERSATION_KEY
         self.account_key = settings.VUMI_GO_ACCOUNT_KEY
@@ -54,7 +57,7 @@ class VumiSmsApi:
         return sms
 
     def send(self, msisdn, message, password, autologin):
-        #Send the url
+        # Send the url
         message = self.templatize(message, password, autologin)
 
         try:
@@ -74,5 +77,3 @@ class VumiSmsApi:
             sent = True
 
         return sms, sent
-
-

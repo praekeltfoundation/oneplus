@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from models import TestingBank, TestingQuestion, TestingQuestionOption, LearningChapter
+from .models import TestingBank, TestingQuestion, TestingQuestionOption, LearningChapter
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -20,6 +20,7 @@ class TestingQuestionOptionInline(admin.TabularInline):
     fields = ("order", "name", "correct", "link")
     readonly_fields = ('link', )
     ordering = ("order", "name")
+
 
 class LearningChapterAdmin(SummernoteModelAdmin):
     list_display = ("module", "order", "name", "description")
@@ -97,7 +98,7 @@ class TestingQuestionResource(resources.ModelResource):
         ).count()
 
         if total > 0:
-            return 100*correct/total
+            return 100 * correct / total
         else:
             return 0
 
@@ -133,7 +134,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             question=question
         ).count()
         if total > 0:
-            return 100*correct/total
+            return 100 * correct / total
         else:
             return 0
     percentage_correct.allow_tags = True
@@ -155,8 +156,8 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_filter = ("question", )
     search_fields = ("name",)
     fieldsets = [
-        (None,                  {"fields": ["name", "question", "order"]}),
-        ("Content",             {"fields": ["content", "correct"]})
+        (None, {"fields": ["name", "question", "order"]}),
+        ("Content", {"fields": ["content", "correct"]})
     ]
     ordering = ("question", "order", "name", )
 

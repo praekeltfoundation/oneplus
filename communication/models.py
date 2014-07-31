@@ -6,6 +6,7 @@ from content.models import TestingQuestion
 
 
 class Page(models.Model):
+
     """
     For the MVP phase of this project we will keep Pages and Posts very
     simplistic.
@@ -28,6 +29,7 @@ class Page(models.Model):
 
 
 class Post(models.Model):
+
     """
     Courses can have blog posts which include HTML and images. These posts
     support basic non-threaded text-only commentary. A blog index page
@@ -56,6 +58,7 @@ class Post(models.Model):
 
 
 class Discussion(models.Model):
+
     """
     A minimal forum experience is available on
       Each Course. This feature can be turned off at the school level.
@@ -149,6 +152,7 @@ class Message(models.Model):
 
 
 class MessageStatus(models.Model):
+
     """
     Message Status indicates if a user has viewed a message and if he has
     permanently hidden a message
@@ -165,6 +169,7 @@ class MessageStatus(models.Model):
 
 
 class ChatGroup(models.Model):
+
     """
     Chat groups are Learner only places where messages can be exchanged.
     """
@@ -195,7 +200,7 @@ class ChatMessage(models.Model):
         verbose_name_plural = "Chat Messages"
 
 
-#A sms
+# A sms
 class Sms(models.Model):
     uuid = models.CharField(
         verbose_name="identifier",

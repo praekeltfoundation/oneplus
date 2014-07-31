@@ -61,7 +61,7 @@ class LearnerResource(resources.ModelResource):
             return ParticipantQuestionAnswer.objects.filter(
                 participant__learner=learner,
                 correct=True
-            ).count()*100/complete
+            ).count() * 100 / complete
         else:
             return 0
 

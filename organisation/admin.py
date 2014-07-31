@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import *
+from .models import *
 
 
 class SchoolInline(admin.TabularInline):
@@ -20,7 +20,7 @@ class OrganisationAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description"]}),
+        (None, {"fields": ["name", "description"]}),
         ("Contact Information", {"fields": ["website", "email"]}),
     ]
     inlines = (SchoolInline,)
@@ -43,7 +43,7 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "slug"]})
+        (None, {"fields": ["name", "description", "slug"]})
     ]
     inlines = (ModuleInline, )
     ordering = ("name", )
@@ -54,7 +54,7 @@ class ModuleAdmin(admin.ModelAdmin):
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "course"]})
+        (None, {"fields": ["name", "description", "course"]})
     ]
     ordering = ("course", "name", )
 

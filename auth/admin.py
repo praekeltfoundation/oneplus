@@ -10,7 +10,7 @@ from django import template
 from communication.utils import get_autologin_link
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
-from forms import SystemAdministratorChangeForm, \
+from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
@@ -20,6 +20,7 @@ from django.contrib.auth.hashers import make_password
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource
 from auth.filters import CourseFilter, AirtimeFilter
+
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -33,19 +34,19 @@ class SystemAdministratorAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",   {"fields": ("first_name", "last_name", "email",
-                                        "mobile")}),
-        ("Access",          {"fields": ("username", "password", "is_active")}),
-        ("Permissions",     {"fields": ("is_staff", "is_superuser")}),
+        ("Personal info", {"fields": ("first_name", "last_name", "email",
+                                      "mobile")}),
+        ("Access", {"fields": ("username", "password", "is_active")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1",
-                                                "password2")}),
-        ("Region",                  {"fields": ("country",)})
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country",)})
     )
 
 
@@ -61,21 +62,21 @@ class SchoolManagerAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name",
-                                                "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password",
-                                                "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city",
-                                                "school")}),
-        ("Important dates",         {"fields": ("last_login", "date_joined")})
+        ("Personal info", {"fields": ("first_name", "last_name",
+                                      "email", "mobile")}),
+        ("Access", {"fields": ("username", "password",
+                               "is_active")}),
+        ("Region", {"fields": ("country", "area", "city",
+                               "school")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1",
-                                                "password2")}),
-        ("Region",                  {"fields": ("country", "area", "school")})
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country", "area", "school")})
     )
 
 
@@ -91,21 +92,21 @@ class CourseManagerAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name",
-                                                "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password",
-                                                "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city",
-                                                "course")}),
-        ("Important dates",         {"fields": ("last_login", "date_joined")})
+        ("Personal info", {"fields": ("first_name", "last_name",
+                                      "email", "mobile")}),
+        ("Access", {"fields": ("username", "password",
+                               "is_active")}),
+        ("Region", {"fields": ("country", "area", "city",
+                               "course")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1",
-                                                "password2")}),
-        ("Region",                  {"fields": ("country", "area", "course")})
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country", "area", "course")})
     )
 
 
@@ -121,21 +122,21 @@ class CourseMentorAdmin(UserAdmin):
     filter_horizontal = ()
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name",
-                                                "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password",
-                                                "is_active")}),
-        ("Region",                  {"fields": ("country", "area", "city",
-                                                "course")}),
-        ("Important dates",         {"fields": ("last_login", "date_joined")})
+        ("Personal info", {"fields": ("first_name", "last_name",
+                                      "email", "mobile")}),
+        ("Access", {"fields": ("username", "password",
+                               "is_active")}),
+        ("Region", {"fields": ("country", "area", "city",
+                               "course")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1",
-                                                "password2")}),
-        ("Region",                  {"fields": ("country", "area", "course")})
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country", "area", "course")})
     )
 
 
@@ -159,22 +160,22 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     readonly_fields = ("mobile",)
 
     fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name",
-                                                "email", "mobile")}),
-        ("Access",                  {"fields": ("username", "password",
-                                                "is_active", "unique_token")}),
-        ("Region",                  {"fields": ("country", "area", "city",
-                                                "school")}),
-        ("Opt-In Communications",   {"fields": ("optin_sms", "optin_email")}),
-        ("Important dates",         {"fields": ("last_login", "date_joined")})
+        ("Personal info", {"fields": ("first_name", "last_name",
+                                      "email", "mobile")}),
+        ("Access", {"fields": ("username", "password",
+                               "is_active", "unique_token")}),
+        ("Region", {"fields": ("country", "area", "city",
+                               "school")}),
+        ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
-        ("Personal info",           {"fields": ("first_name", "last_name")}),
-        ("Access",                  {"fields": ("username", "password1",
-                                                "password2")}),
-        ("Region",                  {"fields": ("country", "area", "school")})
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country", "area", "school")})
     )
 
     def send_sms(self, request, queryset):
@@ -186,7 +187,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
 
-                #Check if a password or autologin message
+                # Check if a password or autologin message
                 is_welcome_message = False
                 is_autologin_message = False
                 if "|password|" in message:
@@ -200,15 +201,15 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 for learner in queryset:
                     password = None
                     if is_welcome_message:
-                        #Generate password
+                        # Generate password
                         password = koremutake.encode(randint(10000, 100000))
                         learner.password = make_password(password)
                     if is_autologin_message:
-                        #Generate autologin link
+                        # Generate autologin link
                         learner.generate_unique_token()
                     learner.save()
 
-                    #Send sms
+                    # Send sms
                     try:
                         sms, sent = vumi.send(
                             learner.username,
@@ -225,7 +226,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                     else:
                         fail.append(learner.username)
 
-                    #Save welcome message details
+                    # Save welcome message details
                     if is_welcome_message and sent:
                         learner.welcome_message = sms
                         learner.welcome_message_sent = True
@@ -272,7 +273,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             return ParticipantQuestionAnswer.objects.filter(
                 participant__learner=learner,
                 correct=True
-            ).count()*100/complete
+            ).count() * 100 / complete
         else:
             return 0
     percentage_correct.short_description = "Percentage correct"
