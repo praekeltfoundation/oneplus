@@ -946,7 +946,7 @@ def right(request, state, user):
                 participant=_participant,
                 scenario__in=_scenariobadge,
                 awarddate__range=[
-                    datetime.today()-timedelta(minutes=1),
+                    datetime.today()-timedelta(seconds=1),
                     datetime.today()
                 ]
             ).order_by('-awarddate').first()
