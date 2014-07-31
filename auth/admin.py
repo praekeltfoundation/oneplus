@@ -152,8 +152,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     list_display = ("username", "last_name", "first_name", "school",
                     "area", "completed_questions", "percentage_correct",
                     "welcome_message_sent")
-    list_filter = ("country", "area", "welcome_message_sent",
-                   CourseFilter, AirtimeFilter)
+    list_filter = ("first_name", "last_name", "mobile", "country",
+                   "area", "welcome_message_sent", CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name")
     filter_horizontal = ()
