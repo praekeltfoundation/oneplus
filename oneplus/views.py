@@ -1794,8 +1794,6 @@ def badges(request, state, user):
         ).exists():
             x.achieved = True
 
-    _badges.sort()
-
     def get():
         return render(request, "prog/badges.html", {
             "state": state,
