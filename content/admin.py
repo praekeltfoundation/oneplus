@@ -17,8 +17,8 @@ class TestingQuestionInline(admin.TabularInline):
 class TestingQuestionOptionInline(admin.TabularInline):
     model = TestingQuestionOption
     extra = 1
-    fields = ("order", "name", "correct", "link")
-    readonly_fields = ('link', )
+    fields = ("order", "name", "admin_thumbnail", "correct", "link")
+    readonly_fields = ('link', "admin_thumbnail")
     ordering = ("order", "name")
 
 

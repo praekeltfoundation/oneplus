@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MaxValueValidator
 from organisation.models import Module
 from django.core.urlresolvers import reverse
+from django.utils.html import remove_tags
 
 
 class LearningChapter(models.Model):
@@ -100,6 +101,12 @@ class TestingQuestionOption(models.Model):
             args=[
                 self.id])
     link.allow_tags = True
+
+    def admin_thumbnail(self):
+            thumbnail = remove_tags(self.content, "p br")
+            return u'%s' % thumbnail
+    admin_thumbnail.short_description = 'Content'
+    admin_thumbnail.allow_tags = True
 
     def __str__(self):
         return self.name

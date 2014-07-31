@@ -9,15 +9,16 @@ from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
 class ParticipantInline(admin.TabularInline):
     model = Participant
     extra = 1
-
     raw_id_fields = ('learner',)
     readonly_fields = ('get_firstname', 'get_lastname', 'get_mobile')
     exclude = ('points',)
+
 
     def get_firstname(self, obj):
         return obj.learner.first_name
     get_firstname.short_description = 'First Name'
     get_firstname.admin_order_field = 'learner__first_name'
+
 
     def get_lastname(self, obj):
         return obj.learner.last_name
