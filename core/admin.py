@@ -5,11 +5,26 @@ from core.models import *
 class ParticipantInline(admin.TabularInline):
     model = Participant
     extra = 1
-    fieldsets = [
-        (None,
-            {"fields": ["learner", "classs", "datejoined"]}),
-    ]
     raw_id_fields = ('learner',)
+    readonly_fields = ('get_firstname', 'get_lastname', 'get_mobile')
+    exclude = ('points',)
+
+
+    def get_firstname(self, obj):
+        return obj.learner.first_name
+    get_firstname.short_description = 'First Name'
+    get_firstname.admin_order_field = 'learner__first_name'
+
+
+    def get_lastname(self, obj):
+        return obj.learner.last_name
+    get_lastname.short_description = 'Last Name'
+    get_lastname.admin_order_field = 'learner__last_name'
+
+    def get_mobile(self, obj):
+        return obj.learner.mobile
+    get_mobile.short_description = 'Mobile'
+    get_mobile.admin_order_field = 'learner__mobile'
 
 
 class ClassAdmin(admin.ModelAdmin):
