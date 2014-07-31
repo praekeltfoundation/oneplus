@@ -1919,10 +1919,6 @@ def contact(request, state, user):
                         "\nSchool: " + _school +
                         "\nContact: " + _contact +
                         "\n" + _comment,
-                " - " +
-                _contact +
-                " - " +
-                _school,
                 fail_silently=False)
 
             state["sent"] = True
