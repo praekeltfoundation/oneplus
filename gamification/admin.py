@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import *
+from .models import *
 
 
 class GamificationPointBonusAdmin(admin.ModelAdmin):
@@ -32,7 +32,7 @@ class GamificationScenarioAdmin(admin.ModelAdmin):
     ]
 
 
-#Gamification
+# Gamification
 admin.site.register(GamificationPointBonus, GamificationPointBonusAdmin)
 admin.site.register(GamificationBadgeTemplate, GamificationBadgeTemplateAdmin)
 admin.site.register(GamificationScenario, GamificationScenarioAdmin)

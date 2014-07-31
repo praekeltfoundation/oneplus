@@ -3,6 +3,7 @@ from organisation.models import Course, Module
 
 
 class GamificationPointBonus(models.Model):
+
     """
     BadgeTemplates can be specified and linked to a Course and Scenario.
     A BadgeTemplate has a name, an image (jpg, png, gif) and a description.
@@ -23,6 +24,7 @@ class GamificationPointBonus(models.Model):
 
 
 class GamificationBadgeTemplate(models.Model):
+
     """
     PointBonuses are also linked to a Course and Scenario and award the
     user extra points for achieving a specific scenario. A PointBonus has
@@ -48,6 +50,7 @@ class GamificationBadgeTemplate(models.Model):
 
 
 class GamificationScenario(models.Model):
+
     """
     Gamification is one of the hardest problems to solve elegantly on this
     platform. We want to be able to hand out extra points and badges based

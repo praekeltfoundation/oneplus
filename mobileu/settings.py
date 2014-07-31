@@ -109,16 +109,16 @@ MEDIA_URL = "/media/"
 
 GRAPPELLI_ADMIN_TITLE = "MobileU"
 
-#STATICFILES_FINDERS = (
+# STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.FileSystemFinder',
 #)
 
-#TEMPLATE_CONTEXT_PROCESSORS = (
+# TEMPLATE_CONTEXT_PROCESSORS = (
 #    "django.core.context_processors.request",
 #)
 
 try:
     from production_settings import *
-except ImportError, e:
+except ImportError as e:
     pass

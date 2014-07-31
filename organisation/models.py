@@ -2,6 +2,7 @@ from django.db import models
 
 
 class Organisation(models.Model):
+
     """
     An organisations is a container for schools.
     This exists almost solely for situations where MobileU is deployed as
@@ -12,7 +13,7 @@ class Organisation(models.Model):
     description = models.CharField("Description", max_length=500, blank=True)
     website = models.URLField("Website", max_length=200, blank=True)
     email = models.EmailField("E-Mail", max_length=75, blank=True)
-    #schools
+    # schools
 
     def __str__(self):
         return self.name
@@ -23,6 +24,7 @@ class Organisation(models.Model):
 
 
 class School(models.Model):
+
     """
     Schools have a name, description and some basic contact details.
     A school manager has the ability to CRUD courses under a school.
@@ -43,6 +45,7 @@ class School(models.Model):
 
 
 class Course(models.Model):
+
     """
     Courses have a name, description and slug. A courses manager has the
     ability to CRUD courses content (Modules, Pages & Posts etc). Courses
@@ -53,10 +56,10 @@ class Course(models.Model):
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     slug = models.SlugField("Slug", blank=True)
-    #modulees
-    #pages
-    #posts
-    #settings
+    # modulees
+    # pages
+    # posts
+    # settings
 
     def __str__(self):
         return self.name
@@ -67,6 +70,7 @@ class Course(models.Model):
 
 
 class Module(models.Model):
+
     """
     Modules have a name, description, learning content, testing content
     and gamification logic.
@@ -75,9 +79,9 @@ class Module(models.Model):
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
-    #learning
-    #testing
-    #gamification
+    # learning
+    # testing
+    # gamification
 
     def __str__(self):
         return self.name

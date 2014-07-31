@@ -1,15 +1,15 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from models import *
-from models import Sms
-from utils import VumiSmsApi
+from .models import *
+from .models import Sms
+from .utils import VumiSmsApi
 
 
 class PageAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description"]})
+        (None, {"fields": ["name", "description"]})
     ]
 
 
@@ -40,7 +40,7 @@ class ChatGroupAdmin(SummernoteModelAdmin):
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None,                  {"fields": ["name", "description", "course"]})
+        (None, {"fields": ["name", "description", "course"]})
     ]
     inlines = (ChatMessageInline, )
 

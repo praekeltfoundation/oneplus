@@ -6,11 +6,13 @@ from organisation.models import Course
 
 from datetime import datetime
 
+
 class TestMessage(TestCase):
 
     # As you write more tests you'll probably find that you'd want to
     # add these utility functions to a helper class that you can then
     # reuse in different test cases
+
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
@@ -74,7 +76,7 @@ class TestMessage(TestCase):
 
         _status = MessageStatus.objects.create(message=msg, user=self.user)
 
-        #view status is False
+        # view status is False
         self.assertFalse(_status.view_status)
 
         msg.view_message(self.user)
@@ -82,7 +84,7 @@ class TestMessage(TestCase):
 
         _status = MessageStatus.objects.get(message=msg)
 
-        #view status is True
+        # view status is True
         self.assertTrue(_status.view_status)
 
     def test_hide_message(self):
@@ -94,14 +96,12 @@ class TestMessage(TestCase):
 
         hide_status = MessageStatus.objects.create(message=msg, user=self.user)
 
-        #hide status is False
+        # hide status is False
         self.assertFalse(hide_status.hidden_status)
 
         msg.hide_message(self.user)
         msg.save()
 
         hide_status = MessageStatus.objects.get(message=msg)
-        #hide status is True
+        # hide status is True
         self.assertTrue(hide_status.hidden_status)
-
-
