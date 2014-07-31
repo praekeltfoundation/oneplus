@@ -9,7 +9,6 @@ from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
 class ParticipantInline(admin.TabularInline):
     model = Participant
     extra = 1
-
     raw_id_fields = ('learner',)
     readonly_fields = ('get_firstname', 'get_lastname', 'get_mobile')
     exclude = ('points',)
