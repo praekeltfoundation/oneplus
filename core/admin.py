@@ -63,7 +63,7 @@ class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
 
     def get_firstname(self, obj):
         return obj.participant.learner.first_name
-    get_firstname.short_description = 'Last Name'
+    get_firstname.short_description = 'First Name'
     get_firstname.admin_order_field = 'participant__learner__first_name'
 
     def get_lastname(self, obj):
