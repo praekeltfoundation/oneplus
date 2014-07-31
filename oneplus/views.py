@@ -1913,7 +1913,7 @@ def contact(request, state, user):
 
             # Send email to info@oneplus.co.za
             mail_managers(
-                subject='Contact Us Message - ' + _contact
+                subject='Contact Us Message - ' + _contact,
                 message="First Name: " + _fname +
                         "\nLast Name: " + _sname +
                         "\nSchool: " + _school +
