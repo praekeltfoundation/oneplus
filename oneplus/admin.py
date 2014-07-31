@@ -44,13 +44,13 @@ class OnePlusLearnerAdmin(LearnerAdmin):
             'LAST'
         )
 
-
         if total > 0:
-            opt_ins = float(Learner.objects.filter(Q(optin_sms=True) | Q(optin_email=True)).count())/float(total)
+            opt_ins = float(Learner.objects.filter(
+                Q(optin_sms=True) | Q(optin_email=True)).count()) / float(total)
 
             update_metric(
                 "percentage.optin",
-                 opt_ins * 100,
+                opt_ins * 100,
                 'LAST'
             )
 

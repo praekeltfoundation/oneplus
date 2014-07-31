@@ -35,7 +35,7 @@ TEMPLATE_DIRS = [
 ]
 
 BASE_URL = 'oneplus.qa.praekeltfoundation.org'
- # os.path.join(BASE_DIR, "oneplus/templates")
+# os.path.join(BASE_DIR, "oneplus/templates")
 
 ALLOWED_HOSTS = ['*']
 
@@ -157,7 +157,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-#Base url for vumi requests
+# Base url for vumi requests
 VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"
 VUMI_GO_CONVERSATION_KEY = "61237dd28e2d4e668a0ff212cea5f03d"
 VUMI_GO_ACCOUNT_KEY = "b365f245538841a08586a29b5b568c6c"
@@ -169,7 +169,7 @@ IMPORT_EXPORT_USE_TRANSACTIONS = True
 BLEACH_ALLOWED_TAGS = ['img', 'p', 'b', 'i', 'u', 'em', 'strong', 'a']
 
 # Which HTML attributes are allowed
-BLEACH_ALLOWED_ATTRIBUTES = ['href', 'title', 'style','src']
+BLEACH_ALLOWED_ATTRIBUTES = ['href', 'title', 'style', 'src']
 
 # Which CSS properties are allowed in 'style' attributes (assuming
 # style is an allowed attribute)
@@ -206,5 +206,5 @@ MANAGERS = (
 )
 try:
     from local_settings import *
-except ImportError, e:
+except ImportError as e:
     pass

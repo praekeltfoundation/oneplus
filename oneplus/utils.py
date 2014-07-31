@@ -3,6 +3,7 @@ import oneplusmvp.settings as settings
 from datetime import datetime
 import requests
 
+
 def update_metric(name, value, metric_type):
     try:
         sender = HttpApiSender(
@@ -15,5 +16,7 @@ def update_metric(name, value, metric_type):
         pass
 
 # So can be overridden in tests.
+
+
 def get_today():
     return datetime.today()
