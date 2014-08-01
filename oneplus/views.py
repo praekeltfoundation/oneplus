@@ -1910,15 +1910,17 @@ def contact(request, state, user):
             state['school'] = _school
 
         if state['valid']:
-
+            message = "\n".join([
+                "First Name: " + _fname,
+                "Last Name: " + _sname,
+                "School: " + _school,
+                "Contact: " + _contact,
+                _comment,
+            ])
             # Send email to info@oneplus.co.za
             mail_managers(
                 subject='Contact Us Message - ' + _contact,
-                message="First Name: " + _fname +
-                        "\nLast Name: " + _sname +
-                        "\nSchool: " + _school +
-                        "\nContact: " + _contact +
-                        "\n" + _comment,
+                message=message,
                 fail_silently=False)
 
             state["sent"] = True
