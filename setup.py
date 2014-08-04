@@ -16,6 +16,7 @@ setup(
         'psycopg2==2.5.3',
         'koremutake==1.0.5',
         'requests==2.3.0',
+        'go_http==0.1.1',
     ],
     url='www.praekelt.co.za',
     license='',
