@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin
 from import_export.admin import ImportExportModelAdmin
 from communication.utils import VumiSmsApi, get_autologin_link
 from auth.forms import SendWelcomeSmsForm
-from communication.tasks import send_all
+from communication.tasks import bulk_send_all
 from django import template
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
@@ -185,11 +185,13 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
 
-                if queryset.count() <= 30:
+                if queryset.count() <= -1:
                     successful, fail = vumi.send_all(queryset, message)
                 else:
                     #Use celery task
-                    send_all(queryset, message)
+                    bulk_send_all.delay(queryset, message)
+                    successful = 0
+                    fail = []
 
                 return render_to_response(
                     'admin/auth/sms_result.html',

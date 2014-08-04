@@ -24,7 +24,7 @@ def send_sms(msisdn, message, password, autologin):
 
 
 @app.task(bind=True, default_retry_delay=300, max_retries=5)
-def send_all(queryset, message):
+def bulk_send_all(queryset, message):
     vumi_api = VumiSmsApi()
     successful, fail = vumi_api.send_all(queryset, message)
     subject = 'Vumi SMS Send'
