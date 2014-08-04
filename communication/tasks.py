@@ -2,50 +2,10 @@ from __future__ import absolute_import
 
 from mobileu.celery import app
 from go_http import HttpApiSender
-from oneplusmvp import settings
-from auth.models import Learner
-from core.models import ParticipantQuestionAnswer
-
-
-@app.task
-def update_learner_metric():
-    update_metric(
-        "total.learners",
-        Learner.objects.count(),
-        "last"
-    )
-
-
-@app.task
-def update_active_learner_metric():
-    update_metric(
-        "active.learners",
-        Learner.objects.filter(active=True).count(),
-        "last"
-    )
-
-@app.task
-def update_num_question_metric():
-    update_metric(
-        "answered.questions",
-        ParticipantQuestionAnswer.objects.count(),
-        "last"
-    )
-
-@app.task
-def update_perc_correct_answers():
-    total = ParticipantQuestionAnswer.objects.count()
-    if total > 0:
-        value = ParticipantQuestionAnswer.objects.filter(
-            correct=True
-        ).count()/total
-    else:
-        value = 0
-    update_metric(
-        "percentage.correct",
-        value,
-        "last"
-    )
+from django.conf import settings
+from communication.utils import VumiSmsApi
+from datetime import datetime
+from django.core.mail import mail_managers
 
 @app.task
 def update_metric(name, value, metric_type):
@@ -55,3 +15,28 @@ def update_metric(name, value, metric_type):
         conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
     )
     sender.fire_metric(name, value, agg=metric_type)
+
+
+@app.task
+def send_sms(msisdn, message, password, autologin):
+    vumi_api = VumiSmsApi()
+    sms, sent = vumi_api.send(msisdn, message, password, autologin)
+
+
+@app.task(bind=True, default_retry_delay=300, max_retries=5)
+def send_all(queryset, message):
+    vumi_api = VumiSmsApi()
+    successful, fail = vumi_api.send_all(queryset, message)
+    subject = 'Vumi SMS Send'
+    message = "\n".join([
+        "Message: " + message,
+        "Time: " + datetime.now(),
+        "Successful sends: " + successful,
+        "Failures: " + ", ".join(fail)
+    ])
+
+    mail_managers(
+        subject=subject,
+        message=message,
+        fail_silently=False
+    )
