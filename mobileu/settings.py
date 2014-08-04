@@ -54,7 +54,8 @@ INSTALLED_APPS = (
     "south",
     "requests",
     "koremutake",
-    "import_export"
+    "import_export",
+    "djcelery",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -101,6 +102,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 STATIC_URL = "/static/"
 
@@ -117,6 +119,9 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 # TEMPLATE_CONTEXT_PROCESSORS = (
 #    "django.core.context_processors.request",
 #)
+
+import djcelery
+djcelery.setup_loader()
 
 try:
     from production_settings import *
