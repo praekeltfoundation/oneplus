@@ -1,11 +1,11 @@
 from django.conf import settings
-import json
 from communication.models import Sms
 import requests
 from django.contrib.sites.models import Site
 from go_http import HttpApiSender
-
-# import the logging library
+import koremutake
+from django.contrib.auth.hashers import make_password
+from random import randint
 import logging
 
 # Get an instance of a logger
@@ -77,3 +77,51 @@ class VumiSmsApi:
             sent = True
 
         return sms, sent
+
+    def send_all(self, queryset, message):
+        # Check if a password or autologin message
+        is_welcome_message = False
+        is_autologin_message = False
+        if "|password|" in message:
+            is_welcome_message = True
+        if "|autologin|" in message:
+            is_autologin_message = True
+
+        successful = 0
+        fail = []
+        for learner in queryset:
+            password = None
+            if is_welcome_message:
+                # Generate password
+                password = koremutake.encode(randint(10000, 100000))
+                learner.password = make_password(password)
+            if is_autologin_message:
+                # Generate autologin link
+                learner.generate_unique_token()
+            learner.save()
+
+            # Send sms
+            try:
+                sms, sent = self.send(
+                    learner.username,
+                    message=message,
+                    password=password,
+                    autologin=get_autologin_link(learner.unique_token)
+                )
+            except:
+                sent = False
+                pass
+
+            if sent:
+                successful += 1
+            else:
+                fail.append(learner.username)
+
+            # Save welcome message details
+            if is_welcome_message and sent:
+                learner.welcome_message = sms
+                learner.welcome_message_sent = True
+
+            learner.save()
+
+        return successful, fail
