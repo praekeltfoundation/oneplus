@@ -1,10 +1,9 @@
-from mobileu.celery import app
+from djcelery import celery
 
-
-@app.task(bind=True)
+@celery.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
-@app.task
+@celery.task
 def send_sms(x, y):
     return x + y

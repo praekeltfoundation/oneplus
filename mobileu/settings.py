@@ -10,8 +10,12 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+import djcelery
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+djcelery.setup_loader()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -102,7 +106,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
-BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
 
 STATIC_URL = "/static/"
 
@@ -120,8 +124,8 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 #    "django.core.context_processors.request",
 #)
 
-import djcelery
-djcelery.setup_loader()
+CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 try:
     from production_settings import *
