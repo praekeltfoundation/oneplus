@@ -41,12 +41,12 @@ INSTALLED_APPS = (
     #"django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "django.contrib.sites",
     "grappelli",
     "django.contrib.admin",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "django.contrib.sites",
     "core",
     "gamification",
     "communication",
@@ -89,6 +89,7 @@ DATABASES = {
     }
 }
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
@@ -122,11 +123,6 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 # TEMPLATE_CONTEXT_PROCESSORS = (
 #    "django.core.context_processors.request",
 #)
-# Base url for vumi requests
-VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"
-VUMI_GO_CONVERSATION_KEY = "61237dd28e2d4e668a0ff212cea5f03d"
-VUMI_GO_ACCOUNT_KEY = "b365f245538841a08586a29b5b568c6c"
-VUMI_GO_ACCOUNT_TOKEN = "vaiToa6c"
 
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
