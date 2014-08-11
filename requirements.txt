@@ -1,7 +1,8 @@
-django-mobileu==1.0.33
+django-mobileu==1.0.34
 django-google-analytics-app==2.0.1
 raven
 psycopg2
 django_bleach
 beautifulsoup4
 go_http
+celery==3.1.12

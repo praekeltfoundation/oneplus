@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     "communication",
     "content",
     "auth",
+    "djcelery",
     "organisation",
     "django_summernote",
     "south",
@@ -192,8 +193,13 @@ ONEPLUS_WIN_AIRTIME = 5
 
 GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
+<<<<<<< HEAD
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+=======
+# The minimum number of SMSes that can be sent before being sent with celery
+MIN_VUMI_CELERY_SEND = 1
+>>>>>>> 62ae164885cb064bf2fe78e5f0975db273c0e4c1
 
 FIXTURE_DIRS = (
     "/fixtures/",
