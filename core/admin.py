@@ -85,7 +85,8 @@ class ParticipantPointInline(admin.TabularInline):
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ("learner", "classs")
+    list_display = ("learner","get_firstname",
+        "get_lastname", "classs" '')
     list_filter = (
         "learner",
         "classs",
@@ -94,6 +95,16 @@ class ParticipantAdmin(admin.ModelAdmin):
         ParticipantMobileFilter)
     search_fields = ("learner",)
     inlines = [ParticipantPointInline, ]
+
+    def get_firstname(self, obj):
+        return obj.learner.first_name
+    get_firstname.short_description = 'First Name'
+    get_firstname.admin_order_field = 'learner__first_name'
+
+    def get_lastname(self, obj):
+        return obj.learner.last_name
+    get_lastname.short_description = 'Last Name'
+    get_lastname.admin_order_field = 'learner__last_name'
 
 
 # Organisation
