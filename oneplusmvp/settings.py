@@ -192,6 +192,9 @@ ONEPLUS_WIN_AIRTIME = 5
 
 GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
+# The minimum number of SMSes that can be sent before being sent with celery
+MIN_VUMI_CELERY_SEND = 1
+
 FIXTURE_DIRS = (
     "/fixtures/",
     abspath('fixtures'),
