@@ -10,8 +10,12 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
+import djcelery
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+djcelery.setup_loader()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
@@ -35,15 +39,14 @@ SITE_ID = 1
 
 INSTALLED_APPS = (
     #"django.contrib.auth",
-    "import_export",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "django.contrib.sites",
     "grappelli",
     "django.contrib.admin",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "django.contrib.sites",
     "core",
     "gamification",
     "communication",
@@ -54,7 +57,8 @@ INSTALLED_APPS = (
     "south",
     "requests",
     "koremutake",
-    "import_export"
+    "import_export",
+    "djcelery",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -85,6 +89,7 @@ DATABASES = {
     }
 }
 
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
@@ -102,6 +107,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+
 STATIC_URL = "/static/"
 
 MEDIA_ROOT = "/media/"
@@ -117,6 +123,9 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 # TEMPLATE_CONTEXT_PROCESSORS = (
 #    "django.core.context_processors.request",
 #)
+
+CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
 try:
     from production_settings import *

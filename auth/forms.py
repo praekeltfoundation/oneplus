@@ -271,7 +271,7 @@ class LearnerChangeForm(forms.ModelForm):
         return user
 
 
-class SendWelcomeSmsForm(forms.Form):
+class SendSmsForm(forms.Form):
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
     message = forms.CharField(
         widget=forms.Textarea

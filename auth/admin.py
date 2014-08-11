@@ -3,11 +3,10 @@ from django.shortcuts import render_to_response
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from import_export.admin import ImportExportModelAdmin
-from communication.utils import VumiSmsApi
-from random import randint
-from auth.forms import SendWelcomeSmsForm
+from communication.utils import VumiSmsApi, get_autologin_link
+from auth.forms import SendSmsForm
+from communication.tasks import bulk_send_all
 from django import template
-from communication.utils import get_autologin_link
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor
 from .forms import SystemAdministratorChangeForm, \
@@ -15,8 +14,7 @@ from .forms import SystemAdministratorChangeForm, \
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
-import koremutake
-from django.contrib.auth.hashers import make_password
+
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource
 from auth.filters import CourseFilter, AirtimeFilter
@@ -181,68 +179,34 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     def send_sms(self, request, queryset):
         form = None
         if 'apply' in request.POST:
-            form = SendWelcomeSmsForm(request.POST)
+            form = SendSmsForm(request.POST)
 
             if form.is_valid():
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
 
-                # Check if a password or autologin message
-                is_welcome_message = False
-                is_autologin_message = False
-                if "|password|" in message:
-                    is_welcome_message = True
-                if "|autologin|" in message:
-                    is_autologin_message = True
+                if queryset.count() <= -1:
+                    successful, fail = vumi.send_all(queryset, message)
+                    async = False
+                else:
+                    #Use celery task
+                    bulk_send_all.delay(queryset, message)
+                    successful = 0
+                    fail = []
+                    async = True
 
-                successful = 0
-                fail = []
-
-                for learner in queryset:
-                    password = None
-                    if is_welcome_message:
-                        # Generate password
-                        password = koremutake.encode(randint(10000, 100000))
-                        learner.password = make_password(password)
-                    if is_autologin_message:
-                        # Generate autologin link
-                        learner.generate_unique_token()
-                    learner.save()
-
-                    # Send sms
-                    try:
-                        sms, sent = vumi.send(
-                            learner.username,
-                            message=message,
-                            password=password,
-                            autologin=get_autologin_link(learner.unique_token)
-                        )
-                    except:
-                        sent = False
-                        pass
-
-                    if sent:
-                        successful += 1
-                    else:
-                        fail.append(learner.username)
-
-                    # Save welcome message details
-                    if is_welcome_message and sent:
-                        learner.welcome_message = sms
-                        learner.welcome_message_sent = True
-
-                    learner.save()
                 return render_to_response(
                     'admin/auth/sms_result.html',
                     {
                         'redirect': request.get_full_path(),
                         'success_num': successful,
-                        'fail': fail
+                        'fail': fail,
+                        'async': async
                     },
                 )
 
         if not form:
-            form = SendWelcomeSmsForm(
+            form = SendSmsForm(
                 initial={
                     '_selected_action': request.POST.getlist(
                         admin.ACTION_CHECKBOX_NAME,
