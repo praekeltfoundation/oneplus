@@ -65,6 +65,7 @@ INSTALLED_APPS = (
     "communication",
     "content",
     "auth",
+    "djcelery",
     "organisation",
     "django_summernote",
     "south",
