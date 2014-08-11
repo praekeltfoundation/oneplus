@@ -28,11 +28,8 @@ class VumiSmsApi:
     """Sends vumi http api requests"""
 
     def __init__(self):
-        self.conversation_key = settings.VUMI_GO_CONVERSATION_KEY
-        self.account_key = settings.VUMI_GO_ACCOUNT_KEY
-        self.account_token = settings.VUMI_GO_ACCOUNT_TOKEN
 
-        if settings.VUMI_GO_FAKE:
+        if hasattr(settings, 'VUMI_GO_FAKE') and settings.VUMI_GO_FAKE:
             self.sender = LoggingSender(
                 'DEBUG'
             )
