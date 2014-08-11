@@ -2,6 +2,7 @@
 from django.shortcuts import render_to_response
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
 from communication.utils import VumiSmsApi, get_autologin_link
 from auth.forms import SendSmsForm
@@ -178,7 +179,6 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
 
     def send_sms(self, request, queryset):
         form = None
-        MAX_VUMI_SEND = 30
         if 'apply' in request.POST:
             form = SendSmsForm(request.POST)
 
@@ -186,7 +186,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
 
-                if queryset.count() <= MAX_VUMI_SEND:
+                if queryset.count() <= settings.MIN_VUMI_CELERY_SEND:
                     successful, fail = vumi.send_all(queryset, message)
                     async = False
                 else:
