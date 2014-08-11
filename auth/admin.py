@@ -178,6 +178,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
 
     def send_sms(self, request, queryset):
         form = None
+        MAX_VUMI_SEND = 30
         if 'apply' in request.POST:
             form = SendSmsForm(request.POST)
 
@@ -185,7 +186,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
 
-                if queryset.count() <= -1:
+                if queryset.count() <= MAX_VUMI_SEND:
                     successful, fail = vumi.send_all(queryset, message)
                     async = False
                 else:
