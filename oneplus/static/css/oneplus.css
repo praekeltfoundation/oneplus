@@ -470,6 +470,24 @@ li.down_red {
     margin-top:10px;
 }
 
+.badge-layout{
+    width: 100%;
+    display: inline-block;
+    text-align: center;
+}
+
+.badge-award{
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.badge-img{
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 1em;
+}
+
+
 /*
 .comment > button{
     background-color: #444444;
