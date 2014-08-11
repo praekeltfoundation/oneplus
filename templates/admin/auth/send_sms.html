@@ -8,15 +8,9 @@
     {% csrf_token %}
     {{ sms_form }}
 
-    {% if async %}
-        The number of SMSes to be sent is very large and may take some time.
-        The results will be emailed to you.
-    {% else %}
-        <p>The sms will be sent to:</p>
-        <ul>{{ learners|unordered_list }}</ul>
-    {% endif %}
+    <p>The sms will be sent to:</p>
 
-
+    <ul>{{ learners|unordered_list }}</ul>
 
     <input type="hidden" name="action" value="send_sms" />
     <input type="hidden" name="post" value="yes" />

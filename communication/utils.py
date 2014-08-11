@@ -2,7 +2,7 @@ from django.conf import settings
 from communication.models import Sms
 import requests
 from django.contrib.sites.models import Site
-from go_http import HttpApiSender
+from go_http import HttpApiSender, LoggingSender
 import koremutake
 from django.contrib.auth.hashers import make_password
 from random import randint
@@ -32,11 +32,16 @@ class VumiSmsApi:
         self.account_key = settings.VUMI_GO_ACCOUNT_KEY
         self.account_token = settings.VUMI_GO_ACCOUNT_TOKEN
 
-        self.sender = HttpApiSender(
-            account_key=settings.VUMI_GO_ACCOUNT_KEY,
-            conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
-            conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
-        )
+        if settings.VUMI_GO_FAKE:
+            self.sender = LoggingSender(
+                'DEBUG'
+            )
+        else:
+            self.sender = HttpApiSender(
+                account_key=settings.VUMI_GO_ACCOUNT_KEY,
+                conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
+                conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
+            )
 
     def prepare_msisdn(self, msisdn):
         if msisdn.startswith('+'):
