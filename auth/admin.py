@@ -149,13 +149,13 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ("username", "last_name", "first_name", "school",
+    list_display = ("username", "first_name", "last_name", "school",
                     "area", "completed_questions", "percentage_correct",
                     "welcome_message_sent")
     list_filter = ("first_name", "last_name", "mobile", "country",
                    "area", "welcome_message_sent", CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
-    ordering = ("country", "area", "last_name")
+    ordering = ("country", "area", "last_name", "first_name", "last_login")
     filter_horizontal = ()
     readonly_fields = ("mobile",)
 
@@ -266,6 +266,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ).count()
     completed_questions.short_description = "Completed Questions"
     completed_questions.allow_tags = True
+    completed_questions.admin_order_field = 'participant__learner'
 
     def percentage_correct(self, learner):
         complete = self.completed_questions(learner)
@@ -278,6 +279,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             return 0
     percentage_correct.short_description = "Percentage correct"
     percentage_correct.allow_tags = True
+    percentage_correct.admin_order_field = 'participant__learner'
 
 # Auth
 admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
