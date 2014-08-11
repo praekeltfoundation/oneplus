@@ -192,6 +192,9 @@ ONEPLUS_WIN_AIRTIME = 5
 
 GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
+CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
+
 FIXTURE_DIRS = (
     "/fixtures/",
     abspath('fixtures'),
