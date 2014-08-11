@@ -58,7 +58,9 @@ class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
         FirstNameFilter,
         LastNameFilter,
         MobileFilter)
-    search_fields = ("participant",)
+    search_fields = ('participant__learner__first_name',
+                     'participant__learner__last_name',
+                     'participant__learner__mobile')
     inline = (ParticipantInline,)
 
     def get_firstname(self, obj):
@@ -74,7 +76,7 @@ class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
     def get_mobile(self, obj):
         return obj.participant.learner.mobile
     get_mobile.short_description = 'Mobile'
-    get_mobile.admin_order_field = 'participant_learner__mobile'
+    get_mobile.admin_order_field = 'participant__learner__mobile'
 
 
 class ParticipantPointInline(admin.TabularInline):
