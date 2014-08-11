@@ -38,6 +38,16 @@ class VumiSmsApi:
             conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
         )
 
+    def prepare_msisdn(self, msisdn):
+        if msisdn.startswith('+'):
+            return msisdn
+        else:
+            if msisdn.startswith('27'):
+                return '+' + msisdn
+            elif msisdn.startswith('0'):
+                return '+27' + msisdn[1:]
+
+
     def templatize(self, message, password, autologin):
         if password is not None:
             message = message.replace("|password|", password)
@@ -59,7 +69,7 @@ class VumiSmsApi:
     def send(self, msisdn, message, password, autologin):
         # Send the url
         message = self.templatize(message, password, autologin)
-
+        msisdn = self.prepare_msisdn(msisdn)
         try:
             response = self.sender.send_text(to_addr=msisdn, content=message)
         except requests.exceptions.RequestException as e:
