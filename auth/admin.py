@@ -185,7 +185,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 vumi = VumiSmsApi()
                 message = form.cleaned_data["message"]
 
-                if queryset.count() <= -1:
+                if queryset.count() <= 30:
                     successful, fail = vumi.send_all(queryset, message)
                 else:
                     #Use celery task
