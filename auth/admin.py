@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from import_export.admin import ImportExportModelAdmin
 from communication.utils import VumiSmsApi, get_autologin_link
-from auth.forms import SendWelcomeSmsForm
+from auth.forms import SendSmsForm
 from communication.tasks import bulk_send_all
 from django import template
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
@@ -179,7 +179,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     def send_sms(self, request, queryset):
         form = None
         if 'apply' in request.POST:
-            form = SendWelcomeSmsForm(request.POST)
+            form = SendSmsForm(request.POST)
 
             if form.is_valid():
                 vumi = VumiSmsApi()
@@ -187,23 +187,26 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
 
                 if queryset.count() <= 30:
                     successful, fail = vumi.send_all(queryset, message)
+                    async = False
                 else:
                     #Use celery task
                     bulk_send_all.delay(queryset, message)
                     successful = 0
                     fail = []
+                    async = True
 
                 return render_to_response(
                     'admin/auth/sms_result.html',
                     {
                         'redirect': request.get_full_path(),
                         'success_num': successful,
-                        'fail': fail
+                        'fail': fail,
+                        'async': async
                     },
                 )
 
         if not form:
-            form = SendWelcomeSmsForm(
+            form = SendSmsForm(
                 initial={
                     '_selected_action': request.POST.getlist(
                         admin.ACTION_CHECKBOX_NAME,
