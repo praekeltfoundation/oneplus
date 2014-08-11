@@ -23,15 +23,15 @@ def send_sms(msisdn, message, password, autologin):
     sms, sent = vumi_api.send(msisdn, message, password, autologin)
 
 
-@app.task(bind=True, default_retry_delay=300, max_retries=5)
+@app.task(default_retry_delay=300, max_retries=5)
 def bulk_send_all(queryset, message):
     vumi_api = VumiSmsApi()
     successful, fail = vumi_api.send_all(queryset, message)
     subject = 'Vumi SMS Send'
     message = "\n".join([
         "Message: " + message,
-        "Time: " + datetime.now(),
-        "Successful sends: " + successful,
+        "Time: " + str(datetime.now()),
+        "Successful sends: " + str(successful),
         "Failures: " + ", ".join(fail)
     ])
 
@@ -40,3 +40,5 @@ def bulk_send_all(queryset, message):
         message=message,
         fail_silently=False
     )
+
+    return successful, fail
