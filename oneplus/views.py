@@ -1649,34 +1649,19 @@ def ontrack(request, state, user):
 def leader(request, state, user):
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
-    request.session["state"]["leader_region"] = COUNTRYWIDE
+    request.session["state"]["leader_region"] = None
 
     def leader_position(location):
-        if location == COUNTRYWIDE:
-            return Participant.objects.filter(
-                classs=_participant.classs,
-                points__gt=_participant.points
-            ).count() + 1
 
-        if _participant.learner.area == location:
-            return Participant.objects.filter(
-                classs=_participant.classs,
+        return Participant.objects.filter(
+            classs=_participant.classs,
                 points__gt=_participant.points,
-                learner__area=location
             ).count() + 1
-        else:
-            return -1
 
     def get_leaderboard(location):
-        if location == COUNTRYWIDE:
-            return Participant.objects.filter(
-                classs=_participant.classs
-            ).order_by("-points")[:10]
-        else:
-            return Participant.objects.filter(
-                classs=_participant.classs,
-                learner__area=location
-            ).order_by("-points")[:10]
+        return Participant.objects.filter(
+            classs=_participant.classs,
+        ).order_by("-points")[:10]
 
     def get():
         request.session["state"]["leader_menu"] = False
