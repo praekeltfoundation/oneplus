@@ -1772,7 +1772,7 @@ def badges(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
     _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
-        .filter(course=_course).prefetch_related("badge")
+        .filter(course=_course).prefetch_related("badge").order_by('-badge__order')
     _badges = [scenario.badge for scenario in _allscenarios]
 
     # Link achieved badges
@@ -1787,7 +1787,7 @@ def badges(request, state, user):
         return render(request, "prog/badges.html", {
             "state": state,
             "user": user,
-            "badges": reversed(_badges),
+            "badges": _badges,
             "participant": _participant
         })
 
