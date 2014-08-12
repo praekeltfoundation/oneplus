@@ -10,9 +10,12 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import djcelery
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
+djcelery.setup_loader()
 
 def abspath(*args):
     """convert relative paths to absolute paths relative to PROJECT_ROOT"""
