@@ -9,8 +9,8 @@ from django.conf import settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mobileu.settings')
 
 app = Celery('mobileu.celery',
-             broker='amqp://guest:guest@localhost:5672/',
-             include=['mobileu.tasks'])
+             broker=settings.BROKER_URL,
+             include=settings.CELERY_IMPORTS)
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
