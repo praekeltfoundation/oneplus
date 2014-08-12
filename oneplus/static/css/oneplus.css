@@ -529,3 +529,9 @@ li.down_red {
 .block { display: block;}
 .pad-bottom { padding-bottom:25px !important; }
 .pad-top { padding-top:30px !important; }
+
+.label-question{
+    vertical-align:middle !important;
+    padding-top: 8px;
+    padding-bottom: 8px
+}
