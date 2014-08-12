@@ -144,7 +144,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     form = LearnerChangeForm
     add_form = LearnerCreationForm
     resource_class = LearnerResource
-
+    list_max_show_all = 1000
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
