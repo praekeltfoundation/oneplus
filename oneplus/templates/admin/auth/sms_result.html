@@ -3,14 +3,18 @@
 {% block content %}
 
 
+    {% if async %}
+        The number of SMSes to be sent is very large and may take some time.
+        The results will be emailed to you.
+    {% else %}
+        <p>{{ success_num }} sms' were sent successfully.</p>
 
-<p>{{ success_num }} SMSes were sent successfully.</p>
-
-    {% if fail %}
-    <p>The following users did not receive an SMS:</p>
-    {% for user in fail %}
-    <p>{{ user }}</p>
-    {% endfor %}
+        {% if fail %}
+            <p>The following users did not receive an sms:</p>
+            {% for user in fail %}
+                <p>{{ user }}</p>
+            {% endfor %}
+        {% endif %}
     {% endif %}
 
 <a href="{{ redirect }}"><input type="button" value="OK"></a>
