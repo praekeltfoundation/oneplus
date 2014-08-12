@@ -3,7 +3,7 @@ from core.models import *
 
 from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
     ParticipantFirstNameFilter, ParticipantLastNameFilter, \
-    ParticipantMobileFilter
+    ParticipantMobileFilter, ParticipantFilter, LearnerFilter
 
 
 class ParticipantInline(admin.TabularInline):
@@ -53,7 +53,7 @@ class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
         "option_selected",
         "correct")
     list_filter = (
-        "participant",
+        ParticipantFilter,
         "question",
         FirstNameFilter,
         LastNameFilter,
@@ -88,7 +88,7 @@ class ParticipantAdmin(admin.ModelAdmin):
     list_display = ("learner","get_firstname",
         "get_lastname", "classs" '')
     list_filter = (
-        "learner",
+        LearnerFilter,
         "classs",
         ParticipantFirstNameFilter,
         ParticipantLastNameFilter,
