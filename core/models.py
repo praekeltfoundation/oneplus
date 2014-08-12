@@ -21,8 +21,8 @@ class Class(models.Model):
     course = models.ForeignKey(Course, null=True, blank=False)
     type = models.PositiveIntegerField("Type", choices=(
         (1, "Traditional"), (2, "Open Class ")), default=1)
-    startdate = models.DateField("Start Date", null=True, blank=True)
-    enddate = models.DateField("End Date", null=True, blank=True)
+    startdate = models.DateTimeField("Start Date", null=True, blank=True)
+    enddate = models.DateTimeField("End Date", null=True, blank=True)
     # learners
     # mentors
     # managers
@@ -43,7 +43,7 @@ class Participant(models.Model):
     """
     learner = models.ForeignKey(Learner, verbose_name="Learner")
     classs = models.ForeignKey(Class, verbose_name="Class")
-    datejoined = models.DateField(verbose_name="Joined")
+    datejoined = models.DateTimeField(verbose_name="Joined")
     points = models.PositiveIntegerField(verbose_name="Points Scored",
                                          default=0)
     pointbonus = models.ManyToManyField(
@@ -115,7 +115,7 @@ class ParticipantQuestionAnswer(models.Model):
     option_selected = models.ForeignKey(
         TestingQuestionOption, verbose_name="Selected")
     correct = models.BooleanField("Correct")
-    answerdate = models.DateField(
+    answerdate = models.DateTimeField(
         "Answer Date", null=True, blank=False, default=datetime.now())
 
     def __str__(self):
