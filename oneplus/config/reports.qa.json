@@ -6,7 +6,7 @@
             "name": "Total Registered Participants",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "registered.participants",
                 "aggregator": "last"
             }
@@ -16,7 +16,7 @@
             "name": "Number of registered learners in past 24 hours",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.registered.participants",
                 "aggregator": "sum"
             }
@@ -26,7 +26,7 @@
             "name": "Number of registered learners in past 48 hours",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.registered.participants",
                 "aggregator": "sum"
             }
@@ -36,7 +36,7 @@
             "name": "Number of registered learners in past 7 days",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.registered.participants",
                 "aggregator": "sum"
             }
@@ -46,7 +46,7 @@
             "name": "Number of registered learners in past month",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.registered.participants",
                 "aggregator": "sum"
             }
@@ -56,7 +56,7 @@
             "name": "Number of active learners in past 24 hours",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.active.participants24",
                 "aggregator": "sum"
             }
@@ -66,7 +66,7 @@
             "name": "Number of active learners in past 48 hours",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.active.participants48",
                 "aggregator": "sum"
             }
@@ -76,7 +76,7 @@
             "name": "Number of active learners in past 7 days",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.active.participants7",
                 "aggregator": "sum"
             }
@@ -86,7 +86,7 @@
             "name": "Number of active learners in past month",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "running.active.participantsmonth",
                 "aggregator": "sum"
             }
@@ -96,7 +96,7 @@
             "name": "Answered Questions in past 24 hours",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "total.questions",
                 "aggregator": "sum"
             }
@@ -106,7 +106,7 @@
             "name": "Answered Questions in past 48 hours",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "total.questions",
                 "aggregator": "sum"
             }
@@ -116,7 +116,7 @@
             "name": "Answered Questions in past 7 days",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "total.questions",
                 "aggregator": "sum"
             }
@@ -126,7 +126,7 @@
             "name": "Answered Questions in past 32 days",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "total.questions",
                 "aggregator": "sum"
             }
@@ -136,7 +136,7 @@
             "name": "Percentage of questions answered correctly in past 24 hrs",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "questions.correct.24hr",
                 "aggregator": "last"
             }
@@ -146,7 +146,7 @@
             "name": "Percentage of questions answered correctly in past 48 hrs",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "questions.correct.48hr",
                 "aggregator": "last"
             }
@@ -156,7 +156,7 @@
             "name": "Percentage of questions answered correctly in past 7 days",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "questions.correct.7days",
                 "aggregator": "last"
             }
@@ -166,7 +166,7 @@
             "name": "Percentage of questions answered correctly in past 32 days",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "questions.correct.32days",
                 "aggregator": "last"
             }
@@ -176,7 +176,7 @@
             "name": "Percentage opt-ins",
             "target": {
                 "metric_type": "account",
-                "store": "oneplus_qa",
+                "store": "qa",
                 "name": "percentage.optin",
                 "aggregator": "last"
             }
@@ -192,7 +192,7 @@
                     "name": "Total Users",
                     "target": {
                         "metric_type": "account",
-                        "store": "oneplus_qa",
+                        "store": "qa",
                         "name": "unique.participants",
                         "aggregator": "last"
                     }
@@ -201,7 +201,7 @@
                     "name": "Total Registrations",
                     "target": {
                         "metric_type": "account",
-                        "store": "oneplus_qa",
+                        "store": "qa",
                         "name": "registered.participants",
                         "aggregator": "last"
                     }

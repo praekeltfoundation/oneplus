@@ -168,7 +168,7 @@ STATICFILES_FINDERS = (
 
 # Base url for vumi requests
 VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"
-VUMI_GO_CONVERSATION_KEY = "61237dd28e2d4e668a0ff212cea5f03d"
+VUMI_GO_CONVERSATION_KEY = "0bc156dc56c24c3fab5e63c92e09829f"
 VUMI_GO_ACCOUNT_KEY = "b365f245538841a08586a29b5b568c6c"
 VUMI_GO_ACCOUNT_TOKEN = "vaiToa6c"
 
