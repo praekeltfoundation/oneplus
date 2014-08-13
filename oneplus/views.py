@@ -23,6 +23,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from django.db.models import Q
+from lockout import LockedOut
 
 COUNTRYWIDE = "Countrywide"
 
@@ -111,11 +112,15 @@ def login(request, state):
     def post():
         form = LoginForm(request.POST)
         if form.is_valid():
-            # Check if this is a registered user
-            user = authenticate(
-                username=form.cleaned_data["username"],
-                password=form.cleaned_data["password"]
-            )
+            try:
+                # Check if this is a registered user
+                user = authenticate(
+                    username=form.cleaned_data["username"],
+                    password=form.cleaned_data["password"]
+                )
+            except LockedOut:
+                request.session["user_lockout"] = True
+                return redirect("auth.getconnected")
 
             # Check if user is registered
             exists = CustomUser.objects.filter(
@@ -136,6 +141,7 @@ def login(request, state):
                     return redirect("auth.getconnected")
             else:
                 # Save provided username
+                request.session["user_lockout"] = False
                 request.session["username"] = form.cleaned_data["username"]
                 request.session["wrong_password"] = True
                 return redirect("auth.getconnected")
@@ -281,12 +287,15 @@ def getconnected(request, state):
         exists = False
         username = None
         wrong_password = False
+        user_lockout = False
         if "user_exists" in request.session:
             exists = request.session["user_exists"]
         if "username" in request.session:
             username = request.session["username"]
         if "wrong_password" in request.session:
             wrong_password = request.session["wrong_password"]
+        if "user_lockout" in request.session:
+            user_lockout = request.session["user_lockout"]
         return render(
             request,
             "auth/getconnected.html",
@@ -294,7 +303,8 @@ def getconnected(request, state):
                 "state": state,
                 "exists": exists,
                 "provided_username": username,
-                "wrong_password": wrong_password
+                "wrong_password": wrong_password,
+                "user_lockout": user_lockout
             }
         )
 
