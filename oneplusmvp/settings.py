@@ -206,6 +206,8 @@ FIXTURE_DIRS = (
     abspath('fixtures'),
 )
 
+USE_TZ = False
+
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = '25'
 SERVER_EMAIL = 'info@oneplus.co.za'
