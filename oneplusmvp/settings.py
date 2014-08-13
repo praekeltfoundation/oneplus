@@ -79,6 +79,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'lockout.middleware.LockoutMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,6 +87,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+LOCKOUT_MAX_ATTEMPTS = 15
+LOCKOUT_TIME = 900
+LOCKOUT_ENFORCEMENT_WINDOW = 600
 
 ROOT_URLCONF = 'oneplusmvp.urls'
 

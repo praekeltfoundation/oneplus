@@ -5,7 +5,10 @@
 {% block content %}
 <div class="text heading darkgrey-back lightgrey-front"><p>Get Connected</p></div>
 <div class="content narrow darkgrey-back">
-
+{% if user_lockout %}
+<p>Your account has been locked out because of too many failed login attempts.
+    Please wait 15 minutes before trying again.</p>
+{% else %}
     {% if exists %}
         {% if wrong_password %}
             <p>
@@ -35,6 +38,7 @@
             </a>
         </p>
     {% endif %}
+{% endif %}
 </div>
 
 {% endblock %}
