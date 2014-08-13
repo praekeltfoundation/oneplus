@@ -50,11 +50,11 @@ class CourseAdmin(admin.ModelAdmin):
 
 
 class ModuleAdmin(admin.ModelAdmin):
-    list_display = ("course", "name", "description")
+    list_display = ("course", "name", "description", "is_active")
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None, {"fields": ["name", "description", "course"]})
+        (None, {"fields": ["name", "description", "is_active", "course"]})
     ]
     ordering = ("course", "name", )
 
