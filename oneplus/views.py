@@ -363,7 +363,8 @@ def home(request, state, user):
         participant=learnerstate.participant
     ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-        bank__module__course=learnerstate.participant.classs.course
+        bank__module__course=learnerstate.participant.classs.course,
+        bank__module__is_active=True,
     ).exclude(id__in=answered)
 
     if not questions:
@@ -462,7 +463,8 @@ def nextchallenge(request, state, user):
         participant=_learnerstate.participant
     ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-        bank__module__course=_learnerstate.participant.classs.course
+        bank__module__course=_learnerstate.participant.classs.course,
+        bank__module__is_active=True,
     ).exclude(id__in=answered)
 
     if not questions:
@@ -1017,7 +1019,7 @@ def right(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=None,
@@ -1036,7 +1038,7 @@ def right(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
@@ -1066,7 +1068,7 @@ def right(request, state, user):
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
@@ -1112,7 +1114,7 @@ def wrong(request, state, user):
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
@@ -1126,7 +1128,7 @@ def wrong(request, state, user):
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
@@ -1158,7 +1160,7 @@ def wrong(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=None,
@@ -1177,7 +1179,7 @@ def wrong(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     module=Module.objects.filter(
-                        course=_participant.classs.course
+                        course=_participant.classs.course,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
