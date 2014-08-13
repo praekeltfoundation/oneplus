@@ -1,4 +1,4 @@
-django-mobileu==1.0.35
+django-mobileu==1.0.37
 django-google-analytics-app==2.0.1
 raven
 psycopg2
@@ -6,3 +6,4 @@ django_bleach
 beautifulsoup4
 go_http
 celery==3.1.12
+django-lockout

@@ -25,6 +25,7 @@ def align(value):
     tags = soup.find_all('img')
     if tags:
         for tag in tags:
+            tag['style'] = 'vertical-align:middle'
             return tag
     else:
         return soup

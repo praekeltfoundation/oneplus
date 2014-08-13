@@ -93,7 +93,7 @@ class LearnerState(models.Model):
         today = self.today()
         diff = timedelta(today.weekday() + 2)
         last_week_saturday = today - diff
-        if first_question.answerdate >= last_week_saturday.date():
+        if first_question.answerdate >= last_week_saturday:
             return True
         else:
             return False
