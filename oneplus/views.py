@@ -1010,7 +1010,6 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=None,
@@ -1030,7 +1029,6 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
@@ -1061,7 +1059,6 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
@@ -1108,7 +1105,6 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
@@ -1123,7 +1119,6 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
@@ -1156,7 +1151,6 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=None,
@@ -1176,7 +1170,6 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     module=Module.objects.filter(
                         course=_participant.classs.course,
-                        bank__module__is_active=True,
                     ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
