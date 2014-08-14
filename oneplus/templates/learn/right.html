@@ -37,6 +37,27 @@
                 </div>
             </div>
             <div class="content narrow white-back darkgrey-front">
+            <p>{{ question.question_content | bleach | format_width }}</p>
+                        {% for opt in question.testingquestionoption_set.all %}
+                            <label for="answer_{{ opt.id }}">
+                            {% if opt.content %}
+                                {{ opt.content | align }} </label></br></br>
+                            {% else %}
+                                {{ opt.name }} </label></br></br>
+                            {% endif %}
+                        {% endfor %}
+            {% for opt in question.testingquestionoption_set.all %}
+                 {% if opt.correct%}
+                     <br><br/>
+                 <h1 class="green-front">Correct Answer is:</h1>
+                 <label for="answer_{{ opt.id }}">
+                            {% if opt.content %}
+                                {{ opt.content | align }} </label></br></br>
+                            {% else %}
+                                {{ opt.name }} </label></br></br>
+                            {% endif %}
+                 {% endif %}
+            {% endfor %}
                 <h1 class="green-front">Solution</h1>
                 <p>{{ question.answer_content| bleach | format_width  }}</p>
             </div>
