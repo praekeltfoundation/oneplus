@@ -30,6 +30,7 @@ class SystemAdministratorCreationForm(forms.ModelForm):
         # Save the provided password in hashed format
         user = super(SystemAdministratorCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        user.mobile = user.username
         if commit:
             user.save()
         return user
@@ -80,6 +81,7 @@ class SchoolManagerCreationForm(forms.ModelForm):
     def save(self, commit=True):
         # Save the provided password in hashed format
         user = super(SchoolManagerCreationForm, self).save(commit=False)
+        user.mobile = user.username
         user.set_password(self.cleaned_data["password1"])
         if commit:
             user.save()
@@ -132,6 +134,7 @@ class CourseManagerCreationForm(forms.ModelForm):
         # Save the provided password in hashed format
         user = super(CourseManagerCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        user.mobile = user.username
         if commit:
             user.save()
         return user
@@ -183,6 +186,7 @@ class CourseMentorCreationForm(forms.ModelForm):
         # Save the provided password in hashed format
         user = super(CourseMentorCreationForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        user.mobile = user.username
         if commit:
             user.save()
         return user
