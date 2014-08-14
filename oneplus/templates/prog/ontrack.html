@@ -14,7 +14,7 @@
 
     <div class="menu">
         {% for mod in modules %}
-            <div class="item text grey-back {% if mod.score > 80 %}green-front{% elif mod.score > 56 %}orange-front{% elif mod.score > -1 %}red-front{% else %}white-front{% endif %}"><p>{{ mod.name }}<span class="right large-font">{% if mod.score > -1 %}{{ mod.score }}% {% else %}<li class="icon ontrack"></li>{% endif %}</span></p></div>
+            <div class="item text grey-back {% if mod.score > 80 %}green-front{% elif mod.score > 56 %}orange-front{% elif mod.score > -1 %}red-front{% else %}white-front{% endif %}"><p>{{ mod.name }}<span class="right large-font">{% if mod.score > -1 %}{{ mod.score | floatformat:0 }}% {% else %}<li class="icon ontrack"></li>{% endif %}</span></p></div>
         {% endfor %}
     </div>
 
