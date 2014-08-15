@@ -35,7 +35,7 @@ register.filter('align', align)
 
 
 def strip_tags(value):
-    soup = BeautifulSoup(value)
+    soup = BeautifulSoup(unicode(value))
 
     tags = soup.findAll(True)
     if tags:
