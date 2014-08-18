@@ -16,7 +16,9 @@ def format_width(value):
                         if int(width[0]) > 280:
                             tag['style'] = 'width:100%'
 
-    return soup
+    if soup.body:
+        body = soup.body.extract()
+    return unicode(body)
 
 register.filter('format_width', format_width)
 
@@ -24,12 +26,17 @@ register.filter('format_width', format_width)
 def align(value):
 
     soup = BeautifulSoup(value)
-    tags = soup.find_all('img')
-    if tags:
-        for tag in tags:
-            tag['style'] = 'vertical-align:middle'
 
-    return soup
+    if soup.body:
+        body = soup.body.extract()
+        remove_tags(str(body), "body")
+        output = soup.new_tag("div")
+        list = body.contents[:]
+        for content in list:
+            output.append(content)
+        output['style'] = 'vertical-align:middle;display:inline-block;width:80%'
+
+    return u'%s' % output
 
 register.filter('align', align)
 
