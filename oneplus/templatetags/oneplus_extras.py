@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup, NavigableString
 from django import template
 import re
+from django.utils.html import remove_tags
 
 register = template.Library()
 
@@ -27,32 +28,15 @@ def align(value):
     if tags:
         for tag in tags:
             tag['style'] = 'vertical-align:middle'
-            return tag
-    else:
-        return soup
+
+    return soup
 
 register.filter('align', align)
 
 
 def strip_tags(value):
-    soup = value
+    content = remove_tags(value, "p")
+    return u'%s' % content
 
-    tags = soup.findAll(True)
-    if tags:
-        for tag in tags:
-            if tag.name in invalid_tags:
-                s = ""
-
-                for c in tag.contents:
-                    if not isinstance(c, NavigableString):
-                        c = strip_tags(unicode(c))
-                    s += unicode(c)
-
-                tag.replaceWith(s)
-        return soup
-    else:
-        return soup
-
-invalid_tags = ['p', 'br']
 
 register.filter('strip_tags', strip_tags)

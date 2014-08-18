@@ -21,7 +21,7 @@
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
                             <label class="label-question" for="answer_{{ opt.id }}">
                             {% if opt.content %}
-                                {{ opt.content |  align | strip_tags }} </label></br></br>
+                                {{ opt.content |  strip_tags | align }} </label></br></br>
                             {% else %}
                                 {{ opt.name }} </label></br></br>
                             {% endif %}
