@@ -10,12 +10,12 @@ def format_width(value):
     soup = BeautifulSoup(value)
     tags = soup.find_all('img')
     for tag in tags:
-            if tag is not None:
-                if "style" in str(tag):
-                    width = re.findall(r'\d+', tag['style'])
-                    if width:
-                        if int(width[0]) > 280:
-                            tag['style'] = 'width:100%'
+        if tag is not None:
+            if "style" in str(tag):
+                width = re.findall(r'\d+', tag['style'])
+                if width:
+                    if int(width[0]) > 280:
+                        tag['style'] = 'width:100%'
 
     if soup.body:
         body = get_content(soup)
