@@ -896,10 +896,49 @@ def adminpreview_wrong(request, questionid):
     return resolve_http_method(request, [get])
 
 
+
+def get_badge_awarded(participant):
+    # Get relevant badge related to scenario
+    badgepoints = None
+    badge = ParticipantBadgeTemplateRel.objects.filter(
+        participant=participant,
+        awarddate__range=[
+            datetime.today()-timedelta(seconds=1),
+            datetime.today()
+        ]
+    ).order_by('-awarddate').first()
+
+    if badge:
+        badgetemplate = badge.badgetemplate
+        badgepoints = GamificationScenario.objects.get(
+            badge__id=badgetemplate.id
+        ).point
+    else:
+        badgetemplate = None
+
+    return badgetemplate, badgepoints,
+
+def get_points_awarded(participant):
+    # Get relevant point related to scenario
+    points = ParticipantPointBonusRel.objects.filter(
+        participant=participant,
+        awarddate__range=[
+            datetime.today()-timedelta(seconds=1),
+            datetime.today()
+        ]
+    ).order_by('-awarddate').first()
+
+    if points is None:
+        return None
+    else:
+        return points.scenario.point.value
+
+
 # Right Answer Screen
 @oneplus_state_required
 @oneplus_login_required
 def right(request, state, user):
+    print 'state required'
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
@@ -943,53 +982,9 @@ def right(request, state, user):
                 ).order_by("publishdate")\
                 .reverse()[:request.session["state"]["discussion_page"]]
 
-            # Gameification scenario for correct question
-            _scenariobadge = GamificationScenario.objects.filter(
-                Q(
-                    module=_learnerstate.active_question.bank.module,
-                    course=_learnerstate.active_question.bank.module.course,
-                ) | Q(
-                    module=None,
-                    course=_learnerstate.active_question.bank.module.course,
-                )
-            )
-            _badgepoints = None
-
-            # Get relevant badge related to scenario
-            _badge = ParticipantBadgeTemplateRel.objects.filter(
-                participant=_participant,
-                scenario__in=_scenariobadge,
-                awarddate__range=[
-                    datetime.today()-timedelta(seconds=1),
-                    datetime.today()
-                ]
-            ).order_by('-awarddate').first()
-            if _badge:
-                _badgetemplate = _badge.badgetemplate
-                _badgepoints = GamificationScenario.objects.get(
-                    badge__id=_badgetemplate.id).point
-            else:
-                _badgetemplate = None
-
-            # Get points
-            _pointscenario = GamificationScenario.objects.filter(
-                module=_learnerstate.active_question.bank.module,
-                course=_learnerstate.active_question.bank.module.course,
-                event="CORRECT"
-            )
-
-            if _pointscenario.exists():
-                if _badgepoints is not None and _badgepoints.value > 0:
-                    _points = int(
-                        _pointscenario.first().point.value) + \
-                              int(_badgepoints.value)
-                else:
-                    _points = _pointscenario.first().point.value
-            else:
-                if _badgepoints is not None:
-                    _points = _badgepoints.value
-                else:
-                    _points = None
+            # Get badge points
+            badge, badge_points = get_badge_awarded(_participant)
+            points = get_points_awarded(_participant)
 
             return render(
                 request,
@@ -999,8 +994,8 @@ def right(request, state, user):
                     "user": user,
                     "question": _learnerstate.active_question,
                     "messages": _messages,
-                    "badge": _badgetemplate,
-                    "points": _points
+                    "badge": badge,
+                    "points": points
                 }
             )
         else:
@@ -1738,15 +1733,15 @@ def leader(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def points(request, state, user):
-    _particpant = Participant.objects.get(pk=user["participant_id"])
-    _course = _particpant.classs.course
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _course = _participant.classs.course
     _modules = Module.objects.filter(course=_course)
-    request.session["state"]["points_points"] = _particpant.points
+    request.session["state"]["points_points"] = _participant.points
 
     for m in _modules:
         m.score = max(
             ParticipantPointBonusRel.objects.filter(
-                participant=_particpant,
+                participant=_participant,
                 scenario__module=m)
             .select_related("pointbonus")
             .aggregate(sum=Sum("pointbonus__value"))["sum"], 0)
