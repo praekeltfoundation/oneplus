@@ -27,7 +27,10 @@ register.filter('format_width', format_width)
 def align(value):
 
     soup = BeautifulSoup(value)
-
+    tags = soup.find_all('img')
+    if tags:
+        for tag in tags:
+            tag['style'] = 'vertical-align:middle'
     if soup.body:
         body = get_content(soup)
         return body_to_div(body, soup)
