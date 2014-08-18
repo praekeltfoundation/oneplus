@@ -31,6 +31,8 @@ def align(value):
     if soup.body:
         body = get_content(soup)
         return body_to_div(body, soup)
+    else:
+        return value
 
 
 register.filter('align', align)
