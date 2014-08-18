@@ -9,6 +9,7 @@ from gamification.models import GamificationScenario, GamificationPointBonus,\
 from auth.models import Learner
 from communication.models import Message, ChatGroup, ChatMessage
 from oneplus.models import LearnerState
+from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 
 
@@ -432,3 +433,56 @@ class GeneralTests(TestCase):
             active_result=True,
         )
         self.assertEquals(learnerstate.get_total_questions(), 3)
+
+    def test_strip_tags(self):
+        content = "<p><b>Test</b></p>"
+        result = strip_tags(content)
+        self.assertEquals(result, "<b>Test</b>")
+
+    def test_align_image_only(self):
+        content = "<img/>"
+        result = align(content)
+        self.assertEquals(result, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block;width:80%"><img/>'
+                                  u'</div>')
+
+    def test_align_text_only(self):
+        content = "Test"
+        result = align(content)
+        self.assertEquals(result, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block;width:80%">'
+                                  u'Test</div>')
+
+    def test_align_text_and_image(self):
+        content = "<b>Test</b><img/>"
+        result = align(content)
+        self.assertEquals(result, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block;width:80%">'
+                                  u'<b>Test</b><img/></div>')
+
+    def test_align_double_image(self):
+        content = "<img/><img/>"
+        result = align(content)
+        self.assertEquals(result, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block;width:80%">'
+                                  u'<img/><img/></div>')
+
+    def test_align_then_strip(self):
+        content = "<b>Test</b><p></p><img/>"
+        result = align(content)
+        output = strip_tags(result)
+        self.assertEquals(output, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block;width:80%">'
+                                  u'<b>Test</b><img/></div>')
+
+    def test_format_width(self):
+        content = '<img style="width:300px"/>'
+        result = format_width(content)
+        self.assertEquals(result, u'<body><img style="width:100%"/></body>')
+
+    def test_filters_empty(self):
+        content = ""
+        result = align(content)
+        output = strip_tags(result)
+        self.assertEquals(output, u'<div></div>')
+        
