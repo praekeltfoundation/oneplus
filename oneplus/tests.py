@@ -443,7 +443,8 @@ class GeneralTests(TestCase):
         content = "<img/>"
         result = align(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%"><img/>'
+                                  u'display:inline-block;width:80%">'
+                                  u'<img style="vertical-align:middle"/>'
                                   u'</div>')
 
     def test_align_text_only(self):
@@ -458,14 +459,17 @@ class GeneralTests(TestCase):
         result = align(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
                                   u'display:inline-block;width:80%">'
-                                  u'<b>Test</b><img/></div>')
+                                  u'<b>Test</b><img style='
+                                  u'"vertical-align:middle"/></div>')
 
     def test_align_double_image(self):
         content = "<img/><img/>"
         result = align(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
                                   u'display:inline-block;width:80%">'
-                                  u'<img/><img/></div>')
+                                  u'<img style="vertical-align:middle"/>'
+                                  u'<img style="vertical-align:middle"/>'
+                                  u'</div>')
 
     def test_align_then_strip(self):
         content = "<b>Test</b><p></p><img/>"
@@ -473,7 +477,8 @@ class GeneralTests(TestCase):
         output = strip_tags(result)
         self.assertEquals(output, u'<div style="vertical-align:middle;'
                                   u'display:inline-block;width:80%">'
-                                  u'<b>Test</b><img/></div>')
+                                  u'<b>Test</b><img style="'
+                                  u'vertical-align:middle"/></div>')
 
     def test_format_width(self):
         content = '<img style="width:300px"/>'
