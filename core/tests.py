@@ -2,8 +2,10 @@ from django.test import TestCase
 from datetime import datetime
 from auth.models import Learner
 from organisation.models import Course, Module, School, Organisation
-from core.models import Participant, Class, ParticipantBadgeTemplateRel
-from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
+from core.models import Participant, Class, ParticipantBadgeTemplateRel, \
+    ParticipantPointBonusRel
+from gamification.models import GamificationBadgeTemplate, \
+    GamificationPointBonus, GamificationScenario
 
 
 class TestMessage(TestCase):
@@ -99,7 +101,11 @@ class TestMessage(TestCase):
         b = ParticipantBadgeTemplateRel.objects.get(participant=participant)
         self.assertTrue(b.awarddate)
 
-    def test_award_scenario_none_module(self):
+         # check that ParticipantPointTemplateRel has a datetime
+        b = ParticipantPointBonusRel.objects.get(participant=participant)
+        self.assertTrue(b.awarddate)
+
+    def test_award_scenario_datetime(self):
         participant = self.create_participant(
             self.learner,
             self.classs,
@@ -119,3 +125,8 @@ class TestMessage(TestCase):
         # check badge was awarded
         b = ParticipantBadgeTemplateRel.objects.get(participant=participant)
         self.assertTrue(b.awarddate)
+
+        # check that ParticipantPointTemplateRel has a datetime
+        b = ParticipantPointBonusRel.objects.get(participant=participant)
+        self.assertTrue(b.awarddate)
+

@@ -57,6 +57,7 @@ class Participant(models.Model):
         return self.learner.first_name
 
     def award_scenario(self, event, module):
+
         if module is not None:
             query = Q(event=event, course=self.classs.course, module=module) \
                 | Q(event=event, course=self.classs.course, module=None)
@@ -69,7 +70,7 @@ class Participant(models.Model):
             if scenario.point is not None:
                 p = ParticipantPointBonusRel(
                     participant=self, pointbonus=scenario.point,
-                    scenario=scenario)
+                    scenario=scenario, awarddate=datetime.now())
                 p.save()
 
             # Badges may only be awarded once
@@ -98,7 +99,8 @@ class ParticipantPointBonusRel(models.Model):
     participant = models.ForeignKey(Participant)
     pointbonus = models.ForeignKey(GamificationPointBonus)
     scenario = models.ForeignKey(GamificationScenario)
-    awarddate = models.DateTimeField("Award Date", null=True, blank=True)
+    awarddate = models.DateTimeField("Award Date", null=True, blank=True,
+                                     default=datetime.now())
 
 
 class ParticipantBadgeTemplateRel(models.Model):
