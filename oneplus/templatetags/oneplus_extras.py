@@ -30,15 +30,8 @@ def align(value):
 
     if soup.body:
         body = get_content(soup)
-        remove_bodytags(body)
-        output = soup.new_tag("div")
-        list = body.contents[:]
-        for content in list:
-            output.append(content)
-        output['style'] = \
-            'vertical-align:middle;display:inline-block;width:80%'
+        return body_to_div(body, soup)
 
-    return u'%s' % output
 
 register.filter('align', align)
 
@@ -55,6 +48,13 @@ def get_content(value):
     return value.body.extract()
 
 
-def remove_bodytags(body):
+def body_to_div(body, soup):
     remove_tags(str(body), "body")
+    output = soup.new_tag("div")
+    list = body.contents[:]
+    for content in list:
+        output.append(content)
+        output['style'] = \
+            'vertical-align:middle;display:inline-block;width:80%'
 
+    return u'%s' % output

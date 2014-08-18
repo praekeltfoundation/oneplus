@@ -484,7 +484,5 @@ class GeneralTests(TestCase):
         content = ""
         result = align(content)
         output = strip_tags(result)
-        self.assertEquals(output, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'</div>')
+        self.assertEquals(output, u'<div></div>')
         
