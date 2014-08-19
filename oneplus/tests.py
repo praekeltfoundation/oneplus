@@ -515,23 +515,3 @@ class GeneralTests(TestCase):
         self.assertEqual(point, 5)
         self.assertEqual(badge, self.badge_template)
 
-    def test_right_view_(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        question = self.create_test_question('question1', self.testbank,
-                                             question_content='test question')
-        questionoption = self.create_test_question_option('questionoption1',
-                                                          question)
-
-        # Post a correct answer
-        self.client.post(
-            reverse('learn.next'),
-            data={'answer': questionoption.id}
-        )
-        point = get_points_awarded(self.participant)
-        badge, badge_points = get_badge_awarded(self.participant)
-        self.assertEqual(point, 5)
-        self.assertEqual(badge, self.badge_template)
-
