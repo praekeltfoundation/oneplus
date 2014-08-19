@@ -508,12 +508,87 @@ class GeneralTests(TestCase):
         # Post a correct answer
         self.client.post(
             reverse('learn.next'),
-            data={'answer': questionoption.id}
+            data={'answer': questionoption.id},
         )
         point = get_points_awarded(self.participant)
         badge, badge_points = get_badge_awarded(self.participant)
         self.assertEqual(point, 5)
         self.assertEqual(badge, self.badge_template)
+
+    def test_wrong_view(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+
+        questionoption1 = self.create_test_question_option('questionoption1',
+                                                          question)
+        questionoption2 = TestingQuestionOption.objects.create(
+            name='questionoption2',
+            question=question,
+            correct=False
+        )
+
+        # Post a incorrect answer
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={'answer': questionoption2.id},
+            follow=True
+        )
+        self.assertContains(resp, "Incorrect")
+
+    def test_welcome_screen(self):
+        resp = self.client.get(reverse('misc.welcome'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.welcome'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_about_screen(self):
+        resp = self.client.get(reverse('misc.about'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.about'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_contact_screen(self):
+        resp = self.client.get(reverse('misc.contact'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.contact'), follow=True)
+        self.assertContains(resp, "Please complete the following fields:")
+
+    def test_menu_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('core.menu'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('core.menu'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_login(self):
+        resp = self.client.get(reverse('auth.login'))
+        self.assertEquals(resp.status_code, 200)
+
+        self.learner = self.create_learner(
+            self.school,
+            username="+27198765432",
+            password="1234",
+            mobile="+27198765432",
+            )
+
+        resp = self.client.post(reverse('auth.login'),data={
+                                'username':"+27198765432",
+                                'password':"1235"},
+                                follow=True)
+
+        self.assertContains(resp, "You seem to have "
+                                  "entered an incorrect password.")
 
 
 class LearnerStateTest(TestCase):
