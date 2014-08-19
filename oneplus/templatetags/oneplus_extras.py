@@ -1,8 +1,10 @@
 from bs4 import BeautifulSoup, NavigableString
 from django import template
 import re
+from django.utils.html import remove_tags
 
 register = template.Library()
+
 
 def format_width(value):
     soup = BeautifulSoup(value)
@@ -15,7 +17,9 @@ def format_width(value):
                         if int(width[0]) > 280:
                             tag['style'] = 'width:100%'
 
-    return soup
+    if soup.body:
+        body = get_content(soup)
+    return unicode(body)
 
 register.filter('format_width', format_width)
 
@@ -27,32 +31,35 @@ def align(value):
     if tags:
         for tag in tags:
             tag['style'] = 'vertical-align:middle'
-            return tag
+    if soup.body:
+        body = get_content(soup)
+        return body_to_div(body, soup)
     else:
-        return soup
+        return value
+
 
 register.filter('align', align)
 
 
 def strip_tags(value):
-    soup = BeautifulSoup(unicode(value))
+    content = remove_tags(value, "p")
+    return u'%s' % content
 
-    tags = soup.findAll(True)
-    if tags:
-        for tag in tags:
-            if tag.name in invalid_tags:
-                s = ""
-
-                for c in tag.contents:
-                    if not isinstance(c, NavigableString):
-                        c = strip_tags(unicode(c))
-                    s += unicode(c)
-
-                tag.replaceWith(s)
-        return soup
-    else:
-        return soup
-
-invalid_tags = ['p', 'br']
 
 register.filter('strip_tags', strip_tags)
+
+
+def get_content(value):
+    return value.body.extract()
+
+
+def body_to_div(body, soup):
+    remove_tags(str(body), "body")
+    output = soup.new_tag("div")
+    list = body.contents[:]
+    for content in list:
+        output.append(content)
+        output['style'] = \
+            'vertical-align:middle;display:inline-block;width:80%'
+
+    return u'%s' % output
