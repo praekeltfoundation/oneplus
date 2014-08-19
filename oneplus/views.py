@@ -922,10 +922,6 @@ def get_points_awarded(participant):
     # Get relevant point related to scenario
     points = ParticipantPointBonusRel.objects.filter(
         participant=participant,
-        awarddate__range=[
-            datetime.today()-timedelta(seconds=5),
-            datetime.today()
-        ]
     ).order_by('-awarddate').first()
 
     if points is None:
