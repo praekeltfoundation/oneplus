@@ -582,15 +582,13 @@ class GeneralTests(TestCase):
             mobile="+27198765432",
             )
 
-        resp = self.client.post(reverse('auth.login'),
-                                username="+27198765432",
-                                password="1234",
+        resp = self.client.post(reverse('auth.login'),data={
+                                'username':"+27198765432",
+                                'password':"1235"},
                                 follow=True)
 
-        self.assertEquals(resp,1)
-
-
-
+        self.assertContains(resp, "You seem to have "
+                                  "entered an incorrect password.")
 
 
 class LearnerStateTest(TestCase):
