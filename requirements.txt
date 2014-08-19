@@ -1,5 +1,5 @@
 django-mobileu==1.0.40
-django-google-analytics-app==2.0.1
+django-google-analytics-app==2.0.3
 raven
 psycopg2
 django_bleach
