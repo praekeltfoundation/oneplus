@@ -903,7 +903,7 @@ def get_badge_awarded(participant):
     badge = ParticipantBadgeTemplateRel.objects.filter(
         participant=participant,
         awarddate__range=[
-            datetime.today()-timedelta(seconds=1),
+            datetime.today()-timedelta(seconds=2),
             datetime.today()
         ]
     ).order_by('-awarddate').first()
@@ -923,7 +923,7 @@ def get_points_awarded(participant):
     points = ParticipantPointBonusRel.objects.filter(
         participant=participant,
         awarddate__range=[
-            datetime.today()-timedelta(seconds=1),
+            datetime.today()-timedelta(seconds=2),
             datetime.today()
         ]
     ).order_by('-awarddate').first()
