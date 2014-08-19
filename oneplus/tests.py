@@ -177,6 +177,7 @@ class GeneralTests(TestCase):
             reverse('learn.next'),
             data={'comment': 'test','page':1},follow=True)
 
+        self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'test')
 
 
@@ -204,6 +205,9 @@ class GeneralTests(TestCase):
             reverse('learn.right'),
             data={'comment': 'test','page':1},follow=True)
 
+        self.assertEquals(resp.status_code, 200)
+
+
     def test_wronganswer(self):
         self.client.get(
             reverse(
@@ -223,7 +227,10 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('learn.wrong'),
-            data={'comment': 'test','page':1},follow=True)
+            data={'comment': 'test', 'page': 1}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
 
     def test_inbox(self):
         self.client.get(
@@ -244,7 +251,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('com.inbox'),
-            data={'hide':'yes'})
+            data={'hide':1})
         self.assertEquals(resp.status_code, 200)
 
     def test_inbox_detail(self):
