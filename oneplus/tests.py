@@ -7,7 +7,7 @@ from content.models import TestingBank, TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationPointBonus,\
     GamificationBadgeTemplate
 from auth.models import Learner
-from communication.models import Message, ChatGroup, ChatMessage
+from communication.models import Message, ChatGroup, ChatMessage, Post
 from oneplus.models import LearnerState
 from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
@@ -228,6 +228,11 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'test message')
 
+        resp = self.client.post(
+            reverse('com.inbox'),
+            data={'hide':'yes'})
+        self.assertEquals(resp.status_code, 200)
+
     def test_inbox_detail(self):
         self.client.get(
             reverse(
@@ -245,6 +250,12 @@ class GeneralTests(TestCase):
             reverse('com.inbox_detail', kwargs={'messageid': msg.id}))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'test message')
+
+        resp = self.client.post(
+            reverse('com.inbox_detail',
+                    kwargs={'messageid': msg.id}),
+            data={'hide':'yes'})
+        self.assertEquals(resp.status_code, 302)
 
     def test_chat(self):
         self.client.get(reverse('auth.autologin',
@@ -266,6 +277,32 @@ class GeneralTests(TestCase):
         )
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'chatmsg1content')
+
+        resp = self.client.post(reverse(
+            'com.chat',
+            kwargs={'chatid': chatgroup.id}),
+                                data={'comment':'test'},
+                                follow=True
+        )
+
+        self.assertContains(resp, 'test')
+
+    def test_inbox(self):
+        self.client.get(reverse('auth.autologin',
+                                kwargs={'token': self.learner.unique_token}))
+
+        resp = self.client.get(reverse('com.inbox_send'))
+        self.assertEquals(resp.status_code,200)
+
+    def test_chatgroups(self):
+        self.client.get(reverse('auth.autologin',
+                                kwargs={'token': self.learner.unique_token}))
+
+        resp = self.client.get(reverse('com.chatgroups'))
+        self.assertEquals(resp.status_code,200)
+
+        resp = self.client.post(reverse('com.chatgroups'))
+        self.assertEquals(resp.status_code,200)
 
     @patch.object(LearnerState, 'today')
     def test_training_sunday(self, mock_get_today):
@@ -515,6 +552,7 @@ class GeneralTests(TestCase):
         self.assertEqual(point, 5)
         self.assertEqual(badge, self.badge_template)
 
+
     def test_wrong_view(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -589,6 +627,74 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, "You seem to have "
                                   "entered an incorrect password.")
+
+    def test_points_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('prog.points'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('prog.points'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_leaderboard_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('prog.leader'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('prog.leader'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_ontrack_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('prog.ontrack'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('prog.ontrack'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+
+
+    def test_bloglist_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('com.bloglist'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('com.bloglist'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_bloghero_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('com.bloghero'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('com.bloghero'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_signout_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('auth.signout'))
+        self.assertEquals(resp.status_code, 302)
+
+        resp = self.client.post(reverse('auth.signout'), follow=True)
+        self.assertEquals(resp.status_code, 200)
 
 
 class LearnerStateTest(TestCase):
