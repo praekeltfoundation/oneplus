@@ -11,6 +11,7 @@ from communication.models import Message, ChatGroup, ChatMessage
 from oneplus.models import LearnerState
 from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
+from models import LearnerState
 from views import get_points_awarded, get_badge_awarded
 
 class GeneralTests(TestCase):
@@ -513,4 +514,139 @@ class GeneralTests(TestCase):
         badge, badge_points = get_badge_awarded(self.participant)
         self.assertEqual(point, 5)
         self.assertEqual(badge, self.badge_template)
+
+
+class LearnerStateTest(TestCase):
+    def create_course(self, name="course name", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_module(self, name, course, **kwargs):
+        return Module.objects.create(name=name, course=course, **kwargs)
+
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(
+            name=name, organisation=organisation, **kwargs)
+
+    def create_learner(self, school, **kwargs):
+        return Learner.objects.create(school=school, **kwargs)
+
+    def create_participant(self, learner, classs, **kwargs):
+        return Participant.objects.create(
+            learner=learner, classs=classs, **kwargs)
+
+    def create_testing_bank(self, name, module, **kwargs):
+        return TestingBank.objects.create(name=name, module=module, **kwargs)
+
+    def create_test_question(self, name, bank, **kwargs):
+        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
+
+    def create_test_question_option(self, name, question):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=True)
+
+    def setUp(self):
+        self.course = self.create_course()
+        self.classs = self.create_class('class name', self.course)
+        self.organisation = self.create_organisation()
+        self.school = self.create_school('school name', self.organisation)
+        self.learner = self.create_learner(
+            self.school,
+            username="+27123456789",
+            country="country",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+        self.participant = self.create_participant(
+            self.learner, self.classs, datejoined=datetime.now())
+        self.module = self.create_module('module name', self.course)
+        self.testbank = self.create_testing_bank('testbank name', self.module)
+        self.question = self.create_test_question('q1', self.testbank)
+        self.option = self.create_test_question_option('option_1',self.question)
+
+        self.learner_state = LearnerState.objects.create(
+            participant=self.participant,
+            active_question=self.question
+        )
+        self.today = self.learner_state.today()
+
+    def test_get_week_range(self):
+        week_range = self.learner_state.get_week_range()
+
+        self.assertEquals(week_range[0].date(), datetime.today().date() -timedelta(days=datetime.today().weekday()))
+        self.assertEquals(week_range[1].date(), datetime.today().date() -timedelta(days=1))
+
+    def test_get_number_questions(self):
+        #returns required - answered * questions per day(3)
+        answered = 0
+        number_questions = self.learner_state.get_number_questions(answered,0)
+        self.assertEquals(number_questions, 3)
+
+        answered = 14
+        number_questions = self.learner_state.get_number_questions(answered,6)
+        self.assertEquals(number_questions, 7)
+
+    def test_is_weekend(self):
+        day = 5 #Saturday
+        self.assertTrue(self.learner_state.is_weekend(day))
+
+        day = 2 #Wednesday
+        self.assertFalse(self.learner_state.is_weekend(day))
+
+    def test_get_all_answered(self):
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=self.today-timedelta(days=1),
+            correct=True
+        )
+        answer.save()
+        answered = self.learner_state.get_all_answered().count()
+        self.assertEquals(answered, 1)
+
+    def test_get_training_questions(self):
+        offset = (datetime.today().weekday() - 6) % 7
+        last_saturday = datetime.today() - timedelta(days=offset)
+
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=last_saturday,
+            correct=True
+        )
+        answer.save()
+
+        traing_questions = self.learner_state.get_training_questions()
+
+        self.assertEquals(traing_questions.__len__(), 1)
+
+    def test_is_training_week(self):
+        offset = (datetime.today().weekday() - 6) % 7
+        last_saturday = datetime.today() - timedelta(days=offset)
+
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=last_saturday,
+            correct=True
+        )
+        answer.save()
+
+        traing_questions = self.learner_state.get_training_questions()
+
+        self.assertTrue(self.learner_state.is_training_week(traing_questions))
+
+    def test_getnextquestion(self):
+        active_question = self.learner_state.getnextquestion()
+
+        self.assertEquals(active_question.name,'q1')
+
+
 
