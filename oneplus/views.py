@@ -417,22 +417,24 @@ def home(request, state, user):
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
-            _learner.last_active_date = datetime.now() - timedelta(days=32)
+            _learner.last_active_date = datetime.now() - timedelta(days=33)
 
         last_active = _learner.last_active_date.date()
         now = datetime.now().date()
+        days_ago = now - last_active
 
-        if last_active < now - timedelta(days=1):
+        if days_ago >= timedelta(days=1):
             _learner.last_active_date = datetime.now()
             _learner.save()
             update_metric("running.active.participants24", 1, "SUM")
-            if last_active < now - timedelta(days=2):
+        if days_ago >= timedelta(days=32):
+            update_metric("running.active.participantsmonth", 1, "SUM")
+        if days_ago >= timedelta(days=7):
+            update_metric("running.active.participants7", 1, "SUM")
+        if days_ago >= timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
-                if last_active < now - timedelta(days=7):
-                    update_metric("running.active.participants7", 1, "SUM")
-                    if last_active < now - timedelta(days=32):
-                        update_metric("running.active.participantsmonth", 1,
-                                      "SUM")
+
+
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
@@ -523,7 +525,7 @@ def nextchallenge(request, state, user):
     def update_perc_correct_answers(name, days_ago):
         date_range = (
             datetime.now().date() - timedelta(days=days_ago),
-            datetime.now().date(),
+            datetime.now(),
         )
         total = ParticipantQuestionAnswer.objects.filter(
             answerdate__range=date_range

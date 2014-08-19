@@ -180,33 +180,6 @@
                 "name": "percentage.optin",
                 "aggregator": "last"
             }
-        },
-        {
-            "type": "diamondash.widgets.graph.GraphWidget",
-            "name": "Total Users and Total Registrations per Week",
-            "width": 12,
-            "time_range": "14d",
-            "bucket_size": "1h",
-            "metrics": [
-                {
-                    "name": "Total Users",
-                    "target": {
-                        "metric_type": "account",
-                        "store": "qa",
-                        "name": "unique.participants",
-                        "aggregator": "last"
-                    }
-                },
-                {
-                    "name": "Total Registrations",
-                    "target": {
-                        "metric_type": "account",
-                        "store": "qa",
-                        "name": "registered.participants",
-                        "aggregator": "last"
-                    }
-                }
-            ]
         }
     ]
 }
