@@ -13,6 +13,8 @@ from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 from models import LearnerState
 from views import get_points_awarded, get_badge_awarded
+from utils import get_today
+from admin import OnePlusLearnerAdmin
 
 class GeneralTests(TestCase):
 
@@ -173,7 +175,12 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('learn.next'),
-            data={'answer': questionoption1.id})
+            data={'comment': 'test','page':1},follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'test')
+
+
 
     def test_rightanswer(self):
         self.client.get(
@@ -194,6 +201,13 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.right'))
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(
+            reverse('learn.right'),
+            data={'comment': 'test','page':1},follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
+
     def test_wronganswer(self):
         self.client.get(
             reverse(
@@ -210,6 +224,13 @@ class GeneralTests(TestCase):
         )
         resp = self.client.get(reverse('learn.wrong'))
         self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('learn.wrong'),
+            data={'comment': 'test', 'page': 1}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
 
     def test_inbox(self):
         self.client.get(
@@ -230,7 +251,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('com.inbox'),
-            data={'hide':'yes'})
+            data={'hide':1})
         self.assertEquals(resp.status_code, 200)
 
     def test_inbox_detail(self):
@@ -287,7 +308,7 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, 'test')
 
-    def test_inbox(self):
+    def test_inbox_send(self):
         self.client.get(reverse('auth.autologin',
                                 kwargs={'token': self.learner.unique_token}))
 
@@ -828,6 +849,10 @@ class LearnerStateTest(TestCase):
         active_question = self.learner_state.getnextquestion()
 
         self.assertEquals(active_question.name,'q1')
+
+    def test_get_today(self):
+        self.assertEquals(get_today().date(),datetime.today().date())
+
 
 
 
