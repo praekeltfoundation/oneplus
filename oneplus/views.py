@@ -468,7 +468,7 @@ def nextchallenge(request, state, user):
     ).exclude(id__in=answered)
 
     if not questions:
-        return HttpResponseRedirect("home")
+        return redirect("learn.home")
 
     request.session["state"]["next_tasks_today"] = \
         ParticipantQuestionAnswer.objects.filter(
@@ -504,7 +504,7 @@ def nextchallenge(request, state, user):
 
         state["total_tasks_today"] = _learnerstate.get_total_questions()
         if state['next_tasks_today'] > state["total_tasks_today"]:
-            return HttpResponseRedirect("home")
+            return redirect("learn.home")
 
         return render(request, "learn/next.html", {
             "state": state,
@@ -634,10 +634,10 @@ def nextchallenge(request, state, user):
                         _learnerstate.active_question.bank.module
                     )
 
-                return HttpResponseRedirect("right")
+                return redirect("learn.right")
 
             else:
-                return HttpResponseRedirect("wrong")
+                return redirect("learn.wrong")
 
         # new comment created
         elif "comment" in request.POST.keys() \
@@ -923,7 +923,7 @@ def get_points_awarded(participant):
     points = ParticipantPointBonusRel.objects.filter(
         participant=participant,
         awarddate__range=[
-            datetime.today()-timedelta(seconds=2),
+            datetime.today()-timedelta(seconds=5),
             datetime.today()
         ]
     ).order_by('-awarddate').first()
@@ -938,7 +938,7 @@ def get_points_awarded(participant):
 @oneplus_state_required
 @oneplus_login_required
 def right(request, state, user):
-    print 'state required'
+
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(

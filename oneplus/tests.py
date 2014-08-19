@@ -493,7 +493,6 @@ class GeneralTests(TestCase):
         result = align(content)
         output = strip_tags(result)
         self.assertEquals(output, u'<div></div>')
-        
 
     def test_right_view(self):
         self.client.get(reverse(
