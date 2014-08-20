@@ -347,6 +347,30 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
+    def test_blog(self):
+        self.client.get(reverse('auth.autologin',
+                                kwargs={'token': self.learner.unique_token}))
+        blog = Post.objects.create(
+            name='testblog',
+            course=self.course,
+            publishdate=datetime.now()
+        )
+        blog.save()
+
+        resp = self.client.get(reverse(
+            'com.blog',
+            kwargs={'blogid': blog.id})
+        )
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse(
+            'com.blog',
+            kwargs={'blogid': blog.id})
+        )
+        self.assertEquals(resp.status_code, 200)
+
+
+
 
     def test_inbox_send(self):
         self.client.get(reverse('auth.autologin',
@@ -763,6 +787,13 @@ class GeneralTests(TestCase):
         )
         learner.save()
 
+
+        resp = c.post(reverse('auth.login'),data={
+                                'username':"+27231231231",
+                                'password':'1234'},
+                                follow=True)
+        self.assertContains(resp, "You are not currently linked to a class")
+
         self.create_participant(learner,self.classs,datejoined=datetime.now())
 
         resp = c.post(reverse('auth.login'),data={
@@ -789,6 +820,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('prog.points'), follow=True)
         self.assertEquals(resp.status_code, 200)
+
 
     def test_leaderboard_screen(self):
         self.client.get(reverse(
@@ -1004,6 +1036,7 @@ class LearnerStateTest(TestCase):
 
     def test_get_today(self):
         self.assertEquals(get_today().date(),datetime.today().date())
+
 
 
 
