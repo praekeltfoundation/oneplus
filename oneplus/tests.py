@@ -13,6 +13,8 @@ from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 from models import LearnerState
 from views import get_points_awarded, get_badge_awarded
+from go_http import HttpApiSender
+
 
 class GeneralTests(TestCase):
 
@@ -123,6 +125,8 @@ class GeneralTests(TestCase):
             point=self.pointbonus,
             badge=self.badge_template
         )
+        self.outgoing_vumi_text = []
+        self.outgoing_vumi_metrics = []
 
     def test_get_next_question(self):
         self.create_test_question('question1', self.testbank)
@@ -661,8 +665,6 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.ontrack'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-
-
     def test_bloglist_screen(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -695,6 +697,26 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('auth.signout'), follow=True)
         self.assertEquals(resp.status_code, 200)
+
+    def test_smspassword_get(self):
+        resp = self.client.get(reverse('auth.smspassword'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def save_send_text_values(self, to_addr, content):
+        self.outgoing_vumi_text.append((to_addr, content))
+
+    def test_smspassword_post(self):
+        resp = self.client.post(
+            reverse('auth.smspassword'),
+            {
+                'msisdn': '+27123456789',
+
+            },
+            follow=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Your new password has been SMSed to you.")
 
 
 class LearnerStateTest(TestCase):
@@ -770,6 +792,7 @@ class LearnerStateTest(TestCase):
         answered = 14
         number_questions = self.learner_state.get_number_questions(answered,6)
         self.assertEquals(number_questions, 7)
+
 
     def test_is_weekend(self):
         day = 5 #Saturday
