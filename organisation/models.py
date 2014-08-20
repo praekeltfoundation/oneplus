@@ -80,6 +80,7 @@ class Module(models.Model):
     description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     is_active = models.BooleanField("Is Active", default=True)
+    order = models.IntegerField("Order Number", null=True,blank=True)
     # learning
     # testing
     # gamification

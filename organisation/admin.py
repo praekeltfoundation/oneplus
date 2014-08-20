@@ -12,8 +12,8 @@ class SchoolInline(admin.TabularInline):
 class ModuleInline(admin.TabularInline):
     model = Module
     extra = 1
-    fields = ("name", "description")
-    ordering = ("name", )
+    fields = ("name", "description", "order")
+    ordering = ("order", )
 
 
 class OrganisationAdmin(admin.ModelAdmin):
