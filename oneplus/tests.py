@@ -6,15 +6,16 @@ from organisation.models import Organisation, School, Module
 from content.models import TestingBank, TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationPointBonus,\
     GamificationBadgeTemplate
-from auth.models import Learner
+from auth.models import Learner, CustomUser
+from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post
 from oneplus.models import LearnerState
 from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 from models import LearnerState
-from views import get_points_awarded, get_badge_awarded
+from views import get_points_awarded, get_badge_awarded, get_week_day
 from utils import get_today
-from admin import OnePlusLearnerAdmin
+
 
 class GeneralTests(TestCase):
 
@@ -51,7 +52,7 @@ class GeneralTests(TestCase):
         return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
 
     def create_badgetemplate(self, name='badge template name', **kwargs):
-        return GamificationBadgeTemplate.objects.create(name=name, **kwargs)
+        return GamificationBadgeTemplate.objects.create(name=name,image="none", **kwargs)
 
     def create_pointbonus(self, name='point bonus name', **kwargs):
         return GamificationPointBonus.objects.create(name=name, **kwargs)
@@ -175,11 +176,24 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('learn.next'),
-            data={'comment': 'test','page':1},follow=True)
+            data={'comment': 'test'},follow=True)
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'test')
 
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={'reply': 'testreply','reply_button':1}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse(
+            'learn.next'),
+                                data={'page':1},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
 
 
     def test_rightanswer(self):
@@ -203,7 +217,15 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('learn.right'),
-            data={'comment': 'test','page':1},follow=True)
+            data={'comment': 'test'},follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse(
+            'learn.right'),
+                                data={'page':1},
+                                follow=True
+        )
 
         self.assertEquals(resp.status_code, 200)
 
@@ -227,7 +249,15 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('learn.wrong'),
-            data={'comment': 'test', 'page': 1}, follow=True)
+            data={'comment': 'test'}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse(
+            'learn.wrong'),
+                                data={'page':1},
+                                follow=True
+        )
 
         self.assertEquals(resp.status_code, 200)
 
@@ -308,12 +338,28 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, 'test')
 
+        resp = self.client.post(reverse(
+            'com.chat',
+            kwargs={'chatid': chatgroup.id}),
+                                data={'page':1},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+
     def test_inbox_send(self):
         self.client.get(reverse('auth.autologin',
                                 kwargs={'token': self.learner.unique_token}))
 
         resp = self.client.get(reverse('com.inbox_send'))
         self.assertEquals(resp.status_code,200)
+
+        resp = self.client.post(
+            reverse('com.inbox_send'),
+            data={'comment': 'test'},follow=True)
+
+        self.assertEquals(resp.status_code, 200)
 
     def test_chatgroups(self):
         self.client.get(reverse('auth.autologin',
@@ -572,7 +618,63 @@ class GeneralTests(TestCase):
         badge, badge_points = get_badge_awarded(self.participant)
         self.assertEqual(point, 5)
         self.assertEqual(badge, self.badge_template)
+        
 
+    def test_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+        self.questionoption = self.create_test_question_option('questionoption1',
+                                                          self.question)
+
+        resp = c.get(reverse('learn.preview',kwargs={'questionid':self.question.id}))
+
+        self.assertContains(resp,"test question")
+
+        # Post a correct answer
+        resp = c.post(
+            reverse('learn.preview',kwargs={'questionid':self.question.id}),
+            data={'answer': self.questionoption.id},follow=True
+        )
+
+        self.assertContains(resp, "Correct")
+
+    def test_right_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+        self.questionoption = self.create_test_question_option('questionoption1',
+                                                          self.question)
+
+        resp = c.get(reverse('learn.preview.right',kwargs={'questionid':self.question.id}))
+
+        self.assertContains(resp,"Correct")
+
+    def test_wrong_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+        self.questionoption = self.create_test_question_option('questionoption1',
+                                                          self.question)
+
+        resp = c.get(reverse('learn.preview.wrong',kwargs={'questionid':self.question.id}))
+
+        self.assertContains(resp,"Incorrect")
 
     def test_wrong_view(self):
         self.client.get(reverse(
@@ -619,6 +721,12 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('misc.contact'), follow=True)
         self.assertContains(resp, "Please complete the following fields:")
 
+    def test_get_week_day(self):
+        day = get_week_day()
+        self.assertLess(day, 7)
+        self.assertGreaterEqual(day, 0)
+
+
     def test_menu_screen(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -634,20 +742,42 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.login'))
         self.assertEquals(resp.status_code, 200)
 
-        self.learner = self.create_learner(
-            self.school,
-            username="+27198765432",
-            password="1234",
-            mobile="+27198765432",
-            )
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
 
-        resp = self.client.post(reverse('auth.login'),data={
+        c = Client()
+        c.login(username=my_admin.username, password=password)
+
+
+        resp = c.post(reverse('auth.login'),data={
                                 'username':"+27198765432",
-                                'password':"1235"},
+                                'password':password},
                                 follow=True)
 
-        self.assertContains(resp, "You seem to have "
-                                  "entered an incorrect password.")
+        self.assertContains(resp, "OnePlus is currently in test phase")
+
+        learner = Learner.objects.create_user(
+            username="+27231231231",
+            mobile="+27231231231",
+            password='1234'
+        )
+        learner.save()
+
+        self.create_participant(learner,self.classs,datejoined=datetime.now())
+
+        resp = c.post(reverse('auth.login'),data={
+                                'username':"+27231231231",
+                                'password':'1235'},
+                                follow=True)
+
+        self.assertContains(resp, "incorrect password")
+
+        resp = c.post(reverse('auth.login'),data={
+                                'username':"+27231231231",
+                                'password':'1234'},
+                                follow=True)
+
+        self.assertContains(resp, "WELCOME")
 
     def test_points_screen(self):
         self.client.get(reverse(
@@ -695,6 +825,16 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('com.bloglist'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(reverse(
+            'com.bloglist'),
+                                data={'page':1},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+
+
     def test_bloghero_screen(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -705,6 +845,18 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('com.bloghero'), follow=True)
         self.assertEquals(resp.status_code, 200)
+
+    def test_badge_screen(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('prog.badges'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('prog.badges'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
 
     def test_signout_screen(self):
         self.client.get(reverse(
