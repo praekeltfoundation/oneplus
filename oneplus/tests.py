@@ -369,7 +369,24 @@ class GeneralTests(TestCase):
         )
         self.assertEquals(resp.status_code, 200)
 
+    def test_smspassword_get(self):
+        resp = self.client.get(reverse('auth.smspassword'), follow=True)
+        self.assertEquals(resp.status_code, 200)
 
+    def save_send_text_values(self, to_addr, content):
+        self.outgoing_vumi_text.append((to_addr, content))
+
+    def test_smspassword_post(self):
+        resp = self.client.post(
+            reverse('auth.smspassword'),
+            {
+                'msisdn': '+2712345678',
+
+            },
+            follow=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
 
 
     def test_inbox_send(self):
