@@ -14,7 +14,6 @@ from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 from models import LearnerState
 from views import get_points_awarded, get_badge_awarded, get_week_day
-from go_http import HttpApiSender
 from utils import get_today
 
 
@@ -628,7 +627,7 @@ class GeneralTests(TestCase):
         password = 'mypassword'
         my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
         c = Client()
-        resp = c.login(username=my_admin.username, password=password)
+        c.login(username=my_admin.username, password=password)
 
         self.question = self.create_test_question('question1', self.testbank,
                                              question_content='test question')
@@ -834,6 +833,13 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
+    def test_smspassword_get(self):
+        resp = self.client.get(reverse('auth.smspassword'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def save_send_text_values(self, to_addr, content):
+        self.outgoing_vumi_text.append((to_addr, content))
+
 
 
     def test_bloghero_screen(self):
@@ -870,25 +876,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('auth.signout'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    def test_smspassword_get(self):
-        resp = self.client.get(reverse('auth.smspassword'), follow=True)
-        self.assertEquals(resp.status_code, 200)
 
-    def save_send_text_values(self, to_addr, content):
-        self.outgoing_vumi_text.append((to_addr, content))
-
-    def test_smspassword_post(self):
-        resp = self.client.post(
-            reverse('auth.smspassword'),
-            {
-                'msisdn': '+27123456789',
-
-            },
-            follow=True
-        )
-
-        self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Your new password has been SMSed to you.")
 
 
 class LearnerStateTest(TestCase):
