@@ -346,7 +346,7 @@ class GeneralTests(TestCase):
         )
 
         self.assertEquals(resp.status_code, 200)
-        
+
 
     def test_inbox_send(self):
         self.client.get(reverse('auth.autologin',
@@ -635,6 +635,14 @@ class GeneralTests(TestCase):
         resp = c.get(reverse('learn.preview',kwargs={'questionid':self.question.id}))
 
         self.assertContains(resp,"test question")
+
+        # Post a correct answer
+        resp = c.post(
+            reverse('learn.preview',kwargs={'questionid':self.question.id}),
+            data={'answer': self.questionoption.id},follow=True
+        )
+
+        self.assertContains(resp, "Correct")
 
     def test_right_view_adminpreview(self):
 
