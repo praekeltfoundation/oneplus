@@ -126,6 +126,8 @@ class GeneralTests(TestCase):
             point=self.pointbonus,
             badge=self.badge_template
         )
+        self.outgoing_vumi_text = []
+        self.outgoing_vumi_metrics = []
 
     def test_get_next_question(self):
         self.create_test_question('question1', self.testbank)
@@ -625,7 +627,7 @@ class GeneralTests(TestCase):
         password = 'mypassword'
         my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
         c = Client()
-        resp = c.login(username=my_admin.username, password=password)
+        c.login(username=my_admin.username, password=password)
 
         self.question = self.create_test_question('question1', self.testbank,
                                              question_content='test question')
@@ -812,8 +814,6 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.ontrack'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-
-
     def test_bloglist_screen(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -832,6 +832,13 @@ class GeneralTests(TestCase):
         )
 
         self.assertEquals(resp.status_code, 200)
+
+    def test_smspassword_get(self):
+        resp = self.client.get(reverse('auth.smspassword'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def save_send_text_values(self, to_addr, content):
+        self.outgoing_vumi_text.append((to_addr, content))
 
 
 
@@ -868,6 +875,8 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('auth.signout'), follow=True)
         self.assertEquals(resp.status_code, 200)
+
+
 
 
 class LearnerStateTest(TestCase):
@@ -943,6 +952,7 @@ class LearnerStateTest(TestCase):
         answered = 14
         number_questions = self.learner_state.get_number_questions(answered,6)
         self.assertEquals(number_questions, 7)
+
 
     def test_is_weekend(self):
         day = 5 #Saturday
