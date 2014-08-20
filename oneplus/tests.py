@@ -6,15 +6,16 @@ from organisation.models import Organisation, School, Module
 from content.models import TestingBank, TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationPointBonus,\
     GamificationBadgeTemplate
-from auth.models import Learner
-from communication.models import Message, ChatGroup, ChatMessage, Post
+from auth.models import Learner, CustomUser
+from django.test.client import Client
+from communication.models import Message, ChatGroup, ChatMessage
 from oneplus.models import LearnerState
 from templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 from models import LearnerState
 from views import get_points_awarded, get_badge_awarded
 from utils import get_today
-from admin import OnePlusLearnerAdmin
+
 
 class GeneralTests(TestCase):
 
@@ -572,7 +573,55 @@ class GeneralTests(TestCase):
         badge, badge_points = get_badge_awarded(self.participant)
         self.assertEqual(point, 5)
         self.assertEqual(badge, self.badge_template)
+        
 
+    def test_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+        self.questionoption = self.create_test_question_option('questionoption1',
+                                                          self.question)
+
+        resp = c.get(reverse('learn.preview',kwargs={'questionid':self.question.id}))
+
+        self.assertContains(resp,"test question")
+
+    def test_right_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+        self.questionoption = self.create_test_question_option('questionoption1',
+                                                          self.question)
+
+        resp = c.get(reverse('learn.preview.right',kwargs={'questionid':self.question.id}))
+
+        self.assertContains(resp,"Correct")
+
+    def test_wrong_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(username='asdf', email='asdf@example.com', password=password,mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question('question1', self.testbank,
+                                             question_content='test question')
+        self.questionoption = self.create_test_question_option('questionoption1',
+                                                          self.question)
+
+        resp = c.get(reverse('learn.preview.wrong',kwargs={'questionid':self.question.id}))
+
+        self.assertContains(resp,"Incorrect")
 
     def test_wrong_view(self):
         self.client.get(reverse(
