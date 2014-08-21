@@ -2,10 +2,12 @@ from django.test import TestCase
 from datetime import datetime
 from auth.models import Learner
 from organisation.models import Course, Module, School, Organisation
-from core.models import Participant, Class, ParticipantBadgeTemplateRel, \
-    ParticipantPointBonusRel
-from gamification.models import GamificationBadgeTemplate, \
-    GamificationPointBonus, GamificationScenario
+from core.models import (Participant, Class, ParticipantBadgeTemplateRel,
+                         ParticipantQuestionAnswer)
+from gamification.models import (GamificationBadgeTemplate,
+                                 GamificationPointBonus,
+                                 GamificationScenario)
+from content.models import TestingQuestion, TestingQuestionOption, TestingBank
 
 
 class TestMessage(TestCase):
@@ -21,6 +23,16 @@ class TestMessage(TestCase):
 
     def create_organisation(self, name='organisation name', **kwargs):
         return Organisation.objects.create(name=name, **kwargs)
+
+    def create_test_question(self, name, bank, **kwargs):
+        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
+
+    def create_test_question_option(self, name, question):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=True)
+
+    def create_testbank(self, name, module, **kwargs):
+        return TestingBank.objects.create(name=name, module=module, **kwargs)
 
     def create_school(self, name, organisation, **kwargs):
         return School.objects.create(
@@ -54,8 +66,10 @@ class TestMessage(TestCase):
             self.school,
             mobile="+27123456789",
             country="country")
-
+        self.testbank = self.create_testbank('test bank', self.module)
         self.badge_template = self.create_badgetemplate()
+        self.question = self.create_test_question('q1', self.testbank)
+        self.option = self.create_test_question_option('opt_1', self.question)
 
         # create point bonus with value 5
         self.pointbonus = self.create_pointbonus(value=5)
@@ -63,70 +77,85 @@ class TestMessage(TestCase):
         # create scenario
         self.scenario = GamificationScenario.objects.create(
             name='scenario name',
-            event='event name',
+            event='test',
             course=self.course,
             module=self.module,
             point=self.pointbonus,
             badge=self.badge_template
         )
+        self.participant = self.create_participant(
+            self.learner,
+            self.classs,
+            datejoined=datetime.now()
+        )
 
-        # create scenario
-        self.scenario_no_module = GamificationScenario.objects.create(
-            name='scenario name no module',
+    def test_award_scenario(self):
+
+        scenario_no_module = GamificationScenario.objects.create(
+            name='event name no module',
             event='event name no module',
             course=self.course,
             module=None,
             point=self.pointbonus,
             badge=self.badge_template
         )
-
-    def test_award_scenario(self):
-        participant = self.create_participant(
-            self.learner,
-            self.classs,
-            datejoined=datetime.now()
-        )
+        scenario_no_module.save()
 
         # participant should have 0 points
-        self.assertEquals(0, participant.points)
+        self.assertEquals(0, self.participant.points)
 
         # award points to participant
-        participant.award_scenario('event name', self.module)
-        participant.save()
-
-        # participant should have 5 points
-        self.assertEquals(5, participant.points)
-
-        # check badge was awarded
-        b = ParticipantBadgeTemplateRel.objects.get(participant=participant)
-        self.assertTrue(b.awarddate)
-
-         # check that ParticipantPointTemplateRel has a datetime
-        b = ParticipantPointBonusRel.objects.get(participant=participant)
-        self.assertTrue(b.awarddate)
-
-    def test_award_scenario_datetime(self):
-        participant = self.create_participant(
-            self.learner,
-            self.classs,
-            datejoined=datetime.now()
-        )
+        self.participant.award_scenario('event name no module', self.module)
+        self.participant.save()
 
         # participant should have 0 points
-        self.assertEquals(0, participant.points)
-
-        # award points to participant
-        participant.award_scenario('event name no module', None)
-        participant.save()
-
-        # participant should have 5 points
-        self.assertEquals(5, participant.points)
+        self.assertEquals(0, self.participant.points)
 
         # check badge was awarded
-        b = ParticipantBadgeTemplateRel.objects.get(participant=participant)
+        b = ParticipantBadgeTemplateRel.objects.get(
+            participant=self.participant)
         self.assertTrue(b.awarddate)
 
-        # check that ParticipantPointTemplateRel has a datetime
-        b = ParticipantPointBonusRel.objects.get(participant=participant)
-        self.assertTrue(b.awarddate)
+    def test_answer_question(self):
+
+        # participant should have 0 points
+        self.assertEquals(0, self.participant.points)
+
+        # award points to participant
+        self.participant.answer(self.question, self.option)
+
+        # test points have been awarded
+        self.assertEqual(1, self.participant.points)
+
+        # test that the correct ParticipantQuestionAnswer
+        answer = ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant).first()
+        self.assertNotEqual(answer, None)
+        self.assertEqual(answer.question, self.question)
+        self.assertEqual(answer.option_selected, self.option)
+        self.assertEqual(answer.correct, self.option.correct)
+
+        self.participant.save()
+
+    def test_get_scenarios_hierarchy(self):
+        event = "test"
+
+        # create scenario
+        self.scenario_no_module = GamificationScenario.objects.create(
+            name='scenario name no module',
+            event='test',
+            course=self.course,
+            module=None,
+            point=self.pointbonus,
+            badge=self.badge_template
+        )
+        self.scenario_no_module.save()
+
+        scenarios = self.participant.get_scenarios(event, self.module)
+        self.assertEqual(scenarios.first(), self.scenario)
+
+
+
+
+
 

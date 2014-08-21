@@ -85,7 +85,7 @@ class ParticipantPointInline(admin.TabularInline):
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ("learner","get_firstname",
+    list_display = ("learner", "get_firstname",
         "get_lastname", "classs" '')
     list_filter = (
         LearnerFilter,

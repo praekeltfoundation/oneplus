@@ -46,6 +46,8 @@ class Participant(models.Model):
     datejoined = models.DateTimeField(verbose_name="Joined")
     points = models.PositiveIntegerField(verbose_name="Points Scored",
                                          default=0)
+
+    # This will need to be removed but not until the data migration has occured
     pointbonus = models.ManyToManyField(
         GamificationPointBonus, through="ParticipantPointBonusRel",
         verbose_name="Point Bonuses", blank=True)
@@ -56,23 +58,58 @@ class Participant(models.Model):
     def __str__(self):
         return self.learner.first_name
 
+    # Get the scenarios
+    def get_scenarios(self, event, module):
+        scenarios = GamificationScenario.objects.filter(
+            event=event,
+            course=self.classs.course,
+            module=module)
+
+        if scenarios.count() >= 1:
+            return scenarios
+        else:
+            #Fall back to a default rule
+            return GamificationScenario.objects.filter(
+                event=event,
+                course=self.classs.course,
+                module=None
+            )
+
+    def answer(self, question, option):
+        # Create participant question answer
+        answer = ParticipantQuestionAnswer(
+            participant=self,
+            question=question,
+            option_selected=option,
+            correct=option.correct,
+            answerdate=datetime.now()
+        )
+        answer.save()
+
+        # Award points
+        self.award_points(question.points)
+
+    # Probably to be used in migrations
+    def recalculate_total_points(self):
+        answers = ParticipantQuestionAnswer.objects.filter(participant=self)
+        points = 0
+        for answer in answers:
+            points += answer.question.points
+        self.points = points
+        self.save()
+        return points
+
+    # Update the total points
+    def award_points(self, points):
+        self.points += points
+        self.save()
+
+    # Scenario's only apply to badges
     def award_scenario(self, event, module):
 
-        if module is not None:
-            query = Q(event=event, course=self.classs.course, module=module) \
-                | Q(event=event, course=self.classs.course, module=None)
-        else:
-            query = Q(event=event, course=self.classs.course, module=module)
-
-        for scenario in GamificationScenario.objects.filter(query):
-
-            # Points may be awarded multiple times
-            if scenario.point is not None:
-                p = ParticipantPointBonusRel(
-                    participant=self, pointbonus=scenario.point,
-                    scenario=scenario, awarddate=datetime.now())
-                p.save()
-
+        # Use scenarios for badges only
+        scenarios = self.get_scenarios(event, module)
+        for scenario in scenarios:
             # Badges may only be awarded once
             if scenario.badge is not None:
                 template_rels = ParticipantBadgeTemplateRel.objects.filter(
@@ -83,11 +120,9 @@ class Participant(models.Model):
                         scenario=scenario, awarddate=datetime.now())
                     b.save()
 
-        # Recalculate total points
-        bonus_rel = ParticipantPointBonusRel.objects.filter(participant=self)
-        self.points = max(
-            bonus_rel.select_related("pointbonus").aggregate(
-                sum=Sum("pointbonus__value"))["sum"], 0)
+        # Recalculate total points - not entirely sure that this should be here.
+        self.points = self.recalculate_total_points()
+
         self.save()
 
     class Meta:
