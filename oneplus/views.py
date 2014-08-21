@@ -476,7 +476,12 @@ def nextchallenge(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-    ).distinct('participant', 'question').count() + 1
+        ).distinct('participant', 'question').count() + 1
+
+    if _learnerstate.active_question:
+        question_id = _learnerstate.active_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
 
     def get():
         request.session["state"]["discussion_page_max"] = \
@@ -945,6 +950,10 @@ def right(request, state, user):
             answerdate__gte=date.today()
     ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
+    if _learnerstate.active_question:
+        question_id = _learnerstate.active_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
 
     def get():
         if _learnerstate.active_result:

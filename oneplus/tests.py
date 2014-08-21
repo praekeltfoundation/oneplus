@@ -732,12 +732,13 @@ class GeneralTests(TestCase):
             password=password,
             mobile='+27111111111')
         c = Client()
-        resp = c.login(username=my_admin.username, password=password)
+        c.login(username=my_admin.username, password=password)
 
         self.question = self.create_test_question(
             'question1',
             self.testbank,
             question_content='test question')
+
         self.questionoption = self.create_test_question_option(
             'questionoption1',
             self.question)
@@ -755,16 +756,18 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        question = self.create_test_question('question1', self.testbank,
-                                             question_content='test question')
+        question = self.create_test_question(
+            'question1', self.testbank,
+            question_content='test question')
 
-        questionoption1 = self.create_test_question_option('questionoption1',
-                                                           question)
-        questionoption2 = TestingQuestionOption.objects.create(
-            name='questionoption2',
-            question=question,
-            correct=False
-        )
+        self.create_test_question_option(
+            'questionoption1',
+            question)
+
+        questionoption2 = self.create_test_question_option(
+            "questionoption2",
+            question,
+            correct=False)
 
         # Post a incorrect answer
         resp = self.client.post(
