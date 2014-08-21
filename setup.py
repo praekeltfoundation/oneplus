@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-mobileu',
-    version='1.0.41',
+    version='1.0.42',
     packages=find_packages(),
     install_requires=[
         'Django==1.6.5',
