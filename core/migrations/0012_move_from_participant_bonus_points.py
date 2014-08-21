@@ -4,13 +4,20 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 
+
 class Migration(DataMigration):
 
     def forwards(self, orm):
         participants = orm.Participant.objects.all()
 
         for participant in participants:
-            participant.recalculate_total_points()
+            answers = orm.ParticipantQuestionAnswer.objects.filter(
+                participant=participant)
+            points = 0
+            for answer in answers:
+                points += answer.question.points
+            participant.points = points
+            participant.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."
