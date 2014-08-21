@@ -86,8 +86,9 @@ class Participant(models.Model):
         )
         answer.save()
 
-        # Award points
-        self.award_points(question.points)
+        # Award points to participant
+        self.points += question.points
+        self.save()
 
     # Probably to be used in migrations
     def recalculate_total_points(self):
@@ -98,11 +99,6 @@ class Participant(models.Model):
         self.points = points
         self.save()
         return points
-
-    # Update the total points
-    def award_points(self, points):
-        self.points += points
-        self.save()
 
     # Scenario's only apply to badges
     def award_scenario(self, event, module):
