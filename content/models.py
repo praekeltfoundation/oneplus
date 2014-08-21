@@ -3,6 +3,7 @@ from django.core.validators import MaxValueValidator
 from organisation.models import Module
 from django.core.urlresolvers import reverse
 from django.utils.html import remove_tags
+import bleach
 
 
 class LearningChapter(models.Model):
@@ -20,6 +21,14 @@ class LearningChapter(models.Model):
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
     content = models.TextField("Content", blank=True)
+
+    def save(self, *args, **kwargs):
+        self.content = bleach.clean(self.question_content,
+                                             allowed_tags,
+                                             allowed_attributes,
+                                             allowed_styles,
+                                             strip=True)
+        super(TestingQuestion, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -78,6 +87,20 @@ class TestingQuestion(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.question_content = bleach.clean(self.question_content,
+                                             allowed_tags,
+                                             allowed_attributes,
+                                             allowed_styles,
+                                             strip=True)
+        self.answer_content = bleach.clean(self.answer_content,
+                                           allowed_tags,
+                                           allowed_attributes,
+                                           allowed_styles,
+                                           strip=True)
+        super(TestingQuestion, self).save(*args, **kwargs)
+
+
     class Meta:
         verbose_name = "Test Question"
         verbose_name_plural = "Test Questions"
@@ -94,6 +117,16 @@ class TestingQuestionOption(models.Model):
     order = models.PositiveIntegerField("Order", default=1)
     content = models.TextField("Content", blank=True)
     correct = models.BooleanField("Correct")
+
+    def save(self, *args, **kwargs):
+        self.content = bleach.clean(self.question_content,
+                                             allowed_tags,
+                                             allowed_attributes,
+                                             allowed_styles,
+                                             strip=True)
+        super(TestingQuestion, self).save(*args, **kwargs)
+
+
 
     def link(self):
         return "<a href='%s' target='_blank'>Edit</a>" % reverse(
@@ -117,3 +150,7 @@ class TestingQuestionOption(models.Model):
     class Meta:
         verbose_name = "Question Option"
         verbose_name_plural = "Question Options"
+
+allowed_tags = ['b', 'i', 'strong', 'em', 'img', 'a', 'br']
+allowed_attributes = ['href', 'title', 'style', 'src']
+allowed_styles = ['font-family', 'font-weight', 'text-decoration', 'font-variant','width', 'height']
