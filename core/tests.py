@@ -27,9 +27,9 @@ class TestMessage(TestCase):
     def create_test_question(self, name, bank, **kwargs):
         return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
 
-    def create_test_question_option(self, name, question):
+    def create_test_question_option(self, name, question, correct=True):
         return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=True)
+            name=name, question=question, correct=correct)
 
     def create_testbank(self, name, module, **kwargs):
         return TestingBank.objects.create(name=name, module=module, **kwargs)
@@ -153,6 +153,22 @@ class TestMessage(TestCase):
 
         scenarios = self.participant.get_scenarios(event, self.module)
         self.assertEqual(scenarios.first(), self.scenario)
+
+    def test_recalculate_points_only_right(self):
+        question2 = self.create_test_question(name="testquestion2",
+                                              bank=self.testbank)
+
+        option2 = self.create_test_question_option(name="option2",
+                                                   question=question2,
+                                                   correct=False)
+        self.participant.answer(self.question, self.option)
+        self.participant.answer(question2, option2)
+
+        self.participant.points = 0
+
+        self.participant.recalculate_total_points()
+        self.assertEqual(self.participant.points, 1)
+
 
 
 
