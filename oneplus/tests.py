@@ -4,12 +4,10 @@ from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer
 from organisation.models import Organisation, School, Module
 from content.models import TestingBank, TestingQuestion, TestingQuestionOption
-from gamification.models import GamificationScenario, GamificationPointBonus,\
-    GamificationBadgeTemplate
+from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post
-from oneplus.models import LearnerState
 from .templatetags.oneplus_extras import strip_tags, align, format_width
 from mock import patch
 from .models import LearnerState
@@ -57,15 +55,12 @@ class GeneralTests(TestCase):
             image="none",
             **kwargs)
 
-    def create_pointbonus(self, name='point bonus name', **kwargs):
-        return GamificationPointBonus.objects.create(name=name, **kwargs)
-
     def create_message(self, author, course, **kwargs):
         return Message.objects.create(author=author, course=course, **kwargs)
 
-    def create_test_question_option(self, name, question):
+    def create_test_question_option(self, name, question, correct=True):
         return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=True)
+            name=name, question=question, correct=correct)
 
     def create_test_answer(
             self,
@@ -120,13 +115,11 @@ class GeneralTests(TestCase):
         self.testbank = self.create_testing_bank('testbank name', self.module)
         self.badge_template = self.create_badgetemplate()
 
-        self.pointbonus = self.create_pointbonus(value=5)
         self.scenario = GamificationScenario.objects.create(
             name='scenario name',
-            event='CORRECT',
+            event='1_CORRECT',
             course=self.course,
             module=self.module,
-            point=self.pointbonus,
             badge=self.badge_template
         )
         self.outgoing_vumi_text = []
@@ -210,11 +203,18 @@ class GeneralTests(TestCase):
             'question1',
             self.testbank,
             question_content='test question')
+        option1 = self.create_test_question_option(
+            name="option1",
+            question=question1,
+            correct=True
+        )
+
         LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
             active_result=True,
         )
+        self.participant.answer(question1, option1)
 
         resp = self.client.get(reverse('learn.right'))
         self.assertEquals(resp.status_code, 200)
@@ -658,7 +658,7 @@ class GeneralTests(TestCase):
         )
         point = get_points_awarded(self.participant)
         badge, badge_points = get_badge_awarded(self.participant)
-        self.assertEqual(point, 5)
+        self.assertEqual(point, 1)
         self.assertEqual(badge, self.badge_template)
 
     def test_view_adminpreview(self):

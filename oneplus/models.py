@@ -3,6 +3,7 @@ from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta
 
+
 # Participant(Learner) State
 class LearnerState(models.Model):
     participant = models.ForeignKey(Participant, null=True, blank=False)

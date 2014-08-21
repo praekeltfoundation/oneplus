@@ -22,7 +22,6 @@ from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
-from django.db.models import Q
 from lockout import LockedOut
 
 COUNTRYWIDE = "Countrywide"
@@ -362,6 +361,7 @@ def home(request, state, user):
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
     ).distinct().values_list('question')
+
     questions = TestingQuestion.objects.filter(
         bank__module__course=learnerstate.participant.classs.course,
         bank__module__is_active=True,
@@ -488,7 +488,7 @@ def nextchallenge(request, state, user):
                 question=_learnerstate.active_question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -564,16 +564,11 @@ def nextchallenge(request, state, user):
             except TestingQuestionOption.DoesNotExist:
                 return redirect("learn.next")
 
-            _answer = ParticipantQuestionAnswer(
-                participant=_participant,
-                question=_learnerstate.active_question,
-                option_selected=_option,
-                correct=_option.correct,
-                answerdate=datetime.now()
-            )
-            _answer.save()
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
+
+            # Answer question
+            _participant.answer(_option.question, _option)
 
             # Update metrics
             update_num_question_metric()
@@ -581,34 +576,31 @@ def nextchallenge(request, state, user):
 
             # Check for awards
             if _option.correct:
-                _participant.award_scenario(
-                    "CORRECT",
-                    _learnerstate.active_question.bank.module
-                )
 
-                _total_corect = ParticipantQuestionAnswer.objects.filter(
+                # Important
+                _total_correct = ParticipantQuestionAnswer.objects.filter(
                     participant=_participant,
                     correct=True
                 ).count()
-                if _total_corect == 1:
+                if _total_correct == 1:
                     _participant.award_scenario(
                         "1_CORRECT",
                         _learnerstate.active_question.bank.module
                     )
 
-                elif _total_corect == 15:
+                elif _total_correct == 15:
                     _participant.award_scenario(
                         "15_CORRECT",
                         _learnerstate.active_question.bank.module
                     )
 
-                elif _total_corect == 30:
+                elif _total_correct == 30:
                     _participant.award_scenario(
                         "30_CORRECT",
                         _learnerstate.active_question.bank.module
                     )
 
-                elif _total_corect == 100:
+                elif _total_correct == 100:
                     _participant.award_scenario(
                         "100_CORRECT",
                         _learnerstate.active_question.bank.module
@@ -898,7 +890,6 @@ def adminpreview_wrong(request, questionid):
     return resolve_http_method(request, [get])
 
 
-
 def get_badge_awarded(participant):
     # Get relevant badge related to scenario
     badgepoints = None
@@ -920,16 +911,22 @@ def get_badge_awarded(participant):
 
     return badgetemplate, badgepoints,
 
-def get_points_awarded(participant):
-    # Get relevant point related to scenario
-    points = ParticipantPointBonusRel.objects.filter(
-        participant=participant,
-    ).order_by('-awarddate').first()
 
-    if points is None:
-        return None
-    else:
-        return points.scenario.point.value
+def get_points_awarded(participant):
+    # Get current participant question answer
+    answer = ParticipantQuestionAnswer.objects.filter(
+        participant=participant,
+    ).latest('answerdate')
+
+    # Get question
+    question = answer.question
+
+    # Get points
+    if question.points is 0:
+        question.points = 1
+        question.save()
+
+    return question.points
 
 
 # Right Answer Screen
@@ -1736,15 +1733,21 @@ def points(request, state, user):
     _modules = Module.objects.filter(course=_course)
     request.session["state"]["points_points"] = _participant.points
 
-    for m in _modules:
-        m.score = max(
-            ParticipantPointBonusRel.objects.filter(
+    def get_points_per_module():
+        for m in _modules:
+            answers = ParticipantQuestionAnswer.objects.filter(
                 participant=_participant,
-                scenario__module=m)
-            .select_related("pointbonus")
-            .aggregate(sum=Sum("pointbonus__value"))["sum"], 0)
+                question__bank__module=m,
+                correct=True
+            )
+            module_points = 0
+            for answer in answers:
+                module_points += answer.question.points
+
+            m.score = module_points
 
     def get():
+        get_points_per_module()
         return render(
             request,
             "prog/points.html",
@@ -1756,6 +1759,7 @@ def points(request, state, user):
         )
 
     def post():
+        get_points_per_module()
         return render(
             request,
             "prog/points.html",
