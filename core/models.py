@@ -87,8 +87,9 @@ class Participant(models.Model):
         answer.save()
 
         # Award points to participant
-        self.points += question.points
-        self.save()
+        if option.correct:
+            self.points += question.points
+            self.save()
 
     # Probably to be used in migrations
     def recalculate_total_points(self):
