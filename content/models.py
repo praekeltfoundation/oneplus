@@ -68,7 +68,12 @@ class TestingQuestion(models.Model):
         ),
         default=1)
     points = models.PositiveIntegerField(
-        "Points", validators=[MaxValueValidator(500)], default=0)
+        "Points",
+        validators=[MaxValueValidator(500)],
+        default=1,
+        blank=False,
+    )
+
     textbook_link = models.CharField(
         "Textbook Link",
         max_length=500,
