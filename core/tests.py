@@ -116,7 +116,7 @@ class TestMessage(TestCase):
             participant=self.participant)
         self.assertTrue(b.awarddate)
 
-    def test_answer_question(self):
+    def test_answer_question_correctly(self):
 
         # participant should have 0 points
         self.assertEquals(0, self.participant.points)
@@ -134,6 +134,21 @@ class TestMessage(TestCase):
         self.assertEqual(answer.question, self.question)
         self.assertEqual(answer.option_selected, self.option)
         self.assertEqual(answer.correct, self.option.correct)
+
+        self.participant.save()
+
+    def test_answer_question_incorrectly(self):
+        # Set option to NOT correct
+        self.option.correct = False
+
+        # participant should have 0 points
+        self.assertEquals(0, self.participant.points)
+
+        # Answer question incorrectly
+        self.participant.answer(self.question, self.option)
+
+        # No test points have been awarded
+        self.assertEqual(0, self.participant.points)
 
         self.participant.save()
 
@@ -161,6 +176,7 @@ class TestMessage(TestCase):
         option2 = self.create_test_question_option(name="option2",
                                                    question=question2,
                                                    correct=False)
+
         self.participant.answer(self.question, self.option)
         self.participant.answer(question2, option2)
 
