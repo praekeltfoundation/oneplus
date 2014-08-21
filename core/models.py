@@ -92,7 +92,9 @@ class Participant(models.Model):
 
     # Probably to be used in migrations
     def recalculate_total_points(self):
-        answers = ParticipantQuestionAnswer.objects.filter(participant=self)
+        answers = ParticipantQuestionAnswer.objects.filter(
+            participant=self,
+            correct=True)
         points = 0
         for answer in answers:
             points += answer.question.points

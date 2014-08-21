@@ -12,7 +12,8 @@ class Migration(DataMigration):
 
         for participant in participants:
             answers = orm.ParticipantQuestionAnswer.objects.filter(
-                participant=participant)
+                participant=participant,
+                correct=True)
             points = 0
             for answer in answers:
                 points += answer.question.points
