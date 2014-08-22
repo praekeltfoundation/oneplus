@@ -4,6 +4,7 @@ from organisation.models import Module
 from django.core.urlresolvers import reverse
 from django.utils.html import remove_tags
 import bleach
+from mobileu.utils import format_width, align
 
 
 class LearningChapter(models.Model):
@@ -28,6 +29,8 @@ class LearningChapter(models.Model):
                                              allowed_attributes,
                                              allowed_styles,
                                              strip=True)
+        self.content = format_width(self.content)
+        self.content = align(self.content)
         super(TestingQuestion, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -98,6 +101,11 @@ class TestingQuestion(models.Model):
                                            allowed_attributes,
                                            allowed_styles,
                                            strip=True)
+        self.question_content = format_width(self.question_content)
+        self.question_content = align(self.question_content)
+        self.answer_content = format_width(self.answer_content)
+        self.answer_content = align(self.answer_content)
+
         super(TestingQuestion, self).save(*args, **kwargs)
 
 
@@ -124,8 +132,9 @@ class TestingQuestionOption(models.Model):
                                              allowed_attributes,
                                              allowed_styles,
                                              strip=True)
+        self.content = format_width(self.content)
+        self.content = align(self.content)
         super(TestingQuestion, self).save(*args, **kwargs)
-
 
 
     def link(self):

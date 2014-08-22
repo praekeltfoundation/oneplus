@@ -32,4 +32,7 @@ class TestContent(TestCase):
 
         self.assertEquals(
             self.question.question_content,
-            '<b><img><a href="/test">Test</a></b>')
+            '<div style="vertical-align:middle;'
+            'display:inline-block;width:80%"><b>'
+            '<img style="vertical-align:middle"/>'
+            '<a href="/test">Test</a></b></div>')
