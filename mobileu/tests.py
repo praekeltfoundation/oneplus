@@ -54,3 +54,12 @@ class TestContent(TestCase):
         content = '<img style="width:300px"/>'
         result = format_width(content)
         self.assertEquals(result, u'<body><img style="width:100%"/></body>')
+
+    def test_unicode_filter(self):
+        content = u'<b>Test</b><p></p><img/>'
+        result = align(content)
+        output = strip_tags(result)
+        self.assertEquals(output, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block;width:80%">'
+                                  u'<b>Test</b><img style="'
+                                  u'vertical-align:middle"/></div>')

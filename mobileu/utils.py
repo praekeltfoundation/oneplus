@@ -8,7 +8,7 @@ def format_width(value):
     tags = soup.find_all('img')
     for tag in tags:
         if tag is not None:
-            if "style" in str(tag):
+            if "style" in unicode(tag):
                 width = re.findall(r'\d+', tag['style'])
                 if width:
                     if int(width[0]) > 280:
@@ -43,7 +43,7 @@ def get_content(value):
 
 
 def body_to_div(body, soup):
-    remove_tags(str(body), "body")
+    remove_tags(unicode(body), "body")
     output = soup.new_tag("div")
     list = body.contents[:]
     for content in list:
