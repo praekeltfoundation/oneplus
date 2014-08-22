@@ -24,7 +24,7 @@ class LearningChapter(models.Model):
     content = models.TextField("Content", blank=True)
 
     def save(self, *args, **kwargs):
-        self.content = bleach.clean(self.question_content,
+        self.content = bleach.clean(self.content,
                                     allowed_tags,
                                     allowed_attributes,
                                     allowed_styles,
@@ -126,7 +126,7 @@ class TestingQuestionOption(models.Model):
     correct = models.BooleanField("Correct")
 
     def save(self, *args, **kwargs):
-        self.content = bleach.clean(self.question_content,
+        self.content = bleach.clean(self.content,
                                     allowed_tags,
                                     allowed_attributes,
                                     allowed_styles,
