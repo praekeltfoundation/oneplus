@@ -78,7 +78,6 @@ class Module(models.Model):
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
-    course = models.ForeignKey(Course, null=True, blank=False)
     courses = models.ManyToManyField(
         Course, related_name='modules', through='CourseModuleRel',)
     is_active = models.BooleanField("Is Active", default=True)
