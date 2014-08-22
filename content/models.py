@@ -56,7 +56,7 @@ class TestingQuestion(models.Model):
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
-    bank = models.ForeignKey(TestingBank, null=True, blank=False)
+    module = models.ForeignKey(Module, null=True, blank=False)
     question_content = models.TextField("Question", blank=True)
     answer_content = models.TextField("Answer", blank=True)
     difficulty = models.PositiveIntegerField(

@@ -45,7 +45,6 @@ class TestingBankAdmin(SummernoteModelAdmin):
         ("Content",
             {"fields": ["question_order", ]})
     ]
-    inlines = (TestingQuestionInline, )
     ordering = ("module", "order", "name", )
 
 
@@ -57,7 +56,6 @@ class TestingQuestionResource(resources.ModelResource):
             'id',
             'name',
             'description',
-            'bank',
             'percentage_correct',
             'correct',
             'incorrect'
@@ -66,7 +64,6 @@ class TestingQuestionResource(resources.ModelResource):
             'id',
             'name',
             'description',
-            'bank',
             'percentage_correct',
             'correct',
             'incorrect'
@@ -104,9 +101,9 @@ class TestingQuestionResource(resources.ModelResource):
 
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
-    list_display = ("bank", "order", "name", "description",
+    list_display = ("module", "order", "name", "description",
                     "correct", "incorrect", "percentage_correct")
-    list_filter = ("bank", )
+    list_filter = ("module", )
     search_fields = ("name", "description")
 
     def correct(self, question):
@@ -142,7 +139,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
 
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "bank", "order"]}),
+            {"fields": ["name", "description", "module", "order"]}),
         ("Content",
             {"fields": ["question_content", "answer_content", "textbook_link",
                         "difficulty", "points"]})
