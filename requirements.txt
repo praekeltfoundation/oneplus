@@ -1,3 +1,1 @@
 -e .
-bleach
-beautifulsoup4
