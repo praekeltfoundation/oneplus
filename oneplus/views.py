@@ -363,8 +363,8 @@ def home(request, state, user):
     ).distinct().values_list('question')
 
     questions = TestingQuestion.objects.filter(
-        bank__module__course=learnerstate.participant.classs.course,
-        bank__module__is_active=True,
+        module__course=learnerstate.participant.classs.course,
+        module__is_active=True,
     ).exclude(id__in=answered)
 
     if not questions:
@@ -465,8 +465,8 @@ def nextchallenge(request, state, user):
         participant=_learnerstate.participant
     ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-        bank__module__course=_learnerstate.participant.classs.course,
-        bank__module__is_active=True,
+        module__course=_learnerstate.participant.classs.course,
+        module__is_active=True,
     ).exclude(id__in=answered)
 
     if not questions:
@@ -590,25 +590,25 @@ def nextchallenge(request, state, user):
                 if _total_correct == 1:
                     _participant.award_scenario(
                         "1_CORRECT",
-                        _learnerstate.active_question.bank.module
+                        _learnerstate.active_question.module
                     )
 
                 elif _total_correct == 15:
                     _participant.award_scenario(
                         "15_CORRECT",
-                        _learnerstate.active_question.bank.module
+                        _learnerstate.active_question.module
                     )
 
                 elif _total_correct == 30:
                     _participant.award_scenario(
                         "30_CORRECT",
-                        _learnerstate.active_question.bank.module
+                        _learnerstate.active_question.module
                     )
 
                 elif _total_correct == 100:
                     _participant.award_scenario(
                         "100_CORRECT",
-                        _learnerstate.active_question.bank.module
+                        _learnerstate.active_question.module
                     )
 
                 last_3 = ParticipantQuestionAnswer.objects.filter(
@@ -619,7 +619,7 @@ def nextchallenge(request, state, user):
                         and len([i for i in last_3 if i.correct]) == 3:
                     _participant.award_scenario(
                         "3_CORRECT_RUNNING",
-                        _learnerstate.active_question.bank.module
+                        _learnerstate.active_question.module
                     )
 
                 last_5 = ParticipantQuestionAnswer.objects.filter(
@@ -630,7 +630,7 @@ def nextchallenge(request, state, user):
                         and len([i for i in last_5 if i.correct]) == 5:
                     _participant.award_scenario(
                         "5_CORRECT_RUNNING",
-                        _learnerstate.active_question.bank.module
+                        _learnerstate.active_question.module
                     )
 
                 return redirect("learn.right")
@@ -724,8 +724,8 @@ def adminpreview(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.bank.module.course,
-                module=question.bank.module,
+                course=question.module.course,
+                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -737,8 +737,8 @@ def adminpreview(request, questionid):
         index = request.session["state"]["discussion_page"]
 
         messages = Discussion.objects.filter(
-            course=question.bank.module.course,
-            module=question.bank.module,
+            course=question.module.course,
+            module=question.module,
             question=question,
             moderated=True,
             response=None
@@ -769,8 +769,8 @@ def adminpreview(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.bank.module.course,
-                module=question.bank.module,
+                course=question.module.course,
+                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -781,8 +781,8 @@ def adminpreview(request, questionid):
 
         index = request.session["state"]["discussion_page"]
         messages = Discussion.objects.filter(
-            course=question.bank.module.course,
-            module=question.bank.module,
+            course=question.module.course,
+            module=question.module,
             question=question,
             moderated=True,
             response=None
@@ -806,8 +806,8 @@ def adminpreview_right(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.bank.module.course,
-                module=question.bank.module,
+                course=question.module.course,
+                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -820,8 +820,8 @@ def adminpreview_right(request, questionid):
         # Messages for discussion page
         messages = \
             Discussion.objects.filter(
-                course=question.bank.module.course,
-                module=question.bank.module,
+                course=question.module.course,
+                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -830,8 +830,8 @@ def adminpreview_right(request, questionid):
 
         # Gameification scenario for correct question
         scenario = GamificationScenario.objects.filter(
-            course=question.bank.module.course,
-            module=question.bank.module,
+            course=question.module.course,
+            module=question.module,
             event="CORRECT"
         )
         if scenario.exists():
@@ -861,8 +861,8 @@ def adminpreview_wrong(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.bank.module.course,
-                module=question.bank.module,
+                course=question.module.course,
+                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -875,8 +875,8 @@ def adminpreview_wrong(request, questionid):
         # Messages for discussion page
         messages = \
             Discussion.objects.filter(
-                course=question.bank.module.course,
-                module=question.bank.module,
+                course=question.module.course,
+                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -1621,7 +1621,7 @@ def ontrack(request, state, user):
     # Calculate achieved score
     for m in _modules:
         _answers = _participant.participantquestionanswer_set.filter(
-            question__bank__module__id=m.id)
+            question__module__id=m.id)
         if _answers.count() < 10:
             m.score = -1
         else:
@@ -1746,7 +1746,7 @@ def points(request, state, user):
         for m in _modules:
             answers = ParticipantQuestionAnswer.objects.filter(
                 participant=_participant,
-                question__bank__module=m,
+                question__module=m,
                 correct=True
             )
             module_points = 0

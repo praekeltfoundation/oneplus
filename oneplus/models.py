@@ -123,8 +123,8 @@ class LearnerState(models.Model):
 
             # Get list of unanswered questions
             questions = TestingQuestion.objects.filter(
-                bank__module__course=self.participant.classs.course,
-                bank__module__is_active=True,
+                module__course=self.participant.classs.course,
+                module__is_active=True,
             ).exclude(id__in=answered)
 
             # If a question exists
