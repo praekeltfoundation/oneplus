@@ -25,10 +25,10 @@ class LearningChapter(models.Model):
 
     def save(self, *args, **kwargs):
         self.content = bleach.clean(self.question_content,
-                                             allowed_tags,
-                                             allowed_attributes,
-                                             allowed_styles,
-                                             strip=True)
+                                    allowed_tags,
+                                    allowed_attributes,
+                                    allowed_styles,
+                                    strip=True)
         self.content = format_width(self.content)
         self.content = align(self.content)
         super(TestingQuestion, self).save(*args, **kwargs)
@@ -108,7 +108,6 @@ class TestingQuestion(models.Model):
 
         super(TestingQuestion, self).save(*args, **kwargs)
 
-
     class Meta:
         verbose_name = "Test Question"
         verbose_name_plural = "Test Questions"
@@ -128,14 +127,13 @@ class TestingQuestionOption(models.Model):
 
     def save(self, *args, **kwargs):
         self.content = bleach.clean(self.question_content,
-                                             allowed_tags,
-                                             allowed_attributes,
-                                             allowed_styles,
-                                             strip=True)
+                                    allowed_tags,
+                                    allowed_attributes,
+                                    allowed_styles,
+                                    strip=True)
         self.content = format_width(self.content)
         self.content = align(self.content)
         super(TestingQuestion, self).save(*args, **kwargs)
-
 
     def link(self):
         return "<a href='%s' target='_blank'>Edit</a>" % reverse(
@@ -145,8 +143,8 @@ class TestingQuestionOption(models.Model):
     link.allow_tags = True
 
     def admin_thumbnail(self):
-            thumbnail = remove_tags(self.content, "p br")
-            return u'%s' % thumbnail
+        thumbnail = remove_tags(self.content, "p br")
+        return u'%s' % thumbnail
     admin_thumbnail.short_description = 'Content'
     admin_thumbnail.allow_tags = True
 
@@ -162,4 +160,10 @@ class TestingQuestionOption(models.Model):
 
 allowed_tags = ['b', 'i', 'strong', 'em', 'img', 'a', 'br']
 allowed_attributes = ['href', 'title', 'style', 'src']
-allowed_styles = ['font-family', 'font-weight', 'text-decoration', 'font-variant','width', 'height']
+allowed_styles = [
+    'font-family',
+    'font-weight',
+    'text-decoration',
+    'font-variant',
+    'width',
+    'height']

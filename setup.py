@@ -17,6 +17,8 @@ setup(
         'koremutake==1.0.5',
         'requests==2.3.0',
         'go_http==0.1.1',
+        'django_bleach',
+        'beautifulsoup4',
     ],
     url='www.praekelt.co.za',
     license='',
