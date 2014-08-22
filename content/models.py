@@ -31,7 +31,7 @@ class LearningChapter(models.Model):
                                     strip=True)
         self.content = format_width(self.content)
         self.content = align(self.content)
-        super(TestingQuestion, self).save(*args, **kwargs)
+        super(LearningChapter, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -133,7 +133,7 @@ class TestingQuestionOption(models.Model):
                                     strip=True)
         self.content = format_width(self.content)
         self.content = align(self.content)
-        super(TestingQuestion, self).save(*args, **kwargs)
+        super(TestingQuestionOption, self).save(*args, **kwargs)
 
     def link(self):
         return "<a href='%s' target='_blank'>Edit</a>" % reverse(
