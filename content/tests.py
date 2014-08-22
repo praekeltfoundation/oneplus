@@ -1,6 +1,6 @@
 from django.test import TestCase
 from content.models import TestingQuestion, TestingBank
-from organisation.models import Course, Module
+from organisation.models import Course, Module, CourseModuleRel
 
 
 class TestContent(TestCase):
@@ -9,19 +9,22 @@ class TestContent(TestCase):
         return Course.objects.create(name=name, **kwargs)
 
     def create_module(self, name, course, **kwargs):
-        return Module.objects.create(name=name, course=course, **kwargs)
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
+        module.save()
+        rel.save()
+        return module
 
     def create_testing_bank(self, name, module, **kwargs):
         return TestingBank.objects.create(name=name, module=module, **kwargs)
 
-    def create_test_question(self, name, bank, **kwargs):
-        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
+    def create_test_question(self, name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
 
     def setUp(self):
         self.course = self.create_course()
         self.module = self.create_module('module', self.course)
-        self.testbank = self.create_testing_bank('testbank', self.module)
-        self.question = self.create_test_question('question', self.testbank)
+        self.question = self.create_test_question('question', self.module)
 
     def test_html_sanitize(self):
         content = "<body><head></head><p><b><strike><img>" \
