@@ -89,6 +89,20 @@ DATABASES = {
     }
 }
 
+SUMMERNOTE_CONFIG = {
+    # Change editor size
+    'width': '100%',
+    'height': '400',
+
+    # Customize toolbar buttons
+    'toolbar': [
+        ['style', ['style']],
+        ['style', ['bold', 'italic', 'underline', 'clear']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['insert', ['link', 'picture']],
+        ['table', ['table']],
+    ],
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
