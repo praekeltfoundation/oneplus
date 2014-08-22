@@ -1739,7 +1739,7 @@ def leader(request, state, user):
 def points(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
-    _modules = Module.objects.filter(course=_course)
+    _modules = Module.objects.filter(course=_course).order_by('order')
     request.session["state"]["points_points"] = _participant.points
 
     def get_points_per_module():
