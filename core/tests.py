@@ -1,7 +1,8 @@
 from django.test import TestCase
 from datetime import datetime
 from auth.models import Learner
-from organisation.models import Course, Module, School, Organisation
+from organisation.models import (Course, Module, School, Organisation,
+                                 CourseModuleRel)
 from core.models import (Participant, Class, ParticipantBadgeTemplateRel,
                          ParticipantQuestionAnswer)
 from gamification.models import (GamificationBadgeTemplate,
@@ -19,13 +20,17 @@ class TestMessage(TestCase):
         return Class.objects.create(name=name, course=course, **kwargs)
 
     def create_module(self, name, course, **kwargs):
-        return Module.objects.create(name=name, course=course, **kwargs)
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course,module=module)
+        module.save()
+        rel.save()
+        return module
 
     def create_organisation(self, name='organisation name', **kwargs):
         return Organisation.objects.create(name=name, **kwargs)
 
-    def create_test_question(self, name, bank, **kwargs):
-        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
+    def create_test_question(self, name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
 
     def create_test_question_option(self, name, question, correct=True):
         return TestingQuestionOption.objects.create(
@@ -66,9 +71,8 @@ class TestMessage(TestCase):
             self.school,
             mobile="+27123456789",
             country="country")
-        self.testbank = self.create_testbank('test bank', self.module)
         self.badge_template = self.create_badgetemplate()
-        self.question = self.create_test_question('q1', self.testbank)
+        self.question = self.create_test_question('q1', self.module)
         self.option = self.create_test_question_option('opt_1', self.question)
 
         # create point bonus with value 5
@@ -171,7 +175,7 @@ class TestMessage(TestCase):
 
     def test_recalculate_points_only_right(self):
         question2 = self.create_test_question(name="testquestion2",
-                                              bank=self.testbank)
+                                              module=self.module)
 
         option2 = self.create_test_question_option(name="option2",
                                                    question=question2,
@@ -184,10 +188,3 @@ class TestMessage(TestCase):
 
         self.participant.recalculate_total_points()
         self.assertEqual(self.participant.points, 1)
-
-
-
-
-
-
-
