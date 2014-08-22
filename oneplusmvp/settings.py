@@ -201,6 +201,21 @@ ONEPLUS_WIN_AIRTIME = 5
 
 GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
 
+SUMMERNOTE_CONFIG = {
+    # Change editor size
+    'width': '100%',
+    'height': '400',
+
+    # Customize toolbar buttons
+    'toolbar': [
+        ['style', ['style']],
+        ['style', ['bold', 'italic', 'underline', 'clear']],
+        ['para', ['ul', 'ol', 'paragraph']],
+        ['insert', ['link', 'picture']],
+        ['table', ['table']],
+    ],
+}
+
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 # The minimum number of SMSes that can be sent before being sent with celery
