@@ -79,6 +79,8 @@ class Module(models.Model):
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
+    courses = models.ManyToManyField(
+        Course, related_name='modules', through='CourseModuleRel',)
     is_active = models.BooleanField("Is Active", default=True)
     order = models.IntegerField("Order Number", null=True,blank=True)
     # learning
@@ -91,3 +93,8 @@ class Module(models.Model):
     class Meta:
         verbose_name = "Module"
         verbose_name_plural = "Modules"
+
+
+class CourseModuleRel(models.Model):
+    course = models.ForeignKey(Course)
+    module = models.ForeignKey(Module)
