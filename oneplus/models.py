@@ -121,9 +121,11 @@ class LearnerState(models.Model):
                 participant=self.participant
             ).distinct().values_list('question')
 
+            # Get list of valid modules for course
+
             # Get list of unanswered questions
             questions = TestingQuestion.objects.filter(
-                module__course=self.participant.classs.course,
+                module__in=self.participant.classs.course.modules.all(),
                 module__is_active=True,
             ).exclude(id__in=answered)
 
