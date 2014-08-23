@@ -57,6 +57,20 @@ class LearnerState(models.Model):
             answerdate__range=self.get_week_range(),
         ).distinct().values_list('question')
 
+    def get_unanswered(self):
+        # Get list of answered questions
+        answered = ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant
+        ).distinct().values_list('question')
+
+        # Get list of unanswered questions
+        questions = TestingQuestion.objects.filter(
+            module__in=self.participant.classs.course.modules.all(),
+            module__is_active=True,
+        ).exclude(id__in=answered)
+
+        return questions
+
     def get_all_answered(self):
         return ParticipantQuestionAnswer.objects.filter(
             participant=self.participant,
@@ -116,18 +130,7 @@ class LearnerState(models.Model):
 
     def getnextquestion(self):
         if self.active_question is None or self.active_result is not None:
-            # Get list of answered questions
-            answered = ParticipantQuestionAnswer.objects.filter(
-                participant=self.participant
-            ).distinct().values_list('question')
-
-            # Get list of valid modules for course
-
-            # Get list of unanswered questions
-            questions = TestingQuestion.objects.filter(
-                module__in=self.participant.classs.course.modules.all(),
-                module__is_active=True,
-            ).exclude(id__in=answered)
+            questions = self.get_unanswered()
 
             # If a question exists
             if questions.count() > 0:
