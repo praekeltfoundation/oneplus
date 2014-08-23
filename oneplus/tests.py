@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer
-from organisation.models import Organisation, School, Module
+from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
@@ -21,7 +21,11 @@ class GeneralTests(TestCase):
         return Course.objects.create(name=name, **kwargs)
 
     def create_module(self, name, course, **kwargs):
-        return Module.objects.create(name=name, course=course, **kwargs)
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course,module=module)
+        module.save()
+        rel.save()
+        return module
 
     def create_class(self, name, course, **kwargs):
         return Class.objects.create(name=name, course=course, **kwargs)
@@ -960,7 +964,11 @@ class LearnerStateTest(TestCase):
         return Course.objects.create(name=name, **kwargs)
 
     def create_module(self, name, course, **kwargs):
-        return Module.objects.create(name=name, course=course, **kwargs)
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course,module=module)
+        module.save()
+        rel.save()
+        return module
 
     def create_class(self, name, course, **kwargs):
         return Class.objects.create(name=name, course=course, **kwargs)
@@ -1095,3 +1103,4 @@ class LearnerStateTest(TestCase):
 
     def test_get_today(self):
         self.assertEquals(get_today().date(), datetime.today().date())
+
