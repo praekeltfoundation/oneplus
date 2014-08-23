@@ -471,6 +471,7 @@ class GeneralTests(TestCase):
         )
         self.assertEquals(learnerstate.get_total_questions(), 0)
 
+
     @patch.object(LearnerState, 'today')
     def test_tuesday_with_monday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
@@ -1104,3 +1105,43 @@ class LearnerStateTest(TestCase):
     def test_get_today(self):
         self.assertEquals(get_today().date(), datetime.today().date())
 
+    def test_get_unanswered_few_answered(self):
+        # Create some more questions
+        question2 = self.create_test_question("question2", self.module)
+        question2_opt = self.create_test_question_option("qu2", question2)
+        question3 = self.create_test_question("question3", self.module)
+        question3_opt = self.create_test_question_option("qu3", question3)
+
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=datetime.now(),
+            correct=True
+        )
+        answer.save()
+
+        self.assertListEqual(list(self.learner_state.get_unanswered()),
+                             [question2, question3])
+
+    def test_get_unanswered_many_modules(self):
+        # Create modules belonging to course
+        module2 = self.create_module("module2",self.course)
+
+        # Create some more questions
+        question2 = self.create_test_question("question2", self.module)
+        question2_opt = self.create_test_question_option("qu2", question2)
+        question3 = self.create_test_question("question3", module2)
+        question3_opt = self.create_test_question_option("qu3", question3)
+
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=datetime.now(),
+            correct=True
+        )
+        answer.save()
+
+        self.assertListEqual(list(self.learner_state.get_unanswered()),
+                             [question2, question3])
