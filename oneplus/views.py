@@ -363,7 +363,7 @@ def home(request, state, user):
     ).distinct().values_list('question')
 
     questions = TestingQuestion.objects.filter(
-        module__course=learnerstate.participant.classs.course,
+        module__in=learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
     ).exclude(id__in=answered)
 
@@ -465,7 +465,7 @@ def nextchallenge(request, state, user):
         participant=_learnerstate.participant
     ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-        module__course=_learnerstate.participant.classs.course,
+        module__in=_learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
     ).exclude(id__in=answered)
 
@@ -487,9 +487,6 @@ def nextchallenge(request, state, user):
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
                 course=_participant.classs.course,
-                module=Module.objects.filter(
-                    course=_participant.classs.course
-                ).first(),
                 question=_learnerstate.active_question,
                 moderated=True,
                 response=None
@@ -501,9 +498,6 @@ def nextchallenge(request, state, user):
         index = request.session["state"]["discussion_page"]
         _messages = Discussion.objects.filter(
             course=_participant.classs.course,
-            module=Module.objects.filter(
-                course=_participant.classs.course
-            ).first(),
             question=_learnerstate.active_question,
             moderated=True,
             response=None
@@ -645,9 +639,6 @@ def nextchallenge(request, state, user):
             _comment = request.POST["comment"]
             _message = Discussion(
                 course=_participant.classs.course,
-                module=Module.objects.filter(
-                    course=_participant.classs.course
-                ).first(),
                 question=_learnerstate.active_question,
                 response=None,
                 content=_comment, author=_usr, publishdate=datetime.now()
@@ -662,9 +653,6 @@ def nextchallenge(request, state, user):
             _parent = Discussion.objects.get(pk=request.POST["reply_button"])
             _message = Discussion(
                 course=_participant.classs.course,
-                module=Module.objects.filter(
-                    course=_participant.classs.course
-                ).first(),
                 question=_learnerstate.active_question,
                 response=_parent,
                 content=_comment, author=_usr, publishdate=datetime.now())
@@ -690,9 +678,6 @@ def nextchallenge(request, state, user):
         _messages = \
             Discussion.objects.filter(
                 course=_participant.classs.course,
-                module=Module.objects.filter(
-                    course=_participant.classs.course
-                ).first(),
                 question=_learnerstate.active_question,
                 moderated=True,
                 response=None
@@ -724,8 +709,6 @@ def adminpreview(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.module.course,
-                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -737,8 +720,6 @@ def adminpreview(request, questionid):
         index = request.session["state"]["discussion_page"]
 
         messages = Discussion.objects.filter(
-            course=question.module.course,
-            module=question.module,
             question=question,
             moderated=True,
             response=None
@@ -769,8 +750,6 @@ def adminpreview(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.module.course,
-                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -781,8 +760,6 @@ def adminpreview(request, questionid):
 
         index = request.session["state"]["discussion_page"]
         messages = Discussion.objects.filter(
-            course=question.module.course,
-            module=question.module,
             question=question,
             moderated=True,
             response=None
@@ -806,8 +783,6 @@ def adminpreview_right(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.module.course,
-                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -820,24 +795,11 @@ def adminpreview_right(request, questionid):
         # Messages for discussion page
         messages = \
             Discussion.objects.filter(
-                course=question.module.course,
-                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
             ).order_by("publishdate")\
             .reverse()[:request.session["state"]["discussion_page"]]
-
-        # Gameification scenario for correct question
-        scenario = GamificationScenario.objects.filter(
-            course=question.module.course,
-            module=question.module,
-            event="CORRECT"
-        )
-        if scenario.exists():
-            point = scenario.first().point
-        else:
-            point = None
 
         return render(
             request,
@@ -845,7 +807,7 @@ def adminpreview_right(request, questionid):
             {
                 "question": question,
                 "messages": messages,
-                "points": point
+                "points": 1
             }
         )
 
@@ -861,8 +823,6 @@ def adminpreview_wrong(request, questionid):
         request.session["state"]["next_tasks_today"] = 1
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
-                course=question.module.course,
-                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -875,8 +835,6 @@ def adminpreview_wrong(request, questionid):
         # Messages for discussion page
         messages = \
             Discussion.objects.filter(
-                course=question.module.course,
-                module=question.module,
                 question=question,
                 moderated=True,
                 response=None
@@ -961,9 +919,6 @@ def right(request, state, user):
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course
-                    ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
@@ -977,9 +932,6 @@ def right(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course
-                    ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
@@ -1017,9 +969,6 @@ def right(request, state, user):
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     response=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
@@ -1036,9 +985,6 @@ def right(request, state, user):
                 )
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
                     content=_comment, author=_usr,
@@ -1066,9 +1012,6 @@ def right(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
@@ -1112,9 +1055,6 @@ def wrong(request, state, user):
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
@@ -1126,9 +1066,6 @@ def wrong(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
@@ -1158,9 +1095,6 @@ def wrong(request, state, user):
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     response=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
@@ -1177,9 +1111,6 @@ def wrong(request, state, user):
                 )
                 _message = Discussion(
                     course=_participant.classs.course,
-                    module=Module.objects.filter(
-                        course=_participant.classs.course,
-                    ).first(),
                     question=_learnerstate.active_question,
                     response=_parent,
                     content=_comment, author=_usr, publishdate=datetime.now()
@@ -1616,7 +1547,8 @@ def ontrack(request, state, user):
     # get on track state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
-    _modules = Module.objects.filter(course=_course)
+    _modules = Participant.objects.get(
+        pk=user["participant_id"]).classs.course.modules.all()
 
     # Calculate achieved score
     for m in _modules:
@@ -1739,7 +1671,7 @@ def leader(request, state, user):
 def points(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
-    _modules = Module.objects.filter(course=_course).order_by('order')
+    _modules = _participant.classs.course.modules.all()
     request.session["state"]["points_points"] = _participant.points
 
     def get_points_per_module():
