@@ -2,8 +2,8 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer
-from organisation.models import Organisation, School, Module
-from content.models import TestingBank, TestingQuestion, TestingQuestionOption
+from organisation.models import Organisation, School, Module, CourseModuleRel
+from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
@@ -21,7 +21,11 @@ class GeneralTests(TestCase):
         return Course.objects.create(name=name, **kwargs)
 
     def create_module(self, name, course, **kwargs):
-        return Module.objects.create(name=name, course=course, **kwargs)
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course,module=module)
+        module.save()
+        rel.save()
+        return module
 
     def create_class(self, name, course, **kwargs):
         return Class.objects.create(name=name, course=course, **kwargs)
@@ -40,14 +44,8 @@ class GeneralTests(TestCase):
         return Participant.objects.create(
             learner=learner, classs=classs, **kwargs)
 
-    def create_testing_bank(self, name, module, **kwargs):
-        return TestingBank.objects.create(name=name, module=module, **kwargs)
-
-    def create_test_question(self, name, bank, **kwargs):
-        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
-
-    def create_test_question_option(self, name, bank, **kwargs):
-        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
+    def create_test_question(self, name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
 
     def create_badgetemplate(self, name='badge template name', **kwargs):
         return GamificationBadgeTemplate.objects.create(
@@ -80,8 +78,9 @@ class GeneralTests(TestCase):
         answers = []
         for x in range(0, num_questions):
             # Create a question
-            question = self.create_test_question('q' + prefix + str(x),
-                                                 self.testbank)
+            question = self.create_test_question(
+                'q' + prefix + str(x),self.module)
+
             question.save()
             option = self.create_test_question_option(
                 'option_' + prefix + str(x),
@@ -112,7 +111,6 @@ class GeneralTests(TestCase):
         self.participant = self.create_participant(
             self.learner, self.classs, datejoined=datetime.now())
         self.module = self.create_module('module name', self.course)
-        self.testbank = self.create_testing_bank('testbank name', self.module)
         self.badge_template = self.create_badgetemplate()
 
         self.scenario = GamificationScenario.objects.create(
@@ -126,7 +124,7 @@ class GeneralTests(TestCase):
         self.outgoing_vumi_metrics = []
 
     def test_get_next_question(self):
-        self.create_test_question('question1', self.testbank)
+        self.create_test_question('question1', self.module)
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=None,
@@ -140,7 +138,7 @@ class GeneralTests(TestCase):
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
     def test_home(self):
-        self.create_test_question('question1', self.testbank)
+        self.create_test_question('question1', self.module)
         LearnerState.objects.create(
             participant=self.participant,
             active_question=None,
@@ -158,7 +156,7 @@ class GeneralTests(TestCase):
             kwargs={'token': self.learner.unique_token})
         )
         question1 = self.create_test_question(
-            'question1', self.testbank, question_content='test question')
+            'question1', self.module, question_content='test question')
         questionoption1 = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
@@ -201,7 +199,7 @@ class GeneralTests(TestCase):
         )
         question1 = self.create_test_question(
             'question1',
-            self.testbank,
+            self.module,
             question_content='test question')
         option1 = self.create_test_question_option(
             name="option1",
@@ -240,7 +238,7 @@ class GeneralTests(TestCase):
                 kwargs={'token': self.learner.unique_token}))
         question1 = self.create_test_question(
             'question1',
-            self.testbank,
+            self.module,
             question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -417,7 +415,7 @@ class GeneralTests(TestCase):
     def test_training_sunday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 20, 1, 1, 1)
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -431,7 +429,7 @@ class GeneralTests(TestCase):
     def test_training_saturday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 19, 1, 1, 1)
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
 
         learnerstate = LearnerState.objects.create(
@@ -446,7 +444,7 @@ class GeneralTests(TestCase):
     def test_monday_first_week_no_training(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 21, 1, 1, 1)
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -464,7 +462,7 @@ class GeneralTests(TestCase):
             'sunday',
             datetime(2014, 7, 20, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -482,7 +480,7 @@ class GeneralTests(TestCase):
             'sunday',
             datetime(2014, 7, 21, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -494,7 +492,7 @@ class GeneralTests(TestCase):
     @patch.object(LearnerState, 'today')
     def test_miss_a_day_during_week(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -506,7 +504,7 @@ class GeneralTests(TestCase):
     @patch.object(LearnerState, 'today')
     def test_miss_multiple_days_during_week(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 23, 1, 1, 1)
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -523,7 +521,7 @@ class GeneralTests(TestCase):
             'sunday',
             datetime(2014, 7, 21, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -545,7 +543,7 @@ class GeneralTests(TestCase):
         self.create_and_answer_questions(3, 'thursday',
                                          datetime(2014, 7, 24, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -558,7 +556,7 @@ class GeneralTests(TestCase):
     def test_miss_all_days_till_weekend_except_training(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 26, 1, 1, 1)
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         self.create_and_answer_questions(3, 'training',
                                          datetime(2014, 7, 20, 1, 1, 1))
@@ -573,7 +571,7 @@ class GeneralTests(TestCase):
     def test_miss_all_questions_except_training(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 28, 1, 1, 1)
 
-        question1 = self.create_test_question('question1', self.testbank,
+        question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         self.create_and_answer_questions(3, 'training',
                                          datetime(2014, 7, 20, 1, 1, 1))
@@ -646,7 +644,7 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        question = self.create_test_question('question1', self.testbank,
+        question = self.create_test_question('question1', self.module,
                                              question_content='test question')
         questionoption = self.create_test_question_option('questionoption1',
                                                           question)
@@ -674,7 +672,7 @@ class GeneralTests(TestCase):
 
         self.question = self.create_test_question(
             'question1',
-            self.testbank,
+            self.module,
             question_content='test question')
         self.questionoption = self.create_test_question_option(
             'questionoption1',
@@ -709,7 +707,7 @@ class GeneralTests(TestCase):
 
         self.question = self.create_test_question(
             'question1',
-            self.testbank,
+            self.module,
             question_content='test question')
         self.questionoption = self.create_test_question_option(
             'questionoption1',
@@ -736,7 +734,7 @@ class GeneralTests(TestCase):
 
         self.question = self.create_test_question(
             'question1',
-            self.testbank,
+            self.module,
             question_content='test question')
 
         self.questionoption = self.create_test_question_option(
@@ -757,7 +755,7 @@ class GeneralTests(TestCase):
             kwargs={'token': self.learner.unique_token})
         )
         question = self.create_test_question(
-            'question1', self.testbank,
+            'question1', self.module,
             question_content='test question')
 
         self.create_test_question_option(
@@ -966,7 +964,11 @@ class LearnerStateTest(TestCase):
         return Course.objects.create(name=name, **kwargs)
 
     def create_module(self, name, course, **kwargs):
-        return Module.objects.create(name=name, course=course, **kwargs)
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course,module=module)
+        module.save()
+        rel.save()
+        return module
 
     def create_class(self, name, course, **kwargs):
         return Class.objects.create(name=name, course=course, **kwargs)
@@ -985,11 +987,8 @@ class LearnerStateTest(TestCase):
         return Participant.objects.create(
             learner=learner, classs=classs, **kwargs)
 
-    def create_testing_bank(self, name, module, **kwargs):
-        return TestingBank.objects.create(name=name, module=module, **kwargs)
-
-    def create_test_question(self, name, bank, **kwargs):
-        return TestingQuestion.objects.create(name=name, bank=bank, **kwargs)
+    def create_test_question(self, name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
 
     def create_test_question_option(self, name, question):
         return TestingQuestionOption.objects.create(
@@ -1009,8 +1008,7 @@ class LearnerStateTest(TestCase):
         self.participant = self.create_participant(
             self.learner, self.classs, datejoined=datetime.now())
         self.module = self.create_module('module name', self.course)
-        self.testbank = self.create_testing_bank('testbank name', self.module)
-        self.question = self.create_test_question('q1', self.testbank)
+        self.question = self.create_test_question('q1', self.module)
         self.option = self.create_test_question_option(
             'option_1',
             self.question)
@@ -1105,3 +1103,4 @@ class LearnerStateTest(TestCase):
 
     def test_get_today(self):
         self.assertEquals(get_today().date(), datetime.today().date())
+
