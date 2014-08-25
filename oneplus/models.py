@@ -35,13 +35,12 @@ class LearnerState(models.Model):
     def is_weekend(self, week_day):
         return week_day == self.SATURDAY or week_day == self.SUNDAY
 
-    def get_week_day(self, total_answered_count):
+    def get_week_day(self):
         week_day = self.today().weekday()
-        if self.is_weekend(week_day):
-            if total_answered_count <= self.QUESTIONS_PER_DAY:
-                return self.MONDAY
-            else:
-                return self.FRIDAY
+        if self.is_training_weekend():
+            return self.MONDAY
+        elif self.is_weekend(week_day):
+            return self.FRIDAY
         return week_day
 
     def get_num_questions_answered_today(self):
@@ -93,14 +92,14 @@ class LearnerState(models.Model):
         training_questions = []
 
         for x in answered:
-            if self.is_weekend(x.answerdate.weekday()):
+            if self.is_training_date(x.answerdate):
                 training_questions.append(x)
             else:
                 break
 
         return training_questions
 
-    def is_training_week(self, training_questions):
+    def is_training_week(self):
         # Get week day
         weekday = self.participant.datejoined.weekday()
 
@@ -110,45 +109,45 @@ class LearnerState(models.Model):
         next_monday = self.participant.datejoined + timedelta(days=days)
 
         # If it is before the monday after training week
-        is_weekend = self.is_weekend(self.today().weekday())
-        if self.today() < next_monday and is_weekend:
+        if self.today().date() < next_monday.date():
             return True
         else:
             return False
 
-    def is_training_weekend(self, training_questions):
-        # Get week day
+    def get_monday_after_training(self):
+          # Get week day
         weekday = self.participant.datejoined.weekday()
         one_week = 7
         days = 0-weekday + one_week
 
         # Get monday after training week
-        next_monday = self.participant.datejoined + timedelta(days=days)
+        return self.participant.datejoined + timedelta(days=days)
 
-        # If it is before the monday after training week
-        if self.today() < next_monday:
+    def is_training_date(self, date):
+        weekday = date.weekday()
+        if not self.is_weekend(weekday):
+            return False
+
+        next_monday = self.get_monday_after_training()
+        if date < next_monday:
             return True
         else:
             return False
 
+    def is_training_weekend(self):
+        return self.is_training_date(self.today())
+
     def get_total_questions(self):
         answered_this_week = self.get_answers_this_week()
-        #print "answered_this_week" + str(answered_this_week)
         num_answered_this_week = len(answered_this_week)
-
-        answered_in_total = self.get_all_answered()
-        #print "answered_in_total: " + str(answered_in_total)
         training_questions = self.get_training_questions()
-        #print "training_questions: " + str(training_questions)
 
         # If it is a training week, then add on the training question
-        if self.is_training_week(training_questions) \
-                and not self.is_training_weekend(training_questions):
+        if self.is_training_week() and not self.is_training_weekend():
             num_answered_this_week += len(training_questions)
-        #print "num_answered_this_week: " + str(num_answered_this_week)
 
         # Get the day of the week - that saturday and sunday will mimic
-        week_day = self.get_week_day(len(answered_in_total))
+        week_day = self.get_week_day()
         total = self.get_number_questions(num_answered_this_week, week_day)
         return total
 
