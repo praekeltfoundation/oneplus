@@ -20,7 +20,7 @@ class LearnerState(models.Model):
     SUNDAY = 6
 
     def today(self):
-        return datetime.today()
+        return datetime.today().date()
 
     def get_week_range(self):
         today = self.today()
@@ -121,10 +121,12 @@ class LearnerState(models.Model):
                 participant=self.participant
             ).distinct().values_list('question')
 
+            # Get list of valid modules for course
+
             # Get list of unanswered questions
             questions = TestingQuestion.objects.filter(
-                bank__module__course=self.participant.classs.course,
-                bank__module__is_active=True,
+                module__in=self.participant.classs.course.modules.all(),
+                module__is_active=True,
             ).exclude(id__in=answered)
 
             # If a question exists
