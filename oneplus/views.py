@@ -384,8 +384,7 @@ def home(request, state, user):
     ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
-    request.session["state"]["home_day"] = learnerstate.get_week_day(
-        learnerstate.get_all_answered())
+    request.session["state"]["home_day"] = learnerstate.get_week_day()
 
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
