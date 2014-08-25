@@ -5,12 +5,10 @@ from django.contrib.auth import authenticate, logout
 from .forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
-from organisation.models import *
 from core.models import *
 from oneplus.models import *
 from datetime import *
 from datetime import timedelta
-from django.db.models import Sum
 from auth.models import CustomUser
 from functools import wraps
 from django.contrib.auth.decorators import user_passes_test
@@ -27,8 +25,6 @@ from lockout import LockedOut
 COUNTRYWIDE = "Countrywide"
 
 # Code decorator to ensure that the user is logged in
-
-
 def oneplus_login_required(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
@@ -38,8 +34,6 @@ def oneplus_login_required(f):
     return wrap
 
 # Code decorator to check if user is logged in or not
-
-
 def oneplus_check_user(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
@@ -432,8 +426,6 @@ def home(request, state, user):
             update_metric("running.active.participants7", 1, "SUM")
         if days_ago >= timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
-
-
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
