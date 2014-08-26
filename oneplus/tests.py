@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
-from datetime import datetime, timedelta
+from django.contrib.admin.sites import AdminSite
 from django.test import TestCase
+from datetime import datetime, timedelta
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption
@@ -13,10 +14,15 @@ from mock import patch
 from .models import LearnerState
 from .views import get_points_awarded, get_badge_awarded, get_week_day
 from .utils import get_today
+from oneplus.admin import OnePlusLearnerAdmin, OnePlusLearnerResource
 from go_http.tests.test_send import RecordingHandler
+from django.conf import settings
+from auth.admin import LearnerCreationForm
+from django.test.utils import override_settings
 import logging
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class GeneralTests(TestCase):
 
     def create_course(self, name="course name", **kwargs):
@@ -100,6 +106,7 @@ class GeneralTests(TestCase):
         return answers
 
     def setUp(self):
+
         self.course = self.create_course()
         self.classs = self.create_class('class name', self.course)
         self.organisation = self.create_organisation()
@@ -1141,6 +1148,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
 
     def create_course(self, name="course name", **kwargs):
@@ -1286,6 +1294,62 @@ class LearnerStateTest(TestCase):
 
     def test_get_today(self):
         self.assertEquals(get_today().date(), datetime.today().date())
+
+
+class MockRequest(object):
+    pass
+
+
+class MockSuperUser(object):
+    def has_perm(self, perm):
+        return True
+
+
+@override_settings(VUMI_GO_FAKE=True)
+class OneplusAdminMetricTest(TestCase):
+
+    def create_course(self, name="course name", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_module(self, name, course, **kwargs):
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course,module=module)
+        module.save()
+        rel.save()
+        return module
+
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(
+            name=name, organisation=organisation, **kwargs)
+
+    def create_learner(self, school, **kwargs):
+        return Learner.objects.create(school=school, **kwargs)
+
+    def setUp(self):
+        self.site = AdminSite()
+        self.request = MockRequest()
+        self.course = self.create_course()
+        self.classs = self.create_class('class name', self.course)
+        self.organisation = self.create_organisation()
+        self.school = self.create_school('school name', self.organisation)
+        self.learner = self.create_learner(
+            self.school,
+            username="+27123456789",
+            country="country",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+    def test_registered_metric(self):
+        admin = OnePlusLearnerAdmin(self.site)
+        form = LearnerCreationForm()
+        admin.save_model(self.request, self.learner, form, False)
+
 
 
 
