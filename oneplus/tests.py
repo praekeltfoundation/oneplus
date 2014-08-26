@@ -129,11 +129,6 @@ class GeneralTests(TestCase):
         logger.setLevel(logging.INFO)
         logger.addHandler(self.handler)
 
-    def check_logs(self, msg, levelno=logging.INFO):
-        logs = self.handler.logs
-        contains = [True for s in logs if msg == s.msg]
-        return contains
-
     def test_get_next_question(self):
         self.create_test_question('question1', self.module)
         learnerstate = LearnerState.objects.create(
@@ -161,14 +156,104 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
 
-    def test_fire_active_metric(self):
+    def check_logs(self, msg):
+        logs = self.handler.logs
+        contains = [True for s in logs if msg == s.msg]
+        return contains
+
+    def assert_in_metric_logs(self, metric, aggr, value):
+        msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
+        logs = self.handler.logs
+        contains = False
+        if logs is not None:
+            for log in logs:
+                if msg == log.msg:
+                    contains = True
+                    break
+        self.assertTrue(contains)
+
+    def assert_not_in_metric_logs(self, metric, aggr, value):
+        msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
+        logs = self.handler.logs
+        contains = False
+        if logs is not None:
+            for log in logs:
+                if msg == log.msg:
+                    contains = True
+                    break
+        self.assertFalse(contains)
+
+    def test_fire_active_metric_first(self):
         self.client.get(reverse(
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
         self.client.get(reverse('learn.home'))
-        metric_log = "Metric: 'running.active.participants24' [sum] -> 1"
-        self.assertTrue(self.check_logs(metric_log))
+        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
+        self.assert_in_metric_logs('running.active.participants48', 'sum', 1)
+        self.assert_in_metric_logs('running.active.participants7', 'sum', 1)
+        self.assert_in_metric_logs('running.active.participantsmonth', 'sum', 1)
+
+    def test_fire_only24_hours_metric(self):
+        # 24 hours metric has already been fired so only
+        # 48, 7 days and month should fire
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        self.learner.last_active_date = (
+            datetime.now() - timedelta(days=1, hours=4))
+        self.learner.save()
+        self.client.get(reverse('learn.home'))
+        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participants48', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
+
+    def test_fire_24_and_48_hours_metric(self):
+        # 24 hours metric has already been fired so only
+        # 48, 7 days and month should fire
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        self.learner.last_active_date = (
+            datetime.now() - timedelta(days=2, hours=4))
+        self.learner.save()
+        self.client.get(reverse('learn.home'))
+        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
+        self.assert_in_metric_logs('running.active.participants48', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
+
+    def test_fire_24_and_48_7_days_hours_metric(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        self.learner.last_active_date = (
+            datetime.now() - timedelta(days=8, hours=4))
+        self.learner.save()
+        self.client.get(reverse('learn.home'))
+        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
+        self.assert_in_metric_logs('running.active.participants48', 'sum', 1)
+        self.assert_in_metric_logs('running.active.participants7', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
+
+    def test_fire_none_metric(self):
+        # None should be fired
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        self.learner.last_active_date = (
+            datetime.now() - timedelta(hours=4))
+        self.learner.save()
+        self.client.get(reverse('learn.home'))
+        self.assert_not_in_metric_logs('running.active.participants24', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participants48', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
+        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
 
 
     def test_nextchallenge(self):
@@ -207,10 +292,87 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse(
             'learn.next'),
             data={'page': 1},
+
             follow=True
         )
 
         self.assertEquals(resp.status_code, 200)
+
+    def test_answer_correct_nextchallenge(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        # Create a question
+        question1 = self.create_test_question(
+            'question1', self.module, question_content='test question')
+        option = TestingQuestionOption.objects.create(
+            name='questionoption1',
+            question=question1,
+            content='questionanswer1',
+            correct=True
+        )
+
+        # Create the learner state
+        self.learner_state = LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.learner_state.save()
+
+        # Create
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer': option.id
+            }, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assert_in_metric_logs('total.questions', 'sum', 1)
+        self.assert_in_metric_logs("questions.correct.24hr", 'last', 100)
+        self.assert_in_metric_logs("questions.correct.48hr", 'last', 100)
+        self.assert_in_metric_logs("questions.correct.7days", 'last', 100)
+        self.assert_in_metric_logs("questions.correct.32days", 'last', 100)
+
+    def test_answer_incorrect_nextchallenge(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        # Create a question
+        question1 = self.create_test_question(
+            'question1', self.module, question_content='test question')
+        option = TestingQuestionOption.objects.create(
+            name='questionoption1',
+            question=question1,
+            content='questionanswer1',
+            correct=False
+        )
+
+        # Create the learner state
+        self.learner_state = LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.learner_state.save()
+
+        # Create
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer': option.id
+            }, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assert_in_metric_logs('total.questions', 'sum', 1)
+        self.assert_in_metric_logs("questions.correct.24hr", 'last', 0)
+        self.assert_in_metric_logs("questions.correct.48hr", 'last', 0)
+        self.assert_in_metric_logs("questions.correct.7days", 'last', 0)
+        self.assert_in_metric_logs("questions.correct.32days", 'last', 0)
 
     def test_rightanswer(self):
         self.client.get(
