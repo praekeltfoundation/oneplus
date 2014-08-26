@@ -26,6 +26,18 @@ class TestContent(TestCase):
         self.module = self.create_module('module', self.course)
         self.question = self.create_test_question('question', self.module)
 
+    def test_linebreaks(self):
+        content = "<p>heading</p><p>content</p>"
+
+        self.question.question_content = content
+        self.question.save()
+
+        self.assertEquals(
+            self.question.question_content,
+            '<div style="vertical-align:middle;'
+            'display:inline-block;width:80%">'
+            'heading<br/>content<br/></div>')
+
     def test_html_sanitize(self):
         content = "<body><head></head><p><b><strike><img>" \
                   "<a href='/test'>Test</a><strike></b></p></body>"
@@ -38,4 +50,4 @@ class TestContent(TestCase):
             '<div style="vertical-align:middle;'
             'display:inline-block;width:80%"><b>'
             '<img style="vertical-align:middle"/>'
-            '<a href="/test">Test</a></b></div>')
+            '<a href="/test">Test</a></b><br/></div>')
