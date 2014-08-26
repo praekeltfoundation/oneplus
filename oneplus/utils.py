@@ -1,5 +1,5 @@
 from go_http import HttpApiSender, LoggingSender
-import oneplusmvp.settings as settings
+from django.conf import settings
 from datetime import datetime
 import requests
 
