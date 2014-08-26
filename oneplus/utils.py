@@ -7,9 +7,7 @@ import requests
 def update_metric(name, value, metric_type):
     try:
         if hasattr(settings, 'VUMI_GO_FAKE') and settings.VUMI_GO_FAKE:
-            sender = LoggingSender(
-                'DEBUG'
-            )
+            sender = LoggingSender('DEBUG')
             sender.fire_metric(name, value, agg=metric_type.lower())
         else:
             sender = HttpApiSender(

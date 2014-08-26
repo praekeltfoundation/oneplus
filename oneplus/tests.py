@@ -13,6 +13,8 @@ from mock import patch
 from .models import LearnerState
 from .views import get_points_awarded, get_badge_awarded, get_week_day
 from .utils import get_today
+from go_http.tests.test_send import RecordingHandler
+import logging
 
 
 class GeneralTests(TestCase):
@@ -122,6 +124,15 @@ class GeneralTests(TestCase):
         )
         self.outgoing_vumi_text = []
         self.outgoing_vumi_metrics = []
+        self.handler = RecordingHandler()
+        logger = logging.getLogger('DEBUG')
+        logger.setLevel(logging.INFO)
+        logger.addHandler(self.handler)
+
+    def check_logs(self, msg, levelno=logging.INFO):
+        logs = self.handler.logs
+        contains = [True for s in logs if msg == s.msg]
+        return contains
 
     def test_get_next_question(self):
         self.create_test_question('question1', self.module)
@@ -149,6 +160,16 @@ class GeneralTests(TestCase):
         )
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
+
+    def test_fire_active_metric(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        self.client.get(reverse('learn.home'))
+        metric_log = "Metric: 'running.active.participants24' [sum] -> 1"
+        self.assertTrue(self.check_logs(metric_log))
+
 
     def test_nextchallenge(self):
         self.client.get(reverse(
@@ -1103,4 +1124,6 @@ class LearnerStateTest(TestCase):
 
     def test_get_today(self):
         self.assertEquals(get_today().date(), datetime.today().date())
+
+
 
