@@ -2,7 +2,7 @@
     "layout": [
         {
             "type": "diamondash.widgets.lvalue.LValueWidget",
-            "time_range": "1d",
+            "time_range": "1000d",
             "name": "Total Registered Participants",
             "target": {
                 "metric_type": "account",
@@ -172,7 +172,7 @@
             }
         },{
             "type": "diamondash.widgets.lvalue.LValueWidget",
-            "time_range": "1d",
+            "time_range": "1000d",
             "name": "Percentage opt-ins",
             "target": {
                 "metric_type": "account",
