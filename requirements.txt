@@ -1,4 +1,4 @@
-django-mobileu==1.1.0
+django-mobileu==1.1.1
 django-google-analytics-app==2.0.3
 raven
 psycopg2
