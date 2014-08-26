@@ -24,6 +24,7 @@ class LearningChapter(models.Model):
     content = models.TextField("Content", blank=True)
 
     def save(self, *args, **kwargs):
+        self.content = unicode(self.content).replace('</p>', '<br>')
         self.content = bleach.clean(self.content,
                                     allowed_tags,
                                     allowed_attributes,
@@ -96,6 +97,8 @@ class TestingQuestion(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+        self.question_content = unicode(self.question_content).replace('</p>', '<br>')
+        self.answer_content = unicode(self.answer_content).replace('</p>', '<br>')
         self.question_content = bleach.clean(self.question_content,
                                              allowed_tags,
                                              allowed_attributes,
@@ -131,6 +134,7 @@ class TestingQuestionOption(models.Model):
     correct = models.BooleanField("Correct")
 
     def save(self, *args, **kwargs):
+        self.content = unicode(self.content).replace('</p>', '<br>')
         self.content = bleach.clean(self.content,
                                     allowed_tags,
                                     allowed_attributes,
