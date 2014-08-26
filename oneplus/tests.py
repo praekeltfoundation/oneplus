@@ -1345,11 +1345,6 @@ class OneplusAdminMetricTest(TestCase):
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30))
 
-    def test_registered_metric(self):
-        admin = OnePlusLearnerAdmin(self.site)
-        form = LearnerCreationForm()
-        admin.save_model(self.request, self.learner, form, False)
-
 
 
 
