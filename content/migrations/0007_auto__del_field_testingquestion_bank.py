@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("core", "0013_participant_recalc_points"),
+    )
+
     def forwards(self, orm):
         # Deleting field 'TestingQuestion.bank'
         db.delete_column(u'content_testingquestion', 'bank_id')

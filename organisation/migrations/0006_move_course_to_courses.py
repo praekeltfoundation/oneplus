@@ -6,6 +6,10 @@ from django.db import models
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ("organisation", "0005_auto__add_coursemodulerel"),
+    )
+
     def forwards(self, orm):
         for module in orm.Module.objects.all():
             if module.course:

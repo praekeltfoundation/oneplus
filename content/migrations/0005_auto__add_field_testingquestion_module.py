@@ -6,6 +6,9 @@ from django.db import models
 
 
 class Migration(SchemaMigration):
+    depends_on = (
+        ("organisation", "0004_auto__add_field_module_order"),
+    )
 
     def forwards(self, orm):
         # Adding field 'TestingQuestion.module'

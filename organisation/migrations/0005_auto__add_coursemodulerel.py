@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("core", "0012_move_from_participant_bonus_points"),
+    )
+
     def forwards(self, orm):
         # Adding model 'CourseModuleRel'
         db.create_table(u'organisation_coursemodulerel', (
