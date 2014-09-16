@@ -6,6 +6,9 @@ from django.db import models
 
 
 class Migration(SchemaMigration):
+    depends_on = (
+        ("content", "0006_testbank_to_module"),
+    )
 
     def forwards(self, orm):
         # Deleting field 'Module.course'

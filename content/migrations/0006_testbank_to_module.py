@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ("content", "0005_auto__add_field_testingquestion_module"),
+    )
+
     def forwards(self, orm):
         for question in orm.TestingQuestion.objects.all():
             question.module = question.bank.module
