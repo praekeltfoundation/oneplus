@@ -683,6 +683,12 @@ class GeneralTests(TestCase):
         output = strip_tags(result)
         self.assertEquals(output, u'<div></div>')
 
+    def test_unicode_input(self):
+        content = u'<div></div>'
+        result = align(content)
+        output = strip_tags(result)
+        self.assertEquals(output, u'<div style="vertical-align:middle;display:inline-block;width:80%"><div></div></div>')
+
     def test_right_view(self):
         self.client.get(reverse(
             'auth.autologin',
