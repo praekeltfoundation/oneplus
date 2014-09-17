@@ -54,7 +54,7 @@ def get_content(value):
 
 
 def body_to_div(body, soup):
-    remove_tags(str(body), "body")
+    remove_tags(unicode(body), "body")
     output = soup.new_tag("div")
     list = body.contents[:]
     for content in list:
