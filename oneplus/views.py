@@ -102,6 +102,8 @@ def login(request, state):
         return render(request, "auth/login.html", {"state": state,
                                                    "form": LoginForm()})
 
+
+
     def post():
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -1539,7 +1541,7 @@ def ontrack(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
     _modules = Participant.objects.get(
-        pk=user["participant_id"]).classs.course.modules.all()
+        pk=user["participant_id"]).classs.course.modules.all().order_by('order')
 
     # Calculate achieved score
     for m in _modules:
@@ -1662,7 +1664,7 @@ def leader(request, state, user):
 def points(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
-    _modules = _participant.classs.course.modules.all()
+    _modules = _participant.classs.course.modules.all().order_by('order')
     request.session["state"]["points_points"] = _participant.points
 
     def get_points_per_module():
