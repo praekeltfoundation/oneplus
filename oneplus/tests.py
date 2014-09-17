@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta, date
 from django.test import TestCase
@@ -684,10 +685,10 @@ class GeneralTests(TestCase):
         self.assertEquals(output, u'<div></div>')
 
     def test_unicode_input(self):
-        content = u'<div></div>'
+        content = u'Zoë'
         result = align(content)
         output = strip_tags(result)
-        self.assertEquals(output, u'<div style="vertical-align:middle;display:inline-block;width:80%"><div></div></div>')
+        self.assertEquals(output, u'<div style="vertical-align:middle;display:inline-block;width:80%">Zoë</div>')
 
     def test_right_view(self):
         self.client.get(reverse(
