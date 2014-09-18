@@ -13,42 +13,30 @@ class TestContent(TestCase):
     def test_align_image_only(self):
         content = "<img/>"
         result = format_option(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block">'
-                                  u'<img style="vertical-align:middle"/>'
-                                  u'</div>')
+        self.assertEquals(result, u'<img style="vertical-align:middle"/>')
 
     def test_format_option_text_only(self):
         content = "Test"
         result = format_option(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block">'
-                                  u'Test</div>')
+        self.assertEquals(result,u'Test')
 
     def test_format_option_text_and_image(self):
         content = "<b>Test</b><img/>"
         result = format_option(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block">'
-                                  u'<b>Test</b><img style='
-                                  u'"vertical-align:middle"/></div>')
+        self.assertEquals(result, u'<b>Test</b><img style='
+                                  u'"vertical-align:middle"/>')
 
     def test_format_option_double_image(self):
         content = "<img/><img/>"
         result = format_option(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block">'
-                                  u'<img style="vertical-align:middle"/>'
-                                  u'<img style="vertical-align:middle"/>'
-                                  u'</div>')
+        self.assertEquals(result, u'<img style="vertical-align:middle"/>'
+                                  u'<img style="vertical-align:middle"/>')
 
     def test_format_option(self):
         content = "<b>Test</b><p></p><img/>"
         output = format_option(content)
-        self.assertEquals(output, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block">'
-                                  u'<b>Test</b><br/><img style="'
-                                  u'vertical-align:middle"/></div>')
+        self.assertEquals(output, u'<b>Test</b><br/><img style="'
+                                  u'vertical-align:middle"/>')
 
     def test_format_content(self):
         content = '<img style="width:300px"/>'
@@ -76,10 +64,9 @@ class TestContent(TestCase):
     def test_filters_empty_option(self):
         content = ""
         output = format_option(content)
-        self.assertEquals(output, u'<div></div>')
+        self.assertEquals(output, u'')
 
     def test_unicode_input(self):
         content = u'Zoë'
         output = format_option(content)
-        self.assertEquals(output, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block">Zoë</div>')
+        self.assertEquals(output, u'Zoë')
