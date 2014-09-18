@@ -729,13 +729,11 @@ class GeneralTests(TestCase):
         testingquestionoption.save()
 
         self.assertEquals(testingquestionoption.content,
-                          u'<div><img style="width:60px;'
-                          u'vertical-align:middle"/></div>')
+                          u'<img style="vertical-align:middle"/>')
 
         content = format_option(testingquestionoption.content)
 
-        self.assertEquals(content, u'<div><img style="width:60px;'
-                                   u'vertical-align:middle"/></div>')
+        self.assertEquals(content, u'<img style="vertical-align:middle"/>')
 
     def test_right_view(self):
         self.client.get(reverse(
