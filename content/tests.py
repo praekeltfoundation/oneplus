@@ -34,9 +34,7 @@ class TestContent(TestCase):
 
         self.assertEquals(
             self.question.question_content,
-            '<div style="vertical-align:middle;'
-            'display:inline-block;width:80%">'
-            'heading<br/>content<br/></div>')
+            u'<div>heading<br/>content<br/></div>')
 
     def test_html_sanitize(self):
         content = "<body><head></head><p><b><strike><img>" \
@@ -47,7 +45,4 @@ class TestContent(TestCase):
 
         self.assertEquals(
             self.question.question_content,
-            '<div style="vertical-align:middle;'
-            'display:inline-block;width:80%"><b>'
-            '<img style="vertical-align:middle"/>'
-            '<a href="/test">Test</a></b><br/></div>')
+            u'<div><b><img/><a href="/test">Test</a></b><br/></div>')
