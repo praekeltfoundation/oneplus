@@ -9,7 +9,7 @@ from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post
-from .templatetags.oneplus_extras import strip_tags, align, format_width
+from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
 from .views import get_points_awarded, get_badge_awarded, get_week_day
@@ -23,7 +23,7 @@ class GeneralTests(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
@@ -46,7 +46,9 @@ class GeneralTests(TestCase):
             learner=learner, classs=classs, **kwargs)
 
     def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+        return TestingQuestion.objects.create(name=name,
+                                              module=module,
+                                              **kwargs)
 
     def create_badgetemplate(self, name='badge template name', **kwargs):
         return GamificationBadgeTemplate.objects.create(
@@ -472,7 +474,6 @@ class GeneralTests(TestCase):
         )
         self.assertEquals(learnerstate.get_total_questions(), 0)
 
-
     @patch.object(LearnerState, 'today')
     def test_tuesday_with_monday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
@@ -627,68 +628,126 @@ class GeneralTests(TestCase):
         self.assertEquals(learnerstate.get_total_questions(), 3)
         self.assertEquals(learnerstate.get_num_questions_answered_today(), 2)
 
-    def test_strip_tags(self):
+    def test_strip_p_tags(self):
         content = "<p><b>Test</b></p>"
-        result = strip_tags(content)
-        self.assertEquals(result, "<b>Test</b>")
+        result = format_content(content)
+        self.assertEquals(result, "<div><b>Test</b><br/></div>")
 
     def test_align_image_only(self):
         content = "<img/>"
-        result = align(content)
+        result = format_option(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
+                                  u'display:inline-block">'
                                   u'<img style="vertical-align:middle"/>'
                                   u'</div>')
 
-    def test_align_text_only(self):
+    def test_format_option_text_only(self):
         content = "Test"
-        result = align(content)
+        result = format_option(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
+                                  u'display:inline-block">'
                                   u'Test</div>')
 
-    def test_align_text_and_image(self):
+    def test_format_option_text_and_image(self):
         content = "<b>Test</b><img/>"
-        result = align(content)
+        result = format_option(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
+                                  u'display:inline-block">'
                                   u'<b>Test</b><img style='
                                   u'"vertical-align:middle"/></div>')
 
-    def test_align_double_image(self):
+    def test_format_option_double_image(self):
         content = "<img/><img/>"
-        result = align(content)
+        result = format_option(content)
         self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
+                                  u'display:inline-block">'
                                   u'<img style="vertical-align:middle"/>'
                                   u'<img style="vertical-align:middle"/>'
                                   u'</div>')
 
-    def test_align_then_strip(self):
+    def test_format_option(self):
         content = "<b>Test</b><p></p><img/>"
-        result = align(content)
-        output = strip_tags(result)
+        output = format_option(content)
         self.assertEquals(output, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'<b>Test</b><img style="'
+                                  u'display:inline-block">'
+                                  u'<b>Test</b><br/><img style="'
                                   u'vertical-align:middle"/></div>')
 
-    def test_format_width(self):
+    def test_format_content(self):
         content = '<img style="width:300px"/>'
-        result = format_width(content)
-        self.assertEquals(result, u'<body><img style="width:100%"/></body>')
+        result = format_content(content)
+        self.assertEquals(result, u'<div><img style="width:100%;'
+                                  u'vertical-align:middle"/></div>')
+
+    def test_already_format_content(self):
+        content = '<img style="width:100%"/>'
+        result = format_content(content)
+        self.assertEquals(result, u'<div><img style="width:100%;'
+                                  u'vertical-align:middle"/></div>')
+
+    def test_format_content_small_image(self):
+        content = '<img style="width:60px"/>'
+        result = format_content(content)
+        self.assertEquals(result, u'<div><img style="width:60px;'
+                                  u'vertical-align:middle"/></div>')
 
     def test_filters_empty(self):
         content = ""
-        result = align(content)
-        output = strip_tags(result)
+        output = format_content(content)
+        self.assertEquals(output, u'<div></div>')
+
+    def test_filters_empty_option(self):
+        content = ""
+        output = format_option(content)
         self.assertEquals(output, u'<div></div>')
 
     def test_unicode_input(self):
         content = u'Zoë'
-        result = align(content)
-        output = strip_tags(result)
-        self.assertEquals(output, u'<div style="vertical-align:middle;display:inline-block;width:80%">Zoë</div>')
+        output = format_option(content)
+        self.assertEquals(output, u'<div style="vertical-align:middle;'
+                                  u'display:inline-block">Zoë</div>')
+
+    def test_save_then_display(self):
+        testingquestion = TestingQuestion.objects.create()
+        testingquestion.question_content = "There are 52 cards " \
+                                           "in a playing deck of cards. " \
+                                           "There are four Kings. " \
+                                           "If you draw out one card, " \
+                                           "the probability " \
+                                           "that it will be a King is: "
+        testingquestion.save()
+
+        self.assertEquals(testingquestion.question_content,
+                          u'<div>There are 52 cards '
+                          u'in a playing deck of cards. '
+                          u'There are four Kings. '
+                          u'If you draw out one card, '
+                          u'the probability '
+                          u'that it will be a King is: </div>')
+
+        content = format_content(testingquestion.question_content)
+
+        self.assertEquals(content,
+                          u'<div>There are 52 cards '
+                          u'in a playing deck of cards. '
+                          u'There are four Kings. '
+                          u'If you draw out one card, '
+                          u'the probability '
+                          u'that it will be a King is: </div>')
+
+    def test_save_then_display(self):
+        testingquestionoption = TestingQuestionOption.objects.create()
+        testingquestionoption.content = "<img>"
+        testingquestionoption.save()
+
+        self.assertEquals(testingquestionoption.content,
+                          u'<div><img style="width:60px;'
+                          u'vertical-align:middle"/></div>')
+
+        content = format_option(testingquestionoption.content)
+
+        self.assertEquals(content, u'<div><img style="width:60px;'
+                                   u'vertical-align:middle"/></div>')
 
     def test_right_view(self):
         self.client.get(reverse(
@@ -1016,7 +1075,7 @@ class LearnerStateTest(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
@@ -1039,12 +1098,13 @@ class LearnerStateTest(TestCase):
             learner=learner, classs=classs, **kwargs)
 
     def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+        return TestingQuestion.objects.create(name=name,
+                                              module=module,
+                                              **kwargs)
 
     def create_test_question_option(self, name, question):
         return TestingQuestionOption.objects.create(
             name=name, question=question, correct=True)
-
 
     def create_test_answer(
             self,
@@ -1119,8 +1179,6 @@ class LearnerStateTest(TestCase):
 
         #End: Friday the 22nd of August
         self.assertEquals(week_range[1], datetime(2014, 8, 23, 0, 0))
-
-
 
     def test_get_number_questions(self):
         # returns required - answered * questions per day(3)
@@ -1247,7 +1305,8 @@ class LearnerStateTest(TestCase):
 
         # Create and answer 2 other questions earlier in the day
         answers = self.create_and_answer_questions(2, 'training',
-              datetime(2014, 8, 23, 1, 22, 0))
+                                                   datetime(2014, 8, 23,
+                                                            1, 22, 0))
         training_questions = self.learner_state.get_training_questions()
 
         self.assertListEqual(training_questions, answers)
