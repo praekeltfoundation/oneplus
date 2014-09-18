@@ -16,12 +16,12 @@
             {% else %}
                 <form action="next" method="post" class="pad-bottom">{% csrf_token %}
             {% endif %}
-                        <p>{{ question.question_content | format_width }}</p>
+                        <p>{{ question.question_content | format_content }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
                             <label class="label-question" for="answer_{{ opt.id }}">
                             {% if opt.content %}
-                                {{ opt.content | align | strip_tags  }} </label></br></br>
+                                {{ opt.content | format_option  }} </label></br></br>
                             {% else %}
                                 {{ opt.name }} </label></br></br>
                             {% endif %}
