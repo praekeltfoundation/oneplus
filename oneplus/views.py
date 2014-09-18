@@ -361,8 +361,29 @@ def home(request, state, user):
         module__is_active=True,
     ).exclude(id__in=answered)
 
+    learner = learnerstate.participant.learner
+
     if not questions:
         request.session["state"]["questions_complete"] = True
+        subject = ' '.join([
+            'Questions Completed -',
+            learner.first_name,
+            learner.last_name,
+            '-',
+            learner.username
+        ])
+        message = '\n'.join([
+            'Questions completed',
+            'Student: ' + learner.first_name + ' ' + learner.last_name,
+            'Msisdn: ' + learner.username
+        ])
+
+        mail_managers(
+            subject=subject,
+            message=message,
+            fail_silently=False
+        )
+
     else:
         request.session["state"]["questions_complete"] = False
 
