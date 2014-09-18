@@ -57,13 +57,7 @@ def format_option(value):
 
     if soup.body:
         body = get_content(soup)
-        remove_tags(unicode(body), "body")
-        output = soup.new_tag("div")
-        list = body.contents[:]
-        for content in list:
-            output.append(content)
-            output['style'] = \
-                'vertical-align:middle;display:inline-block'
+        output = remove_tags(unicode(body), "body")
 
     return unicode(output)
 
