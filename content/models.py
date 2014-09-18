@@ -3,8 +3,7 @@ from django.core.validators import MaxValueValidator
 from organisation.models import Module
 from django.core.urlresolvers import reverse
 from django.utils.html import remove_tags
-import bleach
-from mobileu.utils import format_width, align
+from mobileu.utils import format_content, format_option
 
 
 class LearningChapter(models.Model):
@@ -24,14 +23,7 @@ class LearningChapter(models.Model):
     content = models.TextField("Content", blank=True)
 
     def save(self, *args, **kwargs):
-        self.content = unicode(self.content).replace('</p>', '<br>')
-        self.content = bleach.clean(self.content,
-                                    allowed_tags,
-                                    allowed_attributes,
-                                    allowed_styles,
-                                    strip=True)
-        self.content = format_width(self.content)
-        self.content = align(self.content)
+        self.content = format_content(self.content)
         super(LearningChapter, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -97,23 +89,8 @@ class TestingQuestion(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        self.question_content = unicode(self.question_content).replace('</p>', '<br>')
-        self.answer_content = unicode(self.answer_content).replace('</p>', '<br>')
-        self.question_content = bleach.clean(self.question_content,
-                                             allowed_tags,
-                                             allowed_attributes,
-                                             allowed_styles,
-                                             strip=True)
-        self.answer_content = bleach.clean(self.answer_content,
-                                           allowed_tags,
-                                           allowed_attributes,
-                                           allowed_styles,
-                                           strip=True)
-        self.question_content = format_width(self.question_content)
-        self.question_content = align(self.question_content)
-        self.answer_content = format_width(self.answer_content)
-        self.answer_content = align(self.answer_content)
-
+        self.question_content = format_content(self.question_content)
+        self.answer_content = format_content(self.answer_content)
         super(TestingQuestion, self).save(*args, **kwargs)
 
     class Meta:
@@ -134,14 +111,8 @@ class TestingQuestionOption(models.Model):
     correct = models.BooleanField("Correct")
 
     def save(self, *args, **kwargs):
-        self.content = unicode(self.content).replace('</p>', '<br>')
-        self.content = bleach.clean(self.content,
-                                    allowed_tags,
-                                    allowed_attributes,
-                                    allowed_styles,
-                                    strip=True)
-        self.content = format_width(self.content)
-        self.content = align(self.content)
+        if self.content:
+            self.content = format_option(self.content)
         super(TestingQuestionOption, self).save(*args, **kwargs)
 
     def link(self):
