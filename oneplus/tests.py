@@ -723,7 +723,8 @@ class GeneralTests(TestCase):
                           u'that it will be a King is: </div>')
 
     def test_save_then_display(self):
-        testingquestionoption = TestingQuestionOption.objects.create()
+        testingquestionoption = TestingQuestionOption.objects.create(
+            correct=True)
         testingquestionoption.content = "<img>"
         testingquestionoption.save()
 
