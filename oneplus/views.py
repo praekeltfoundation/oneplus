@@ -1064,6 +1064,11 @@ def wrong(request, state, user):
     ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
+    if _learnerstate.active_question:
+        question_id = _learnerstate.active_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+
     def get():
         if not _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
