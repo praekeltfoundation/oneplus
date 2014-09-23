@@ -10,6 +10,7 @@
         <div class="text heading darkgrey-back"><p>Q {{ state.wrong_tasks_today }}/{{ state.total_tasks_today }}</p></div>
 
         {% autoescape off %}
+            {{ state.question_id }}
             <div class="content narrow white-back darkgrey-front">
                 <div class="pad-bottom">
 

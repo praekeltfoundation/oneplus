@@ -631,7 +631,7 @@ class GeneralTests(TestCase):
     def test_strip_p_tags(self):
         content = "<p><b>Test</b></p>"
         result = format_content(content)
-        self.assertEquals(result, "<div><b>Test</b><br/></div>")
+        self.assertEquals(result, "<div><b>Test</b></div>")
 
     def test_align_image_only(self):
         content = "<img/>"
@@ -658,7 +658,7 @@ class GeneralTests(TestCase):
     def test_format_option(self):
         content = "<b>Test</b><p></p><img/>"
         output = format_option(content)
-        self.assertEquals(output, u'<b>Test</b><br/><img style="'
+        self.assertEquals(output, u'<b>Test</b><img style="'
                                   u'vertical-align:middle"/>')
 
     def test_format_content(self):

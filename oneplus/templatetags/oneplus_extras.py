@@ -13,6 +13,11 @@ def format_content(value):
                          allowed_attributes,
                          allowed_styles,
                          strip=True)
+
+    value = unicode(value)
+    while value.endswith('<br>'):
+        value = value[:-4]
+
     soup = BeautifulSoup(value)
 
     tags = soup.find_all('img')
@@ -44,10 +49,15 @@ register.filter('format_content', format_content)
 def format_option(value):
 
     value = value.replace('</p>', '<br>')
+
     value = bleach.clean(value, allowed_tags,
                          allowed_attributes,
                          allowed_styles,
                          strip=True)
+
+    value = unicode(value)
+    while value.endswith('<br>'):
+        value = value[:-4]
 
     soup = BeautifulSoup(value)
     tags = soup.find_all('img')
