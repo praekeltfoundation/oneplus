@@ -658,7 +658,7 @@ class GeneralTests(TestCase):
     def test_format_option(self):
         content = "<b>Test</b><p></p><img/>"
         output = format_option(content)
-        self.assertEquals(output, u'<b>Test</b><img style="'
+        self.assertEquals(output, u'<b>Test</b><br/><img style="'
                                   u'vertical-align:middle"/>')
 
     def test_format_content(self):
