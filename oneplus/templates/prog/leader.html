@@ -29,13 +29,11 @@
         {% endif %}
         <table width="100%">
         {% for participant in learners %}
-        <tr>
-            <td class="item grey-back {% if participant.me %}red-front{% endif %}">
+        <tr class="item grey-back {% if participant.me %}red-front{% endif %}">
                 <td class="large-font pull-left" style="width:20%">#{{ forloop.counter }}</td>
                 <td class="large-font pull-left" >{{ participant.learner.first_name }}</td>
                 <td class="large-font pull-right">{{ participant.points }}</td>
                 <td class="clear"></td>
-            </td>
         </tr>
         {% endfor %}
         </table>
