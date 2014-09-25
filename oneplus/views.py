@@ -5,12 +5,10 @@ from django.contrib.auth import authenticate, logout
 from .forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
-from organisation.models import *
 from core.models import *
 from oneplus.models import *
 from datetime import *
 from datetime import timedelta
-from django.db.models import Sum
 from auth.models import CustomUser
 from functools import wraps
 from django.contrib.auth.decorators import user_passes_test
@@ -27,8 +25,6 @@ from lockout import LockedOut
 COUNTRYWIDE = "Countrywide"
 
 # Code decorator to ensure that the user is logged in
-
-
 def oneplus_login_required(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
@@ -38,8 +34,6 @@ def oneplus_login_required(f):
     return wrap
 
 # Code decorator to check if user is logged in or not
-
-
 def oneplus_check_user(f):
     @wraps(f)
     def wrap(request, *args, **kwargs):
@@ -107,6 +101,8 @@ def login(request, state):
     def get():
         return render(request, "auth/login.html", {"state": state,
                                                    "form": LoginForm()})
+
+
 
     def post():
         form = LoginForm(request.POST)
@@ -367,8 +363,29 @@ def home(request, state, user):
         module__is_active=True,
     ).exclude(id__in=answered)
 
+    learner = learnerstate.participant.learner
+
     if not questions:
         request.session["state"]["questions_complete"] = True
+        subject = ' '.join([
+            'Questions Completed -',
+            learner.first_name,
+            learner.last_name,
+            '-',
+            learner.username
+        ])
+        message = '\n'.join([
+            'Questions completed',
+            'Student: ' + learner.first_name + ' ' + learner.last_name,
+            'Msisdn: ' + learner.username
+        ])
+
+        mail_managers(
+            subject=subject,
+            message=message,
+            fail_silently=False
+        )
+
     else:
         request.session["state"]["questions_complete"] = False
 
@@ -384,8 +401,7 @@ def home(request, state, user):
     ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
-    request.session["state"]["home_day"] = learnerstate.get_week_day(
-        learnerstate.get_all_answered())
+    request.session["state"]["home_day"] = learnerstate.get_week_day()
 
     request.session["state"]["home_tasks_today"]\
         = ParticipantQuestionAnswer.objects.filter(
@@ -433,8 +449,6 @@ def home(request, state, user):
             update_metric("running.active.participants7", 1, "SUM")
         if days_ago >= timedelta(days=2):
                 update_metric("running.active.participants48", 1, "SUM")
-
-
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
@@ -1050,6 +1064,11 @@ def wrong(request, state, user):
     ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
+    if _learnerstate.active_question:
+        question_id = _learnerstate.active_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+
     def get():
         if not _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
@@ -1548,7 +1567,7 @@ def ontrack(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
     _modules = Participant.objects.get(
-        pk=user["participant_id"]).classs.course.modules.all()
+        pk=user["participant_id"]).classs.course.modules.all().order_by('order')
 
     # Calculate achieved score
     for m in _modules:
@@ -1671,7 +1690,7 @@ def leader(request, state, user):
 def points(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _course = _participant.classs.course
-    _modules = _participant.classs.course.modules.all()
+    _modules = _participant.classs.course.modules.all().order_by('order')
     request.session["state"]["points_points"] = _participant.points
 
     def get_points_per_module():

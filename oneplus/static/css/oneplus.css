@@ -535,3 +535,8 @@ li.down_red {
     padding-top: 8px;
     padding-bottom: 8px
 }
+
+.align-option{
+    vertical-align: middle;
+    display: inline-block;
+}

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.core.urlresolvers import reverse
 from django.contrib.admin.sites import AdminSite
 from django.test import TestCase
@@ -9,7 +10,7 @@ from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post
-from .templatetags.oneplus_extras import strip_tags, align, format_width
+from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
 from .views import get_points_awarded, get_badge_awarded, get_week_day
@@ -30,7 +31,7 @@ class GeneralTests(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
@@ -53,7 +54,9 @@ class GeneralTests(TestCase):
             learner=learner, classs=classs, **kwargs)
 
     def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+        return TestingQuestion.objects.create(name=name,
+                                              module=module,
+                                              **kwargs)
 
     def create_badgetemplate(self, name='badge template name', **kwargs):
         return GamificationBadgeTemplate.objects.create(
@@ -87,7 +90,7 @@ class GeneralTests(TestCase):
         for x in range(0, num_questions):
             # Create a question
             question = self.create_test_question(
-                'q' + prefix + str(x),self.module)
+                'q' + prefix + str(x), self.module)
 
             question.save()
             option = self.create_test_question_option(
@@ -118,7 +121,7 @@ class GeneralTests(TestCase):
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30))
         self.participant = self.create_participant(
-            self.learner, self.classs, datejoined=datetime.now())
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = self.create_module('module name', self.course)
         self.badge_template = self.create_badgetemplate()
 
@@ -603,7 +606,7 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_training_sunday(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 20, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 20, 0, 0, 0)
 
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
@@ -617,7 +620,7 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_training_saturday(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 19, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 19, 0, 0, 0)
 
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
@@ -632,7 +635,7 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_monday_first_week_no_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 21, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 21, 0, 0, 0)
 
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
@@ -645,7 +648,7 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_monday_first_week_with_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 21, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 21, 0, 0, 0)
 
         self.create_and_answer_questions(
             3,
@@ -681,7 +684,8 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_miss_a_day_during_week(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 22, 0, 0, 0)
+
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
@@ -693,7 +697,7 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_miss_multiple_days_during_week(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 23, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 23, 0, 0, 0)
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
         learnerstate = LearnerState.objects.create(
@@ -705,10 +709,16 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_partially_miss_day_during_week(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
-        self.create_and_answer_questions(
+        monday = datetime(2014, 7, 21, 0, 0, 0)
+        tuesday = datetime(2014, 7, 22, 0, 0, 0)
+
+        # Tuesday the 22nd July
+        mock_get_today.return_value = tuesday
+
+        # Answer only 2 questions on Monday the 21st of July
+        answers = self.create_and_answer_questions(
             2,
-            'sunday',
+            'monday',
             datetime(2014, 7, 21, 1, 1, 1))
 
         question1 = self.create_test_question('question1', self.module,
@@ -718,11 +728,19 @@ class GeneralTests(TestCase):
             active_question=question1,
             active_result=True,
         )
+
+        # Check answered
+        answered = list(learnerstate.get_answers_this_week())
+
+        self.assertListEqual(answered, answers)
+        self.assertListEqual(learnerstate.get_week_range(), [monday, tuesday])
+
+        # Should have 1 question from Monday and 3 from Tuesday, thus 4
         self.assertEquals(learnerstate.get_total_questions(), 4)
 
     @patch.object(LearnerState, 'today')
     def test_forget_a_single_days_till_weekend(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 26, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 26, 0, 0, 0)
 
         self.create_and_answer_questions(3, 'monday',
                                          datetime(2014, 7, 21, 1, 1, 1))
@@ -744,7 +762,7 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_miss_all_days_till_weekend_except_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 26, 1, 1, 1)
+        mock_get_today.return_value = datetime(2014, 7, 26, 0, 0, 0)
 
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
@@ -759,10 +777,13 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, 'today')
     def test_miss_all_questions_except_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 28, 1, 1, 1)
+        # Sunday the 28th
+        mock_get_today.return_value = datetime(2014, 7, 28, 0, 0)
 
         question1 = self.create_test_question('question1', self.module,
                                               question_content='test question')
+
+        # Answered 3 questions at training on Sunday the 20th
         self.create_and_answer_questions(3, 'training',
                                          datetime(2014, 7, 20, 1, 1, 1))
         learnerstate = LearnerState.objects.create(
@@ -770,64 +791,139 @@ class GeneralTests(TestCase):
             active_question=question1,
             active_result=True,
         )
+        self.assertEqual(learnerstate.is_training_week(), False)
         self.assertEquals(learnerstate.get_total_questions(), 3)
 
-    def test_strip_tags(self):
+    @patch.object(LearnerState, "today")
+    def test_saturday_no_questions_not_training(self, mock_get_today):
+        self.participant = self.create_participant(
+            self.learner, self.classs,
+            datejoined=datetime(2014, 8, 22, 0, 0, 0))
+
+        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0)
+
+        # Create question
+        question1 = self.create_test_question('q1', self.module)
+
+        # Create and answer 2 other questions earlier in the day
+        self.create_and_answer_questions(2, 'training',
+                                         datetime(2014, 8, 23, 1, 22, 0))
+
+        learnerstate = LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+
+        self.assertEquals(learnerstate.get_total_questions(), 3)
+        self.assertEquals(learnerstate.get_num_questions_answered_today(), 2)
+
+    def test_strip_p_tags(self):
         content = "<p><b>Test</b></p>"
-        result = strip_tags(content)
-        self.assertEquals(result, "<b>Test</b>")
+        result = format_content(content)
+        self.assertEquals(result, "<div><b>Test</b></div>")
 
     def test_align_image_only(self):
         content = "<img/>"
-        result = align(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'<img style="vertical-align:middle"/>'
-                                  u'</div>')
+        result = format_option(content)
+        self.assertEquals(result, u'<img style="vertical-align:middle"/>')
 
-    def test_align_text_only(self):
+    def test_format_option_text_only(self):
         content = "Test"
-        result = align(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'Test</div>')
+        result = format_option(content)
+        self.assertEquals(result,u'Test')
 
-    def test_align_text_and_image(self):
+    def test_format_option_text_and_image(self):
         content = "<b>Test</b><img/>"
-        result = align(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'<b>Test</b><img style='
-                                  u'"vertical-align:middle"/></div>')
+        result = format_option(content)
+        self.assertEquals(result, u'<b>Test</b><img style='
+                                  u'"vertical-align:middle"/>')
 
-    def test_align_double_image(self):
+    def test_format_option_double_image(self):
         content = "<img/><img/>"
-        result = align(content)
-        self.assertEquals(result, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'<img style="vertical-align:middle"/>'
-                                  u'<img style="vertical-align:middle"/>'
-                                  u'</div>')
+        result = format_option(content)
+        self.assertEquals(result, u'<img style="vertical-align:middle"/>'
+                                  u'<img style="vertical-align:middle"/>')
 
-    def test_align_then_strip(self):
+    def test_format_option(self):
         content = "<b>Test</b><p></p><img/>"
-        result = align(content)
-        output = strip_tags(result)
-        self.assertEquals(output, u'<div style="vertical-align:middle;'
-                                  u'display:inline-block;width:80%">'
-                                  u'<b>Test</b><img style="'
+        output = format_option(content)
+        self.assertEquals(output, u'<b>Test</b><br/><img style="'
+                                  u'vertical-align:middle"/>')
+
+    def test_format_content(self):
+        content = '<img style="width:300px"/>'
+        result = format_content(content)
+        self.assertEquals(result, u'<div><img style="width:100%;'
                                   u'vertical-align:middle"/></div>')
 
-    def test_format_width(self):
-        content = '<img style="width:300px"/>'
-        result = format_width(content)
-        self.assertEquals(result, u'<body><img style="width:100%"/></body>')
+    def test_already_format_content(self):
+        content = '<img style="width:100%"/>'
+        result = format_content(content)
+        self.assertEquals(result, u'<div><img style="width:100%;'
+                                  u'vertical-align:middle"/></div>')
+
+    def test_format_content_small_image(self):
+        content = '<img style="width:60px"/>'
+        result = format_content(content)
+        self.assertEquals(result, u'<div><img style="width:60px;'
+                                  u'vertical-align:middle"/></div>')
 
     def test_filters_empty(self):
         content = ""
-        result = align(content)
-        output = strip_tags(result)
+        output = format_content(content)
         self.assertEquals(output, u'<div></div>')
+
+    def test_filters_empty_option(self):
+        content = ""
+        output = format_option(content)
+        self.assertEquals(output, u'')
+
+    def test_unicode_input(self):
+        content = u'Zoë'
+        output = format_option(content)
+        self.assertEquals(output, u'Zoë')
+
+    def test_save_then_display(self):
+        testingquestion = TestingQuestion.objects.create()
+        testingquestion.question_content = "There are 52 cards " \
+                                           "in a playing deck of cards. " \
+                                           "There are four Kings. " \
+                                           "If you draw out one card, " \
+                                           "the probability " \
+                                           "that it will be a King is: "
+        testingquestion.save()
+
+        self.assertEquals(testingquestion.question_content,
+                          u'<div>There are 52 cards '
+                          u'in a playing deck of cards. '
+                          u'There are four Kings. '
+                          u'If you draw out one card, '
+                          u'the probability '
+                          u'that it will be a King is: </div>')
+
+        content = format_content(testingquestion.question_content)
+
+        self.assertEquals(content,
+                          u'<div>There are 52 cards '
+                          u'in a playing deck of cards. '
+                          u'There are four Kings. '
+                          u'If you draw out one card, '
+                          u'the probability '
+                          u'that it will be a King is: </div>')
+
+    def test_save_then_display(self):
+        testingquestionoption = TestingQuestionOption.objects.create(
+            correct=True)
+        testingquestionoption.content = "<img>"
+        testingquestionoption.save()
+
+        self.assertEquals(testingquestionoption.content,
+                          u'<img style="vertical-align:middle"/>')
+
+        content = format_option(testingquestionoption.content)
+
+        self.assertEquals(content, u'<img style="vertical-align:middle"/>')
 
     def test_right_view(self):
         self.client.get(reverse(
@@ -1156,7 +1252,7 @@ class LearnerStateTest(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
@@ -1179,11 +1275,50 @@ class LearnerStateTest(TestCase):
             learner=learner, classs=classs, **kwargs)
 
     def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+        return TestingQuestion.objects.create(name=name,
+                                              module=module,
+                                              **kwargs)
 
     def create_test_question_option(self, name, question):
         return TestingQuestionOption.objects.create(
             name=name, question=question, correct=True)
+
+    def create_test_answer(
+            self,
+            participant,
+            question,
+            option_selected,
+            answerdate):
+        return ParticipantQuestionAnswer.objects.create(
+            participant=participant,
+            question=question,
+            option_selected=option_selected,
+            answerdate=answerdate,
+            correct=False
+        )
+
+    def create_and_answer_questions(self, num_questions, prefix, date):
+        answers = []
+        for x in range(0, num_questions):
+            # Create a question
+            question = self.create_test_question(
+                'q' + prefix + str(x), self.module)
+
+            question.save()
+            option = self.create_test_question_option(
+                'option_' + prefix + str(x),
+                question)
+            option.save()
+            answer = self.create_test_answer(
+                participant=self.participant,
+                question=question,
+                option_selected=option,
+                answerdate=date
+            )
+            answer.save()
+            answers.append(answer)
+
+        return answers
 
     def setUp(self):
         self.course = self.create_course()
@@ -1210,19 +1345,17 @@ class LearnerStateTest(TestCase):
         )
         self.today = self.learner_state.today()
 
-    def test_get_week_range(self):
+    @patch.object(LearnerState, 'today')
+    def test_get_week_range(self, mock_get_today):
+        # Today = Saturday the 23rd of August
+        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
         week_range = self.learner_state.get_week_range()
 
-        self.assertEquals(
-            week_range[0].date(),
-            datetime.today().date() -
-            timedelta(
-                days=datetime.today().weekday()))
-        self.assertEquals(
-            week_range[1].date(),
-            datetime.today().date() -
-            timedelta(
-                days=1))
+        #Begin: Monday the 18th of August
+        self.assertEquals(week_range[0], datetime(2014, 8, 18, 0, 0))
+
+        #End: Friday the 22nd of August
+        self.assertEquals(week_range[1], datetime(2014, 8, 23, 0, 0))
 
     def test_get_number_questions(self):
         # returns required - answered * questions per day(3)
@@ -1270,22 +1403,20 @@ class LearnerStateTest(TestCase):
 
         self.assertEquals(traing_questions.__len__(), 1)
 
-    def test_is_training_week(self):
-        offset = (datetime.today().weekday() - 6) % 7
-        last_saturday = datetime.today() - timedelta(days=offset)
+    @patch.object(LearnerState, "today")
+    def test_is_training_week(self, mock_get_today):
+        mock_get_today.return_value = datetime(2014, 8, 27, 0, 0, 0)
 
-        answer = ParticipantQuestionAnswer.objects.create(
+        self.participant = self.create_participant(
+            self.learner, self.classs,
+            datejoined=datetime(2014, 8, 22, 0, 0, 0))
+
+        self.learner_state = LearnerState.objects.create(
             participant=self.participant,
-            question=self.question,
-            option_selected=self.option,
-            answerdate=last_saturday,
-            correct=True
+            active_question=self.question
         )
-        answer.save()
 
-        traing_questions = self.learner_state.get_training_questions()
-
-        self.assertTrue(self.learner_state.is_training_week(traing_questions))
+        self.assertTrue(self.learner_state.is_training_week())
 
     def test_getnextquestion(self):
         active_question = self.learner_state.getnextquestion()
@@ -1294,6 +1425,47 @@ class LearnerStateTest(TestCase):
 
     def test_get_today(self):
         self.assertEquals(get_today().date(), datetime.today().date())
+
+    def test_get_unanswered_few_answered(self):
+        # Create some more questions
+        question2 = self.create_test_question("question2", self.module)
+        question2_opt = self.create_test_question_option("qu2", question2)
+        question3 = self.create_test_question("question3", self.module)
+        question3_opt = self.create_test_question_option("qu3", question3)
+
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=datetime.now(),
+            correct=True
+        )
+        answer.save()
+
+        self.assertListEqual(list(self.learner_state.get_unanswered()),
+                             [question2, question3])
+
+    def test_get_unanswered_many_modules(self):
+        # Create modules belonging to course
+        module2 = self.create_module("module2", self.course)
+
+        # Create some more questions
+        question2 = self.create_test_question("question2", self.module)
+        question2_opt = self.create_test_question_option("qu2", question2)
+        question3 = self.create_test_question("question3", module2)
+        question3_opt = self.create_test_question_option("qu3", question3)
+
+        answer = ParticipantQuestionAnswer.objects.create(
+            participant=self.participant,
+            question=self.question,
+            option_selected=self.option,
+            answerdate=datetime.now(),
+            correct=True
+        )
+        answer.save()
+
+        self.assertListEqual(list(self.learner_state.get_unanswered()),
+                             [question2, question3])
 
 
 class MockRequest(object):
@@ -1348,3 +1520,25 @@ class OneplusAdminMetricTest(TestCase):
 
 
 
+    @patch.object(LearnerState, "today")
+    def test_is_training_weekend(self, mock_get_today):
+        self.participant = self.create_participant(
+            self.learner, self.classs,
+            datejoined=datetime(2014, 8, 22, 0, 0, 0))
+
+        self.learner_state = LearnerState.objects.create(
+            participant=self.participant,
+            active_question=self.question
+        )
+
+        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
+
+        # Create and answer 2 other questions earlier in the day
+        answers = self.create_and_answer_questions(2, 'training',
+                                                   datetime(2014, 8, 23,
+                                                            1, 22, 0))
+        training_questions = self.learner_state.get_training_questions()
+
+        self.assertListEqual(training_questions, answers)
+        self.assertEqual(
+            self.learner_state.is_training_weekend(), True)
