@@ -1487,11 +1487,9 @@ class LearnerStateTest(TestCase):
                                                             1, 22, 0))
         training_questions = self.learner_state.get_training_questions()
 
-<<<<<<< HEAD
         self.assertListEqual(training_questions, answers)
         self.assertEqual(
             self.learner_state.is_training_weekend(), True)
-=======
 
 class MockRequest(object):
     pass
@@ -1543,6 +1541,3 @@ class OneplusAdminMetricTest(TestCase):
             unique_token_expiry=datetime.now() + timedelta(days=30))
 
 
-
-
->>>>>>> feature/issue-metric-tests
