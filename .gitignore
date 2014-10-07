@@ -42,3 +42,9 @@ logs/*.log
 
 #ignore thumbnails created by windows
 Thumbs.db
+
+#ignore sqlite3 database for dev
+*.sqlite3
+
+#ignore local_settings.py
+local_settings.py
