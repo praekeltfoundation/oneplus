@@ -56,6 +56,12 @@ class Course(models.Model):
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     slug = models.SlugField("Slug", blank=True)
+    # The Course can determine the presentation of content.
+    # This means a Module and its questions can be presented differently in
+    # different courses.
+    question_order = models.PositiveIntegerField("Question Order", choices=(
+        (1, "Random"), (2, "Ordered"), (3, "Random Intelligent")), default=1)
+
     # modulees
     # pages
     # posts
