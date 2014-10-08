@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from .models import TestingBank, TestingQuestion, TestingQuestionOption, LearningChapter
+from .models import TestingQuestion, TestingQuestionOption, LearningChapter
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -31,19 +31,6 @@ class LearningChapterAdmin(SummernoteModelAdmin):
             {"fields": ["name", "description", "module", "order"]}),
         ("Content",
             {"fields": ["content"]})
-    ]
-    ordering = ("module", "order", "name", )
-
-
-class TestingBankAdmin(SummernoteModelAdmin):
-    list_display = ("module", "order", "name", "description")
-    list_filter = ("module", )
-    search_fields = ("name", "description")
-    fieldsets = [
-        (None,
-            {"fields": ["name", "description", "module", "order"]}),
-        ("Content",
-            {"fields": ["question_order", ]})
     ]
     ordering = ("module", "order", "name", )
 
@@ -161,6 +148,5 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
 
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
-admin.site.register(TestingBank, TestingBankAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)

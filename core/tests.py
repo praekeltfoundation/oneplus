@@ -8,7 +8,7 @@ from core.models import (Participant, Class, ParticipantBadgeTemplateRel,
 from gamification.models import (GamificationBadgeTemplate,
                                  GamificationPointBonus,
                                  GamificationScenario)
-from content.models import TestingQuestion, TestingQuestionOption, TestingBank
+from content.models import TestingQuestion, TestingQuestionOption
 
 
 class TestMessage(TestCase):
@@ -35,9 +35,6 @@ class TestMessage(TestCase):
     def create_test_question_option(self, name, question, correct=True):
         return TestingQuestionOption.objects.create(
             name=name, question=question, correct=correct)
-
-    def create_testbank(self, name, module, **kwargs):
-        return TestingBank.objects.create(name=name, module=module, **kwargs)
 
     def create_school(self, name, organisation, **kwargs):
         return School.objects.create(

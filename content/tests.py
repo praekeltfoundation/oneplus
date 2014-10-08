@@ -1,5 +1,5 @@
 from django.test import TestCase
-from content.models import TestingQuestion, TestingBank
+from content.models import TestingQuestion
 from organisation.models import Course, Module, CourseModuleRel
 
 
@@ -14,9 +14,6 @@ class TestContent(TestCase):
         module.save()
         rel.save()
         return module
-
-    def create_testing_bank(self, name, module, **kwargs):
-        return TestingBank.objects.create(name=name, module=module, **kwargs)
 
     def create_test_question(self, name, module, **kwargs):
         return TestingQuestion.objects.create(name=name, module=module, **kwargs)
