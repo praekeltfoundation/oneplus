@@ -34,28 +34,6 @@ class LearningChapter(models.Model):
         verbose_name_plural = "Learning Chapters"
 
 
-class TestingBank(models.Model):
-
-    """
-    Each modules has a series of questions. The MVP supports two question
-    types, multiple-choice and free-form entry.
-    """
-    name = models.CharField(
-        "Name", max_length=500, null=True, blank=False, unique=True)
-    description = models.CharField("Description", max_length=500, blank=True)
-    order = models.PositiveIntegerField("Order", default=1)
-    module = models.ForeignKey(Module, null=True, blank=False)
-    question_order = models.PositiveIntegerField("Question Order", choices=(
-        (1, "Random"), (2, "Ordered"), (3, "Random Intelligent")), default=1)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Test Bank"
-        verbose_name_plural = "Test Banks"
-
-
 class TestingQuestion(models.Model):
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
