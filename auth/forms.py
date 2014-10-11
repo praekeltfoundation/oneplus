@@ -6,6 +6,9 @@ import csv
 from organisation.models import School, Course
 
 
+# Note: why don't these forms inherit from UserCreationForm and UserChangeForm?
+
+
 class SystemAdministratorCreationForm(forms.ModelForm):
 
     """A form for creating new users. Includes all the required

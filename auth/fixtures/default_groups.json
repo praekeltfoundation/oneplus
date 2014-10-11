@@ -1,0 +1,20 @@
+[
+    {
+        "pk": 1,
+        "model": "auth.group",
+        "fields": {
+            "name": "Content Editor",
+            "permissions": [
+                ["change_learningchapter", "content", "learningchapter"],
+                ["add_learningchapter", "content", "learningchapter"],
+                ["delete_learningchapter", "content", "learningchapter"],
+                ["change_testingquestion", "content", "testingquestion"],
+                ["add_testingquestion", "content", "testingquestion"],
+                ["delete_testingquestion", "content", "testingquestion"],
+                ["change_testingquestionoption", "content", "testingquestionoption"],
+                ["add_testingquestionoption", "content", "testingquestionoption"],
+                ["delete_testingquestionoption", "content", "testingquestionoption"]
+            ]
+        }
+    }
+]
