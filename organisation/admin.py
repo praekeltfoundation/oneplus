@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import *
-from content.admin import TestingQuestionInline
 
 
 class SchoolInline(admin.TabularInline):
@@ -62,7 +61,6 @@ class ModuleAdmin(admin.ModelAdmin):
         (None, {"fields": ["name", "description", "order", "is_active"]})
     ]
     ordering = ("name", "order")
-    inlines = (TestingQuestionInline, )
 
 
 # Organisation

@@ -66,6 +66,11 @@ class SystemAdministrator(CustomUser):
         verbose_name = "System Administrator"
         verbose_name_plural = "System Administrators"
 
+    def save(self, *args, **kwargs):
+        self.is_staff = True
+        self.is_superuser = True
+        super(SystemAdministrator, self).save(*args, **kwargs)
+
 
 # A manager of a school
 class SchoolManager(CustomUser):
@@ -75,6 +80,10 @@ class SchoolManager(CustomUser):
         verbose_name = "School Manager"
         verbose_name_plural = "School Managers"
 
+    def save(self, *args, **kwargs):
+        self.is_staff = True
+        super(SystemAdministrator, self).save(*args, **kwargs)
+
 
 # A manager of a course
 class CourseManager(CustomUser):
@@ -83,6 +92,10 @@ class CourseManager(CustomUser):
     class Meta:
         verbose_name = "Course Manager"
         verbose_name_plural = "Course Managers"
+
+    def save(self, *args, **kwargs):
+        self.is_staff = True
+        super(SystemAdministrator, self).save(*args, **kwargs)
 
 
 # A mentor for a course
