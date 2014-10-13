@@ -16,6 +16,19 @@ Installation
     $ source ve/bin/activate
     (ve)$ pip install -r requirements.txt
 
+
+Initial data
+~~~~~~~~~~~~
+
+To create permissions and groups run:
+
+::
+
+    $ source ve/bin/activate
+    (ve)$ python manage.py syncdb --all
+    (ve)$ python manage.py loaddata auth/fixtures/default_groups.json
+
+
 Run Tests
 ~~~~~~~~~
 
