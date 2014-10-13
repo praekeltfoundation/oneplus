@@ -51,17 +51,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 SITE_ID = 1
 
 INSTALLED_APPS = (
-    #"django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
     "grappelli",
     "mobileu",
     "import_export",
-    "django.contrib.admin",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.humanize",
-    "django.contrib.sites",
     "oneplus",
     "core",
     "gamification",
@@ -76,6 +68,14 @@ INSTALLED_APPS = (
     "bs4",
     "google_analytics",
     "raven.contrib.django.raven_compat",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.admin",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    "django.contrib.sites",
+    "django.contrib.auth",
 )
 
 MIDDLEWARE_CLASSES = (
