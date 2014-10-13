@@ -36,7 +36,7 @@ class SystemAdministratorAdmin(UserAdmin):
         ("Personal info", {"fields": ("first_name", "last_name", "email",
                                       "mobile")}),
         ("Access", {"fields": ("username", "password", "is_active")}),
-        ("Permissions", {"fields": ("is_staff", "is_superuser")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -65,6 +65,7 @@ class SchoolManagerAdmin(UserAdmin):
                                       "email", "mobile")}),
         ("Access", {"fields": ("username", "password",
                                "is_active")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
         ("Region", {"fields": ("country", "area", "city",
                                "school")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
@@ -95,6 +96,7 @@ class CourseManagerAdmin(UserAdmin):
                                       "email", "mobile")}),
         ("Access", {"fields": ("username", "password",
                                "is_active")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
         ("Region", {"fields": ("country", "area", "city",
                                "course")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
@@ -125,6 +127,7 @@ class CourseMentorAdmin(UserAdmin):
                                       "email", "mobile")}),
         ("Access", {"fields": ("username", "password",
                                "is_active")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
         ("Region", {"fields": ("country", "area", "city",
                                "course")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
@@ -163,6 +166,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                                       "email", "mobile")}),
         ("Access", {"fields": ("username", "password",
                                "is_active", "unique_token")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
         ("Region", {"fields": ("country", "area", "city",
                                "school")}),
         ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
