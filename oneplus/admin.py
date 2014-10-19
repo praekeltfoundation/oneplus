@@ -1,5 +1,11 @@
+from django.conf.urls import url
 from django.contrib import admin
+from django.core.urlresolvers import reverse
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
+
 from content.admin import TestingQuestionAdmin, TestingQuestion
+from content.models import TestingQuestion
 from auth.admin import LearnerResource, LearnerAdmin, Learner
 from oneplus.utils import update_metric
 from import_export import fields
@@ -93,9 +99,63 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
     list_display = TestingQuestionAdmin.list_display + ("preview_link",)
 
     def preview_link(self, question):
-        return u'<a href="/preview/%s">Preview</a>' % question.id
+        return u'<a href="%s">Preview</a>' % reverse(
+            'learn.preview',
+            kwargs={'questionid': question.id}
+        )
     preview_link.allow_tags = True
     preview_link.short_description = "Preview"
+
+    def get_urls(self):
+        urls = super(TestingQuestionLinkAdmin, self).get_urls()
+        return [
+            url(r'^add/preview/$',
+                self.admin_site.admin_view(self.preview_add_view),
+                name='preview_add'),
+            url(r'^(?P<object_id>\d+)/preview/$',
+                self.admin_site.admin_view(self.preview_change_view),
+                name='preview_change')
+        ] + urls
+
+    def add_view(self, request, form_url='', extra_context=None):
+        return super(TestingQuestionLinkAdmin, self).add_view(
+            request,
+            form_url=form_url or reverse('admin:preview_add'),
+            extra_context=extra_context
+        )
+
+    @method_decorator(require_POST)
+    def preview_add_view(self, request):
+        form = self.get_form(request)
+        form = form(request.POST)
+        if form.is_valid():
+            # use the form data to render the preview page
+            # instead of the saved object
+            from django.http import HttpResponse
+            return HttpResponse("Hello World")
+        return self.add_view(request)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        return super(TestingQuestionLinkAdmin, self).change_view(
+            request,
+            object_id,
+            form_url=form_url or reverse('admin:preview_change',
+                                         kwargs={'object_id': object_id}),
+            extra_context=extra_context
+        )
+
+    @method_decorator(require_POST)
+    def preview_change_view(self, request, object_id):
+        form = self.get_form(request)
+        instance = TestingQuestion.objects.get(id=object_id)
+        form = form(request.POST, instance=instance)
+        if form.is_valid():
+            # use the form data to render the preview page
+            # instead of the saved object
+            from django.http import HttpResponse
+            return HttpResponse("Hello World")
+        return self.change_view(request, object_id)
+
 
 admin.site.unregister(TestingQuestion)
 admin.site.unregister(Learner)
