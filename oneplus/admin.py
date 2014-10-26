@@ -1,16 +1,55 @@
 from django.conf.urls import url
 from django.contrib import admin
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 
-from content.admin import TestingQuestionAdmin, TestingQuestion
-from content.models import TestingQuestion
+from communication.models import Discussion
+from content.admin import (TestingQuestionAdmin, TestingQuestion,
+                           TestingQuestionOption)
 from auth.admin import LearnerResource, LearnerAdmin, Learner
 from oneplus.utils import update_metric
 from import_export import fields
 from django.db.models import Q
 from organisation.models import School
+
+
+def ensure_preview_session_state(view=None):
+    '''
+    View decorator that populates the session dict with
+    the state required for a preview.
+    '''
+    def decorator(view_function):
+        def new_function(request, object_id, *args, **kwargs):
+            if "state" not in request.session:
+                request.session["state"] = {}
+            request.session.update({
+                "next_tasks_today": 1,
+                "discussion_page_max": Discussion.objects.filter(
+                    question_id=object_id,
+                    moderated=True,
+                    response=None
+                ).count(),
+                "discussion_comment": False,
+                "discussion_responded_id": None
+            })
+            request.session["state"]["discussion_page"] = \
+                    min(2, request.session["state"]["discussion_page_max"])
+            messages = Discussion.objects.filter(
+                question_id=object_id,
+                moderated=True,
+                response=None
+            ).order_by("publishdate") \
+             .reverse()[:request.session["state"]["discussion_page"]]
+            return view_function(request, object_id, *args,
+                                 messages=messages, **kwargs)
+        return new_function
+
+    if view:
+        return decorator(view)
+    return decorator
 
 
 class OnePlusLearnerResource(LearnerResource):
@@ -98,10 +137,10 @@ class OnePlusLearnerAdmin(LearnerAdmin):
 class TestingQuestionLinkAdmin(TestingQuestionAdmin):
     list_display = TestingQuestionAdmin.list_display + ("preview_link",)
 
-    def preview_link(self, question):
+    def preview_link(self, obj):
         return u'<a href="%s">Preview</a>' % reverse(
-            'learn.preview',
-            kwargs={'questionid': question.id}
+            'admin:question_preview',
+            kwargs={'object_id': obj.id}
         )
     preview_link.allow_tags = True
     preview_link.short_description = "Preview"
@@ -109,18 +148,33 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
     def get_urls(self):
         urls = super(TestingQuestionLinkAdmin, self).get_urls()
         return [
+            url(r'^(?P<object_id>\d+)/preview/$',
+                self.admin_site.admin_view(self.preview_view),
+                name='question_preview'),
+            url(r'^(?P<object_id>\d+)/preview/(?P<result>right|wrong)/$',
+                self.admin_site.admin_view(self.preview_result_view),
+                name='question_preview_result'),
             url(r'^add/preview/$',
                 self.admin_site.admin_view(self.preview_add_view),
-                name='preview_add'),
-            url(r'^(?P<object_id>\d+)/preview/$',
+                name='question_preview_add'),
+            url(r'^(?P<object_id>\d+)/preview/unsaved/$',
                 self.admin_site.admin_view(self.preview_change_view),
-                name='preview_change')
+                name='question_preview_change')
         ] + urls
 
     def add_view(self, request, form_url='', extra_context=None):
         return super(TestingQuestionLinkAdmin, self).add_view(
             request,
-            form_url=form_url or reverse('admin:preview_add'),
+            form_url=form_url or reverse('admin:question_preview_add'),
+            extra_context=extra_context
+        )
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        return super(TestingQuestionLinkAdmin, self).change_view(
+            request,
+            object_id,
+            form_url=form_url or reverse('admin:question_preview_change',
+                                         kwargs={'object_id': object_id}),
             extra_context=extra_context
         )
 
@@ -131,18 +185,8 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         if form.is_valid():
             # use the form data to render the preview page
             # instead of the saved object
-            from django.http import HttpResponse
             return HttpResponse("Hello World")
         return self.add_view(request)
-
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        return super(TestingQuestionLinkAdmin, self).change_view(
-            request,
-            object_id,
-            form_url=form_url or reverse('admin:preview_change',
-                                         kwargs={'object_id': object_id}),
-            extra_context=extra_context
-        )
 
     @method_decorator(require_POST)
     def preview_change_view(self, request, object_id):
@@ -152,9 +196,45 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         if form.is_valid():
             # use the form data to render the preview page
             # instead of the saved object
-            from django.http import HttpResponse
             return HttpResponse("Hello World")
         return self.change_view(request, object_id)
+
+    @method_decorator(ensure_preview_session_state)
+    def preview_view(self, request, object_id, **kwargs):
+        question = get_object_or_404(TestingQuestion, id=object_id)
+
+        # answer provided
+        if request.method == 'POST' and 'answer' in request.POST:
+            ans_id = request.POST["answer"]
+            option = get_object_or_404(TestingQuestionOption,
+                                       question_id=object_id,
+                                       id=ans_id)
+            return HttpResponseRedirect(reverse(
+                'admin:question_preview_result',
+                kwargs={
+                    'object_id': object_id,
+                    'result': ('right' if option.correct else 'wrong')
+                }
+            ))
+
+        return render(request, "learn/next.html", {
+            "question": question,
+            "messages": kwargs['messages'],
+            "form_url": reverse("admin:question_preview",
+                                kwargs={'object_id': object_id}),
+        })
+
+    @method_decorator(require_GET)
+    @method_decorator(ensure_preview_session_state)
+    def preview_result_view(self, request, object_id, result, **kwargs):
+        question = get_object_or_404(TestingQuestion, id=object_id)
+
+        return render(request, "learn/%s.html" % result, {
+            "question": question,
+            "messages": kwargs['messages'],
+            "home_url": reverse("admin:content_testingquestion_changelist"),
+            "points": 1
+        })
 
 
 admin.site.unregister(TestingQuestion)

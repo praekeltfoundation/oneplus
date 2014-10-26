@@ -31,9 +31,9 @@
                             </div>
                     {% endif %}
                     {% if state.right_tasks_today >= state.total_tasks_today %}
-                        <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        <a class="button green-back grey-front drop" href="{% if home_url %}{{ home_url }}{% else %}home{% endif %}">Done For Today</a>
                     {% else %}
-                        <a class="button green-back grey-front drop" href="next">Next Question</a>
+                        <a class="button green-back grey-front drop" href="{% if next_url %}{{ next_url }}{% else %}next{% endif %}">Next Question</a>
                     {% endif %}
                 </div>
             </div>

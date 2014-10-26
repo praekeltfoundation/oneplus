@@ -11,11 +11,7 @@
         {% autoescape off %}
             {{ state.question_id }}
             <div class="content narrow white-back darkgrey-front">
-            {% if preview %}
-                <form action="/preview/{{ question.id }}" method="post" class="pad-bottom">{% csrf_token %}
-            {% else %}
-                <form action="next" method="post" class="pad-bottom">{% csrf_token %}
-            {% endif %}
+                <form action="{% if form_url %}{{ form_url }}{% else %}next{% endif %}" method="post" class="pad-bottom">{% csrf_token %}
                         <p>{{ question.question_content | format_content }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
