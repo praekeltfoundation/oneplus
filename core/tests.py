@@ -1,4 +1,8 @@
+from django.db.models import signals
+from django.contrib.auth.management import create_permissions
+from django.core.management import call_command
 from django.test import TestCase
+from django.test.runner import DiscoverRunner
 from datetime import datetime
 from auth.models import Learner
 from organisation.models import (Course, Module, School, Organisation,
@@ -9,6 +13,27 @@ from gamification.models import (GamificationBadgeTemplate,
                                  GamificationPointBonus,
                                  GamificationScenario)
 from content.models import TestingQuestion, TestingQuestionOption
+
+
+class TestRunner(DiscoverRunner):
+
+    def setup_databases(self, **kwargs):
+        '''
+        syncdb won't create the tables for django.contrib.auth due to
+        the custom auth app's migrations. So we have to disconnect
+        the create_permissions signal handler in django.contrib.auth until
+        its tables have been created (using syncdb --all AFTER migrate).
+        '''
+        signals.post_syncdb.disconnect(
+            dispatch_uid="django.contrib.auth.management.create_permissions"
+        )
+        config = super(TestRunner, self).setup_databases(**kwargs)
+        signals.post_syncdb.connect(
+            create_permissions,
+            dispatch_uid="django.contrib.auth.management.create_permissions"
+        )
+        call_command('syncdb', all=True, noinput=True)
+        return config
 
 
 class TestMessage(TestCase):

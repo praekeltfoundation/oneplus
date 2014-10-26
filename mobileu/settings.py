@@ -79,6 +79,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 AUTH_USER_MODEL = "auth.CustomUser"
 
+TEST_RUNNER = 'core.tests.TestRunner'
+
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
