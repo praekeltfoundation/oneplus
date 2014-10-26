@@ -7,7 +7,7 @@ setup(
     install_requires=[
         'django-mobileu',
         'psycopg2',
-        'django_bleach'
+        'django_bleach',
         'beautifulsoup4',
     ],
     url='www.praekelt.co.za',
