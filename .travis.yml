@@ -8,9 +8,6 @@ install:
   - "pip install -r requirements.txt --use-wheel"
   - "pip install coveralls"
 script:
-  - python manage.py syncdb
-  - python manage.py migrate
-  - python manage.py syncdb --all --noinput  # call AFTER migrations for permission creation
-  - coverage run --source=oneplus manage.py test
+  - ./scripts/run-tests.sh
 after_success:
   - coveralls
