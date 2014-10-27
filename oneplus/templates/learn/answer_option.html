@@ -1,0 +1,13 @@
+{% load oneplus_extras %}
+
+<input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+<label class="label-question" for="answer_{{ opt.id }}">
+{% if opt.content %}
+    <div class="align-option"> {{ opt.content | format_option  }}</div>
+{% else %}
+    {{ opt.name }}
+{% endif %}
+{% if show_correct and opt.correct %}
+    <strong style="text-transform: uppercase;">(correct answer)</strong>
+{% endif %}
+</label><br/><br/>

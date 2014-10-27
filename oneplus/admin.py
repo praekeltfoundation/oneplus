@@ -159,10 +159,11 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
                 name='question_preview_add'),
             url(r'^(?P<object_id>\d+)/preview/unsaved/$',
                 self.admin_site.admin_view(self.preview_change_view),
-                name='question_preview_change')
+                name='question_preview_change'),
         ] + urls
 
     def add_view(self, request, form_url='', extra_context=None):
+        request.session.pop("admin_question_data", None)
         return super(TestingQuestionLinkAdmin, self).add_view(
             request,
             form_url=form_url or reverse('admin:question_preview_add'),
@@ -170,6 +171,7 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         )
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
+        request.session.pop("admin_question_data", None)
         return super(TestingQuestionLinkAdmin, self).change_view(
             request,
             object_id,
@@ -188,15 +190,47 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
             return HttpResponse("Hello World")
         return self.add_view(request)
 
-    @method_decorator(require_POST)
-    def preview_change_view(self, request, object_id):
-        form = self.get_form(request)
+    @method_decorator(ensure_preview_session_state)
+    def preview_change_view(self, request, object_id, **kwargs):
+        if request.method == "GET" or len(request.POST) == 1 or \
+                "answer" in request.POST:
+            if "admin_question_data" not in request.session:
+                return HttpResponseRedirect(
+                    reverse("admin:content_testingquestion_change",
+                            args=(object_id, ))
+                )
+            form_data = request.session["admin_question_data"]
+        else:
+            form_data = request.POST
+            request.session["admin_question_data"] = form_data
+
         instance = TestingQuestion.objects.get(id=object_id)
-        form = form(request.POST, instance=instance)
-        if form.is_valid():
+        form = self.get_form(request)(form_data, instance=instance)
+        inline_formset = [f for f in self.get_formsets(request, instance)][0]
+        inline_formset = inline_formset(form_data, instance=instance)
+
+        if form.is_valid and inline_formset.is_valid():
             # use the form data to render the preview page
             # instead of the saved object
-            return HttpResponse("Hello World")
+            question = form.save(commit=False)
+            inline_formset.save(commit=False)
+            inline_objects = list(instance.testingquestionoption_set.exclude(
+                id__in=[o.pk for o in (inline_formset.changed_objects +
+                                       inline_formset.deleted_objects)]
+            )) + inline_formset.new_objects
+            return render(request, "admin/preview_next.html", {
+                "question": question,
+                "options": inline_objects,
+                "show_correct": True,
+                "messages": kwargs['messages'],
+                "form_url": reverse("admin:question_preview_change",
+                                    kwargs={'object_id': object_id}),
+                "save_form": form,
+                "save_formset": inline_formset,
+                "save_form_url": reverse("admin:content_testingquestion_change",
+                                         args=(object_id, ))
+            })
+
         return self.change_view(request, object_id)
 
     @method_decorator(ensure_preview_session_state)
