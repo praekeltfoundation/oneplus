@@ -52,6 +52,30 @@ def ensure_preview_session_state(view=None):
     return decorator
 
 
+def ensure_preview_session_state_empty(view=None):
+    '''
+    View decorator that populates the session dict with
+    the empty state required for a preview.
+    '''
+    def decorator(view_function):
+        def new_function(request, *args, **kwargs):
+            if "state" not in request.session:
+                request.session["state"] = {}
+            request.session.update({
+                "next_tasks_today": 1,
+                "discussion_page_max": 0,
+                "discussion_comment": False,
+                "discussion_responded_id": None,
+                "discussion_page": 0
+            })
+            return view_function(request, *args, messages=[], **kwargs)
+        return new_function
+
+    if view:
+        return decorator(view)
+    return decorator
+
+
 class OnePlusLearnerResource(LearnerResource):
     class_name = fields.Field(column_name=u'class')
     completed_questions = fields.Field(column_name=u'completed_questions')
@@ -180,14 +204,39 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
             extra_context=extra_context
         )
 
-    @method_decorator(require_POST)
-    def preview_add_view(self, request):
-        form = self.get_form(request)
-        form = form(request.POST)
-        if form.is_valid():
+    @method_decorator(ensure_preview_session_state_empty)
+    def preview_add_view(self, request, **kwargs):
+        if request.method == "GET" or len(request.POST) == 1 or \
+                "answer" in request.POST:
+            if "admin_question_data" not in request.session:
+                return HttpResponseRedirect(
+                    reverse("admin:content_testingquestion_add")
+                )
+            form_data = request.session["admin_question_data"]
+        else:
+            form_data = request.POST
+            request.session["admin_question_data"] = form_data
+
+        form = self.get_form(request)(form_data)
+        inline_formset = [f for f in self.get_formsets(request)][0]
+        inline_formset = inline_formset(form_data)
+
+        if form.is_valid() and inline_formset.is_valid():
             # use the form data to render the preview page
             # instead of the saved object
-            return HttpResponse("Hello World")
+            question = form.save(commit=False)
+            inline_objects = inline_formset.save(commit=False)
+            return render(request, "admin/preview_next.html", {
+                "question": question,
+                "options": inline_objects,
+                "show_correct": True,
+                "messages": kwargs['messages'],
+                "form_url": reverse("admin:question_preview_add"),
+                "save_form": form,
+                "save_formset": inline_formset,
+                "save_form_url": reverse("admin:content_testingquestion_add")
+            })
+
         return self.add_view(request)
 
     @method_decorator(ensure_preview_session_state)
@@ -209,7 +258,7 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         inline_formset = [f for f in self.get_formsets(request, instance)][0]
         inline_formset = inline_formset(form_data, instance=instance)
 
-        if form.is_valid and inline_formset.is_valid():
+        if form.is_valid() and inline_formset.is_valid():
             # use the form data to render the preview page
             # instead of the saved object
             question = form.save(commit=False)
