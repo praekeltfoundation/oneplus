@@ -187,12 +187,12 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         ] + urls
 
     def get_form(self, request, obj=None):
-        if "from_preview" not in request.GET:
+        if request.method == 'POST' or "from_preview" not in request.GET:
             return super(TestingQuestionLinkAdmin, self).get_form(request, obj)
 
         question_id = request.session.get("admin_question_id", None)
         if (obj is None and question_id != '__empty__') or \
-                str(obj.pk) != question_id:
+                (obj is not None and str(obj.pk) != question_id):
             return super(TestingQuestionLinkAdmin, self).get_form(request, obj)
 
         form_cls = super(TestingQuestionLinkAdmin, self).get_form(request, obj)
@@ -209,12 +209,12 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         return form_cls
 
     def get_formsets(self, request, obj=None):
-        if "from_preview" not in request.GET:
+        if request.method == 'POST' or "from_preview" not in request.GET:
             super(TestingQuestionLinkAdmin, self).get_formsets(request, obj)
 
         question_id = request.session.get("admin_question_id", None)
         if (obj is None and question_id != '__empty__') or \
-                str(obj.pk) != question_id:
+                (obj is not None and str(obj.pk) != question_id):
             super(TestingQuestionLinkAdmin, self).get_formsets(request, obj)
 
         def formset_init(this, *args, **kwargs):
@@ -336,10 +336,20 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
         # instead of the saved object
         question = form.save(commit=False)
         inline_formset.save(commit=False)
-        inline_objects = list(instance.testingquestionoption_set.exclude(
-            id__in=[o.pk for o in (inline_formset.changed_objects +
-                                   inline_formset.deleted_objects)]
-        )) + inline_formset.new_objects
+        # NOTE: A bug in Django 1.6.x means objects are deleted
+        # when commit = False. So we re-save the objects here.
+        deleted_pks = []
+        for il_form in inline_formset.deleted_forms:
+            # id field is a TestingQuestionOption instance
+            obj = il_form.cleaned_data['id']
+            obj.save()
+            deleted_pks.append(obj.pk)
+        inline_objects = instance.testingquestionoption_set \
+                                 .exclude(id__in=deleted_pks)
+        inline_objects = list(inline_objects)
+        for obj, changed_fields in inline_formset.changed_objects:
+            inline_objects[inline_objects.index(obj)] = obj
+        inline_objects.extend(inline_formset.new_objects)
         return render(request, "admin/preview_next.html", {
             "question": question,
             "options": inline_objects,
