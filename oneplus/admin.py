@@ -186,6 +186,50 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
                 name='question_preview_change'),
         ] + urls
 
+    def get_form(self, request, obj=None):
+        if "from_preview" not in request.GET:
+            return super(TestingQuestionLinkAdmin, self).get_form(request, obj)
+
+        question_id = request.session.get("admin_question_id", None)
+        if (obj is None and question_id != '__empty__') or \
+                str(obj.pk) != question_id:
+            return super(TestingQuestionLinkAdmin, self).get_form(request, obj)
+
+        form_cls = super(TestingQuestionLinkAdmin, self).get_form(request, obj)
+
+        def form_init(this, *args, **kwargs):
+            data = request.session.get("admin_question_data", None)
+            if data is not None and 'data' not in kwargs:
+                if len(args) == 0:
+                    args = [data]
+            super(form_cls, this).__init__(*args, **kwargs)
+
+        # patch form class to use POST data stashed in session
+        form_cls.__init__ = form_init
+        return form_cls
+
+    def get_formsets(self, request, obj=None):
+        if "from_preview" not in request.GET:
+            super(TestingQuestionLinkAdmin, self).get_formsets(request, obj)
+
+        question_id = request.session.get("admin_question_id", None)
+        if (obj is None and question_id != '__empty__') or \
+                str(obj.pk) != question_id:
+            super(TestingQuestionLinkAdmin, self).get_formsets(request, obj)
+
+        def formset_init(this, *args, **kwargs):
+            data = request.session.get("admin_question_data", None)
+            if data is not None and 'data' not in kwargs:
+                if len(args) == 0:
+                    args = [data]
+            super(this.__class__, this).__init__(*args, **kwargs)
+
+        for inline in self.get_inline_instances(request, obj):
+            formset_cls = inline.get_formset(request, obj)
+            # patch formset class to use POST data stashed in session
+            formset_cls.__init__ = formset_init
+            yield formset_cls
+
     def add_view(self, request, form_url='', extra_context=None):
         if request.method == "POST" and "_preview" in request.POST:
             form_data = request.POST
@@ -198,17 +242,17 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
                 request.session["admin_question_id"] = '__empty__'
                 return HttpResponseRedirect(reverse('admin:question_preview_add'))
 
-        elif request.method == "GET" and "from_preview" in request.GET:
-            raise NotImplementedError
-
-        # clear old session data
-        request.session.pop("admin_question_data", None)
-        request.session.pop("admin_question_id", None)
-        return super(TestingQuestionLinkAdmin, self).add_view(
+        response = super(TestingQuestionLinkAdmin, self).add_view(
             request,
             form_url=form_url,
             extra_context=extra_context
         )
+        if "from_preview" not in request.GET or \
+                isinstance(response, HttpResponseRedirect):
+            # don't want invalid data coming up later
+            request.session.pop("admin_question_data", None)
+            request.session.pop("admin_question_id", None)
+        return response
 
     @method_decorator(ensure_preview_session_state_empty)
     def preview_add_view(self, request, **kwargs):
@@ -257,18 +301,18 @@ class TestingQuestionLinkAdmin(TestingQuestionAdmin):
                     kwargs={'object_id': object_id}
                 ))
 
-        elif request.method == "GET" and "from_preview" in request.GET:
-            raise NotImplementedError
-
-        # clear old session data
-        request.session.pop("admin_question_data", None)
-        request.session.pop("admin_question_id", None)
-        return super(TestingQuestionLinkAdmin, self).change_view(
+        response = super(TestingQuestionLinkAdmin, self).change_view(
             request,
             object_id,
             form_url=form_url,
             extra_context=extra_context
         )
+        if "from_preview" not in request.GET or \
+                isinstance(response, HttpResponseRedirect):
+            # don't want invalid data coming up later
+            request.session.pop("admin_question_data", None)
+            request.session.pop("admin_question_id", None)
+        return response
 
     @method_decorator(ensure_preview_session_state)
     def preview_change_view(self, request, object_id, **kwargs):
