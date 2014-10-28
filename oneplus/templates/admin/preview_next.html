@@ -1,4 +1,56 @@
 {% extends "learn/next.html" %}
+{% load i18n admin_static %}
+
+{% block extrahead %}
+<style>
+    a.grp-button, button.grp-button, input[type=button].grp-button, input[type=submit].grp-button {
+        position: relative;
+        display: inline-block;
+        margin: 0;
+        padding: 5px 10px;
+        height: 28px;
+        font-weight: bold;
+        -webkit-border-radius: 5px !important;
+        -moz-border-radius: 5px !important;
+        -ms-border-radius: 5px !important;
+        -o-border-radius: 5px !important;
+        border-radius: 5px !important;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        cursor: pointer;
+        overflow: hidden;
+        vertical-align: top;
+        color: #fff;
+        border: 1px solid #2b8aab;
+        background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgi…pZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+        background-size: 100%;
+        background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #4fb2d3), color-stop(100%, #309bbf));
+        background-image: -webkit-linear-gradient(#4fb2d3,#309bbf);
+        background-image: -moz-linear-gradient(#4fb2d3,#309bbf);
+        background-image: -o-linear-gradient(#4fb2d3,#309bbf);
+        background-image: linear-gradient(#4fb2d3,#309bbf);
+        font-family: Arial,sans-serif;
+        font-size: 12px;
+        line-height: 16px;
+    }
+    footer {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font: inherit;
+        font-size: 100%;
+        vertical-align: baseline;
+        display:block;
+    }
+    .grp-float-left {
+        float: left !important;
+    }
+    .grp-module{position:relative;float:left;clear:both;margin:0 0 5px;padding:0;width:100%;border:1px solid #ccc;background:#eee;-webkit-border-radius:3px;-moz-border-radius:3px;-ms-border-radius:3px;-o-border-radius:3px;border-radius:3px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
+    .grp-submit-row{padding:0;border:0;-webkit-border-radius:0;-moz-border-radius:0;-ms-border-radius:0;-o-border-radius:0;border-radius:0;background:transparent;min-width:auto}.grp-submit-row>ul{margin-top:10px;overflow:visible}.grp-submit-row>ul>li{list-style-image:none;list-style-type:none;margin-left:0;white-space:nowrap;display:inline;float:right;padding-left:0;padding-right:0;margin-left:10px;-webkit-border-radius:7px;-moz-border-radius:7px;-ms-border-radius:7px;-o-border-radius:7px;border-radius:7px}.grp-submit-row>ul>li:first-child,.grp-submit-row>ul>li.first{padding-right:0}.grp-submit-row>ul>li:last-child{padding-left:0}.grp-submit-row>ul>li.last{padding-left:0}.grp-submit-row>ul>li.grp-float-left{margin-left:0;margin-right:10px}.grp-submit-row>ul>li input[type=button]{margin:0;width:auto;display:block}.grp-submit-row>ul>li input.grp-button,.grp-submit-row>ul>li a.grp-button,.grp-submit-row>ul>li button.grp-button{filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=75);opacity:0.75}.grp-submit-row>ul>li input.grp-button.grp-default,.grp-submit-row>ul>li a.grp-button.grp-default,.grp-submit-row>ul>li button.grp-button.grp-default{filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=100);opacity:1}.grp-submit-row>ul>li input.grp-button:hover,.grp-submit-row>ul>li input.grp-button:focus,.grp-submit-row>ul>li a.grp-button:hover,.grp-submit-row>ul>li a.grp-button:focus,.grp-submit-row>ul>li button.grp-button:hover,.grp-submit-row>ul>li button.grp-button:focus{filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=100);opacity:1}.grp-submit-row>ul>li button.grp-button{width:auto}.grp-submit-row>ul>li .grp-button{-webkit-box-shadow:0 0 10px #bbb;-moz-box-shadow:0 0 10px #bbb;box-shadow:0 0 10px #bbb}.grp-submit-row.grp-fixed-footer>ul{margin-top:0}.grp-submit-row.grp-fixed-footer>ul>li{margin-bottom:5px;padding:5px !important;background:#444}.grp-submit-row.grp-fixed-footer>ul>li .grp-button{-webkit-box-shadow:none;-moz-box-shadow:none;box-shadow:none}
+    .grp-fixed-footer{position:fixed;z-index:900;float:left;bottom:0;left:0;margin:0;padding:10px 20px 5px;width:100%;border:0;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;color:#fff;background-image:url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjUwJSIgeTE9IjAlIiB4Mj0iNTAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzMzMzMzMyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzIyMjIyMiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');background-size:100%;background-image:-webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #333333), color-stop(100%, #222222));background-image:-webkit-linear-gradient(#333333,#222222);background-image:-moz-linear-gradient(#333333,#222222);background-image:-o-linear-gradient(#333333,#222222);background-image:linear-gradient(#333333,#222222)}
+</style>
+{% endblock %}
 
 {% block content %}
 {{ block.super }}
@@ -11,6 +63,7 @@
     {% endfor %}
     <footer class="grp-module grp-submit-row grp-fixed-footer">
         <ul>
+            <li class="grp-float-left"><a href="{{ save_form_url }}?from_preview=1" class="grp-button grp-default">Go back to editing</a></li>
             <li><input type="submit" value="Save" class="grp-button grp-default" name="_save"></li>
             <li><input type="submit" value="Save and add another" class="grp-button" name="_addanother"></li>
             <li><input type="submit" value="Save and continue editing" class="grp-button" name="_continue"></li>
