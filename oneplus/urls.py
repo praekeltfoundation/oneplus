@@ -25,15 +25,6 @@ urlpatterns = [
     url(r"^right$", views.right, name="learn.right"),
     url(r"^wrong$", views.wrong, name="learn.wrong"),
     url(r"^discuss$", views.discuss, name="learn.discuss"),
-    url(r"^preview/(?P<questionid>\d+)$",
-        views.adminpreview,
-        name="learn.preview"),
-    url(r"^preview/right/(?P<questionid>\d+)$",
-        views.adminpreview_right,
-        name="learn.preview.right"),
-    url(r"^preview/wrong/(?P<questionid>\d+)$",
-        views.adminpreview_wrong,
-        name="learn.preview.wrong"),
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),
