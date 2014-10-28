@@ -25,7 +25,7 @@ def ensure_preview_session_state(view=None):
         def new_function(request, object_id, *args, **kwargs):
             if "state" not in request.session:
                 request.session["state"] = {}
-            request.session.update({
+            request.session["state"].update({
                 "next_tasks_today": 1,
                 "discussion_page_max": Discussion.objects.filter(
                     question_id=object_id,
@@ -61,7 +61,7 @@ def ensure_preview_session_state_empty(view=None):
         def new_function(request, *args, **kwargs):
             if "state" not in request.session:
                 request.session["state"] = {}
-            request.session.update({
+            request.session["state"].update({
                 "next_tasks_today": 1,
                 "discussion_page_max": 0,
                 "discussion_comment": False,
