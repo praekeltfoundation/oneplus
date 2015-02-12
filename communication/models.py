@@ -82,7 +82,7 @@ class Discussion(models.Model):
     question = models.ForeignKey(TestingQuestion, null=True, blank=True)
     response = models.ForeignKey("self", null=True, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.author.first_name + ": " + self.content
 
     class Meta:
@@ -178,7 +178,7 @@ class ChatGroup(models.Model):
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     class Meta:
@@ -192,7 +192,7 @@ class ChatMessage(models.Model):
     content = models.TextField("Content", blank=True)
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.content
 
     class Meta:
