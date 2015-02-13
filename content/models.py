@@ -74,6 +74,7 @@ class TestingQuestion(models.Model):
     class Meta:
         verbose_name = "Test Question"
         verbose_name_plural = "Test Questions"
+        ordering = ['name']
 
 
 class TestingQuestionOption(models.Model):
