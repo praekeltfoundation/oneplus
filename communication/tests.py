@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from communication.models import Message, MessageStatus
+from communication.models import Message, MessageStatus, ChatMessage
 from organisation.models import Course
 
 from datetime import datetime
@@ -105,3 +105,11 @@ class TestMessage(TestCase):
         hide_status = MessageStatus.objects.get(message=msg)
         # hide status is True
         self.assertTrue(hide_status.hidden_status)
+
+class TestChatMessage(TestCase):
+    def create_chat_message(self, content="", **kwargs):
+        return ChatMessage.objects.create(content=content, **kwargs)
+
+    def test_created_message(self):
+        msg = self.create_chat_message(content="Ò")
+        self.assertEqual(msg.content, 'Ò', "They are not equal")
