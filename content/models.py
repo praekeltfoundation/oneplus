@@ -95,10 +95,13 @@ class TestingQuestionOption(models.Model):
         super(TestingQuestionOption, self).save(*args, **kwargs)
 
     def link(self):
-        return "<a href='%s' target='_blank'>Edit</a>" % reverse(
-            'admin:content_testingquestionoption_change',
-            args=[
-                self.id])
+        if self.id:
+            return "<a href='%s' target='_blank'>Edit</a>" % reverse(
+                'admin:content_testingquestionoption_change',
+                args=[
+                    self.id])
+        else:
+            return "<span>Edit</span>"
     link.allow_tags = True
 
     def admin_thumbnail(self):
