@@ -41,7 +41,7 @@ class Participant(models.Model):
     Connects a learner to a class. Indicating the learners total points
     earned as well as individual point and badges earned.
     """
-    learner = models.ForeignKey(Learner, verbose_name="Learner")
+    learner = models.OneToOneField(Learner, verbose_name="Learner")
     classs = models.ForeignKey(Class, verbose_name="Class")
     datejoined = models.DateTimeField(verbose_name="Joined")
     points = models.PositiveIntegerField(verbose_name="Points Scored",
