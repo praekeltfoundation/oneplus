@@ -79,6 +79,7 @@ def is_registered(user):
     # Check learner is registered
     return Participant.objects.filter(learner=user.learner).latest('datejoined')
 
+
 def save_user_session(request, registered, user):
 
     request.session["user"] = {}
