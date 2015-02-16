@@ -77,7 +77,7 @@ def resolve_http_method(request, methods):
 
 def is_registered(user):
     # Check learner is registered
-    return Participant.objects.filter(learner=user.learner).first()
+    return Participant.objects.filter(learner=user.learner).latest('datejoined')
 
 def save_user_session(request, registered, user):
 
