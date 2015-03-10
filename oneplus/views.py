@@ -128,7 +128,14 @@ def login(request, state):
                     registered = is_registered(user)
                     if registered is not None:
                         save_user_session(request, registered, user)
-                        return redirect("learn.home")
+
+                        usr = Learner.objects.filter(username=form.cleaned_data["username"])
+                        par = Participant.objects.filter(learner=usr)
+
+                        if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
+                            return redirect("learn.first_time")
+                        else:
+                            return redirect("learn.home")
                     else:
                         return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
@@ -144,7 +151,6 @@ def login(request, state):
             return get()
 
     return resolve_http_method(request, [get, post])
-
 
 def autologin(request, token):
     def get():
@@ -340,9 +346,49 @@ def get_week_day():
         home_day = 0
     return home_day
 
+# First Time Log in Screen
+@oneplus_state_required
+@oneplus_login_required
+def first_time(request, state, user):
+    def get():
+        return render(request, "misc/first_time.html", {"state": state,
+                                                        "user": user})
+
+    def post():
+        return render(request, "misc/first_time.html", {"state": state,
+                                                        "user": user})
+
+    return resolve_http_method(request, [get, post])
+
+# FAQ Screen
+@oneplus_state_required
+@oneplus_login_required
+def faq(request, state, user):
+    def get():
+        return render(request, "misc/faq.html", {"state": state,
+                                                 "user": user})
+
+    def post():
+        return render(request, "misc/faq.html", {"state": state,
+                                                 "user": user})
+
+    return resolve_http_method(request, [get, post])
+
+#Terms Screen
+@oneplus_state_required
+@oneplus_login_required
+def terms(request, state, user):
+    def get():
+        return render(request, "misc/terms.html", {"state": state,
+                                                        "user": user})
+
+    def post():
+        return render(request, "misc/terms.html", {"state": state,
+                                                        "user": user})
+
+    return resolve_http_method(request, [get, post])
+
 # Home Screen
-
-
 @oneplus_state_required
 @oneplus_login_required
 def home(request, state, user):

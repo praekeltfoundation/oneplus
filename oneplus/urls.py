@@ -9,6 +9,8 @@ urlpatterns = [
     url(r"^about$", views.about, name="misc.about"),
     url(r"^contact$", views.contact, name="misc.contact"),
     url(r"^menu$", views.menu, name="core.menu"),
+    url(r"^faq$", views.faq, name="misc.faq"),
+    url(r'^terms$', views.terms, name="misc.terms"),
 
     # Auth
     url(r"^login$", views.login, name="auth.login"),
@@ -34,6 +36,7 @@ urlpatterns = [
     url(r"^preview/wrong/(?P<questionid>\d+)$",
         views.adminpreview_wrong,
         name="learn.preview.wrong"),
+    url(r"^welcome$", views.first_time, name="learn.first_time"),
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),
