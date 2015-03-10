@@ -367,6 +367,14 @@ li.leaderboard {
     background-image: url("../img/icn_leaderboard.png");
 }
 
+li.welcome {
+    background-image: url("../img/icn_welcome.png");
+}
+
+li.faq {
+    background-image: url("../img/icn_faq.png");
+}
+
 li.ontrack {
     background-image: url("../img/icn_ontrack.png");
 }

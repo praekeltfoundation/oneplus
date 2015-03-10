@@ -167,6 +167,43 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
 
+    def test_first_time(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('learn.first_time'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.first_time'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_faq(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('misc.faq'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.faq'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_terms(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('misc.terms'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.terms'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+
     def check_logs(self, msg):
         logs = self.handler.logs
         contains = [True for s in logs if msg == s.msg]
