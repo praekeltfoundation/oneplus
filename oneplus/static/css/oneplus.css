@@ -395,6 +395,10 @@ li.information {
     background-image: url("../img/icn_about.png");
 }
 
+li.home {
+    background-image: url("../img/icn_home.png");
+}
+
 li.contact {
     background-image: url("../img/icn_contact.png");
 }
