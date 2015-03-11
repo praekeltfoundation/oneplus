@@ -11,6 +11,7 @@ class LearnerResource(resources.ModelResource):
     class_name = fields.Field(column_name=u'class')
     completed_questions = fields.Field(column_name=u'completed_questions')
     percentage_correct = fields.Field(column_name=u'percentage_correct')
+    default_country = 'South Africa'
 
     class Meta:
         model = Learner
@@ -79,7 +80,26 @@ class LearnerResource(resources.ModelResource):
     def import_obj(self, obj, data, dry_run):
         school, created = School.objects.get_or_create(name=data[u'school'])
         data[u'school'] = school.id
+
+        if type(data[u'username']) == float or type(data[u'username']) == int:
+            data[u'username'] = str(int(data[u'username']))
+
         data[u'mobile'] = data[u'username']
+
+        if dry_run:
+            rows = Learner.objects.filter(mobile=data[u'mobile']).count()
+            if rows > 0:
+                raise Exception('mobile number %s has already been used'
+                    % (data[u'mobile']))
+        else:
+            if not obj.mobile:
+                obj.mobile = data['username']
+            if not obj.country:
+                country = data[u'country']
+                if country and len(country) > 0:
+                    obj.country = country
+                else:
+                    obj.country = self.default_country
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
 
