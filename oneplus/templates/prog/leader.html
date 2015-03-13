@@ -5,7 +5,7 @@
 {% block content %}
     {% load humanize %}
 <div class="menu">
-    <a href="/menu"><div class="text heading red-back darkgrey-front"><li class="icon leaderboard"></li><p>Leaderboard</p></div></a>
+    <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon leaderboard"></li><p>Leaderboard</p></div></a>
 </div>
     <div class="text heading darkgrey-back">{% if state.leader_place > 0 %}
         <p>Well done, you're in <span class="red-front">{{ state.leader_place|ordinal }} Place</span>
