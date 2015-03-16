@@ -552,3 +552,8 @@ li.down_red {
     vertical-align: middle;
     display: inline-block;
 }
+
+ul.bullets{
+    list-style-type: disc;
+    padding-left: 10px;
+}
