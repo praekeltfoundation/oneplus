@@ -360,11 +360,11 @@ li.help {
 }
 
 li.inbox {
-    background-image: url("../img/icn_inbox.png");
+    background-image: url("../img/icn_inbox_black.png");
 }
 
 li.leaderboard {
-    background-image: url("../img/icn_leaderboard.png");
+    background-image: url("../img/icn_leaderboard_black.png");
 }
 
 li.welcome {
@@ -380,7 +380,7 @@ li.ontrack {
 }
 
 li.points {
-    background-image: url("../img/icn_points.png");
+    background-image: url("../img/icn_points_black.png");
 }
 
 li.settings {
@@ -388,7 +388,7 @@ li.settings {
 }
 
 li.user {
-    background-image: url("../img/icn_user.png");
+    background-image: url("../img/icn_user_white.png");
 }
 
 li.information {
