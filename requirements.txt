@@ -8,3 +8,4 @@ go_http
 celery==3.1.12
 django-lockout
 requests_testadapter
+mock
