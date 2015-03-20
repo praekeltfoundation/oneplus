@@ -228,6 +228,16 @@ class Sms(models.Model):
         verbose_name_plural = "Smses"
 
 
+#ReportResponse
+class ReportResponse(models.Model):
+    title = models.CharField("Title", max_length=50, blank=False)
+    publish_date = models.DateTimeField("Publish Date", blank=False)
+    content = models.TextField("Response Content", blank=False)
+
+    class Meta:
+        verbose_name = "Response"
+
+
 #Reports
 class Report(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=False)
@@ -235,8 +245,9 @@ class Report(models.Model):
     issue = models.TextField(blank=False)
     fix = models.TextField(blank=False)
     publish_date = models.DateTimeField("Publish Date", auto_now_add=True)
-    response_sent = models.DateTimeField(null=True, blank=True)
+    response = models.ForeignKey(ReportResponse, null=True, blank=True)
 
     class Meta:
         verbose_name = "Report"
         verbose_name_plural = "Reports"
+

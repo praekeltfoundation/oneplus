@@ -3,7 +3,7 @@ from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from .models import Sms
 from .utils import VumiSmsApi
-
+from organisation.models import CourseModuleRel
 
 class PageAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
@@ -91,21 +91,21 @@ class ReportAdmin(admin.ModelAdmin):
     )
 
     def get_name(self, obj):
-        return obj.user.first_name, " ", obj.user.last_name
+        return u'%s %s' % (obj.user.first_name, obj.user.last_name)
     get_name.short_description = "Name"
 
     def get_issue(self, obj):
-        return u'<a href="/respond/%s">%s</a>' % obj.id, obj.issue
+        return u'<a href="/respond/%s">%s</a>' % (obj.id, obj.issue)
     get_issue.allow_tags = True
     get_issue.short_description = "What is wrong with this question?"
 
     def get_fix(self, obj):
-        return
+        return u'<a href="/respond/%s">%s</a>' % (obj.id, obj.fix)
     get_fix.allow_tags = True
     get_fix.short_description = "How can we fix the problem?"
 
     def get_question(self, obj):
-        return u'<p>%s</p><a href="/preview/%s">View Question</a>' % obj.name, obj.question.id
+        return u'<p>%s</p><a href="/preview/%s">View Question</a>' % (obj.question.name, obj.question.id)
     get_question.allow_tags = True
     get_question.short_description = "Question"
 
@@ -114,7 +114,12 @@ class ReportAdmin(admin.ModelAdmin):
     get_module.short_description = "Module"
 
     def get_course(self, obj):
-        pass
+        course_module = CourseModuleRel.objects.filter(module=obj.question.module)
+        courses = ""
+        for c in course_module:
+            courses = '<p>%s</p>' % c.course.name
+        return u'%s' % courses
+    get_course.allow_tags = True
     get_course.short_description = "Course"
 
     def get_author(self, obj):
@@ -125,7 +130,7 @@ class ReportAdmin(admin.ModelAdmin):
         if obj.response_sent is None:
             return u'<p>None</p><a href="/respond/%s">Respond</a>' % obj.id
         else:
-            return obj.response_sent
+            return obj.response.publish_date
     get_response.allow_tags = True
     get_response.short_description = "Response Sent"
 
