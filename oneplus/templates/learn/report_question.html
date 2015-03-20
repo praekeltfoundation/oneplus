@@ -1,0 +1,20 @@
+{% extends "core/main.html" %}
+
+{% block title %}REPORT THIS QUESTION{% endblock %}
+
+{% block content %}
+    <div class="menu">
+        <div class="text heading green-back grey-front"><p>Report Question</p></div>
+        <div class="text heading green-back grey-front"><p>Q{{ question_number }}</p></div>
+    </div>
+    <div class="content narrow darkgrey-back">
+        <p>Think there is something wrong with this question or the answers? Please let us know by completing this form.</p>
+        <form name="report_question_form" method="post" action="?" class="">{% csrf_token %}
+            <p>What is wrong with the question?</p>
+            <input type="text" name="issue" value="" />
+            <p>How can we fix the problem?</p>
+            <input type="text" name="fix" value="" />
+            <button type="submit" name="report_button" class="button green-back grey-front" value="Submit">Submit</button>
+        </form>
+    </div>
+{% endblock %}

@@ -35,6 +35,9 @@
         {% endautoescape %}
 
         <div class="content narrow darkgrey-back pad-top">
+            <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}"><b>here</b></a></p>
+        </div>
+        <div class="content narrow darkgrey-back pad-top">
             <div class="white-front bold-font">Discuss the Challenge</div>
             <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                 <input type="text" name="comment" value="" />

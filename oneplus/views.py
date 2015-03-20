@@ -1929,3 +1929,61 @@ def contact(request, state, user):
             request, "misc/contact.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
+
+#Report Question Screen
+@oneplus_state_required
+@oneplus_login_required
+def report_question(request, state, user, question_id):
+
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _question = TestingQuestion.objects.get(id=question_id)
+
+    def get():
+        return render(
+            request, "learn/report_question.html",
+            {
+                "state": state,
+                "user": user,
+                "question_number": _question.order,
+            }
+        )
+
+    def post():
+        if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
+                "fix" in request.POST.keys() and request.POST["fix"] != "":
+            _usr = Learner.objects.get(pk=user["id"])
+            _issue = request.POST["wrong"]
+            _fix = request.POST["fix"]
+
+            _report = Report(
+                author=_usr,
+                question=_question,
+                issue=_issue,
+                fix=_fix,
+                response=None
+            )
+
+            _report.save()
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_question,
+                    moderated=True,
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/next.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _question,
+                    "messages": _messages,
+                    "report_response": True
+                }
+            )
+
+    return resolve_http_method(request, [get, post])
