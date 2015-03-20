@@ -89,13 +89,6 @@ class ReportAdmin(admin.ModelAdmin):
         "publish_date",
         "get_response",
     )
-    fieldsets = [
-        ("Report",
-            {"fields": ["name", "question", "class", "course", "author", "publish_date",
-                        "message_content", "publish_date"]}),
-        ("Response",
-            {"fields": ["title", "publish_date", "response_content"]})
-    ]
 
     def get_name(self, obj):
         return obj.user.first_name, " ", obj.user.last_name
