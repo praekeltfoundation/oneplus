@@ -76,9 +76,13 @@ class LearnerState(models.Model):
         ).distinct()
 
     def get_questions_answered_week(self):
-        return len(self.get_answers_this_week()) \
-            + len(self.get_training_questions()) \
+        answer = len(self.get_answers_this_week()) \
             + self.get_num_questions_answered_today()
+
+        if self.is_training_week():
+            answer += len(self.get_training_questions())
+
+        return answer
 
     def check_monday_after_training(self, total_answered):
         week_day = self.today().weekday()
