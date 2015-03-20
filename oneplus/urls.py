@@ -38,7 +38,6 @@ urlpatterns = [
         name="learn.preview.wrong"),
     url(r"^welcome$", views.first_time, name="learn.first_time"),
     url(r"^report_question/(?P<questionid>\d+)$", views.report_question, name="learn.report_question"),
-    url(r"^$", views.report, name="learn.report"),
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),

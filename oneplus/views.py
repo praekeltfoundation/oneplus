@@ -1933,10 +1933,10 @@ def contact(request, state, user):
 #Report Question Screen
 @oneplus_state_required
 @oneplus_login_required
-def report_question(request, state, user, question_id):
+def report_question(request, state, user, questionid):
 
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _question = TestingQuestion.objects.get(id=question_id)
+    _question = TestingQuestion.objects.get(id=questionid)
 
     def get():
         return render(
