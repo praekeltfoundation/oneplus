@@ -226,3 +226,17 @@ class Sms(models.Model):
     class Meta:
         verbose_name = "Sms"
         verbose_name_plural = "Smses"
+
+
+#Reports
+class Report(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    issue = models.TextField(blank=False)
+    fix = models.TextField(blank=False)
+    publish_date = models.DateTimeField("Publish Date", auto_now_add=True)
+    response_sent = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Report"
+        verbose_name_plural = "Reports"
