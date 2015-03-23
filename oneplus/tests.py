@@ -1455,6 +1455,7 @@ class LearnerStateTest(TestCase):
         )
 
         self.assertTrue(self.learner_state.is_training_week())
+        self.assertEquals(self.learner_state.get_questions_answered_week(), 0)
 
     def test_getnextquestion(self):
         active_question = self.learner_state.getnextquestion()
@@ -1527,6 +1528,14 @@ class LearnerStateTest(TestCase):
         self.assertListEqual(training_questions, answers)
         self.assertEqual(
             self.learner_state.is_training_weekend(), True)
+        self.assertEquals(self.learner_state.get_questions_answered_week(),4)
+
+    @patch.object(LearnerState, "today")
+    def test_is_monday_after_training(self, mock_get_today):
+        mock_get_today.return_value = datetime(2014, 8, 25, 0, 0, 0)
+        self.assertTrue(self.learner_state.check_monday_after_training(1))
+        self.assertFalse(self.learner_state.check_monday_after_training(
+            self.learner_state.QUESTIONS_PER_DAY + 1))
 
 class MockRequest(object):
     pass
