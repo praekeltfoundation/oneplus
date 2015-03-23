@@ -127,7 +127,7 @@ class ReportAdmin(admin.ModelAdmin):
     get_author.short_description = "Author"
 
     def get_response(self, obj):
-        if obj.response_sent is None:
+        if obj.response is None:
             return u'<p>None</p><a href="/respond/%s">Respond</a>' % obj.id
         else:
             return obj.response.publish_date
