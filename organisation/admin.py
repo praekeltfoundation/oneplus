@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from gamification.models import GamificationScenario
 
 
 class SchoolInline(admin.TabularInline):
@@ -55,13 +56,22 @@ class CourseAdmin(admin.ModelAdmin):
 
 
 class ModuleAdmin(admin.ModelAdmin):
-    list_display = ("name", "description", "order", "is_active")
+    list_display = ("name", "description", "order", "get_scenarios", "get_courses", "is_active")
     search_fields = ("name", "description")
     fieldsets = [
         (None, {"fields": ["name", "description", "order", "is_active"]})
     ]
     ordering = ("name", "order")
 
+    def get_courses(self, obj):
+        return ", ".join([m.name for m in obj.courses.all()])
+
+    get_courses.short_description = 'Courses'
+
+    def get_scenarios(self, obj):
+        return ", ".join([s.module.name for s in GamificationScenario.objects.filter(module=obj)])
+
+    get_scenarios.short_description = 'Scenarios'
 
 # Organisation
 admin.site.register(Organisation, OrganisationAdmin)
