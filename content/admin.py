@@ -5,7 +5,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer
-
+from .forms import AddTestingQuestionForm
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
@@ -92,6 +92,8 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
                     "correct", "incorrect", "percentage_correct")
     list_filter = ("module", )
     search_fields = ("name", "description")
+
+    form = AddTestingQuestionForm
 
     def correct(self, question):
         return ParticipantQuestionAnswer.objects.filter(
