@@ -5,7 +5,7 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer
-from .forms import AddTestingQuestionForm
+from .forms import TestingQuestionCreateForm, TestingQuestionFormSet
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
@@ -16,10 +16,11 @@ class TestingQuestionInline(admin.TabularInline):
 
 class TestingQuestionOptionInline(admin.TabularInline):
     model = TestingQuestionOption
-    extra = 1
+    extra = 2
     fields = ("order", "name", "admin_thumbnail", "correct", "link")
     readonly_fields = ('link', "admin_thumbnail")
     ordering = ("order", "name")
+    formset = TestingQuestionFormSet
 
 
 class LearningChapterAdmin(SummernoteModelAdmin):
@@ -93,7 +94,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_filter = ("module", )
     search_fields = ("name", "description")
 
-    form = AddTestingQuestionForm
+    form = TestingQuestionCreateForm
 
     def correct(self, question):
         return ParticipantQuestionAnswer.objects.filter(
