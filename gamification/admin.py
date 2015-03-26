@@ -21,8 +21,8 @@ class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
 
 
 class GamificationScenarioAdmin(admin.ModelAdmin):
-    list_display = ("course", "name", "description")
-    list_filter = ("course", )
+    list_display = ("name", "course", "description", "module", "course", "point", "badge")
+    list_filter = ("name", "course", "module")
     search_fields = ("name", "description")
     fieldsets = [
         (None,
