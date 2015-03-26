@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
-from .models import Sms
+from core.models import Participant
 from .utils import VumiSmsApi
 
 
@@ -61,9 +61,10 @@ class DiscussionAdmin(admin.ModelAdmin):
 
 
 class MessageAdmin(SummernoteModelAdmin):
-    list_display = ("name", "course", "author", "direction", "publishdate")
-    list_filter = ("course", "direction")
-    search_fields = ("name", "author")
+    list_display = ("name", "get_content", "get_class", "course",
+                    "author", "direction", "publishdate", 'get_response')
+    list_filter = ("course", "direction", "responded")
+    search_fields = ("name", )
     fieldsets = [
         (None,
             {"fields": ["name", "course", "author", "direction",
@@ -71,6 +72,27 @@ class MessageAdmin(SummernoteModelAdmin):
         ("Content",
             {"fields": ["content"]})
     ]
+
+    def get_content(self, obj):
+        return '<a href="">' + obj.content + '<a>'
+
+    get_content.short_description = 'Message Content'
+    get_content.allow_tags = True
+
+    def get_class(self, obj):
+        p = Participant.objects.select_related().filter(learner=obj.author)
+        return ', '.join([obj.classs.name for obj in p.all()])
+
+    get_class.short_description = 'Class'
+
+    def get_response(self, obj):
+        if obj.responded:
+            return obj.responddate
+        else:
+            return '<a href="">Respond</a>'
+
+    get_response.short_description = 'Response Sent'
+    get_response.allow_tags = True
 
 
 class SmsAdmin(SummernoteModelAdmin):
