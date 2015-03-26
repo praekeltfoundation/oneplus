@@ -26,7 +26,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
             question_options.append(data.get('correct'))
 
         if len(question_options) < 2:
-            raise forms.ValidationError("A minimum of 2 questions must be added.")
+            raise forms.ValidationError({'name': ['A minimum of 2 question options must be added.', ]})
 
         correct_selected = False
         for qo in question_options:
@@ -35,4 +35,4 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
                 break
 
         if correct_selected is False:
-            raise forms.ValidationError("One correct answer is required.")
+            raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
