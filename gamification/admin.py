@@ -21,7 +21,7 @@ class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
 
 
 class GamificationScenarioAdmin(admin.ModelAdmin):
-    list_display = ("name", "course", "description", "module", "course", "point", "badge")
+    list_display = ("name", "course", "description", "module", "course", "point", "get_pointvalue", "badge")
     list_filter = ("name", "course", "module")
     search_fields = ("name", "description")
     fieldsets = [
@@ -31,6 +31,10 @@ class GamificationScenarioAdmin(admin.ModelAdmin):
             {"fields": ["point", "badge"]})
     ]
 
+    def get_pointvalue(self, obj):
+        return '%d' % obj.point.value
+
+    get_pointvalue.short_description = 'Point Value'
 
 # Gamification
 admin.site.register(GamificationPointBonus, GamificationPointBonusAdmin)
