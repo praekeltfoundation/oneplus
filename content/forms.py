@@ -1,9 +1,10 @@
 from django import forms
-from .models import TestingQuestion
+from .models import TestingQuestion, Module
 
 
 class TestingQuestionCreateForm(forms.ModelForm):
-    module = forms.CharField(error_messages={'required': 'A Test question needs to be associated with a module.'})
+    forms.ModelChoiceField(queryset=Module.objects.all(),
+                           error_messages={'required': 'A Test question needs to be associated with a module.'})
 
     class Meta:
         model = TestingQuestion
