@@ -1303,7 +1303,7 @@ def inbox_detail(request, state, user, messageid):
         # hide message
         if "hide" in request.POST.keys():
             _message.hide_message(_participant.learner)
-            return HttpResponseRedirect("inbox")
+            return HttpResponseRedirect("/inbox")
 
         return render(
             request,
@@ -1339,7 +1339,6 @@ def inbox_send(request, state, user):
 
             # Subject
             subject = ' '.join([
-                "Message from",
                 _participant.learner.first_name,
                 _participant.learner.last_name
             ])
@@ -1365,8 +1364,8 @@ def inbox_send(request, state, user):
                 )
                 # Set inbox send to true
                 request.session["state"]["inbox_sent"] = True
-            except BadHeaderError:
-                return HttpResponse('Invalid header found.')
+            except Exception:
+                request.session["state"]["inbox_sent"] = False
 
         return render(
             request,
