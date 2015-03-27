@@ -64,7 +64,10 @@ class ModuleAdmin(admin.ModelAdmin):
     ordering = ("name", "order")
 
     def get_courses(self, obj):
-        return ", ".join([m.name for m in obj.courses.all()])
+        if obj.courses:
+            return ", ".join([m.name for m in obj.courses.all()])
+        else:
+            return ''
 
     get_courses.short_description = 'Courses'
 
