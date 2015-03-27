@@ -158,25 +158,20 @@ class TestReport(TestCase):
         self.assertEquals(report.fix, "The answer should be 10.", "They are not equal")
         self.assertEquals(report.question.name, "question name", "They are not equal")
 
-        self.assertEquals(report.response, None, "They are not equal")
-        #self.assertIsNone(report.response, "Response should be None")
+        self.assertIsNone(report.response, "Response should be None")
 
         #create response to report
         report.create_response("Title", "Question updated.")
-        report.save()
 
         self.assertIsNotNone(report.response, "Response doesn't exist")
-        #self.assertEquals(report.response, None, "The response doesn't exist.")
         self.assertEquals(report.response.title, "Title", "They are not equal")
         self.assertEquals(report.response.content, "Question updated.", "They are not equal")
-        self.assertContains(report.response.publish_date, datetime.now().date(), "The date is not the same")
 
 
 class TestReportResponse(TestCase):
     def create_report_response(self, _title, _content, **kwargs):
         return ReportResponse.objects.create(title=_title,
                                              content=_content,
-                                             publish_date=datetime.now().date(),
                                              **kwargs)
 
     def test_created_report_response(self):
@@ -184,4 +179,3 @@ class TestReportResponse(TestCase):
 
         self.assertEquals(response.title, "title", "They are not equal")
         self.assertEquals(response.content, "content", "They are equal")
-        #self.assertContains(str(response.publish_date), str(datetime.now().date()), "The date is not the same")

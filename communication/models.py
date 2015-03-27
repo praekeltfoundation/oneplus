@@ -231,7 +231,7 @@ class Sms(models.Model):
 #ReportResponse
 class ReportResponse(models.Model):
     title = models.CharField("Title", max_length=50, blank=False)
-    publish_date = models.DateTimeField("Publish Date", blank=False) #null=true auto_now_add=True
+    publish_date = models.DateTimeField("Publish Date", blank=False, auto_now_add=True)
     content = models.TextField("Response Content", blank=False)
 
     class Meta:
@@ -248,10 +248,9 @@ class Report(models.Model):
     response = models.ForeignKey(ReportResponse, null=True, blank=True)
 
     def create_response(self, _title, _content):
-        response = ReportResponse.objects.create(title=_title, publish_date=datetime.now(), content=_content)
-        report = Report.objects.get(id=self.id)
-        report.response = response
-        report.save()
+        response = ReportResponse.objects.create(title=_title, content=_content)
+        self.response = response
+        self.save()
 
     class Meta:
         verbose_name = "Report"

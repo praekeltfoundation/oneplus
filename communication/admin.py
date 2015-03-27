@@ -5,6 +5,7 @@ from .models import Sms
 from .utils import VumiSmsApi
 from organisation.models import CourseModuleRel
 
+
 class PageAdmin(admin.ModelAdmin):
     list_display = ("name", "description")
     search_fields = ("name", "description")
