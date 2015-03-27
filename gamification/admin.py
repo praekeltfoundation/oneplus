@@ -32,7 +32,7 @@ class GamificationScenarioAdmin(admin.ModelAdmin):
     ]
 
     def get_pointvalue(self, obj):
-        if obj && obj.point:
+        if obj.point:
             return '%d' % obj.point.value
         else:
             return ''
