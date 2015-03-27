@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from .forms import GamificationScenarioForm
 
 
 class GamificationPointBonusAdmin(admin.ModelAdmin):
@@ -30,6 +31,7 @@ class GamificationScenarioAdmin(admin.ModelAdmin):
         ("Rewards",
             {"fields": ["point", "badge"]})
     ]
+    form = GamificationScenarioForm
 
     def get_pointvalue(self, obj):
         if obj.point:
