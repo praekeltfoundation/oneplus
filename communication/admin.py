@@ -95,12 +95,18 @@ class ReportAdmin(admin.ModelAdmin):
     get_name.short_description = "Name"
 
     def get_issue(self, obj):
-        return u'<a href="/respond/%s">%s</a>' % (obj.id, obj.issue)
+        if obj.response is None:
+            return obj.issue
+        else:
+            return u'<a href="">%s</a>' % obj.issue
     get_issue.allow_tags = True
     get_issue.short_description = "What is wrong with this question?"
 
     def get_fix(self, obj):
-        return u'<a href="/respond/%s">%s</a>' % (obj.id, obj.fix)
+        if obj.response is None:
+            return obj.fix
+        else:
+            return u'<a href="">%s</a>' % obj.fix
     get_fix.allow_tags = True
     get_fix.short_description = "How can we fix the problem?"
 
@@ -128,7 +134,7 @@ class ReportAdmin(admin.ModelAdmin):
 
     def get_response(self, obj):
         if obj.response is None:
-            return u'<p>None</p><a href="/respond/%s">Respond</a>' % obj.id
+            return u'<p>None</p><a href="">Respond</a>'
         else:
             return obj.response.publish_date
     get_response.allow_tags = True
