@@ -13,6 +13,9 @@ from gamification.models import (GamificationBadgeTemplate,
                                  GamificationPointBonus,
                                  GamificationScenario)
 from content.models import TestingQuestion, TestingQuestionOption
+import tablib
+from import_export import resources
+from auth.resources import LearnerResource
 
 
 class TestRunner(DiscoverRunner):
@@ -210,3 +213,104 @@ class TestMessage(TestCase):
 
         self.participant.recalculate_total_points()
         self.assertEqual(self.participant.points, 1)
+
+    def test_learner_import_all_strings(self):
+        learner_resource = LearnerResource()
+        dataset = tablib.Dataset([
+            '',
+            '821010002',
+            'BAR',
+            'FOO',
+            '',
+            '821010002',
+            'Test High School',
+            'rsa',
+            '',
+            'pta',
+            '0',
+            '0',
+            '0',
+            '0',
+            'class name'
+            ],
+            headers=[
+                'id',
+                'username',
+                'first_name',
+                'last_name',
+                'email',
+                'mobile',
+                'school',
+                'country',
+                'area',
+                'city',
+                'optin_sms',
+                'optin_email',
+                'completed_questions',
+                'percentage_correct',
+                'class'])
+        result = learner_resource.import_data(dataset, dry_run=True)
+
+        if result.has_errors():
+            for err in result.row_errors():
+                print err
+
+        self.assertEquals(result.has_errors(), False)
+        result = learner_resource.import_data(dataset, dry_run=False)
+        self.assertEquals(result.has_errors(), False)
+
+        learner = Learner.objects.select_related().filter(username='821010002').first()
+        self.assertEquals(learner.username, '821010002')
+        self.assertEquals(learner.mobile, '821010002')
+        self.assertEquals(learner.school.name, 'Test High School')
+
+    def test_learner_import_float_mobile(self):
+        # simulate float numberical values from excel imports
+        learner_resource = LearnerResource()
+        dataset = tablib.Dataset([
+            '',
+            float(821010003),
+            'BAR',
+            'FOO',
+            '',
+            float(821010003),
+            'Test High School',
+            'rsa',
+            '',
+            'pta',
+            float(0),
+            float(0),
+            float(0),
+            float(0),
+            'class name'
+            ],
+            headers=[
+                'id',
+                'username',
+                'first_name',
+                'last_name',
+                'email',
+                'mobile',
+                'school',
+                'country',
+                'area',
+                'city',
+                'optin_sms',
+                'optin_email',
+                'completed_questions',
+                'percentage_correct',
+                'class'])
+        result = learner_resource.import_data(dataset, dry_run=True)
+
+        if result.has_errors():
+            for err in result.row_errors():
+                print err
+
+        self.assertEquals(result.has_errors(), False)
+        result = learner_resource.import_data(dataset, dry_run=False)
+        self.assertEquals(result.has_errors(), False)
+
+        learner = Learner.objects.select_related().filter(username='821010003').first()
+        self.assertEquals(learner.username, '821010003')
+        self.assertEquals(learner.mobile, '821010003')
+        self.assertEquals(learner.school.name, 'Test High School')
