@@ -3,8 +3,9 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from communication.models import Message, MessageStatus, ChatMessage
-from organisation.models import Course
+from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse
+from organisation.models import Course, Module, CourseModuleRel
+from content.models import TestingQuestion
 
 from datetime import datetime
 
@@ -108,6 +109,7 @@ class TestMessage(TestCase):
         # hide status is True
         self.assertTrue(hide_status.hidden_status)
 
+
 class TestChatMessage(TestCase):
     def create_chat_message(self, content="", **kwargs):
         return ChatMessage.objects.create(content=content, **kwargs)
@@ -115,3 +117,65 @@ class TestChatMessage(TestCase):
     def test_created_message(self):
         msg = self.create_chat_message(content="Ò")
         self.assertEqual(msg.content, 'Ò', "They are not equal")
+
+
+class TestReport(TestCase):
+    def create_user(self, _mobile="+27123456789", _country="country", **kwargs):
+        model_class = get_user_model()
+        return model_class.objects.create(mobile=_mobile, country=_country, **kwargs)
+
+    def create_course(self, _name="course name", **kwargs):
+        return Course.objects.create(name=_name, **kwargs)
+
+    def create_module(self, _course, _name="module name", **kwargs):
+        module = Module.objects.create(name=_name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=_course, module=module)
+        module.save()
+        rel.save()
+        return module
+
+    def create_question(self, _module, _name="question name", _q_content="2+2", _a_content="4", **kwargs):
+        return TestingQuestion.objects.create(name=_name, module=_module, question_content=_q_content,
+                                              answer_content=_a_content, **kwargs)
+
+    def setUp(self):
+        self.user = self.create_user()
+        self.course = self.create_course()
+        self.module = self.create_module(self.course)
+        self.question = self.create_question(self.module)
+
+    def create_report(self, _issue, _fix, **kwargs):
+        return Report.objects.create(user=self.user,
+                                     question=self.question,
+                                     issue=_issue,
+                                     fix=_fix,
+                                     **kwargs)
+
+    def test_created_report(self):
+        report = self.create_report("There is an error.", "The answer should be 10.")
+
+        self.assertEquals(report.issue, "There is an error.", "They are not equal")
+        self.assertEquals(report.fix, "The answer should be 10.", "They are not equal")
+        self.assertEquals(report.question.name, "question name", "They are not equal")
+
+        self.assertIsNone(report.response, "Response should be None")
+
+        #create response to report
+        report.create_response("Title", "Question updated.")
+
+        self.assertIsNotNone(report.response, "Response doesn't exist")
+        self.assertEquals(report.response.title, "Title", "They are not equal")
+        self.assertEquals(report.response.content, "Question updated.", "They are not equal")
+
+
+class TestReportResponse(TestCase):
+    def create_report_response(self, _title, _content, **kwargs):
+        return ReportResponse.objects.create(title=_title,
+                                             content=_content,
+                                             **kwargs)
+
+    def test_created_report_response(self):
+        response = self.create_report_response("title", "content")
+
+        self.assertEquals(response.title, "title", "They are not equal")
+        self.assertEquals(response.content, "content", "They are equal")

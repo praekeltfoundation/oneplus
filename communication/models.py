@@ -100,6 +100,8 @@ class Message(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
     direction = models.PositiveIntegerField("Direction", choices=(
         (1, "Outgoing"), (2, "Incoming")), default=1)
+    responded = models.BooleanField(default=False)
+    responddate = models.DateTimeField('Respond Date', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -226,3 +228,33 @@ class Sms(models.Model):
     class Meta:
         verbose_name = "Sms"
         verbose_name_plural = "Smses"
+
+
+#ReportResponse
+class ReportResponse(models.Model):
+    title = models.CharField("Title", max_length=50, blank=False)
+    publish_date = models.DateTimeField("Publish Date", blank=False, auto_now_add=True)
+    content = models.TextField("Response Content", blank=False)
+
+    class Meta:
+        verbose_name = "Response"
+
+
+#Reports
+class Report(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    issue = models.TextField(blank=False)
+    fix = models.TextField(blank=False)
+    publish_date = models.DateTimeField("Publish Date", auto_now_add=True)
+    response = models.ForeignKey(ReportResponse, null=True, blank=True)
+
+    def create_response(self, _title, _content):
+        response = ReportResponse.objects.create(title=_title, content=_content)
+        self.response = response
+        self.save()
+
+    class Meta:
+        verbose_name = "Report"
+        verbose_name_plural = "Reports"
+

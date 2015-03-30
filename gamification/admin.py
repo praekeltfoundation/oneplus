@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import *
+from .forms import GamificationScenarioForm
 
 
 class GamificationPointBonusAdmin(admin.ModelAdmin):
@@ -21,8 +22,8 @@ class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
 
 
 class GamificationScenarioAdmin(admin.ModelAdmin):
-    list_display = ("course", "name", "description")
-    list_filter = ("course", )
+    list_display = ("name", "course", "description", "module", "course", "point", "get_pointvalue", "badge")
+    list_filter = ("name", "course", "module")
     search_fields = ("name", "description")
     fieldsets = [
         (None,
@@ -30,7 +31,15 @@ class GamificationScenarioAdmin(admin.ModelAdmin):
         ("Rewards",
             {"fields": ["point", "badge"]})
     ]
+    form = GamificationScenarioForm
 
+    def get_pointvalue(self, obj):
+        if obj.point:
+            return '%d' % obj.point.value
+        else:
+            return ''
+
+    get_pointvalue.short_description = 'Point Value'
 
 # Gamification
 admin.site.register(GamificationPointBonus, GamificationPointBonusAdmin)
