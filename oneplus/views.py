@@ -102,8 +102,6 @@ def login(request, state):
         return render(request, "auth/login.html", {"state": state,
                                                    "form": LoginForm()})
 
-
-
     def post():
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -1951,7 +1949,7 @@ def report_question(request, state, user, questionid):
         if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
                 "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
-            _issue = request.POST["wrong"]
+            _issue = request.POST["issue"]
             _fix = request.POST["fix"]
 
             _report = Report(
@@ -1980,7 +1978,7 @@ def report_question(request, state, user, questionid):
                     "state": state,
                     "user": user,
                     "question": _question,
-                    "messages": _messages,
+                    #"messages": _messages,
                     "report_response": True
                 }
             )
