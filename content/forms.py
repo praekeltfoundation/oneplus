@@ -3,8 +3,8 @@ from .models import TestingQuestion, Module
 
 
 class TestingQuestionCreateForm(forms.ModelForm):
-    forms.ModelChoiceField(queryset=Module.objects.all(),
-                           error_messages={'required': 'A Test question needs to be associated with a module.'})
+    module = forms.ModelChoiceField(queryset=Module.objects.all(),
+                                    error_messages={'required': 'A Test question needs to be associated with a module.'})
 
     class Meta:
         model = TestingQuestion
