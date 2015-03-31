@@ -964,7 +964,7 @@ def right(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-    ).distinct('participant', 'question').count()
+        ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -980,7 +980,7 @@ def right(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-            ).count()
+                ).count()
 
             # Discussion page?
             request.session["state"]["discussion_page"] = \
@@ -1934,8 +1934,11 @@ def contact(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def report_question(request, state, user, questionid, frm):
-
     _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
+
     try:
         _question = TestingQuestion.objects.get(id=questionid)
     except ObjectDoesNotExist:
@@ -1973,21 +1976,45 @@ def report_question(request, state, user, questionid, frm):
 
             state["report_sent"] = True
 
-        _messages = \
-            Discussion.objects.filter(
-                course=_participant.classs.course,
-                question=_question,
-                moderated=True,
-                response=None
-            ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            # if _learnerstate.active_result:
+            #     # Max discussion page
+            request.session["state"]["discussion_page_max"] = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).count()
 
-        return HttpResponseRedirect('/' + frm,
-                                    {
-                                        "state": state,
-                                        "user": user,
-                                        "question": _question,
-                                        "messages": _messages,
+            # Discussion page?
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
+
+            # Messages for discussion page
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
+
+            return HttpResponseRedirect('/' + frm,
+                                        {
+                                            "state": state,
+                                            "user": user,
+                                            "question": _question,
+                                            "messages": _messages,
                                     })
+        else:
+            return render(
+                request, "learn/report_question.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question_number": _question.order,
+                }
+            )
 
     return resolve_http_method(request, [get, post])

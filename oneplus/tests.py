@@ -502,16 +502,24 @@ class GeneralTests(TestCase):
                 'auth.autologin',
                 kwargs={'token': self.learner.unique_token}))
 
-        question1 = self.create_test_question(
+        question = self.create_test_question(
             'question1',
             self.module,
             question_content='test question')
 
-        resp = self.client.get(reverse('learn.report_question'), kwargs={'questionid': question1.order, 'frm': 'next'})
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question,
+            active_result=True,
+        )
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}))
         self.assertEquals(resp.status_code, 200)
 
-        # resp = self.client.post('report_question/', follow=True)
-        # self.assertEquals(resp.status_code, 200)
+        resp = self.client.post(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}),
+                                data={'issue': 'Problem', 'fix': 'Solution'},
+                                Follow=True)
+        self.assertEquals(resp.status_code, 302)
 
     def test_inbox(self):
         self.client.get(
