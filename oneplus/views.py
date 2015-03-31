@@ -540,7 +540,6 @@ def nextchallenge(request, state, user):
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
-
     def get():
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
@@ -569,7 +568,7 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "messages": _messages
+            "messages": _messages,
         })
 
     def update_num_question_metric():
@@ -610,6 +609,7 @@ def nextchallenge(request, state, user):
     def post():
         request.session["state"]["discussion_comment"] = False
         request.session["state"]["discussion_responded_id"] = None
+        request.session["state"]["report_sent"] = False
 
         # answer provided
         if "answer" in request.POST.keys():
@@ -751,7 +751,7 @@ def nextchallenge(request, state, user):
                 "state": state,
                 "user": user,
                 "question": _learnerstate.active_question,
-                "messages": _messages
+                "messages": _messages,
             }
         )
 
@@ -1009,7 +1009,7 @@ def right(request, state, user):
                     "question": _learnerstate.active_question,
                     "messages": _messages,
                     "badge": badge,
-                    "points": points
+                    "points": points,
                 }
             )
         else:
@@ -1019,6 +1019,7 @@ def right(request, state, user):
         if _learnerstate.active_result:
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
+            request.session["state"]["report_sent"] = False
 
             # new comment created
             if "comment" in request.POST.keys()\
@@ -1083,7 +1084,7 @@ def right(request, state, user):
                     "state": state,
                     "user": user,
                     "question": _learnerstate.active_question,
-                    "messages": _messages
+                    "messages": _messages,
                 }
             )
         else:
@@ -1141,7 +1142,8 @@ def wrong(request, state, user):
                 {"state": state,
                  "user": user,
                  "question": _learnerstate.active_question,
-                 "messages": _messages}
+                 "messages": _messages
+                 }
             )
         else:
             return HttpResponseRedirect("right")
@@ -1150,6 +1152,7 @@ def wrong(request, state, user):
         if not _learnerstate.active_result:
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
+            request.session["state"]["report_sent"] = False
 
             # new comment created
             if "comment" in request.POST.keys() \
@@ -1930,10 +1933,16 @@ def contact(request, state, user):
 #Report Question Screen
 @oneplus_state_required
 @oneplus_login_required
-def report_question(request, state, user, questionid):
+def report_question(request, state, user, questionid, frm):
 
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _question = TestingQuestion.objects.get(id=questionid)
+    try:
+        _question = TestingQuestion.objects.get(id=questionid)
+    except ObjectDoesNotExist:
+        return redirect("learn.home")
+
+    if frm not in ['next', 'right', 'wrong']:
+        return redirect("learn.home")
 
     def get():
         return render(
@@ -1953,7 +1962,7 @@ def report_question(request, state, user, questionid):
             _fix = request.POST["fix"]
 
             _report = Report(
-                author=_usr,
+                user=_usr,
                 question=_question,
                 issue=_issue,
                 fix=_fix,
@@ -1962,25 +1971,23 @@ def report_question(request, state, user, questionid):
 
             _report.save()
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_question,
-                    moderated=True,
-                    response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+            state["report_sent"] = True
 
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": _question,
-                    #"messages": _messages,
-                    "report_response": True
-                }
-            )
+        _messages = \
+            Discussion.objects.filter(
+                course=_participant.classs.course,
+                question=_question,
+                moderated=True,
+                response=None
+            ).order_by("publishdate")\
+            .reverse()[:request.session["state"]["discussion_page"]]
+
+        return HttpResponseRedirect('/' + frm,
+                                    {
+                                        "state": state,
+                                        "user": user,
+                                        "question": _question,
+                                        "messages": _messages,
+                                    })
 
     return resolve_http_method(request, [get, post])

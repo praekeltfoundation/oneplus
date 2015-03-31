@@ -6,6 +6,12 @@
 {% block content %}
     {% load humanize %}
 
+        {% if state.report_sent %}
+            <div class="content narrow darkgrey-back pad-top">
+                <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
+            </div>
+        {% endif %}
+
         <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
         <div class="text heading darkgrey-back"><p>Q {{ state.right_tasks_today }}/{{ state.total_tasks_today }}</p></div>
 
@@ -45,7 +51,7 @@
 
         {% if not preview %}
             <div class="content narrow darkgrey-back pad-top">
-                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}"><b>here</b></a></p>
+                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/right"><b>here</b></a></p>
             </div>
         {% endif %}
 
