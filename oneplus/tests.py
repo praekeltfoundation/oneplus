@@ -516,10 +516,27 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}))
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'right'}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'wrong'}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'bgg'}))
+        self.assertEquals(resp.status_code, 302)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': 999, 'frm': 'next'}))
+        self.assertEquals(resp.status_code, 302)
+
         resp = self.client.post(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}),
                                 data={'issue': 'Problem', 'fix': 'Solution'},
                                 Follow=True)
         self.assertEquals(resp.status_code, 302)
+
+        resp = self.client.post(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}),
+                        data={'is': 'Problem', 'fi': 'Solution'},
+                        Follow=True)
+        self.assertEquals(resp.status_code, 200)
 
     def test_inbox(self):
         self.client.get(
