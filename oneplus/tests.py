@@ -10,7 +10,7 @@ from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
-from communication.models import Message, ChatGroup, ChatMessage, Post
+from communication.models import Message, ChatGroup, ChatMessage, Post, Report
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -108,6 +108,9 @@ class GeneralTests(TestCase):
             answers.append(answer)
 
         return answers
+
+    def create_question_report(self, _user, _question, _issue, _fix):
+        return Report.objects.create(user=_user, question=_question, issue=_issue, fix=_fix)
 
     def setUp(self):
 
@@ -491,6 +494,48 @@ class GeneralTests(TestCase):
             follow=True
         )
 
+        self.assertEquals(resp.status_code, 200)
+
+    def test_report_question(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token}))
+
+        question = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question,
+            active_result=True,
+        )
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'right'}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'wrong'}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'bgg'}))
+        self.assertEquals(resp.status_code, 302)
+
+        resp = self.client.get(reverse('learn.report_question', kwargs={'questionid': 999, 'frm': 'next'}))
+        self.assertEquals(resp.status_code, 302)
+
+        resp = self.client.post(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}),
+                                data={'issue': 'Problem', 'fix': 'Solution'},
+                                Follow=True)
+        self.assertEquals(resp.status_code, 302)
+
+        resp = self.client.post(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}),
+                        data={'is': 'Problem', 'fi': 'Solution'},
+                        Follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_inbox(self):

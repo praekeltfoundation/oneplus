@@ -37,6 +37,7 @@ urlpatterns = [
         views.adminpreview_wrong,
         name="learn.preview.wrong"),
     url(r"^welcome$", views.first_time, name="learn.first_time"),
+    url(r"^report_question/(?P<questionid>\d+)/(?P<frm>\w{0,5})$", views.report_question, name="learn.report_question"),
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),
