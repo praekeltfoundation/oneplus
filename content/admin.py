@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from .models import TestingQuestion, TestingQuestionOption, LearningChapter
+from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer
-from .forms import TestingQuestionCreateForm, TestingQuestionFormSet
+from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
@@ -142,6 +142,7 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_display = ("question", "order", "name")
     list_filter = ("question", )
     search_fields = ("name",)
+    form = TestingQuestionOptionCreateForm
     fieldsets = [
         (None, {"fields": ["name", "question", "order"]}),
         ("Content", {"fields": ["content", "correct"]})
@@ -153,3 +154,4 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
+admin.site.register(Mathml)
