@@ -120,6 +120,27 @@ class TestingQuestionOption(models.Model):
         verbose_name = "Question Option"
         verbose_name_plural = "Question Options"
 
+
+class Mathml(models.Model):
+    TESTING_QUESTION_QUESTION = 0
+    TESTING_QUESTION_ANSWER = 1
+    TESTING_QUESTION_OPTION = 2
+
+    SOURCE_CHOICES = (
+        (TESTING_QUESTION_QUESTION, 'tq_q'),
+        (TESTING_QUESTION_ANSWER, 'tq_a'),
+        (TESTING_QUESTION_OPTION, 'tq_o')
+    )
+
+    mathml_content = models.TextField(null=False, blank=False)
+    filename = models.CharField(max_length=255, null=False, blank=False)
+    rendered = models.BooleanField(default=False)
+    source = models.CharField(max_length=1, choices=SOURCE_CHOICES)
+    source_id = models.IntegerField(null=False, blank=False)
+
+    def __str__(self):
+        return self.filename
+
 allowed_tags = ['b', 'i', 'strong', 'em', 'img', 'a', 'br']
 allowed_attributes = ['href', 'title', 'style', 'src']
 allowed_styles = [
