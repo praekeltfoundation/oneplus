@@ -12,50 +12,53 @@ class TestingQuestionCreateForm(forms.ModelForm):
 
     def save(self, commit=True):
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
+
+        testing_question.save()
+
         question_content = self.cleaned_data.get("question_content")
+        question_content = convert_to_tags(question_content)
 
         m = re.findall("<math.*?>.*?</math>", question_content)
         for a in m:
             question_content = re.sub("<math.*?>.*?</math>",
-                                      process_mathml_content(a, 0, self.id),
+                                      process_mathml_content(a, 0, testing_question.id),
                                       question_content, count=1)
 
         testing_question.question_content = question_content
 
         answer_content = self.cleaned_data.get("answer_content")
+        answer_content = convert_to_tags(answer_content)
 
         m = re.findall("<math.*?>.*?</math>", answer_content)
         for a in m:
             answer_content = re.sub("<math.*?>.*?</math>",
-                                    process_mathml_content(a, 1, self.id),
+                                    process_mathml_content(a, 1, testing_question.id),
                                     answer_content, count=1)
 
         testing_question.answer_content = answer_content
 
-        if commit:
-            testing_question.save()
+        testing_question.save()
 
         return testing_question
 
-    class Meta:
-        model = TestingQuestion
 
-
+class TestingQuestionOptionCreateForm(forms.ModelForm):
 class TestingQuestionOptionCreateForm(forms.ModelForm):
     def save(self, commit=True):
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
+
+        question_option.save()
+
         option_content = self.cleaned_data.get("content")
 
         m = re.findall("<math.*?>.*?</math>", option_content)
         for a in m:
             option_content = re.sub("<math.*?>.*?</math>",
-                                    process_mathml_content(a, 2, self.id),
+                                    process_mathml_content(a, 2, question_option.id),
                                     option_content, count=1)
 
         question_option.content = option_content
-
-        if commit:
-            question_option.save()
+        question_option.save()
 
         return question_option
 
@@ -105,4 +108,14 @@ def process_mathml_content(_content, _source, _source_id):
                           source=_source,
                           source_id=_source_id)
 
-    return "<img src='%s' />" % unique_filename
+    return "<img src='%s' alt='%s'/>" % (unique_filename, _content)
+
+
+def convert_to_tags(_content):
+    codes = (('>', '&gt;'),
+             ('<', '&lt;'),
+             ('=', '&equals;'))
+
+    for code in codes:
+        _content = _content.replace(code[1], code[0])
+    return _content
