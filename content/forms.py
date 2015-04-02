@@ -43,7 +43,6 @@ class TestingQuestionCreateForm(forms.ModelForm):
 
 
 class TestingQuestionOptionCreateForm(forms.ModelForm):
-class TestingQuestionOptionCreateForm(forms.ModelForm):
     def save(self, commit=True):
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
 
