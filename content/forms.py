@@ -3,6 +3,8 @@ from content.models import TestingQuestion, TestingQuestionOption, Module, Mathm
 import re
 import uuid
 import os
+import requests
+import shutil
 
 
 class TestingQuestionCreateForm(forms.ModelForm):
@@ -94,20 +96,40 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
 
 def process_mathml_content(_content, _source, _source_id):
-    unique_filename = str(uuid.uuid4()) + '.png'
+    url = 'http://127.0.0.1:5000/'
+    max_size = 800
+    image_format = 'PNG'
+    quality = 1
 
-    while True:
-        if not os.path.isfile(unique_filename):
-            break
-        else:
-            unique_filename = str(uuid.uuid4()) + ".png"
+    values = {'mathml': _content,
+              'max_size': max_size,
+              'image_format': image_format,
+              'quality': quality}
 
-    Mathml.objects.create(mathml_content=_content,
-                          filename=unique_filename,
-                          source=_source,
-                          source_id=_source_id)
+    r = requests.post(url, data=values, stream=True)
+    if r.status_code == 200:
+        directory = 'oneplus/static/mathml/'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    return "<img src='%s' alt='%s'/>" % (unique_filename, _content)
+        unique_filename = str(uuid.uuid4()) + '.png'
+
+        while True:
+            if not os.path.isfile(directory+unique_filename):
+                break
+            else:
+                unique_filename = str(uuid.uuid4()) + ".png"
+
+        with open(directory+unique_filename, 'wb') as f:
+            r.raw.decode_content = True
+            shutil.copyfileobj(r.raw, f)
+
+        Mathml.objects.create(mathml_content=_content,
+                              filename=unique_filename,
+                              source=_source,
+                              source_id=_source_id)
+
+    return "<img src='%s%s'/>" % (directory, unique_filename)
 
 
 def convert_to_tags(_content):
