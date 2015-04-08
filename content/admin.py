@@ -7,6 +7,7 @@ from import_export import fields
 from core.models import ParticipantQuestionAnswer
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm
 
+
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
     extra = 1
@@ -154,3 +155,4 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
+admin.site.register(Mathml)

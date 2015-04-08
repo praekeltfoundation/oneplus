@@ -97,42 +97,93 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
 
 def process_mathml_content(_content, _source, _source_id):
+    # url = 'http://127.0.0.1:5000/'
+    # max_size = 200
+    image_format = 'PNG'
+    # quality = 1
+
+    # values = {'mathml': _content,
+    #           'max_size': max_size,
+    #           'image_format': image_format,
+    #           'quality': quality}
+
+    directory = settings.MEDIA_ROOT + '/mathml/'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
+
+    while True:
+        if not os.path.isfile(directory+unique_filename):
+            break
+        else:
+            unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
+
+    #coming soon image that will be displayed until the mathml content is rendered
+    temp_image = "%s/coming_soon.png" % settings.MEDIA_ROOT
+
+    #copy temp image to a mathml folder with unique name
+    shutil.copyfile(temp_image, directory+unique_filename)
+
+    # r = requests.post(url, data=values, stream=True)
+    #
+    # if r.status_code == 200:
+    #     with open(directory+unique_filename, 'wb') as f:
+    #         r.raw.decode_content = True
+    #         shutil.copyfileobj(r.raw, f)
+
+    Mathml.objects.create(mathml_content=_content,
+                          filename=unique_filename,
+                          source=_source,
+                          source_id=_source_id,
+                          rendered=True)
+
+    return "<img src='/media/mathml/%s' alt='coming soon'/>" % unique_filename
+
+
+def render_mathml():
     url = 'http://127.0.0.1:5000/'
     max_size = 200
     image_format = 'PNG'
     quality = 1
 
-    values = {'mathml': _content,
-              'max_size': max_size,
-              'image_format': image_format,
-              'quality': quality}
+    #get all the mathml objects that have not been rendered
+    not_rendered = Mathml.objects.filter(rendered=False)
 
-    r = requests.post(url, data=values, stream=True)
-    print r.status_code
-    if r.status_code == 200:
-        directory = settings.MEDIA_ROOT + '/mathml/'
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+    for nr in not_rendered:
+        #get the mathml content
+        content = nr.mathml_content
 
-        unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
+        values = {'mathml': content,
+                  'max_size': max_size,
+                  'image_format': image_format,
+                  'quality': quality}
 
-        while True:
-            if not os.path.isfile(directory+unique_filename):
-                break
-            else:
-                unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
+        #request mathml to be processed into an image
+        r = requests.post(url, data=values, stream=True)
 
-        with open(directory+unique_filename, 'wb') as f:
-            r.raw.decode_content = True
-            shutil.copyfileobj(r.raw, f)
+        #if successful replace the image
+        if r.status_code == 200:
+            directory = settings.MEDIA_ROOT + '/mathml/'
+            if not os.path.exists(directory):
+                os.makedirs(directory)
 
-        Mathml.objects.create(mathml_content=_content,
-                              filename=unique_filename,
-                              source=_source,
-                              source_id=_source_id)
+            unique_filename = nr.filename
 
-        return "<img src='/media/mathml/%s'/>" % unique_filename
-    return _content
+            #file exists remove it
+            if os.path.isfile(directory+unique_filename):
+                os.remove(directory+unique_filename)
+
+            #save the new rendered image with the right filename
+            with open(directory+unique_filename, 'wb') as f:
+                r.raw.decode_content = True
+                shutil.copyfileobj(r.raw, f)
+
+            nr.rendered = True
+            nr.save()
+        else:
+            nr.error = r.text
+            nr.save()
 
 
 def convert_to_tags(_content):
