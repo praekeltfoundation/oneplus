@@ -136,7 +136,7 @@ def process_mathml_content(_content, _source, _source_id):
                           filename=unique_filename,
                           source=_source,
                           source_id=_source_id,
-                          rendered=True)
+                          rendered=False)
 
     return "<img src='/media/mathml/%s' alt='coming soon'/>" % unique_filename
 
