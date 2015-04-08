@@ -154,4 +154,3 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
-admin.site.register(Mathml)

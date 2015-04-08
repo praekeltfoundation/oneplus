@@ -5,6 +5,7 @@ import uuid
 import os
 import requests
 import shutil
+from django.conf import settings
 
 
 class TestingQuestionCreateForm(forms.ModelForm):
@@ -97,7 +98,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
 def process_mathml_content(_content, _source, _source_id):
     url = 'http://127.0.0.1:5000/'
-    max_size = 800
+    max_size = 200
     image_format = 'PNG'
     quality = 1
 
@@ -107,18 +108,19 @@ def process_mathml_content(_content, _source, _source_id):
               'quality': quality}
 
     r = requests.post(url, data=values, stream=True)
+    print r.status_code
     if r.status_code == 200:
-        directory = 'oneplus/static/mathml/'
+        directory = settings.MEDIA_ROOT + '/mathml/'
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        unique_filename = str(uuid.uuid4()) + '.png'
+        unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
         while True:
             if not os.path.isfile(directory+unique_filename):
                 break
             else:
-                unique_filename = str(uuid.uuid4()) + ".png"
+                unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
         with open(directory+unique_filename, 'wb') as f:
             r.raw.decode_content = True
@@ -129,7 +131,8 @@ def process_mathml_content(_content, _source, _source_id):
                               source=_source,
                               source_id=_source_id)
 
-    return "<img src='%s%s'/>" % (directory, unique_filename)
+        return "<img src='/media/mathml/%s'/>" % unique_filename
+    return _content
 
 
 def convert_to_tags(_content):
