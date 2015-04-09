@@ -123,7 +123,8 @@ def process_mathml_content(_content, _source, _source_id):
     temp_image = "%s/coming_soon.png" % settings.MEDIA_ROOT
 
     #copy temp image to a mathml folder with unique name
-    shutil.copyfile(temp_image, directory+unique_filename)
+    if os.path.isfile(temp_image):
+        shutil.copyfile(temp_image, directory+unique_filename)
 
     # r = requests.post(url, data=values, stream=True)
     #
