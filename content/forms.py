@@ -97,15 +97,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
 
 def process_mathml_content(_content, _source, _source_id):
-    # url = 'http://127.0.0.1:5000/'
-    # max_size = 200
     image_format = 'PNG'
-    # quality = 1
-
-    # values = {'mathml': _content,
-    #           'max_size': max_size,
-    #           'image_format': image_format,
-    #           'quality': quality}
 
     directory = settings.MEDIA_ROOT + '/mathml/'
     if not os.path.exists(directory):
@@ -125,13 +117,6 @@ def process_mathml_content(_content, _source, _source_id):
     #copy temp image to a mathml folder with unique name
     if os.path.isfile(temp_image):
         shutil.copyfile(temp_image, directory+unique_filename)
-
-    # r = requests.post(url, data=values, stream=True)
-    #
-    # if r.status_code == 200:
-    #     with open(directory+unique_filename, 'wb') as f:
-    #         r.raw.decode_content = True
-    #         shutil.copyfileobj(r.raw, f)
 
     Mathml.objects.create(mathml_content=_content,
                           filename=unique_filename,
