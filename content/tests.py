@@ -1,6 +1,6 @@
 from django.test import TestCase
-from content.models import TestingQuestion
-from content.forms import render_mathml
+from content.models import TestingQuestion, Mathml
+from content.forms import process_mathml_content, render_mathml
 from organisation.models import Course, Module, CourseModuleRel
 
 
@@ -34,6 +34,7 @@ class TestContent(TestCase):
                            "<mn>2</mn>" \
                            "</msup>" \
                            "</math>"
+
         answer_content = "<math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
                          "<msup>" \
                          "<mi>x</mi>" \
@@ -48,9 +49,20 @@ class TestContent(TestCase):
                                                      question_content=question_content,
                                                      answer_content=answer_content)
 
-        self.assertNotEquals(testing_question.question_content, question_content)
-        self.assertNotEquals(testing_question.answer_content, answer_content)
+        #self.assertNotEquals(testing_question.question_content, question_content)
+        #self.assertNotEquals(testing_question.answer_content, answer_content)
+
+        content = process_mathml_content(question_content, 0, testing_question.id)
+
+        #does the question content contain the img tag
+        self.assertNotEquals(testing_question.question_content, content)
+
+        not_rendered = Mathml.objects.filter(rendered=False).count()
         render_mathml()
+        rendered = Mathml.objects.filter(rendered=False).count()
+
+        #check if any not rendered mathml has ben rendered
+        self.assertEquals(not_rendered, rendered)
 
     def test_linebreaks(self):
         content = "<p>heading</p><p>content</p>"

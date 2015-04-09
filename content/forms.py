@@ -99,9 +99,9 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 def process_mathml_content(_content, _source, _source_id):
     image_format = 'PNG'
 
-    directory = settings.MEDIA_ROOT + '/mathml/'
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    directory = settings.MEDIA_ROOT + 'mathml/'
+    #if not os.path.exists(directory):
+     #   os.makedirs(directory)
 
     unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
@@ -124,7 +124,7 @@ def process_mathml_content(_content, _source, _source_id):
                           source_id=_source_id,
                           rendered=False)
 
-    return "<img src='/media/mathml/%s' alt='being rendered'/>" % unique_filename
+    return "<img src='/media/mathml/%s'/>" % unique_filename
 
 
 def render_mathml():
@@ -150,7 +150,7 @@ def render_mathml():
 
         #if successful replace the image
         if r.status_code == 200:
-            directory = settings.MEDIA_ROOT + '/mathml/'
+            directory = settings.MEDIA_ROOT + 'mathml/'
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
