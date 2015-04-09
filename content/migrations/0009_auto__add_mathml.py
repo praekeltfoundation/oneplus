@@ -14,7 +14,7 @@ class Migration(SchemaMigration):
             ('mathml_content', self.gf('django.db.models.fields.TextField')()),
             ('filename', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('rendered', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('source', self.gf('django.db.models.fields.CharField')(max_length=1)),
+            ('source', self.gf('django.db.models.fields.IntegerField')(max_length=1)),
             ('source_id', self.gf('django.db.models.fields.IntegerField')()),
         ))
         db.send_create_signal(u'content', ['Mathml'])
