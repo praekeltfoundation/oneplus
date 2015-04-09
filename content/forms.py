@@ -112,7 +112,7 @@ def process_mathml_content(_content, _source, _source_id):
             unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
     #coming soon image that will be displayed until the mathml content is rendered
-    temp_image = "%s/coming_soon.png" % settings.MEDIA_ROOT
+    temp_image = "%s/being_rendered.png" % settings.MEDIA_ROOT
 
     #copy temp image to a mathml folder with unique name
     if os.path.isfile(temp_image):
@@ -124,7 +124,7 @@ def process_mathml_content(_content, _source, _source_id):
                           source_id=_source_id,
                           rendered=False)
 
-    return "<img src='/media/mathml/%s' alt='coming soon'/>" % unique_filename
+    return "<img src='/media/mathml/%s' alt='being rendered'/>" % unique_filename
 
 
 def render_mathml():
