@@ -52,6 +52,7 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question_option.save()
 
         option_content = self.cleaned_data.get("content")
+        option_content = convert_to_tags(option_content)
 
         m = re.findall("<math.*?>.*?</math>", option_content)
         for a in m:
