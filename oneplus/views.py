@@ -2018,3 +2018,59 @@ def report_question(request, state, user, questionid, frm):
             )
 
     return resolve_http_method(request, [get, post])
+
+import requests
+import os
+import shutil
+import uuid
+
+
+def convert_mathml(request):
+    url = 'http://127.0.0.1:5000/'
+    max_size = 200
+    image_format = 'PNG'
+    quality = 1
+
+    mathml = "<math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
+             "<msup>" \
+             "<mi>x</mi>" \
+             "<mn>2</mn>" \
+             "<mo>+</mo>" \
+             "<mi>y</mi>" \
+             "<mn>2</mn>" \
+             "</msup>" \
+             "</math>"
+
+    values = {'mathml': mathml,
+              'max_size': max_size,
+              'image_format': image_format,
+              'quality': quality}
+
+    #request mathml to be processed into an image
+    r = requests.post(url, data=values, stream=True)
+
+    #if successful replace the image
+    if r.status_code == 200:
+        directory = settings.MEDIA_ROOT + 'mathml/'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
+
+        while True:
+            if not os.path.isfile(directory+unique_filename):
+                break
+            else:
+                unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
+
+        #file exists remove it
+        if os.path.isfile(directory+unique_filename):
+            os.remove(directory+unique_filename)
+
+        #save the new rendered image with the right filename
+        with open(directory+unique_filename, 'wb') as f:
+            r.raw.decode_content = True
+            shutil.copyfileobj(r.raw, f)
+
+        return HttpResponse("<img src='%s%s'/>" % (directory, unique_filename))
+    return HttpResponse("Failed")
