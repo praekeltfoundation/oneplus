@@ -136,6 +136,7 @@ class Mathml(models.Model):
     filename = models.CharField(max_length=255, null=False, blank=True)
     rendered = models.BooleanField(default=False)
     source = models.IntegerField(max_length=1, choices=SOURCE_CHOICES)
+    source_number = models.IntegerField(max_length=1, choices=SOURCE_CHOICES)
     source_id = models.IntegerField(null=False, blank=False)
     error = models.TextField(null=False, blank=True)
 
