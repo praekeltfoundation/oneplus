@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ONEPLUS | {% block title %}{% endblock %}</title>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "css/sapphire.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "css/sapphire-theme.css" %}">
+        <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
+        <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    </head>
+    <body>
+        <div class="header">
+
+            <div class="menu-wrapper">
+            </div>
+
+            <a href="/home">
+                <div class="logo">
+                </div>
+            </a>
+        </div>
+
+        <div class="container">
+            <div class="sapphire">
+                <div class="box">
+                    <div id="bars1"></div>
+                </div>
+
+                <div class="box">
+                    <div id="bars2"></div>
+                </div>
+
+                <div class="box">
+                    <div id="bars3"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer darkgrey-back">
+            <div style="text-align: center">OnePlus is a collaboration between Investec & Praekelt Foundation</div>
+            <div style="text-align: center"><a href="/about">About</a> | <a href="/terms">Terms</a> | <a href="/contact">Contact</a></div>
+        </div>
+
+        <script src="/static/js/d3.min.js"></script>
+        <script src="/static/js/strain.js"></script>
+        <script src="/static/js/sapphire.js"></script>
+        <script src="/static/js/dashboard.js"></script>
+    </body>
+</html>
