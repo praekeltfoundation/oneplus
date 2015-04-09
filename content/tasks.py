@@ -1,7 +1,7 @@
-from mobileu.celery import app
+from djcelery import celery
 from content.forms import render_mathml
 
 
-@app.tasks
+@celery.task
 def render_mathml_content():
     render_mathml()
