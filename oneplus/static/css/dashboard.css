@@ -1,13 +1,10 @@
-body {
-  background: #f2f2f2;
-}
-
 .sapphire {
   width: 640px;
   margin: 0 auto;
+  background: #f2f2f2;
 }
 
 .box {
-  height: 240px;
+  height: 440px;
   padding: 10px;
 }
