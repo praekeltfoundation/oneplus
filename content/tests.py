@@ -1,6 +1,7 @@
+from celery.bin.celery import control
 from django.test import TestCase
 from content.models import TestingQuestion, Mathml
-from content.forms import process_mathml_content, render_mathml
+from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text
 from organisation.models import Course, Module, CourseModuleRel
 
 
@@ -84,3 +85,41 @@ class TestContent(TestCase):
         self.assertEquals(
             self.question.question_content,
             u'<div><b><img/><a href="/test">Test</a></b><br/></div>')
+
+    def test_convert_to_tags(self):
+        content = ''
+        tag_content = ''
+
+        converted_content = convert_to_tags(content)
+
+        self.assertEquals(converted_content, tag_content, "Incorrect tag conversion")
+
+    def test_process_math_content(self):
+        testing_question = TestingQuestion.objects.filter(name='question').first()
+
+        mathml_content = "Content without mathml markup"
+        expected_output = "Content without mathml markup"
+        output = process_mathml_content(mathml_content, '0', testing_question.id)
+        self.assertEquals(output, expected_output, "They are not equal")
+
+        mathml_content = "Content with mathml markup <mathxmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
+                         "</math> more text"
+        expected_output = "Content with mathml markup <img src='/media/mathml/"
+        output = process_mathml_content(mathml_content, '0', testing_question.id)
+
+        if expected_output not in output:
+            raise Exception
+
+    def test_convert_to_tags(self):
+        content = "text &lt;math&gt;x&lt;/math&gt; more text"
+        expected_output = "text <math>x</math> more text"
+        output = convert_to_tags(content)
+        self.assertEquals(output, expected_output, "They are not equal")
+
+    def test_convert_to_text(self):
+        content = "text <math>x</math> more text"
+        expected_output = "text &lt;math&gt;x&lt;/math&gt; more text"
+        output = convert_to_text(content)
+        self.assertEquals(output, expected_output, "They are not equal")
+
+    #TODO def test_render_mathml(self):
