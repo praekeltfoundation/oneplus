@@ -540,6 +540,7 @@ def nextchallenge(request, state, user):
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
+
     def get():
         request.session["state"]["discussion_page_max"] = \
             Discussion.objects.filter(
