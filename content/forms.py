@@ -19,30 +19,17 @@ class TestingQuestionCreateForm(forms.ModelForm):
         testing_question.save()
 
         question_content = self.cleaned_data.get("question_content")
-        question_content = convert_to_tags(question_content)
-
-        m = re.findall("<math.*?>.*?</math>", question_content)
-        for a in m:
-            question_content = re.sub("<math.*?>.*?</math>",
-                                      process_mathml_content(a, 0, testing_question.id),
-                                      question_content, count=1)
-
-        testing_question.question_content = question_content
+        testing_question.question_content = process_mathml_content(question_content, 0, testing_question.id)
 
         answer_content = self.cleaned_data.get("answer_content")
-        answer_content = convert_to_tags(answer_content)
-
-        m = re.findall("<math.*?>.*?</math>", answer_content)
-        for a in m:
-            answer_content = re.sub("<math.*?>.*?</math>",
-                                    process_mathml_content(a, 1, testing_question.id),
-                                    answer_content, count=1)
-
-        testing_question.answer_content = answer_content
+        testing_question.answer_content = process_mathml_content(answer_content, 1, testing_question.id)
 
         testing_question.save()
 
         return testing_question
+
+    class Meta:
+        model = TestingQuestion
 
 
 class TestingQuestionOptionCreateForm(forms.ModelForm):
@@ -52,15 +39,8 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question_option.save()
 
         option_content = self.cleaned_data.get("content")
-        option_content = convert_to_tags(option_content)
+        question_option.content = process_mathml_content(option_content, 2, question_option.id)
 
-        m = re.findall("<math.*?>.*?</math>", option_content)
-        for a in m:
-            option_content = re.sub("<math.*?>.*?</math>",
-                                    process_mathml_content(a, 2, question_option.id),
-                                    option_content, count=1)
-
-        question_option.content = option_content
         question_option.save()
 
         return question_option
@@ -95,9 +75,20 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
         if correct_selected is False:
             raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
-
+        
 
 def process_mathml_content(_content, _source, _source_id):
+    _content = convert_to_tags(_content)
+
+    mathml = re.findall("<math.*?>.*?</math>", _content)
+
+    for m in mathml:
+        _content = re.sub("<math.*?>.*?</math>", process_mathml_tag(m, _source, _source_id), _content, count=1)
+
+    return _content
+
+
+def process_mathml_tag(_content, _source, _source_id):
     image_format = 'PNG'
 
     directory = settings.MEDIA_ROOT + 'mathml/'
@@ -128,8 +119,18 @@ def process_mathml_content(_content, _source, _source_id):
     return "<img src='/media/mathml/%s'/>" % unique_filename
 
 
+def convert_to_tags(_content):
+    codes = (('>', '&gt;'),
+             ('<', '&lt;'),
+             ('=', '&equals;'))
+
+    for code in codes:
+        _content = _content.replace(code[1], code[0])
+    return _content
+
+
 def render_mathml():
-    url = 'http://127.0.0.1:5000/'
+    url = settings.MATHML_URL
     max_size = 200
     image_format = 'PNG'
     quality = 1
@@ -171,13 +172,3 @@ def render_mathml():
         else:
             nr.error = r.text
             nr.save()
-
-
-def convert_to_tags(_content):
-    codes = (('>', '&gt;'),
-             ('<', '&lt;'),
-             ('=', '&equals;'))
-
-    for code in codes:
-        _content = _content.replace(code[1], code[0])
-    return _content

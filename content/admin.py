@@ -151,8 +151,12 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     ordering = ("question", "order", "name", )
 
 
+class MathmlAdmin(SummernoteModelAdmin):
+    list_display = ("filename", "rendered")
+    list_filter = ("rendered", "source", "source_id")
+
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
-admin.site.register(Mathml)
+admin.site.register(Mathml, MathmlAdmin)
