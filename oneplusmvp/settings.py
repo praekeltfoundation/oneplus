@@ -239,6 +239,9 @@ EMAIL_SUBJECT_PREFIX = '[ONE-PLUS] '
 MANAGERS = (
     ('Jane', 'info@oneplus.co.za'),
 )
+
+MATHML_URL = 'http://127.0.0.1:5000/'
+
 try:
     from local_settings import *
 except ImportError as e:
