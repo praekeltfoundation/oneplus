@@ -110,7 +110,7 @@ def process_mathml_tag(_content, _source, _source_id):
     if os.path.isfile(temp_image):
         shutil.copyfile(temp_image, directory+unique_filename)
 
-    Mathml.objects.create(mathml_content=_content,
+    Mathml.objects.create(mathml_content=convert_to_text(_content),
                           filename=unique_filename,
                           source=_source,
                           source_id=_source_id,
@@ -121,11 +121,21 @@ def process_mathml_tag(_content, _source, _source_id):
 
 def convert_to_tags(_content):
     codes = (('>', '&gt;'),
-             ('<', '&lt;'),
-             ('=', '&equals;'))
+             ('<', '&lt;'))
 
     for code in codes:
         _content = _content.replace(code[1], code[0])
+
+    return _content
+
+
+def convert_to_text(_content):
+    codes = (('&gt;', '>'),
+             ('&lt;', '<'))
+
+    for code in codes:
+        _content = _content.replace(code[1], code[0])
+
     return _content
 
 
@@ -139,6 +149,18 @@ def render_mathml():
     not_rendered = Mathml.objects.filter(rendered=False)
 
     for nr in not_rendered:
+        if nr.source == 0 or nr.source == 1:
+            #check if the source still exists (testing question)
+            if TestingQuestion.objects.filter(id=nr.source_id).count() == 0:
+                #delete as the source doesn't exists anymore
+                nr.delete()
+                continue
+        else:
+            #check if the source still exists testing question option
+            if TestingQuestionOption.objects.filter(id=nr.source_id).count() == 0:
+                nr.delete()
+                continue
+
         #get the mathml content
         content = nr.mathml_content
 
