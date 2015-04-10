@@ -195,6 +195,7 @@ def render_mathml():
                 shutil.copyfileobj(r.raw, f)
 
             nr.rendered = True
+            nr.error = ""
             nr.save()
         else:
             nr.error = r.text
