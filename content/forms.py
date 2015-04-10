@@ -144,20 +144,26 @@ def render_mathml():
     max_size = 200
     image_format = 'PNG'
     quality = 1
+    directory = settings.MEDIA_ROOT + 'mathml/'
 
     #get all the mathml objects that have not been rendered
     not_rendered = Mathml.objects.filter(rendered=False)
 
     for nr in not_rendered:
+        #0 - question 1 - answer
         if nr.source == 0 or nr.source == 1:
             #check if the source still exists (testing question)
             if TestingQuestion.objects.filter(id=nr.source_id).count() == 0:
-                #delete as the source doesn't exists anymore
+                #delete image and record as the source doesn't exists anymore
+                if os.path.isfile(directory+nr.filename):
+                    os.remove(directory+nr.filename)
                 nr.delete()
                 continue
         else:
-            #check if the source still exists testing question option
+            #else is 2 - option
             if TestingQuestionOption.objects.filter(id=nr.source_id).count() == 0:
+                if os.path.isfile(directory+nr.filename):
+                    os.remove(directory+nr.filename)
                 nr.delete()
                 continue
 
@@ -174,7 +180,6 @@ def render_mathml():
 
         #if successful replace the image
         if r.status_code == 200:
-            directory = settings.MEDIA_ROOT + 'mathml/'
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
