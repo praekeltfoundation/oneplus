@@ -1340,6 +1340,17 @@ class GeneralTests(TestCase):
         resp = c.get(reverse('dash.board'))
         self.assertContains(resp, 'sapphire')
 
+    def test_dashboard_data(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('dash.data'))
+        self.assertContains(resp, 'num_email_optin')
+
+        resp = self.client.post(reverse('dash.data'))
+        self.assertContains(resp, 'post office')
+
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
