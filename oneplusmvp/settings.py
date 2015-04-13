@@ -137,7 +137,9 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/var/www/example.com/media/"
-MEDIA_ROOT = abspath('media')
+ENV_PATH = os.path.abspath(os.path.dirname(__file__))
+MEDIA_ROOT = os.path.join(ENV_PATH, 'media/')
+MEDIA_URL = "/media/"
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -219,6 +221,9 @@ SUMMERNOTE_CONFIG = {
 }
 
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
+CELERY_RESULT_BACKEND = "database"
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 # The minimum number of SMSes that can be sent before being sent with celery
 MIN_VUMI_CELERY_SEND = 1
@@ -237,6 +242,9 @@ EMAIL_SUBJECT_PREFIX = '[ONE-PLUS] '
 MANAGERS = (
     ('Jane', 'info@oneplus.co.za'),
 )
+
+MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
+
 try:
     from local_settings import *
 except ImportError as e:
