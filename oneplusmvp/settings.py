@@ -243,7 +243,7 @@ MANAGERS = (
     ('Jane', 'info@oneplus.co.za'),
 )
 
-MATHML_URL = 'http://127.0.0.1:5000/'
+MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
 
 try:
     from local_settings import *
