@@ -366,16 +366,22 @@ class TestMessage(TestCase):
 
     def test_answered_correctly_in_last_x_hours(self):
         count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        count2 = questions_answered_correctly_in_last_x_hours(hours=24)
         self.assertEquals(count, 0)
+        self.assertEquals(count2, 0)
 
         self.participant.answer(question=self.question, option=self.option)
         count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        count2 = questions_answered_correctly_in_last_x_hours(hours=24)
         self.assertEquals(count, 100)
+        self.assertEquals(count2, 1)
 
         self.option.correct = False
         self.participant.answer(question=self.question, option=self.option)
         count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        count2 = questions_answered_correctly_in_last_x_hours(hours=24)
         self.assertEquals(count, 50)
+        self.assertEquals(count2, 1)
 
         # adjust the incorrect answer's date
         qa = ParticipantQuestionAnswer.objects.all()[1]

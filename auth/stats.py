@@ -14,6 +14,11 @@ def total_active_learners():
         .aggregate(Count('id'))['id__count']
 
 
+def number_learner_sms_opt_ins():
+    return Learner.objects.filter(is_active=True, optin_sms=True)\
+        .aggregate(Count('id'))['id__count']
+
+
 def percentage_learner_sms_opt_ins():
     total = total_active_learners()
     cnt = Learner.objects.filter(is_active=True, optin_sms=True)\
@@ -22,6 +27,11 @@ def percentage_learner_sms_opt_ins():
         return int(cnt / float(total) * 100)
     else:
         return 0
+
+
+def number_learner_email_opt_ins():
+    return Learner.objects.filter(is_active=True, optin_email=True)\
+        .aggregate(Count('id'))['id__count']
 
 
 def percentage_learner_email_opt_ins():

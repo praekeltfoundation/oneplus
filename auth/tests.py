@@ -115,18 +115,26 @@ class TestAuth(TestCase):
 
     def test_perc_sms_optin(self):
         perc = percentage_learner_sms_opt_ins()
+        count = number_learner_sms_opt_ins()
         self.assertEquals(perc, 0)
+        self.assertEquals(count, 0)
 
         self.learner.optin_sms = True
         self.learner.save()
         perc = percentage_learner_sms_opt_ins()
+        count = number_learner_sms_opt_ins()
         self.assertEquals(perc, 100)
+        self.assertEquals(count, 1)
 
     def test_perc_email_optin(self):
         perc = percentage_learner_email_opt_ins()
+        count = number_learner_email_opt_ins()
         self.assertEquals(perc, 0)
+        self.assertEquals(count, 0)
 
         self.learner.optin_email = True
         self.learner.save()
         perc = percentage_learner_email_opt_ins()
+        count = number_learner_email_opt_ins()
         self.assertEquals(perc, 100)
+        self.assertEquals(count, 1)
