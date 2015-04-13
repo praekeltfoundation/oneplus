@@ -59,11 +59,11 @@ class TestContent(TestCase):
         self.assertNotEquals(testing_question.question_content, content)
 
         not_rendered = Mathml.objects.filter(rendered=False).count()
-        #render_mathml()
-        #rendered = Mathml.objects.filter(rendered=False).count()
+        render_mathml()
+        rendered = Mathml.objects.filter(rendered=False).count()
 
-        #check if any not rendered mathml has ben rendered
-        #self.assertEquals(not_rendered, rendered)
+        # check if any not rendered mathml has ben rendered
+        self.assertEquals(not_rendered, rendered)
 
     def test_linebreaks(self):
         content = "<p>heading</p><p>content</p>"
