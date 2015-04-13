@@ -1,4 +1,5 @@
 from __future__ import division
+from django.contrib.auth.models import AbstractBaseUser
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
@@ -21,6 +22,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
+import json
 
 COUNTRYWIDE = "Countrywide"
 
@@ -2018,3 +2020,70 @@ def report_question(request, state, user, questionid, frm):
             )
 
     return resolve_http_method(request, [get, post])
+
+
+@oneplus_login_required
+def dashboard_data(request, user):
+    def get():
+
+        from core.stats import (participants_registered_last_x_hours,
+            questions_answered_in_last_x_hours,
+            percentage_questions_answered_correctly_in_last_x_hours,
+            questions_answered_correctly_in_last_x_hours)
+        from auth.stats import (learners_active_in_last_x_hours,
+            percentage_learner_sms_opt_ins,
+            percentage_learner_email_opt_ins,
+            number_learner_sms_opt_ins,
+            number_learner_email_opt_ins,
+            total_active_learners)
+
+        response_data = {
+            'num_learn_reg_24': participants_registered_last_x_hours(24),
+            'num_learn_reg_48': participants_registered_last_x_hours(48),
+            'num_learn_reg_168': participants_registered_last_x_hours(168),
+            'num_learn_reg_744': participants_registered_last_x_hours(744),
+
+            'num_learn_act_24': learners_active_in_last_x_hours(24),
+            'num_learn_act_48': learners_active_in_last_x_hours(48),
+            'num_learn_act_168': learners_active_in_last_x_hours(168),
+            'num_learn_act_744': learners_active_in_last_x_hours(744),
+
+            'num_q_ans_24': questions_answered_in_last_x_hours(24),
+            'num_q_ans_48': questions_answered_in_last_x_hours(48),
+            'num_q_ans_168': questions_answered_in_last_x_hours(168),
+            'num_q_ans_744': questions_answered_in_last_x_hours(744),
+
+            'num_q_ans_cor_24': questions_answered_correctly_in_last_x_hours(24),
+            'num_q_ans_cor_48': questions_answered_correctly_in_last_x_hours(48),
+            'num_q_ans_cor_168': questions_answered_correctly_in_last_x_hours(168),
+
+            'prc_q_ans_cor_24': percentage_questions_answered_correctly_in_last_x_hours(24),
+            'prc_q_ans_cor_48': percentage_questions_answered_correctly_in_last_x_hours(48),
+            'prc_q_ans_cor_168': percentage_questions_answered_correctly_in_last_x_hours(168),
+
+            'tot_learners': total_active_learners(),
+            'num_sms_optin': number_learner_sms_opt_ins(),
+            'num_email_optin': number_learner_email_opt_ins(),
+
+            'prc_sms_optin': percentage_learner_sms_opt_ins(),
+            'prc_email_optin': percentage_learner_email_opt_ins()
+        }
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+    def post():
+        response_data = {
+            'error': 'This is not the post office, get only'
+        }
+        return HttpResponse(json.dumps(response_data), content_type="application/json")
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def dashboard(request):
+    if request.user.is_staff or request.user.is_superuser:
+        return render(
+            request, "misc/dashboard.html",
+            {
+            }
+        )

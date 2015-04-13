@@ -123,7 +123,8 @@ class GeneralTests(TestCase):
             username="+27123456789",
             country="country",
             unique_token='abc123',
-            unique_token_expiry=datetime.now() + timedelta(days=30))
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
         self.participant = self.create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = self.create_module('module name', self.course)
@@ -1325,6 +1326,30 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('auth.signout'), follow=True)
         self.assertEquals(resp.status_code, 200)
+
+    def test_dashboard(self):
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=password,
+            mobile='+27111111133')
+
+        c = Client()
+        c.login(username=my_admin.username, password=password)
+        resp = c.get(reverse('dash.board'))
+        self.assertContains(resp, 'sapphire')
+
+    def test_dashboard_data(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('dash.data'))
+        self.assertContains(resp, 'num_email_optin')
+
+        resp = self.client.post(reverse('dash.data'))
+        self.assertContains(resp, 'post office')
 
 
 @override_settings(VUMI_GO_FAKE=True)
