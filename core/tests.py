@@ -16,6 +16,7 @@ from content.models import TestingQuestion, TestingQuestionOption
 import tablib
 from import_export import resources
 from auth.resources import LearnerResource
+from core.stats import *
 
 
 class TestRunner(DiscoverRunner):
@@ -314,3 +315,78 @@ class TestMessage(TestCase):
         self.assertEquals(learner.username, '821010003')
         self.assertEquals(learner.mobile, '821010003')
         self.assertEquals(learner.school.name, 'Test High School')
+
+    def test_registered_count(self):
+        # setup creates 1
+        count = participants_registered_last_x_hours(hours=24)
+
+        self.assertEquals(count, 1)
+
+        # create another
+        self.create_participant(
+            learner=self.learner,
+            classs=self.classs,
+            datejoined=datetime.now()
+        )
+
+        count = participants_registered_last_x_hours(hours=24)
+
+        self.assertEquals(count, 2)
+
+        # create another but older than 24h
+        self.create_participant(
+            learner=self.learner,
+            classs=self.classs,
+            datejoined=datetime.now() - timedelta(days=2)
+        )
+
+        count = participants_registered_last_x_hours(hours=24)
+
+        self.assertEquals(count, 2)
+
+        count = participants_registered_last_x_hours(hours=49)
+
+        self.assertEquals(count, 3)
+
+    def test_answered_in_last_x_hours(self):
+        count = questions_answered_in_last_x_hours(hours=24)
+        self.assertEquals(count, 0)
+
+        self.participant.answer(question=self.question, option=self.option)
+        count = questions_answered_in_last_x_hours(hours=24)
+        self.assertEquals(count, 1)
+
+        # adjust the answer date
+        qa = ParticipantQuestionAnswer.objects.all()[0]
+        qa.answerdate = datetime.now() - timedelta(days=2)
+        qa.save()
+
+        count = questions_answered_in_last_x_hours(hours=24)
+        self.assertEquals(count, 0)
+
+    def test_answered_correctly_in_last_x_hours(self):
+        count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        count2 = questions_answered_correctly_in_last_x_hours(hours=24)
+        self.assertEquals(count, 0)
+        self.assertEquals(count2, 0)
+
+        self.participant.answer(question=self.question, option=self.option)
+        count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        count2 = questions_answered_correctly_in_last_x_hours(hours=24)
+        self.assertEquals(count, 100)
+        self.assertEquals(count2, 1)
+
+        self.option.correct = False
+        self.participant.answer(question=self.question, option=self.option)
+        count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        count2 = questions_answered_correctly_in_last_x_hours(hours=24)
+        self.assertEquals(count, 50)
+        self.assertEquals(count2, 1)
+
+        # adjust the incorrect answer's date
+        qa = ParticipantQuestionAnswer.objects.all()[1]
+        qa.answerdate = datetime.now() - timedelta(days=2)
+        qa.save()
+
+        count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
+        self.assertEquals(count, 100)
