@@ -1,4 +1,5 @@
 from __future__ import division
+from django.contrib.auth.models import AbstractBaseUser
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
@@ -2027,10 +2028,14 @@ def dashboard_data(request, user):
 
         from core.stats import (participants_registered_last_x_hours,
             questions_answered_in_last_x_hours,
-            percentage_questions_answered_correctly_in_last_x_hours)
+            percentage_questions_answered_correctly_in_last_x_hours,
+            questions_answered_correctly_in_last_x_hours)
         from auth.stats import (learners_active_in_last_x_hours,
             percentage_learner_sms_opt_ins,
-            percentage_learner_email_opt_ins)
+            percentage_learner_email_opt_ins,
+            number_learner_sms_opt_ins,
+            number_learner_email_opt_ins,
+            total_active_learners)
 
         response_data = {
             'num_learn_reg_24': participants_registered_last_x_hours(24),
@@ -2048,9 +2053,17 @@ def dashboard_data(request, user):
             'num_q_ans_168': questions_answered_in_last_x_hours(168),
             'num_q_ans_744': questions_answered_in_last_x_hours(744),
 
+            'num_q_ans_cor_24': questions_answered_correctly_in_last_x_hours(24),
+            'num_q_ans_cor_48': questions_answered_correctly_in_last_x_hours(48),
+            'num_q_ans_cor_168': questions_answered_correctly_in_last_x_hours(168),
+
             'prc_q_ans_cor_24': percentage_questions_answered_correctly_in_last_x_hours(24),
             'prc_q_ans_cor_48': percentage_questions_answered_correctly_in_last_x_hours(48),
             'prc_q_ans_cor_168': percentage_questions_answered_correctly_in_last_x_hours(168),
+
+            'tot_learners': total_active_learners(),
+            'num_sms_optin': number_learner_sms_opt_ins(),
+            'num_email_optin': number_learner_email_opt_ins(),
 
             'prc_sms_optin': percentage_learner_sms_opt_ins(),
             'prc_email_optin': percentage_learner_email_opt_ins()
@@ -2068,9 +2081,9 @@ def dashboard_data(request, user):
 
 @user_passes_test(lambda u: u.is_staff)
 def dashboard(request):
-
-    return render(
-        request, "misc/dashboard.html",
-        {
-        }
-    )
+    if request.user.is_staff or request.user.is_superuser:
+        return render(
+            request, "misc/dashboard.html",
+            {
+            }
+        )

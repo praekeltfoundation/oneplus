@@ -63,122 +63,86 @@ function getData(){
                 })
                 .call(pie);
 
-            d3.select('#q_ans')
+            d3.select('#q_ans_24')
                 .datum({
-                    title: 'Number of Questions Answered',
+                    title: ' Questions Answered Last 24h',
                     metrics: [{
-                        key: 'Questions Answered Last 24h',
-                        title: 'Last 24h',
-                        value: data.num_q_ans_24
+                        key: 'Incorrect Last 24h',
+                        title: 'Incorrect',
+                        value: data.num_q_ans_24 - data.num_q_ans_cor_48
                     },
                     {
-                        key: 'Questions Answered Last 48h',
-                        title: 'Last 48h',
-                        value: data.num_q_ans_48
-                    },
-                    {
-                        key: 'Questions Answered Last 168h',
-                        title: 'Last 168h',
-                        value: data.num_q_ans_168
+                        key: 'Correct Last 24h',
+                        title: 'Correct',
+                        value: data.num_q_ans_cor_24
                     }]
                 })
                 .call(pie);
 
-            /*d3.select('#q_ans_c')
+            d3.select('#q_ans_48')
                 .datum({
-                    title: 'Percentage of Questions Answered Correct',
+                    title: ' Questions Answered Last 48h',
                     metrics: [{
-                        key: 'Questions Answered Correct Last 24h',
-                        title: 'Last 24h',
-                        value: data.prc_q_ans_cor_24
+                        key: 'Incorrect Last 48h',
+                        title: 'Incorrect',
+                        value: data.num_q_ans_48 - data.num_q_ans_cor_48
                     },
                     {
-                        key: 'Questions Answered Correct Last 48h',
-                        title: 'Last 48h',
-                        value: data.prc_q_ans_cor_48
-                    },
-                    {
-                        key: 'Questions Answered Correct Last 168h',
-                        title: 'Last 168h',
-                        value: data.prc_q_ans_cor_168
+                        key: 'Correct Last 48h',
+                        title: 'Correct',
+                        value: data.num_q_ans_cor_48
                     }]
                 })
-                .call(pie);*/
+                .call(pie);
 
-            d3.select('#q_ans_c')
+            d3.select('#q_ans_168')
                 .datum({
-                    key: 'Percentage of Questions Answered Correct',
-                    title: 'Percentage of Questions Answered Correct',
-                    metrics: [
-                        {
-                            key: 'Questions Answered Correct Last 24h',
-                            title: 'Last 24h',
-                            values: [{
-                                x: dt,
-                                y: data.prc_q_ans_cor_24
-                            }]
-                        },
-                        {
-                            key: 'Questions Answered Correct Last 48h',
-                            title: 'Last 48h',
-                            values: [{
-                                x: dt,
-                                y: data.prc_q_ans_cor_48
-                            }]
-                        },
-                        {
-                            key: 'Questions Answered Correct Last 168h',
-                            title: 'Last 168h',
-                            values: [{
-                                x: dt,
-                                y: data.prc_q_ans_cor_168
-                            }]
-                        }]
-                })
-                .call(lines);
-
-            /*d3.select('#optin')
-                .datum({
-                    title: 'Optin Percentages',
+                    title: ' Questions Answered Last 168h',
                     metrics: [{
+                        key: 'Incorrect Last 168h',
+                        title: 'Incorrect',
+                        value: data.num_q_ans_168 - data.num_q_ans_cor_168
+                    },
+                    {
+                        key: 'Correct Last 168h',
+                        title: 'Correct',
+                        value: data.num_q_ans_cor_168
+                    }]
+                })
+                .call(pie);
+
+            d3.select('#optin_sms')
+                .datum({
+                    title: 'SMS Optin Status',
+                    metrics: [{
+                        key: 'SMS Not Optins',
+                        title: 'SMS Not Optins',
+                        value: data.tot_learners - data.num_sms_optin
+                    },
+                    {
                         key: 'SMS Optins',
-                        title: 'SMS',
-                        value: data.prc_sms_optin
-                    },
-                    {
-                        key: 'e-mail Optins',
-                        title: 'e-mail',
-                        value: data.prc_email_optin
+                        title: 'SMS Optins',
+                        value: data.num_sms_optin
                     }]
                 })
-                .call(pie);*/
+                .call(pie);
 
-            d3.select('#optin')
+            d3.select('#optin_email')
                 .datum({
-                    title: 'Optin Percentages',
-                    key: 'a',
-                    metrics: [
-                        {
-                            key: 'sms_optins',
-                            title: 'SMS',
-                            values: [{
-                                x: dt,
-                                y: data.prc_sms_optin
-                            }]
-                        },
-                        {
-                            key: 'e-mail_optins',
-                            title: 'e-mail',
-                            values: [{
-                                x: dt,
-                                y: data.prc_email_optin
-                            }]
-                        }
-                    ]
+                    title: 'Email Optin Status',
+                    metrics: [{
+                        key: 'Email Not Optins',
+                        title: 'Email Not Optins',
+                        value: data.tot_learners - data.num_email_optin
+                    },
+                    {
+                        key: 'Email Optins',
+                        title: 'Email Optins',
+                        value: data.num_email_optin
+                    }]
                 })
-                .call(lines);
+                .call(pie);
         });
 }
-
 
 getData();
