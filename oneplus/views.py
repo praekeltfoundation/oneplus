@@ -14,14 +14,16 @@ from auth.models import CustomUser
 from functools import wraps
 from django.contrib.auth.decorators import user_passes_test
 from communication.utils import VumiSmsApi
-import oneplusmvp.settings as settings
-import koremutake
 from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
+from django.core.urlresolvers import reverse
+from django.db import connection
+import oneplusmvp.settings as settings
+import koremutake
 import json
 
 COUNTRYWIDE = "Countrywide"
@@ -2087,9 +2089,78 @@ def dashboard_data(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def dashboard(request):
-    if request.user.is_staff or request.user.is_superuser:
-        return render(
-            request, "misc/dashboard.html",
-            {
-            }
-        )
+    return render(
+        request, "misc/dashboard.html",
+        {
+        }
+    )
+
+
+@user_passes_test(lambda u: u.is_staff)
+def reports(request):
+    return render(
+        request, "misc/reports.html",
+        {
+        }
+    )
+
+
+@user_passes_test(lambda u: u.is_staff)
+def reports_learner_unique_regions(request):
+    data = CustomUser.objects.exclude(area__isnull=True).exclude(area__exact='').values('area').distinct()
+    return HttpResponse(json.dumps(list(data)), content_type="application/json")
+
+
+def report_learner_get_sql(qtype=1):
+    # qtype: 1 - all
+    #        2 - filtered by region
+    sql = \
+        'select cu.mobile, cu.first_name, cu.last_name, s.name, cu.area, qt.cnt, qc.cnt ' \
+        'from core_participant p ' \
+        'inner join auth_customuser cu ' \
+        '    on cu.id = p.learner_id ' \
+        'inner join auth_learner l ' \
+        '    on l.customuser_ptr_id = cu.id ' \
+        'inner join organisation_school s ' \
+        '    on s.id = l.school_id ' \
+        'left join ( ' \
+        '    select participant_id, count(correct) cnt ' \
+        '    from core_participantquestionanswer ' \
+        '    where correct = true ' \
+        '    group by participant_id ' \
+        '    ) qc ' \
+        '    on qc.participant_id = p.id ' \
+        'left join ( ' \
+        '    select participant_id, count(1) cnt ' \
+        '    from core_participantquestionanswer ' \
+        '    group by participant_id ' \
+        '    ) qt ' \
+        '    on qt.participant_id = p.id '
+
+    if qtype == 2:
+        sql = sql + ' where cu.area = %s'
+
+    return sql
+
+
+@user_passes_test(lambda u: u.is_staff)
+def report_learner(request, mode, region):
+    if mode < 1 and mode > 2:
+        return HttpResponseRedirect(reverse("reports.home"))
+
+    cursor = connection.cursor()
+    if len(region) == 0:
+        sql = report_learner_get_sql()
+        cursor.execute(sql)
+    else:
+        sql = report_learner_get_sql(2)
+        cursor.execute(sql, [region])
+
+    data = cursor.fetchall()
+
+    if mode == 1:
+        pass
+    elif mode == 2:
+        pass
+
+    return HttpResponse(data)
