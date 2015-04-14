@@ -1261,6 +1261,11 @@ def inbox(request, state, user):
         if "hide" in request.POST.keys() and request.POST["hide"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _msg = Message.objects.get(pk=request.POST["hide"])
+            _msg.view_message(_usr)
+            request.session["state"]["inbox_unread"] = Message.unread_message_count(
+                _participant.learner,
+                _participant.classs.course
+            )
             _msg.hide_message(_usr)
 
         _messages = Message.get_messages(
