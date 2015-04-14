@@ -50,5 +50,5 @@ Thumbs.db
 local_settings.py
 
 #ignore mathml media files
-*/media/mathml/*.png
-*/media/mathml/*.gif
+*/media/*.png
+*/media/*.gif
