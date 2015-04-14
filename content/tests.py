@@ -62,7 +62,7 @@ class TestContent(TestCase):
         render_mathml()
         rendered = Mathml.objects.filter(rendered=False).count()
 
-        #check if any not rendered mathml has ben rendered
+        # check if any not rendered mathml has ben rendered
         self.assertEquals(not_rendered, rendered)
 
     def test_linebreaks(self):
