@@ -221,6 +221,9 @@ SUMMERNOTE_CONFIG = {
 }
 
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
+CELERY_RESULT_BACKEND = "database"
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 # The minimum number of SMSes that can be sent before being sent with celery
 MIN_VUMI_CELERY_SEND = 1
@@ -240,7 +243,7 @@ MANAGERS = (
     ('Jane', 'info@oneplus.co.za'),
 )
 
-MATHML_URL = 'http://127.0.0.1:5000/'
+MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
 
 try:
     from local_settings import *
