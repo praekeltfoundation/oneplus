@@ -117,7 +117,7 @@ def process_mathml_tag(_content, _source, _source_id):
                           source_id=_source_id,
                           rendered=False)
 
-    return "<img src='/media%s'/>" % unique_filename
+    return "<img src='/media/%s'/>" % unique_filename
 
 
 def convert_to_tags(_content):
