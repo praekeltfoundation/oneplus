@@ -104,7 +104,7 @@ class TestContent(TestCase):
 
         mathml_content = "Content with mathml markup <mathxmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
                          "</math> more text"
-        expected_output = "Content with mathml markup <img src='/media/mathml/"
+        expected_output = "Content with mathml markup <img src='/"
         output = process_mathml_content(mathml_content, '0', testing_question.id)
 
         if expected_output not in output:

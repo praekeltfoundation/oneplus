@@ -91,9 +91,10 @@ def process_mathml_content(_content, _source, _source_id):
 def process_mathml_tag(_content, _source, _source_id):
     image_format = 'PNG'
 
-    directory = settings.MEDIA_ROOT + 'mathml/'
+    directory = settings.MEDIA_ROOT
+
     #if not os.path.exists(directory):
-     #   os.makedirs(directory)
+        #os.makedirs(directory)
 
     unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
@@ -116,7 +117,7 @@ def process_mathml_tag(_content, _source, _source_id):
                           source_id=_source_id,
                           rendered=False)
 
-    return "<img src='/media/mathml/%s'/>" % unique_filename
+    return "<img src='/%s'/>" % unique_filename
 
 
 def convert_to_tags(_content):
@@ -144,7 +145,8 @@ def render_mathml():
     max_size = 200
     image_format = 'PNG'
     quality = 1
-    directory = settings.MEDIA_ROOT + 'mathml/'
+    directory = settings.MEDIA_ROOT
+
 
     #get all the mathml objects that have not been rendered
     not_rendered = Mathml.objects.filter(rendered=False)
