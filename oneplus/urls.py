@@ -62,4 +62,8 @@ urlpatterns = [
         name="prog.leader.id"),
     url(r"^badges$", views.badges, name="prog.badges"),
     url(r'^djga/', include('google_analytics.urls')),
+
+    # Dashboard
+    url(r'^dashboard_data$', views.dashboard_data, name="dash.data"),
+    url(r'^dashboard$', views.dashboard, name='dash.board'),
 ]
