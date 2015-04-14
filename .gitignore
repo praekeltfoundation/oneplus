@@ -48,3 +48,7 @@ Thumbs.db
 
 #ignore local_settings.py
 local_settings.py
+
+#ignore mathml media files
+*/media/mathml/*.png
+*/media/mathml/*.gif
