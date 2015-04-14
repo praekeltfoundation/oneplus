@@ -1354,14 +1354,14 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
-        resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 1}))
-        #self.assertContains(resp, 'question_difficulty_report.csv')
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 1}))
+        self.assertEquals(resp.get('Content-Disposition'), 'attachment; filename="question_difficulty_report.csv"')
 
-        resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 2}))
-        #self.assertContains(resp, 'question_difficulty_report.xls')
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 2}))
+        self.assertEquals(resp.get('Content-Disposition'), 'attachment; filename="question_difficulty_report.xls"')
 
-        resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 3}))
-        #self.assertContains(resp, 'home', status_code=302)
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 3}))
+        self.assertEquals(resp.status_code, 302)
 
     def test_reports_page(self):
         c = Client()

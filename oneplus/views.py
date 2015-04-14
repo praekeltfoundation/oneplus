@@ -2177,6 +2177,7 @@ def report_learner(request, mode, region):
 def question_difficulty_report(request, mode):
     questions = TestingQuestion.objects.all()
     question_list = []
+    headers = [('Question', 'Total Correct', 'Total Incorrect', 'Percentage Correct')]
 
     for question in questions:
         total_answers = question_answered(question)
@@ -2187,9 +2188,9 @@ def question_difficulty_report(request, mode):
         question_list.append((question.name, total_correct, total_incorrect, percent_correct))
 
     question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
-    if mode == 1:
-        return get_csv_report(question_list)
-    elif mode == 2:
-        return get_xls_report(question_list)
+    if mode == '1':
+        return get_csv_report(question_list, headers)
+    elif mode == '2':
+        return get_xls_report(question_list, headers)
     else:
-        return HttpResponseRedirect('/home')
+        return HttpResponseRedirect(reverse("reports.home"))
