@@ -51,10 +51,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 SITE_ID = 1
 
 INSTALLED_APPS = (
-    "grappelli",
     "mobileu",
-    "import_export",
     "oneplus",
+    "grappelli",
+    "import_export",
     "core",
     "gamification",
     "communication",
