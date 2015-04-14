@@ -2022,8 +2022,8 @@ def report_question(request, state, user, questionid, frm):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def dashboard_data(request, user):
+@user_passes_test(lambda u: u.is_staff)
+def dashboard_data(request):
     def get():
 
         from core.stats import (participants_registered_last_x_hours,

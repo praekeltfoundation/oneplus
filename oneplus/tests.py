@@ -1341,14 +1341,20 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'sapphire')
 
     def test_dashboard_data(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        resp = self.client.get(reverse('dash.data'))
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(
+            username='asdf333',
+            email='asdf333@example.com',
+            password=password,
+            mobile='+27111111133')
+
+        c = Client()
+        c.login(username=my_admin.username, password=password)
+
+        resp = c.get(reverse('dash.data'))
         self.assertContains(resp, 'num_email_optin')
 
-        resp = self.client.post(reverse('dash.data'))
+        resp = c.post(reverse('dash.data'))
         self.assertContains(resp, 'post office')
 
 
