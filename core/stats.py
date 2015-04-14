@@ -33,3 +33,22 @@ def percentage_questions_answered_correctly_in_last_x_hours(hours):
         return int(correct / float(total) * 100)
     else:
         return 0
+
+
+def question_answered(_question):
+    return ParticipantQuestionAnswer.objects.filter(question=_question).aggregate(Count('id'))['id__count']
+
+
+def question_answered_correctly(_question):
+    return ParticipantQuestionAnswer.objects.filter(question=_question, correct=True)\
+                                            .aggregate(Count('id'))['id__count']
+
+
+def percentage_question_answered_correctly(_question):
+    total = question_answered(_question)
+    correct = question_answered_correctly(_question)
+
+    if total > 0:
+        return round(float(correct / float(total) * 100), 2)
+    else:
+        return 0

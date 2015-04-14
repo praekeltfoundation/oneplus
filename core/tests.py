@@ -390,3 +390,30 @@ class TestMessage(TestCase):
 
         count = percentage_questions_answered_correctly_in_last_x_hours(hours=24)
         self.assertEquals(count, 100)
+
+    def test_question_answered(self):
+        count = question_answered(self.question)
+        self.assertEquals(count, 0)
+
+        self.participant.answer(question=self.question, option=self.option)
+        count = question_answered(self.question)
+        self.assertEqual(count, 1)
+
+    def test_question_answered_correctly(self):
+        count = question_answered_correctly(self.question)
+        count2 = percentage_question_answered_correctly(self.question)
+        self.assertEqual(count, 0)
+        self.assertEqual(count2, 0)
+
+        self.participant.answer(question=self.question, option=self.option)
+        count = question_answered_correctly(self.question)
+        count2 = percentage_question_answered_correctly(self.question)
+        self.assertEqual(count, 1)
+        self.assertEqual(count2, 100)
+
+        self.option.correct = False
+        self.participant.answer(question=self.question, option=self.option)
+        count = question_answered_correctly(self.question)
+        count2 = percentage_question_answered_correctly(self.question)
+        self.assertEqual(count, 1)
+        self.assertEqual(count2, 50)
