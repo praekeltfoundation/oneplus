@@ -1351,14 +1351,21 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'post office')
 
     def test_question_difficulty_report(self):
+
+        def make_content(ftype):
+            d = datetime.now().date().strftime('%Y_%m_%d')
+            file_name_base = 'question_difficulty_report'
+            file_name = '%s_%s.%s' % (file_name_base, d, ftype)
+            return 'attachment; filename="%s"' % file_name
+
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
         resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 1}))
-        self.assertEquals(resp.get('Content-Disposition'), 'attachment; filename="question_difficulty_report.csv"')
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv'))
 
         resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 2}))
-        self.assertEquals(resp.get('Content-Disposition'), 'attachment; filename="question_difficulty_report.xls"')
+        self.assertEquals(resp.get('Content-Disposition'), make_content('xls'))
 
         resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 3}))
         self.assertEquals(resp.status_code, 302)
@@ -1371,23 +1378,54 @@ class GeneralTests(TestCase):
 
 
     def test_report_learner(self):
+        def make_content(ftype, region=None):
+            d = datetime.now().date().strftime('%Y_%m_%d')
+            file_name_base = 'learner_report'
+
+            if region is not None:
+                file_name_base = '%s_%s' % (file_name_base, region)
+
+            file_name = '%s_%s.%s' % (file_name_base, d, ftype)
+            return 'attachment; filename="%s"' % file_name
+
+        question1 = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        option1 = self.create_test_question_option(
+            name="option1",
+            question=question1,
+            correct=True
+        )
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.participant.answer(question1, option1)
+
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
         #csv no region
-        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': None}))
-        #self.assertContains(resp, 'num_email_optin')
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': ''}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv'))
 
         #xls no region
-        resp = c.get(reverse('reports.learner', kwargs={'mode': 2, 'region': None}))
-        #self.assertContains(resp, 'num_email_optin')
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 2, 'region': ''}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('xls'))
 
         #csv + region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area'}))
-        #self.assertContains(resp, 'num_email_optin')
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area'))
+        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
+        self.assertContains(resp, '+27123456789,,,school name,Test_Area,1,100')
 
         #csv + region that doesn't exist
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area44'}))
-        #self.assertContains(resp, 'num_email_optin')
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area44'))
+        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
+        self.assertNotContains(resp, '+27123456789')
 
 
     def test_report_learner_unique_area(self):

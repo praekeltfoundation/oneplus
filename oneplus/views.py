@@ -2122,7 +2122,14 @@ def report_learner_get_sql(qtype=1):
     # qtype: 1 - all
     #        2 - filtered by region
     sql = \
-        'select cu.mobile, cu.first_name, cu.last_name, s.name, cu.area, qt.cnt, qc.cnt ' \
+        'select cu.username, cu.first_name, cu.last_name, s.name, cu.area, ' \
+        '    qt.cnt, ' \
+        '    qc.cnt / ' \
+        '    (case  ' \
+        '        when qt.cnt is null then 1 ' \
+        '        when qt.cnt = 0 then 1 ' \
+        '        else qt.cnt ' \
+        '    end)::numeric * 100 perc_corr ' \
         'from core_participant p ' \
         'inner join auth_customuser cu ' \
         '    on cu.id = p.learner_id ' \
@@ -2152,25 +2159,27 @@ def report_learner_get_sql(qtype=1):
 
 @user_passes_test(lambda u: u.is_staff)
 def report_learner(request, mode, region):
-    if mode < 1 and mode > 2:
+    if mode != '1' and mode != '2':
         return HttpResponseRedirect(reverse("reports.home"))
 
+    headers = [('MSISDN', 'First Name', 'Last Name', 'School', 'Region', 'Questions Completed', 'Percentage Correct')]
     cursor = connection.cursor()
-    if len(region) == 0:
-        sql = report_learner_get_sql()
-        cursor.execute(sql)
-    else:
+    file_name = 'learner_report'
+
+    if region:
         sql = report_learner_get_sql(2)
         cursor.execute(sql, [region])
+        file_name = '%s_%s' % (file_name, region)
+    else:
+        sql = report_learner_get_sql()
+        cursor.execute(sql)
 
     data = cursor.fetchall()
 
-    if mode == 1:
-        pass
-    elif mode == 2:
-        pass
-
-    return HttpResponse(data)
+    if mode == '1':
+        return get_csv_report(data, file_name, headers)
+    elif mode == '2':
+        return get_xls_report(data, file_name, headers)
 
 
 @user_passes_test(lambda u: u.is_staff)
@@ -2189,8 +2198,8 @@ def question_difficulty_report(request, mode):
 
     question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
     if mode == '1':
-        return get_csv_report(question_list, headers)
+        return get_csv_report(question_list, 'question_difficulty_report', headers)
     elif mode == '2':
-        return get_xls_report(question_list, headers)
+        return get_xls_report(question_list, 'question_difficulty_report', headers)
     else:
         return HttpResponseRedirect(reverse("reports.home"))
