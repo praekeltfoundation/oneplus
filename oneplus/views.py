@@ -25,8 +25,13 @@ from django.db import connection
 import oneplusmvp.settings as settings
 import koremutake
 import json
+from report_utils import get_csv_report, get_xls_report
+from django.core.urlresolvers import reverse
+from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
+
 
 COUNTRYWIDE = "Countrywide"
+
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -36,6 +41,7 @@ def oneplus_login_required(f):
             return redirect("auth.login")
         return f(request, user=request.session["user"], *args, **kwargs)
     return wrap
+
 
 # Code decorator to check if user is logged in or not
 def oneplus_check_user(f):
@@ -153,6 +159,7 @@ def login(request, state):
             return get()
 
     return resolve_http_method(request, [get, post])
+
 
 def autologin(request, token):
     def get():
@@ -2164,3 +2171,26 @@ def report_learner(request, mode, region):
         pass
 
     return HttpResponse(data)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def question_difficulty_report(request, mode):
+    questions = TestingQuestion.objects.all()
+    question_list = []
+    headers = [('Question', 'Total Correct', 'Total Incorrect', 'Percentage Correct')]
+
+    for question in questions:
+        total_answers = question_answered(question)
+        total_correct = question_answered_correctly(question)
+        total_incorrect = total_answers - total_correct
+        percent_correct = percentage_question_answered_correctly(question)
+
+        question_list.append((question.name, total_correct, total_incorrect, percent_correct))
+
+    question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
+    if mode == '1':
+        return get_csv_report(question_list, headers)
+    elif mode == '2':
+        return get_xls_report(question_list, headers)
+    else:
+        return HttpResponseRedirect(reverse("reports.home"))
