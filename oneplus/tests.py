@@ -1357,6 +1357,26 @@ class GeneralTests(TestCase):
         resp = c.post(reverse('dash.data'))
         self.assertContains(resp, 'post office')
 
+    def test_question_difficulty_report(self):
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(
+            username='asdf333',
+            email='asdf333@example.com',
+            password=password,
+            mobile='+27111111133')
+
+        c = Client()
+        c.login(username=my_admin.username, password=password)
+
+        resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 1}))
+        #self.assertEqual(resp.context, 'question_difficulty_report.csv')
+
+        resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 2}))
+        #self.assertContains(resp, 'question_difficulty_report.xls')
+
+        resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 3}))
+        #self.assertContains(resp, 'home', status_code=302)
+
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
@@ -1612,6 +1632,7 @@ class LearnerStateTest(TestCase):
         self.assertTrue(self.learner_state.check_monday_after_training(1))
         self.assertFalse(self.learner_state.check_monday_after_training(
             self.learner_state.QUESTIONS_PER_DAY + 1))
+
 
 class MockRequest(object):
     pass

@@ -66,6 +66,9 @@ urlpatterns = [
     # Dashboard
     url(r'^dashboard_data$', views.dashboard_data, name="dash.data"),
     url(r'^dashboard$', views.dashboard, name='dash.board'),
-    #used to test
-    url(r'^report$', views.report),
+
+    # Reports
+    url(r'^question_difficulty_report/(?P<mode>\d+)$',
+        views.question_difficulty_report,
+        name='report.question_difficulty'),
 ]

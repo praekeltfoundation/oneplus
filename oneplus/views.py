@@ -2103,7 +2103,7 @@ def dashboard(request):
 
 
 @user_passes_test(lambda u: u.is_staff)
-def get_question_difficulty_report_data(request, mode):
+def question_difficulty_report(request, mode):
     questions = TestingQuestion.objects.all()
     question_list = []
 
@@ -2113,7 +2113,7 @@ def get_question_difficulty_report_data(request, mode):
         total_incorrect = total_answers - total_correct
         percent_correct = percentage_question_answered_correctly(question)
 
-        question_list.append((question.id, total_correct, total_incorrect, percent_correct))
+        question_list.append((question.name, total_correct, total_incorrect, percent_correct))
 
     question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
     if mode == 1:
@@ -2121,21 +2121,4 @@ def get_question_difficulty_report_data(request, mode):
     elif mode == 2:
         return get_xls_report(question_list)
     else:
-        return HttpResponseRedirect(reverse("reports.home"))
-
-
-#used to test
-def report(request):
-    questions = TestingQuestion.objects.all()
-    question_list = []
-
-    for question in questions:
-        total_answers = question_answered(question)
-        total_correct = question_answered_correctly(question)
-        total_incorrect = total_answers - total_correct
-        percent_correct = percentage_question_answered_correctly(question)
-
-        question_list.append((question.id, total_correct, total_incorrect, percent_correct))
-
-    question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
-    return get_xls_report(question_list)
+        return HttpResponseRedirect('/home')
