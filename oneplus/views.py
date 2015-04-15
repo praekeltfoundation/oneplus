@@ -23,8 +23,13 @@ from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
 import json
+from report_utils import get_csv_report, get_xls_report
+from django.core.urlresolvers import reverse
+from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
+
 
 COUNTRYWIDE = "Countrywide"
+
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -34,6 +39,7 @@ def oneplus_login_required(f):
             return redirect("auth.login")
         return f(request, user=request.session["user"], *args, **kwargs)
     return wrap
+
 
 # Code decorator to check if user is logged in or not
 def oneplus_check_user(f):
@@ -151,6 +157,7 @@ def login(request, state):
             return get()
 
     return resolve_http_method(request, [get, post])
+
 
 def autologin(request, token):
     def get():
@@ -2093,3 +2100,42 @@ def dashboard(request):
             {
             }
         )
+
+
+@user_passes_test(lambda u: u.is_staff)
+def get_question_difficulty_report_data(request, mode):
+    questions = TestingQuestion.objects.all()
+    question_list = []
+
+    for question in questions:
+        total_answers = question_answered(question)
+        total_correct = question_answered_correctly(question)
+        total_incorrect = total_answers - total_correct
+        percent_correct = percentage_question_answered_correctly(question)
+
+        question_list.append((question.id, total_correct, total_incorrect, percent_correct))
+
+    question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
+    if mode == 1:
+        return get_csv_report(question_list)
+    elif mode == 2:
+        return get_xls_report(question_list)
+    else:
+        return HttpResponseRedirect(reverse("reports.home"))
+
+
+#used to test
+def report(request):
+    questions = TestingQuestion.objects.all()
+    question_list = []
+
+    for question in questions:
+        total_answers = question_answered(question)
+        total_correct = question_answered_correctly(question)
+        total_incorrect = total_answers - total_correct
+        percent_correct = percentage_question_answered_correctly(question)
+
+        question_list.append((question.id, total_correct, total_incorrect, percent_correct))
+
+    question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
+    return get_xls_report(question_list)
