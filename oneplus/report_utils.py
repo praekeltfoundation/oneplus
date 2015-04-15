@@ -1,12 +1,12 @@
 import csv
 from django.http import HttpResponse
 import xlwt
-import datetime
+from datetime import datetime
 
 
-def get_csv_report(question_list, columns=None):
+def get_csv_report(question_list, file_name, columns=None):
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="question_difficulty_report.csv"'
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.csv"' % (file_name, datetime.now().date().strftime('%Y_%m_%d'))
     writer = csv.writer(response)
 
     if columns is not None:
@@ -17,10 +17,10 @@ def get_csv_report(question_list, columns=None):
     return response
 
 
-def get_xls_report(question_list, columns=None):
+def get_xls_report(question_list, file_name, columns=None):
     workbook = list_to_workbook(question_list, columns)
     response = HttpResponse(mimetype='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="question_difficulty_report.xls"'
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.xls"' % (file_name, datetime.now().date().strftime('%Y_%m_%d'))
     workbook.save(response)
     return response
 
@@ -36,7 +36,7 @@ CELL_STYLE_MAP = (
 
 def list_to_workbook(object_list, columns, header_style=None, default_style=None, cell_style_map=None):
     workbook = xlwt.Workbook()
-    report_date = datetime.date.today()
+    report_date = datetime.now().date()
     sheet_name = 'Export {0}'.format(report_date.strftime('%Y-%m-%d'))
     sheet = workbook.add_sheet(sheet_name)
 
