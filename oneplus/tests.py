@@ -122,6 +122,7 @@ class GeneralTests(TestCase):
             self.school,
             username="+27123456789",
             country="country",
+            area="Test_Area",
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
@@ -143,6 +144,13 @@ class GeneralTests(TestCase):
         logger = logging.getLogger('DEBUG')
         logger.setLevel(logging.INFO)
         logger.addHandler(self.handler)
+
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
 
     def test_get_next_question(self):
         self.create_test_question('question1', self.module)
@@ -1328,34 +1336,20 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_dashboard(self):
-        password = 'mypassword'
-        my_admin = CustomUser.objects.create_superuser(
-            username='asdf33',
-            email='asdf33@example.com',
-            password=password,
-            mobile='+27111111133')
-
         c = Client()
-        c.login(username=my_admin.username, password=password)
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('dash.board'))
         self.assertContains(resp, 'sapphire')
 
     def test_dashboard_data(self):
-        password = 'mypassword'
-        my_admin = CustomUser.objects.create_superuser(
-            username='asdf333',
-            email='asdf333@example.com',
-            password=password,
-            mobile='+27111111133')
-
         c = Client()
-        c.login(username=my_admin.username, password=password)
-
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('dash.data'))
         self.assertContains(resp, 'num_email_optin')
 
         resp = c.post(reverse('dash.data'))
         self.assertContains(resp, 'post office')
+
 
     def test_question_difficulty_report(self):
         password = 'mypassword'
@@ -1376,6 +1370,39 @@ class GeneralTests(TestCase):
 
         resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 3}))
         #self.assertContains(resp, 'home', status_code=302)
+
+    def test_reports_page(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('reports.home'))
+        self.assertContains(resp, 'ONEPLUS')
+
+
+    def test_report_learner(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        #csv no region
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': None}))
+        #self.assertContains(resp, 'num_email_optin')
+
+        #xls no region
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 2, 'region': None}))
+        #self.assertContains(resp, 'num_email_optin')
+
+        #csv + region
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area'}))
+        #self.assertContains(resp, 'num_email_optin')
+
+        #csv + region that doesn't exist
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area44'}))
+        #self.assertContains(resp, 'num_email_optin')
+
+
+    def test_report_learner_unique_area(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('reports.unique_regions'))
+        self.assertContains(resp, 'Test_Area')
 
 
 @override_settings(VUMI_GO_FAKE=True)

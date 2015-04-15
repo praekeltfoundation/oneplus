@@ -68,6 +68,13 @@ urlpatterns = [
     url(r'^dashboard$', views.dashboard, name='dash.board'),
 
     # Reports
+    url(r'^reports$', views.reports, name='reports.home'),
+    url(r'^report_learner_report/(?P<mode>\d+)/(?P<region>\w*)$',
+        views.report_learner,
+        name="reports.learner"),
+    url(r'^reports_learner_unique_regions$',
+        views.reports_learner_unique_regions,
+        name="reports.unique_regions"),
     url(r'^question_difficulty_report/(?P<mode>\d+)$',
         views.question_difficulty_report,
         name='report.question_difficulty'),
