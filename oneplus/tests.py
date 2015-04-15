@@ -1350,6 +1350,19 @@ class GeneralTests(TestCase):
         resp = c.post(reverse('dash.data'))
         self.assertContains(resp, 'post office')
 
+    def test_question_difficulty_report(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 1}))
+        self.assertEquals(resp.get('Content-Disposition'), 'attachment; filename="question_difficulty_report.csv"')
+
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 2}))
+        self.assertEquals(resp.get('Content-Disposition'), 'attachment; filename="question_difficulty_report.xls"')
+
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 3}))
+        self.assertEquals(resp.status_code, 302)
+
     def test_reports_page(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
@@ -1638,6 +1651,7 @@ class LearnerStateTest(TestCase):
         self.assertTrue(self.learner_state.check_monday_after_training(1))
         self.assertFalse(self.learner_state.check_monday_after_training(
             self.learner_state.QUESTIONS_PER_DAY + 1))
+
 
 class MockRequest(object):
     pass

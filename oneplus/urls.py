@@ -75,7 +75,7 @@ urlpatterns = [
     url(r'^reports_learner_unique_regions$',
         views.reports_learner_unique_regions,
         name="reports.unique_regions"),
-    #url(r'^report_question_difficulty/(?P<mode>\d+)$',
-    #    views.report_question_difficulty,
-    #    name="reports.question_difficulty")
+    url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
+        views.question_difficulty_report,
+        name='reports.question_difficulty'),
 ]
