@@ -1358,6 +1358,23 @@ class GeneralTests(TestCase):
             file_name = '%s_%s.%s' % (file_name_base, d, ftype)
             return 'attachment; filename="%s"' % file_name
 
+        question1 = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        option1 = self.create_test_question_option(
+            name="option1",
+            question=question1,
+            correct=True
+        )
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.participant.answer(question1, option1)
+
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
