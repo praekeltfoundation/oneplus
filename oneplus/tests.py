@@ -1350,20 +1350,12 @@ class GeneralTests(TestCase):
         resp = c.post(reverse('dash.data'))
         self.assertContains(resp, 'post office')
 
-
     def test_question_difficulty_report(self):
-        password = 'mypassword'
-        my_admin = CustomUser.objects.create_superuser(
-            username='asdf333',
-            email='asdf333@example.com',
-            password=password,
-            mobile='+27111111133')
-
         c = Client()
-        c.login(username=my_admin.username, password=password)
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
 
         resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 1}))
-        #self.assertEqual(resp.context, 'question_difficulty_report.csv')
+        #self.assertContains(resp, 'question_difficulty_report.csv')
 
         resp = c.get(reverse('report.question_difficulty', kwargs={'mode': 2}))
         #self.assertContains(resp, 'question_difficulty_report.xls')
