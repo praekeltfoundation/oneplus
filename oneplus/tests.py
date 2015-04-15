@@ -1451,6 +1451,12 @@ class GeneralTests(TestCase):
         resp = c.get(reverse('reports.unique_regions'))
         self.assertContains(resp, 'Test_Area')
 
+    def test_admin_auth_app_changes(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get('/admin/auth/')
+        self.assertContains(resp, 'User Permissions')
+
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
