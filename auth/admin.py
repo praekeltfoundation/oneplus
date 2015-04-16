@@ -291,7 +291,7 @@ class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
         classs = ""
 
         for c in classes_queryset:
-            classs += c.Name + "\n"
+            classs += c.name + "\n"
 
         return classs
     teacher_classes.short_description = "Classes"
