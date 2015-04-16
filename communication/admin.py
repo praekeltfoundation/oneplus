@@ -46,9 +46,15 @@ class ChatGroupAdmin(SummernoteModelAdmin):
     inlines = (ChatMessageInline, )
 
 
+def respond_to_selected_discussions(modeladmin, request, queryset):
+    pass
+
+respond_to_selected_discussions.short_description = 'Respond to selected'
+
+
 class DiscussionAdmin(admin.ModelAdmin):
-    list_display = ("course", "module", "question", "author", "publishdate",
-                    "content", "moderated")
+    list_display = ("id", "get_question", "module", "course", "get_content",
+                    "author", "publishdate", "get_response_posted", "moderated")
     list_filter = ("course", "module", "question", "moderated")
     search_fields = ("author", "content")
     fieldsets = [
@@ -59,6 +65,27 @@ class DiscussionAdmin(admin.ModelAdmin):
         ("Discussion Group",
             {"fields": ["course", "module", "question", "response"]})
     ]
+    actions = [respond_to_selected_discussions]
+
+    def get_question(self, obj):
+        return u'<a href="/todo" target="_blank">%s</a>&nbsp;&nbsp;-' \
+               u'&nbsp;&nbsp;<a href="/preview/%s" target="_blank">' \
+               u'View Question</a>' % (obj.question.name, obj.question.id)
+
+    get_question.short_description = 'Question'
+    get_question.allow_tags = True
+
+    def get_content(self, obj):
+        return u'<a href="/todo" target="_blank">%s</a>' % obj.content
+
+    get_content.short_description = 'Content'
+    get_content.allow_tags = True
+
+    def get_response_posted(self, obj):
+        return u'Todo'
+
+    get_response_posted.short_description = 'Response Posted'
+    get_response_posted.allow_tags = True
 
 
 class MessageAdmin(SummernoteModelAdmin):
@@ -134,7 +161,7 @@ class ReportAdmin(admin.ModelAdmin):
     get_fix.short_description = "How can we fix the problem?"
 
     def get_question(self, obj):
-        return u'<p>%s</p><a href="/preview/%s">View Question</a>' % (obj.question.name, obj.question.id)
+        return u'<p>%s</p><a href="/preview/%s" taget="_blank">View Question</a>' % (obj.question.name, obj.question.id)
     get_question.allow_tags = True
     get_question.short_description = "Question"
 
