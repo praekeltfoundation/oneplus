@@ -19,7 +19,7 @@ from .forms import SystemAdministratorChangeForm, \
     TeacherCreationForm, TeacherChangeForm
 
 from core.models import ParticipantQuestionAnswer
-from auth.resources import LearnerResource
+from auth.resources import LearnerResource, TeacherResource
 from auth.filters import CourseFilter, AirtimeFilter
 
 
@@ -256,6 +256,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
 class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
     form = TeacherChangeForm
     add_form = TeacherCreationForm
+    resource_class = TeacherResource
     list_display = ("username", "first_name", "last_name", "school",
                     "teacher_classes", "students_completed_questions", "students_percentage_correct",
                     "welcome_message_sent")
