@@ -305,7 +305,7 @@ class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
     students_completed_questions.allow_tags = True
 
     def students_percentage_correct(self, teacher):
-        complete = self.completed_questions(teacher)
+        complete = self.students_completed_questions(teacher)
         if complete > 0:
             return ParticipantQuestionAnswer.objects.filter(
                 participant__classs__teacher=teacher,
