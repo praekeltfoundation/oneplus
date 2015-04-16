@@ -125,8 +125,8 @@ class LearnerResource(resources.ModelResource):
 
 class TeacherResource(resources.ModelResource):
     class_name = fields.Field(column_name=u'class')
-    student_completed_questions = fields.Field(column_name=u'student_completed_questions')
-    student_percentage_correct = fields.Field(column_name=u'student_percentage_correct')
+    students_completed_questions = fields.Field(column_name=u'students_completed_questions')
+    students_percentage_correct = fields.Field(column_name=u'students_percentage_correct')
     default_country = 'South Africa'
 
     class Meta:
@@ -151,16 +151,7 @@ class TeacherResource(resources.ModelResource):
             'optin_email',
             'students_completed_questions',
             'students_percentage_correct',
-            'class_name',
         )
-
-
-    def dehydrate_class_name(self, teacher):
-        participant = Participant.objects.filter(teacher=teacher)
-        if participant.first() is not None:
-            return participant.first().classs.name
-        else:
-            return ""
 
     def dehydrate_school(self, teacher):
         if teacher.school is not None:
@@ -168,13 +159,13 @@ class TeacherResource(resources.ModelResource):
         else:
             return ""
 
-    def dehydrate_completed_questions(self, teacher):
+    def dehydrate_students_completed_questions(self, teacher):
         return ParticipantQuestionAnswer.objects.filter(
             participant__classs__teacher=teacher
         ).count()
 
-    def dehydrate_percentage_correct(self, teacher):
-        complete = self.students_completed_questions(teacher)
+    def dehydrate_students_percentage_correct(self, teacher):
+        complete = self.dehydrate_students_completed_questions(teacher)
         if complete > 0:
             return ParticipantQuestionAnswer.objects.filter(
                 participant__classs__teacher=teacher,
@@ -218,22 +209,3 @@ class TeacherResource(resources.ModelResource):
                     obj.country = self.default_country
         return super(resources.ModelResource, self)\
             .import_obj(obj, data, dry_run)
-
-    def save_m2m(self, obj, data, dry_run):
-        obj.class_name = data[u'class']
-        classs = Class.objects.filter(name=data[u'class']).first()
-
-        # If the course and respective class exist, create participant
-        if classs and not dry_run:
-            Participant.objects.create(
-                learner=obj,
-                classs=classs,
-                datejoined=datetime.now(),
-            )
-        elif not classs and data[u'class'] is not None:
-            error = ("Invalid class '%s' provided for user %s"
-                     % (data[u'class'], data["username"]))
-            raise Exception(error)
-
-        return super(resources.ModelResource, self)\
-            .save_m2m(obj, data, dry_run)
