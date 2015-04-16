@@ -162,7 +162,3 @@ class Teacher(CustomUser):
     class Meta:
         verbose_name = "Teacher"
         verbose_name_plural = "Teachers"
-
-    def save(self, *args, **kwargs):
-        self.is_staff = True
-        super(SystemAdministrator, self).save(*args, **kwargs)
