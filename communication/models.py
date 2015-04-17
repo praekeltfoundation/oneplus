@@ -237,7 +237,7 @@ class ReportResponse(models.Model):
     content = models.TextField("Response Content", blank=False)
 
     class Meta:
-        verbose_name = "Response"
+        verbose_name = "Report Response"
 
 
 #Reports
