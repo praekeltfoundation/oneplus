@@ -8,16 +8,18 @@ from communication.utils import VumiSmsApi, get_autologin_link
 from auth.forms import SendSmsForm
 from communication.tasks import bulk_send_all
 from django import template
+from core.models import Class
 from auth.models import Learner, SystemAdministrator, SchoolManager,\
-    CourseManager, CourseMentor
+    CourseManager, CourseMentor, Teacher
 from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
-    CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm
+    CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm, \
+    TeacherCreationForm, TeacherChangeForm
 
 from core.models import ParticipantQuestionAnswer
-from auth.resources import LearnerResource
+from auth.resources import LearnerResource, TeacherResource
 from auth.filters import CourseFilter, AirtimeFilter
 
 
@@ -250,9 +252,75 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     percentage_correct.allow_tags = True
     percentage_correct.admin_order_field = 'participant__learner'
 
+
+class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
+    form = TeacherChangeForm
+    add_form = TeacherCreationForm
+    resource_class = TeacherResource
+    list_display = ("username", "first_name", "last_name", "school",
+                    "teacher_classes", "students_completed_questions", "students_percentage_correct",
+                    "welcome_message_sent")
+    list_filter = ("first_name", "last_name", "mobile", 'school', "country",
+                   "area", "welcome_message_sent")
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name", "first_name", "last_login")
+    filter_horizontal = ()
+    readonly_fields = ("mobile",)
+
+    fieldsets = (
+        ("Personal info", {"fields": ("first_name", "last_name",
+                                      "email", "mobile")}),
+        ("Access", {"fields": ("username", "password",
+                               "is_active", "unique_token")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
+        ("Region", {"fields": ("country", "area", "city",
+                               "school")}),
+        ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")})
+    )
+    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
+    # overrides get_fieldsets to use this attribute when creating a user.
+    add_fieldsets = (
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country", "area", "school")})
+    )
+
+    def teacher_classes(self, teacher):
+        classes_queryset = Class.objects.filter(teacher=teacher)
+        classs = ""
+
+        for c in classes_queryset:
+            classs += c.name + "\n"
+
+        return classs
+    teacher_classes.short_description = "Classes"
+    teacher_classes.allow_tags = True
+
+    def students_completed_questions(self, teacher):
+        return ParticipantQuestionAnswer.objects.filter(
+            participant__classs__teacher=teacher
+        ).count()
+    students_completed_questions.short_description = "Student Completed Questions"
+    students_completed_questions.allow_tags = True
+
+    def students_percentage_correct(self, teacher):
+        complete = self.students_completed_questions(teacher)
+        if complete > 0:
+            return ParticipantQuestionAnswer.objects.filter(
+                participant__classs__teacher=teacher,
+                correct=True
+            ).count() * 100 / complete
+        else:
+            return 0
+    students_percentage_correct.short_description = "Student Percentage Correct"
+    students_percentage_correct.allow_tags = True
+
 # Auth
 admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
 admin.site.register(SchoolManager, SchoolManagerAdmin)
 admin.site.register(CourseManager, CourseManagerAdmin)
 admin.site.register(CourseMentor, CourseMentorAdmin)
 admin.site.register(Learner, LearnerAdmin)
+admin.site.register(Teacher, TeacherAdmin)

@@ -139,3 +139,26 @@ class Learner(CustomUser):
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
+
+
+#A teacher
+class Teacher(CustomUser):
+    school = models.ForeignKey(School, null=True, blank=False)
+    welcome_message_sent = models.BooleanField(
+        verbose_name="Welcome SMS Sent",
+        blank=True,
+        default=False
+    )
+    welcome_message = models.ForeignKey(
+        Sms,
+        null=True,
+        blank=True
+    )
+    last_active_date = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Teacher"
+        verbose_name_plural = "Teachers"
