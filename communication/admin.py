@@ -5,6 +5,7 @@ from .models import *
 from core.models import Participant
 from .utils import VumiSmsApi
 from organisation.models import CourseModuleRel
+from communication.forms import MessageForm
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -48,9 +49,8 @@ class ChatGroupAdmin(SummernoteModelAdmin):
 
 
 class DiscussionAdmin(admin.ModelAdmin):
-    list_display = ("course", "module", "question", "author", "publishdate",
-                    "content", "moderated")
-    list_filter = ("course", "module", "question", "moderated")
+    list_display = ("course", "module", "question", "author", "publishdate", "content", "moderated")
+    list_filter = ("module", "question", "moderated")
     search_fields = ("author", "content")
     fieldsets = [
         (None,
@@ -63,10 +63,10 @@ class DiscussionAdmin(admin.ModelAdmin):
 
 
 class MessageAdmin(SummernoteModelAdmin):
-    list_display = ("name", "get_content", "get_class", "course",
-                    "author", "direction", "publishdate", 'get_response')
-    list_filter = ("course", "direction", "responded")
+    list_display = ("name", "get_content", "get_class", "author", "direction", "publishdate", 'get_response')
+    list_filter = ("direction", "responded")
     search_fields = ("name", )
+    form = MessageForm
     fieldsets = [
         (None,
             {"fields": ["name", ("to_class", "to_course", "users"), "direction", "publishdate", "content"]})
