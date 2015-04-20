@@ -1,3 +1,4 @@
+from auth.models import Learner
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
@@ -68,10 +69,7 @@ class MessageAdmin(SummernoteModelAdmin):
     search_fields = ("name", )
     fieldsets = [
         (None,
-            {"fields": ["name", "course", "author", "direction",
-                        "publishdate"]}),
-        ("Content",
-            {"fields": ["content"]})
+            {"fields": ["name", ("to_class", "to_course", "users"), "direction", "publishdate", "content"]})
     ]
 
     def get_content(self, obj):
