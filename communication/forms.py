@@ -5,7 +5,7 @@ from auth.models import CustomUser
 
 class MessageForm(forms.ModelForm):
 
-    users = forms.InlineForeignKeyField(CustomUser, name="")
+    users = forms.ModelChoiceField(queryset=CustomUser.objects.all(), label="")
 
     def save(self, commit=True):
         extra_field = self.cleaned_data.get('users', None)

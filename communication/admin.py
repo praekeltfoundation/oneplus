@@ -69,7 +69,7 @@ class MessageAdmin(SummernoteModelAdmin):
     form = MessageForm
     fieldsets = [
         (None,
-            {"fields": ["name", ("to_class", "to_course", "users"), "direction", "publishdate", "content"]})
+            {"fields": ["name", ("to_course", "to_class", "users"), "direction", "publishdate", "content"]})
     ]
 
     def get_content(self, obj):
