@@ -94,6 +94,8 @@ class Message(models.Model):
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=False)
     description = models.CharField("Description", max_length=50, blank=True)
+    to_course = models.ForeignKey(Course, null=True, blank=True)
+    to_class = models.ForeignKey('core.Class', null=True, blank=True)
     content = models.TextField("Message", blank=True)
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
