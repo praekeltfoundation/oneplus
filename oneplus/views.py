@@ -2212,6 +2212,11 @@ def report_response(request, report):
     if db_report:
         db_participant = Participant.objects.filter(learner=db_report.user).first()
 
+        if db_participant is None:
+            return HttpResponse("Participant not found")
+    else:
+        return HttpResponse("Report %s not found" % report)
+
     def get():
 
         return render(
@@ -2236,6 +2241,10 @@ def report_response(request, report):
         title_error = False
         dt_error = False
         content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
 
         if 'title' in request.POST:
             title = request.POST['title']
