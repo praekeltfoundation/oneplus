@@ -2,6 +2,7 @@ from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
+from core.filters import UserFilter
 from .utils import VumiSmsApi
 from organisation.models import CourseModuleRel
 
@@ -112,6 +113,7 @@ class ReportAdmin(admin.ModelAdmin):
         "publish_date",
         "get_response",
     )
+    list_filter = (UserFilter, 'question')
 
     def get_name(self, obj):
         return u'%s %s' % (obj.user.first_name, obj.user.last_name)
@@ -163,6 +165,12 @@ class ReportAdmin(admin.ModelAdmin):
     get_response.allow_tags = True
     get_response.short_description = "Response Sent"
 
+
+class ReportResponseAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publish_date', 'content')
+    search_fields = ['publish_date', 'title', 'content']
+
+
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
@@ -170,3 +178,4 @@ admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(Discussion, DiscussionAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(ReportResponse, ReportResponseAdmin)
