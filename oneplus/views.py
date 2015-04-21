@@ -29,6 +29,7 @@ from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
 from dateutil import parser
+from .validators import *
 
 
 COUNTRYWIDE = "Countrywide"
@@ -2208,7 +2209,7 @@ def question_difficulty_report(request, mode):
 
 @user_passes_test(lambda u: u.is_staff)
 def report_response(request, report):
-    db_report = Report.objects.filter(id=int(report)).first()
+    db_report = Report.objects.filter(id=report).first()
     if db_report:
         db_participant = Participant.objects.filter(learner=db_report.user).first()
 
@@ -2225,17 +2226,6 @@ def report_response(request, report):
             dictionary={ 'report': db_report, 'participant': db_participant}
         )
 
-    def zero_len(value):
-        return len(value.strip()) == 0
-
-    def gen_username(user):
-        un = '%s %s' % (user.first_name, user.last_name)
-
-        if zero_len(un):
-            return user.username
-        else:
-            return un
-
     def post():
 
         title_error = False
@@ -2246,37 +2236,9 @@ def report_response(request, report):
         time = None
         content = None
 
-        if 'title' in request.POST:
-            title = request.POST['title']
-
-            if zero_len(title):
-                title_error = True
-        else:
-            title_error = True
-
-        if 'publishdate_0' in request.POST and 'publishdate_1' in request.POST:
-            try:
-                date = request.POST['publishdate_0']
-                time = request.POST['publishdate_1']
-
-                if zero_len(date) or zero_len(time):
-                    dt_error = True
-                else:
-                    dt = parser.parse(date + ' ' + time, default=datetime(1970, 2, 1))
-                    if dt.year == 1970 and dt.month == 2 and dt.day == 1:
-                        dt_error = True
-            except ValueError:
-                dt_error = True
-        else:
-            dt_error = True
-
-        if 'content' in request.POST:
-            content = request.POST['content']
-
-            if zero_len(content):
-                content_error = True
-        else:
-            content_error = True
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
 
         if title_error or dt_error or content_error:
             return render(
@@ -2306,5 +2268,74 @@ def report_response(request, report):
                 direction=1,
             )
             return HttpResponseRedirect('/admin/communication/report')
+
+    return resolve_http_method(request, [get, post])
+
+@user_passes_test(lambda u: u.is_staff)
+def message_response(request, msg):
+    db_msg = Message.objects.filter(id=msg).first()
+
+    if db_msg:
+        db_participant = Participant.objects.filter(learner=db_msg.author).first()
+
+        if db_participant is None:
+            return HttpResponse("Participant not found")
+    else:
+        return HttpResponse("Message %s not found" % msg)
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/message_response.html',
+            dictionary={ 'msg': db_msg, 'participant': db_participant}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/message_response.html',
+                dictionary={
+                    'msg': db_msg,
+                    'participant': db_participant,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            Message.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                course=db_participant.classs.course,
+                content=content,
+                publishdate=dt,
+                author=request.user,
+                direction=1,
+            )
+
+            db_msg.responded = True
+            db_msg.responddate = datetime.now()
+            db_msg.save()
+
+            return HttpResponseRedirect('/admin/communication/message/')
 
     return resolve_http_method(request, [get, post])
