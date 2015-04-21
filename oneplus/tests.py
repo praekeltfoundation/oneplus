@@ -1550,6 +1550,79 @@ class GeneralTests(TestCase):
         self.assertEquals(ReportResponse.objects.all().count(), rr_cnt + 1)
         self.assertEquals(Message.objects.all().count(), msg_cnt + 1 )
 
+    def test_admin_msg_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        question = self.create_test_question('q5', self.module)
+
+        resp = c.get('/message_response/1000')
+        self.assertContains(resp, 'Message 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            username="+27223456780",
+            mobile="+27223456780",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        msg = self.create_message(
+            learner,
+            self.course, name="msg",
+            publishdate=datetime.now(),
+            content='test message'
+        )
+
+        resp = c.get('/message_response/%s' % msg.id)
+        self.assertContains(resp, 'Participant not found')
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 3, 18, 1, 1)
+        )
+
+        resp = c.get('/message_response/%s' % msg.id)
+        self.assertContains(resp, 'Respond to Message')
+
+        resp = c.post('/message_response/%s' % msg.id,
+                      data={'title': '',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/message_response/%s' % msg.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/message_response/%s' % msg.id)
+        self.assertContains(resp, 'This field is required.')
+
+        msg_cnt = Message.objects.all().count()
+
+        resp = c.post('/message_response/%s' % msg.id,
+                      data={'title': 'test',
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        self.assertEquals(Message.objects.all().count(), msg_cnt + 1 )
+        msg = Message.objects.get(pk=msg.id)
+        self.assertEquals(msg.responded, True)
+        self.assertEquals(msg.responddate.date(), datetime.now().date())
+
+
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
 
