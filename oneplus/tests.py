@@ -1498,12 +1498,6 @@ class GeneralTests(TestCase):
             is_staff=True
         )
 
-        particpant = self.create_participant(
-            learner=learner,
-            classs=self.classs,
-            datejoined=datetime(2014, 1, 18, 1, 1)
-        )
-
         rep = Report.objects.create(
             user = learner,
             question = self.question,
@@ -1513,7 +1507,32 @@ class GeneralTests(TestCase):
             )
 
         resp = c.get('/report_response/%s' % rep.id)
+        self.assertContains(resp, 'Participant not found')
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 1, 18, 1, 1)
+        )
+
+        resp = c.get('/report_response/%s' % rep.id)
         self.assertContains(resp, 'Report Response')
+
+        resp = c.post('/report_response/%s' % rep.id,
+                      data={'title': '',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/report_response/%s' % rep.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
 
         resp = c.post('/report_response/%s' % rep.id)
         self.assertContains(resp, 'This field is required.')
