@@ -53,6 +53,8 @@ urlpatterns = [
     url(r"^bloglist$", views.blog_list, name="com.bloglist"),
     url(r"^blog/(?P<blogid>\d+)$", views.blog, name="com.blog"),
 
+    url(r"^report_response/(?P<report>\d+)$", views.report_response, name="com.represp"),
+
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
     url(r"^leader$", views.leader, name="prog.leader"),
