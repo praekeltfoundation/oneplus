@@ -159,7 +159,7 @@ class ReportAdmin(admin.ModelAdmin):
 
     def get_response(self, obj):
         if obj.response is None:
-            return u'<p>None</p><a href="">Respond</a>'
+            return u'<p>None</p><a href="/report_response/%s" target="_blank">Respond</a>' % obj.id
         else:
             return obj.response.publish_date
     get_response.allow_tags = True
