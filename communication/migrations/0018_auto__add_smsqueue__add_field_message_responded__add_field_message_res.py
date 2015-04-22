@@ -19,16 +19,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'communication', ['SmsQueue'])
 
-        # Adding field 'Message.responded'
-        db.add_column(u'communication_message', 'responded',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Adding field 'Message.responddate'
-        db.add_column(u'communication_message', 'responddate',
-                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
-                      keep_default=False)
-
         # Adding field 'Sms.responded'
         db.add_column(u'communication_sms', 'responded',
                       self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True),
@@ -48,12 +38,6 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         # Deleting model 'SmsQueue'
         db.delete_table(u'communication_smsqueue')
-
-        # Deleting field 'Message.responded'
-        db.delete_column(u'communication_message', 'responded')
-
-        # Deleting field 'Message.responddate'
-        db.delete_column(u'communication_message', 'responddate')
 
         # Deleting field 'Sms.responded'
         db.delete_column(u'communication_sms', 'responded')
