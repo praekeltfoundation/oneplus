@@ -5,7 +5,7 @@ from .models import *
 from core.models import Participant
 from .utils import VumiSmsApi
 from organisation.models import CourseModuleRel
-from communication.forms import MessageForm
+from communication.forms import MessageCreationForm
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -66,7 +66,7 @@ class MessageAdmin(SummernoteModelAdmin):
     list_display = ("name", "get_content", "get_class", "author", "direction", "publishdate", 'get_response')
     list_filter = ("direction", "responded")
     search_fields = ("name", )
-    form = MessageForm
+    form = MessageCreationForm
     fieldsets = [
         (None,
             {"fields": ["name", ("to_course", "to_class", "users"), "direction", "publishdate", "content"]})
@@ -92,6 +92,9 @@ class MessageAdmin(SummernoteModelAdmin):
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
+
+    class Media:
+        js = ('js/auth.js', "grappelli/jquery/jquery-1.9.1.min.js")
 
 
 class SmsAdmin(SummernoteModelAdmin):

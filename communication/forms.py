@@ -1,16 +1,17 @@
 from django import forms
 from communication.models import Message
-from auth.models import CustomUser
 
 
-class MessageForm(forms.ModelForm):
+class MessageCreationForm(forms.ModelForm):
 
-    users = forms.ModelChoiceField(queryset=CustomUser.objects.all(), label="")
+    users = forms.MultipleChoiceField(choices='', label="")
 
     def save(self, commit=True):
-        extra_field = self.cleaned_data.get('users', None)
-        # ...do something with extra_field here...
-        return super(MessageForm, self).save(commit=commit)
+        message = super(MessageCreationForm, self).save(commit=False)
+        message.name = self.cleaned_data["users"]
+        if commit:
+            message.save()
+        return message
 
     class Meta:
         model = Message
