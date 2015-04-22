@@ -98,7 +98,18 @@ class MessageAdmin(SummernoteModelAdmin):
 
 
 class SmsAdmin(SummernoteModelAdmin):
-    list_display = ("msisdn", "date_sent", "message")
+    list_display = ("msisdn", "date_sent", "message", "get_response")
+    search_fields = ("msisdn", "date_sent", "message")
+    list_filter = ("responded",)
+
+    def get_response(self, obj):
+        if obj.responded:
+            return obj.responddate
+        else:
+            return '<a href="/sms_response/%s/">Respond</a>' % obj.id
+
+    get_response.short_description = 'Response Sent'
+    get_response.allow_tags = True
 
 
 class ReportAdmin(admin.ModelAdmin):
@@ -171,6 +182,12 @@ class ReportResponseAdmin(admin.ModelAdmin):
     search_fields = ['publish_date', 'title', 'content']
 
 
+class SmsQueuedAdmin(admin.ModelAdmin):
+    list_display = ('send_date', 'msisdn', 'message', 'sent')
+    list_filter = ('sent',)
+    search_fields = ('msisdn', 'message', 'send_date')
+
+
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
@@ -179,3 +196,4 @@ admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(Discussion, DiscussionAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(ReportResponse, ReportResponseAdmin)
+admin.site.register(SmsQueue, SmsQueuedAdmin)
