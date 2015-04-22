@@ -55,7 +55,7 @@ def validate_publish_date_and_time(post):
 
 
 def validate_content(post):
-    content = None
+    content = ""
 
     if 'content' in post:
         content = post['content']
@@ -66,3 +66,61 @@ def validate_content(post):
         return True, content
 
     return False, content
+
+
+def validate_name(post):
+    name = None
+
+    if 'name' in post:
+        name = post['name']
+
+        if zero_len(name):
+            return True, name
+    else:
+        return True, name
+
+    return False, name
+
+
+def validate_to_course(post):
+    to_course = None
+
+    if 'to_course' in post:
+        to_course = post['to_course']
+    else:
+        return True, to_course
+
+    return False, to_course
+
+
+def validate_to_class(post):
+    to_class = None
+
+    if 'to_class' in post:
+        to_class = post['to_class']
+    else:
+        return True, to_class
+
+    return False, to_class
+
+
+def validate_users(post):
+    users = None
+
+    if 'users' in post:
+        users = post['users']
+    else:
+        return True, users
+
+    return False, users
+
+
+def validate_direction(post):
+    direction = None
+
+    if 'direction' in post:
+        direction = post['direction']
+    else:
+        return True, direction
+
+    return False, direction

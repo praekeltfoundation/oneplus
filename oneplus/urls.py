@@ -60,6 +60,9 @@ urlpatterns = [
         views.message_response,
         name="com.msgresp"),
 
+    url(r'^message/add/$', views.message, name="com.add_message"),
+    url(r'message/(?P<msg>\d+)^$', views.change_message, name="com.change_message"),
+
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
     url(r"^leader$", views.leader, name="prog.leader"),
