@@ -10,3 +10,4 @@ django-lockout
 requests_testadapter
 mock
 xlwt
+python-dateutil
