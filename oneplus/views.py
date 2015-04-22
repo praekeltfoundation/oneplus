@@ -2203,3 +2203,56 @@ def question_difficulty_report(request, mode):
         return get_xls_report(question_list, 'question_difficulty_report', headers)
     else:
         return HttpResponseRedirect(reverse("reports.home"))
+
+
+def get_courses(request):
+    courses = Course.objects.all()
+
+    data = []
+    for c in courses:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+def get_classes(request, course):
+    print course
+    if isinstance(course, int):
+        if Course.objects.get(id=course):
+            current_course = Course.objects.get(id=course)
+            classes = Class.objects.all().filter(course=current_course)
+        else:
+            classes = None
+    elif course == 'all':
+        classes = Class.objects.all()
+    else:
+        classes = None
+
+    data = []
+    for c in classes:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+def get_users(request, classs):
+    print classs
+    if isinstance(classs, int):
+        if Class.objects.get(id=classs):
+            current_class = Class.objects.get(id=classs)
+            participants = Participant.objects.all().filter(classs=current_class)
+        else:
+            participants = None
+    elif classs == 'all':
+        participants = Participant.objects.all()
+    else:
+        participants = None
+
+    data = []
+    for p in participants:
+        line = {"id": p.learner.id, "name": p.learner.mobile}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")

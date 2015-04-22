@@ -78,4 +78,9 @@ urlpatterns = [
     url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
         views.question_difficulty_report,
         name='reports.question_difficulty'),
+
+    #filtering for message admin
+    url(r'^courses$', views.get_courses),
+    url(r'^classes/(?P<course>\w+)$', views.get_classes),
+    url(r'^users/(?P<classs>\w+)$', views.get_users),
 ]
