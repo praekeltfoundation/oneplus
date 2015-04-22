@@ -2219,17 +2219,18 @@ def get_courses(request):
 
 
 def get_classes(request, course):
-    print course
-    if isinstance(course, int):
-        if Course.objects.get(id=course):
-            current_course = Course.objects.get(id=course)
-            classes = Class.objects.all().filter(course=current_course)
-        else:
-            classes = None
-    elif course == 'all':
+    if course == 'all':
         classes = Class.objects.all()
     else:
-        classes = None
+        try:
+            course = int(course)
+            if Course.objects.get(id=course):
+                current_course = Course.objects.get(id=course)
+                classes = Class.objects.all().filter(course=current_course)
+            else:
+                classes = None
+        except ValueError, ObjectDoesNotExist:
+            classes = None
 
     data = []
     for c in classes:
@@ -2240,17 +2241,17 @@ def get_classes(request, course):
 
 
 def get_users(request, classs):
-    print classs
-    if isinstance(classs, int):
-        if Class.objects.get(id=classs):
-            current_class = Class.objects.get(id=classs)
-            participants = Participant.objects.all().filter(classs=current_class)
-        else:
-            participants = None
-    elif classs == 'all':
+    if classs == 'all':
         participants = Participant.objects.all()
     else:
-        participants = None
+        try:
+            classs = int(classs)
+
+            if Class.objects.get(id=classs):
+                current_class = Class.objects.get(id=classs)
+                participants = Participant.objects.all().filter(classs=current_class)
+        except ValueError, ObjectDoesNotExist:
+            participants = None
 
     data = []
     for p in participants:
