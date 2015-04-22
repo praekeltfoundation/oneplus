@@ -298,7 +298,9 @@ class SmsQueue(models.Model):
     sent = models.BooleanField(default=False, db_index=True)
     sent_date = models.DateTimeField(
         verbose_name="Time Sms was sent",
-        blank=False
+        blank=False,
+        null=True,
+        default=None
     )
 
     class Meta:
