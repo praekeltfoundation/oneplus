@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Respond to Message</title>
+    <title>Respond to SMS</title>
 
         <link href="/static/grappelli/jquery/ui/css/custom-theme/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" media="screen">
         <link href="/static/grappelli/stylesheets/screen.css" rel="stylesheet" type="text/css" media="screen">
@@ -74,23 +74,23 @@
                 <ul>
                     <li><a href="/admin/">Home</a></li>
                     <li><a href="/admin/communication/">Communication</a></li>
-                    <li><a href="/admin/communication/message/">Messages</a></li>
-                    <li>Respond to Message</li>
+                    <li><a href="/admin/communication/sms/">Smses</a></li>
+                    <li>Respond to Sms</li>
                 </ul>
             </nav>
         </div>
     </header>
     <article id="grp-content">
 
-        <h1>Respond to Message</h1>
-        <form enctype="multipart/form-data" action="" method="post" id="message_response_form">
+        <h1>Respond to Sms</h1>
+        <form enctype="multipart/form-data" action="" method="post" id="sms_response_form">
             {% csrf_token %}
             <div id="grp-content-container">
                 <fieldset class="grp-module ">
                     <div class="l-2c-fluid l-d-4">
                         <h2>
-                            <div class="c-1">Incoming Message</div>
-                            <a class="c-2" target="_blank" href="/admin/communication/message/{{ msg.id }}/">Change Message</a>
+                            <div class="c-1">Incoming Sms</div>
+                            <a class="c-2" target="_blank" href="/admin/communication/sms/{{ sms.id }}/">Change Sms</a>
                         </h2>
                     </div>
                     <div class="grp-row grp-cells-1">
@@ -99,7 +99,7 @@
                                 <label class="required">Name</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.name }}</label>
+                                <label>{{ participant.learner.first_name }}&nbsp;{{ participant.learner.last_name }}</label>
                             </div>
                         </div>
                     </div>
@@ -129,7 +129,7 @@
                                 <label class="required">Author</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.author.mobile }}</label>
+                                <label>{{ sms.msisdn }}</label>
                             </div>
                         </div>
                     </div>
@@ -139,7 +139,7 @@
                                 <label class="required">Publish Date</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.publishdate }}</label>
+                                <label>{{ sms.date_sent }}</label>
                             </div>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
                                 <label class="required">Message Content</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.content }}</label>
+                                <label>{{ sms.message }}</label>
                             </div>
                         </div>
                     </div>
@@ -157,26 +157,7 @@
             </div>
             <div id="grp-content-container">
                 <fieldset class="grp-module ">
-                    <h2 class="grp-collapse-handler">Outgoing Message</h2>
-                    <div class="grp-row grp-cells-1">
-                        <div class="l-2c-fluid l-d-4">
-                            <div class="c-1">
-                                <label class="required">Title</label>
-                            </div>
-                            <div class="c-2">
-                                {% if ro %}
-                                    <label>{{ response.title }}</label>
-                                {% else %}
-                                    <input class="vTextField" id="id_title" maxlength="50" name="title" type="text" value="{{ v_title }}">
-                                    {% if title_error %}
-                                        <ul class="errorlist">
-                                            <li>This field is required.</li>
-                                        </ul>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                    <h2 class="grp-collapse-handler">Outgoing SMS</h2>
                     <div class="grp-row grp-cells-1">
                         <div class="l-2c-fluid l-d-4">
                             <div class="c-1">
