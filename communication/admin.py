@@ -95,7 +95,7 @@ class MessageAdmin(SummernoteModelAdmin):
     get_response.allow_tags = True
 
     class Media:
-        js = ('js/auth.js', "grappelli/jquery/jquery-1.9.1.min.js")
+        js = ("grappelli/jquery/jquery-1.9.1.min.js", 'js/auth.js', )
 
 
 class SmsAdmin(SummernoteModelAdmin):
