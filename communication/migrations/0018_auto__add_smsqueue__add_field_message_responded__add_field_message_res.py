@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
             ('send_date', self.gf('django.db.models.fields.DateTimeField')()),
             ('msisdn', self.gf('django.db.models.fields.CharField')(db_index=True, max_length=50, null=True, blank=True)),
             ('sent', self.gf('django.db.models.fields.BooleanField')(default=False, db_index=True)),
-            ('sent_date', self.gf('django.db.models.fields.DateTimeField')()),
+            ('sent_date', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
         ))
         db.send_create_signal(u'communication', ['SmsQueue'])
 
@@ -193,7 +193,7 @@ class Migration(SchemaMigration):
             'msisdn': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'send_date': ('django.db.models.fields.DateTimeField', [], {}),
             'sent': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
-            'sent_date': ('django.db.models.fields.DateTimeField', [], {})
+            'sent_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True'})
         },
         u'content.testingquestion': {
             'Meta': {'ordering': "['name']", 'object_name': 'TestingQuestion'},
