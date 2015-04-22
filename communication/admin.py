@@ -104,7 +104,7 @@ class SmsAdmin(SummernoteModelAdmin):
 
     def get_response(self, obj):
         if obj.responded:
-            return obj.responddate
+            return obj.respond_date
         else:
             return '<a href="/sms_response/%s/">Respond</a>' % obj.id
 
