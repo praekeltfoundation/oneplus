@@ -82,7 +82,7 @@ class DiscussionAdmin(admin.ModelAdmin):
     get_question.allow_tags = True
 
     def get_content(self, obj):
-        return u'<a href="/discussion_repsonse/%s" target="_blank">%s</a>' % (obj.id, obj.content)
+        return u'<a href="/discussion_response/%s" target="_blank">%s</a>' % (obj.id, obj.content)
 
     get_content.short_description = 'Content'
     get_content.allow_tags = True
@@ -91,7 +91,7 @@ class DiscussionAdmin(admin.ModelAdmin):
         if obj.response:
             return obj.response.publishdate
         else:
-            return u'%s&nbsp&nbsp<a href="/discussion_repsonse/%s" target="_blank">Respond</a>' % (None, obj.id)
+            return u'%s&nbsp&nbsp<a href="/discussion_response/%s" target="_blank">Respond</a>' % (None, obj.id)
 
     get_response_posted.short_description = 'Response Posted'
     get_response_posted.allow_tags = True
