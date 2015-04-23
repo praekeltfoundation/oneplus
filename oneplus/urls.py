@@ -59,6 +59,12 @@ urlpatterns = [
     url(r"^message_response/(?P<msg>\d+)$",
         views.message_response,
         name="com.msgresp"),
+    url(r"^discussion_response/(?P<disc>\d+)$",
+        views.discussion_response,
+        name="com.discresp"),
+    url(r"^sms_response/(?P<sms>\d+)$",
+        views.sms_response,
+        name="com.smsresp"),
 
     url(r"^message/add/$", views.add_message, name="com.add_message"),
     url(r"^message/(?P<msg>\d+)$", views.change_message, name="com.change_message"),

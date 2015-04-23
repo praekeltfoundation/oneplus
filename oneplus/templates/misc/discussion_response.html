@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Respond to Message</title>
+    <title>Respond to Discussion</title>
 
         <link href="/static/grappelli/jquery/ui/css/custom-theme/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" media="screen">
         <link href="/static/grappelli/stylesheets/screen.css" rel="stylesheet" type="text/css" media="screen">
@@ -74,23 +74,23 @@
                 <ul>
                     <li><a href="/admin/">Home</a></li>
                     <li><a href="/admin/communication/">Communication</a></li>
-                    <li><a href="/admin/communication/message/">Messages</a></li>
-                    <li>Respond to Message</li>
+                    <li><a href="/admin/communication/discussion/">Discussions</a></li>
+                    <li>Respond to Discussion</li>
                 </ul>
             </nav>
         </div>
     </header>
     <article id="grp-content">
 
-        <h1>Respond to Message</h1>
-        <form enctype="multipart/form-data" action="" method="post" id="message_response_form">
+        <h1>Respond to Discussion</h1>
+        <form enctype="multipart/form-data" action="" method="post" id="discussion_response_form">
             {% csrf_token %}
             <div id="grp-content-container">
                 <fieldset class="grp-module ">
                     <div class="l-2c-fluid l-d-4">
                         <h2>
-                            <div class="c-1">Incoming Message</div>
-                            <a class="c-2" target="_blank" href="/admin/communication/message/{{ msg.id }}/">Change Message</a>
+                            <div class="c-1">Discussion</div>
+                            <a class="c-2" target="_blank" href="/admin/communication/discussion/{{ disc.id }}/">Change Discussion</a>
                         </h2>
                     </div>
                     <div class="grp-row grp-cells-1">
@@ -99,27 +99,7 @@
                                 <label class="required">Name</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.name }}</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grp-row grp-cells-1">
-                        <div class="l-2c-fluid l-d-4">
-                            <div class="c-1">
-                                <label>Class</label>
-                            </div>
-                            <div class="c-2">
-                                <label>{{ participant.classs.name }}</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grp-row grp-cells-1">
-                        <div class="l-2c-fluid l-d-4">
-                            <div class="c-1">
-                                <label>Course</label>
-                            </div>
-                            <div class="c-2">
-                                <label>{{ participant.classs.course.name }}</label>
+                                <label>{{ disc.name }}</label>
                             </div>
                         </div>
                     </div>
@@ -129,7 +109,7 @@
                                 <label class="required">Author</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.author.mobile }}</label>
+                                <label>{{ disc.author.mobile }}</label>
                             </div>
                         </div>
                     </div>
@@ -139,17 +119,68 @@
                                 <label class="required">Publish Date</label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.publishdate }}</label>
+                                <label>{{ disc.publishdate }}</label>
                             </div>
                         </div>
                     </div>
                     <div class="grp-row grp-cells-1">
                         <div class="l-2c-fluid l-d-4">
                             <div class="c-1">
-                                <label class="required">Message Content</label>
+                                <label class="required"></label>
                             </div>
                             <div class="c-2">
-                                <label>{{ msg.content }}</label>
+                                <input id="moderated_cb" type="checkbox" {% if disc.moderated %} checked {% endif %} disabled>
+                                <label for="moderated_cb">Moderated</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required">Class</label>
+                            </div>
+                            <div class="c-2">
+                                <label>{{ participant.classs.name }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required">Course</label>
+                            </div>
+                            <div class="c-2">
+                                <label>{{ disc.course.name }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required">Module</label>
+                            </div>
+                            <div class="c-2">
+                                <label>{{ disc.module.name }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required">Question</label>
+                            </div>
+                            <div class="c-2">
+                                <label>{{ disc.question.name }}</label>&nbsp;<a href="/preview/{{ disc.question.id }}" target="_blank">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required">Content</label>
+                            </div>
+                            <div class="c-2">
+                                <label>{{ disc.content }}</label>
                             </div>
                         </div>
                     </div>
@@ -165,7 +196,7 @@
                             </div>
                             <div class="c-2">
                                 {% if ro %}
-                                    <label>{{ response.title }}</label>
+                                    <label>{{ disc.title }}</label>
                                 {% else %}
                                     <input class="vTextField" id="id_title" maxlength="50" name="title" type="text" value="{{ v_title }}">
                                     {% if title_error %}
@@ -184,7 +215,7 @@
                             </div>
                             <div class="c-2">
                                 {% if ro %}
-                                    <label>{{ response.publish_date }}</label>
+                                    <label>{{ disc.publish_date }}</label>
                                 {% else %}
                                     <p class="datetime">
                                         <input class="vDateField" id="id_publishdate_0" name="publishdate_0" size="10" type="text" value="{{ v_date }}">
@@ -204,11 +235,11 @@
                     <div class="grp-row grp-cells-1">
                         <div class="l-2c-fluid l-d-4">
                             <div class="c-1">
-                                <label for="id_content">Response Content</label>
+                                <label for="id_content">Response</label>
                             </div>
                             <div class="c-2">
                                 {% if ro %}
-                                    <label>{{ response.content }}</label>
+                                    <label>{{ disc.content }}</label>
                                 {% else %}
                                     <textarea cols="40" hidden="true" id="id_content" name="content" rows="10">{{ v_content }}</textarea>
                                     <script>
