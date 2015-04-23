@@ -6,7 +6,6 @@ from core.models import Participant
 from core.filters import UserFilter
 from .utils import VumiSmsApi
 from organisation.models import CourseModuleRel
-from communication.forms import MessageCreationForm
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -67,11 +66,6 @@ class MessageAdmin(SummernoteModelAdmin):
     list_display = ("name", "get_content", "get_class", "author", "direction", "publishdate", 'get_response')
     list_filter = ("direction", "responded")
     search_fields = ("name", )
-    form = MessageCreationForm
-    fieldsets = [
-        (None,
-            {"fields": ["name", ("to_course", "to_class", "users"), "direction", "publishdate", "content"]})
-    ]
 
     def get_content(self, obj):
         return '<a href="">' + obj.content + '<a>'
