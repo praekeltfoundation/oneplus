@@ -2477,3 +2477,122 @@ def sms_response(request, sms):
             return HttpResponseRedirect('/admin/communication/sms/')
 
     return resolve_http_method(request, [get, post])
+
+
+def add_sms(request):
+    def get():
+        return render(
+            request=request,
+            template_name='misc/sms.html',
+        )
+
+    def post():
+        identifier_error = False
+        course_error = False
+        class_error = False
+        dt_error = False
+        message_error = False
+
+        identifier = None
+        course = None
+        classs = None
+        date = None
+        time = None
+        message = None
+
+        identifier_error, identifier = validate_identifier(request.POST)
+        course_error, course = validate_to_course(request.POST)
+        class_error, classs = validate_to_class(request.POST)
+        dt_error, date, time, dt = validate_date_and_time(request.POST)
+        message_error, message = validate_message(request.POST)
+
+        if identifier_error or course_error or class_error or dt_error or message_error:
+            return render(
+                request=request,
+                template_name='misc/message.html',
+                dictionary={
+                    'identifier_error': identifier_error,
+                    'to_course_error': course_error,
+                    'to_class_error': class_error,
+                    'dt_error': dt_error,
+                    'message_error': message_error,
+                    'v_identifier': identifier,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_message': message
+                }
+            )
+
+        else:
+            if course == "all":
+                all_courses = Course.objects.all()
+
+                for _course in all_courses:
+                    all_classes = Class.objects.filter(course=_course)
+
+                    for _classs in all_classes:
+                        all_users = Participant.objects.filter(classs=_classs)
+
+                        for u in all_users:
+                            create_sms(identifier, _course, _classs, dt, message)
+            else:
+                course_obj = Course.objects.get(id=course)
+
+                if classs == "all":
+                    all_classes = Class.objects.filter(course=course_obj)
+
+                    for c in all_classes:
+                        all_users = Participant.objects.filter(classs=c)
+
+                        for u in all_users:
+                            create_sms(identifier, course_obj, c, dt, message)
+                else:
+                    classs_obj = Class.objects.get(id=classs)
+
+                    all_users = Participant.objects.filter(classs=classs_obj)
+
+                    for u in all_users:
+                        create_sms(identifier, course_obj, classs_obj, dt, message)
+
+        return HttpResponseRedirect('/admin/communication/sms/')
+
+    def create_sms(identifier, course, classs, date_sent, message):
+        Sms.objects.create(
+            uuid=identifier,
+            msisdn=identifier,
+            to_course=course,
+            to_class=classs,
+            date_sent=date_sent,
+            message=message
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+def view_sms(request, sms):
+    db_sms = Sms.objects.filter(id=sms).first()
+
+    if db_sms is None:
+        return HttpResponse("SMS not found")
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
+
+    def post():
+        return render(
+            request=request,
+            template_name='misc/sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
+
+    return resolve_http_method(request, [get, post])

@@ -66,3 +66,78 @@ def validate_content(post):
         return True, content
 
     return False, content
+
+
+def validate_identifier(post):
+    identifier = None
+
+    if 'identifier' in post:
+        identifier = post['identifier']
+
+        if zero_len(identifier):
+            return True, identifier
+    else:
+        return True, identifier
+
+    return False, identifier
+
+
+def validate_to_course(post):
+    to_course = None
+
+    if 'to_course' in post:
+        to_course = post['to_course']
+    else:
+        return True, to_course
+
+    return False, to_course
+
+
+def validate_to_class(post):
+    to_class = None
+
+    if 'to_class' in post:
+        to_class = post['to_class']
+    else:
+        return True, to_class
+
+    return False, to_class
+
+
+def validate_date_and_time(post):
+    date = None
+    time = None
+    dt = None
+
+    if 'date_sent_0' in post and 'date_sent_1' in post:
+        try:
+            date = post['date_sent_0']
+            time = post['date_sent_1']
+
+            if zero_len(date) or zero_len(time):
+                return True, date, time, dt
+            else:
+                dt = parser.parse(date + ' ' + time, default=datetime(1970, 2, 1))
+                if dt.year == 1970 and dt.month == 2 and dt.day == 1:
+                    return True, date, time, dt
+
+        except ValueError:
+            return True, date, time, dt
+    else:
+        return True, date, time, dt
+
+    return False, date, time, dt
+
+
+def validate_message(post):
+    message = None
+
+    if 'message' in post:
+        message = post['message']
+
+        if zero_len(message):
+            return True, message
+    else:
+        return True, message
+
+    return False, message

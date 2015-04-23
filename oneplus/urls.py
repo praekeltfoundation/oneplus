@@ -65,6 +65,8 @@ urlpatterns = [
     url(r"^sms_response/(?P<sms>\d+)$",
         views.sms_response,
         name="com.smsresp"),
+    url(r"^sms/add/$", views.add_sms, name="com.add_sms"),
+    url(r"^sms/(?P<sms>\d+)/$", views.view_sms, name="com.view_sms"),
 
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
