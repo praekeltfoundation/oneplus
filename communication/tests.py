@@ -6,6 +6,7 @@ from django.test import TestCase
 from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
+from core.models import Class
 
 from datetime import datetime
 
@@ -19,16 +20,20 @@ class TestMessage(TestCase):
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
+    def create_class(self, course, name='class name', **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
     def create_user(self, mobile="+27123456789", country="country", **kwargs):
         model_class = get_user_model()
         return model_class.objects.create(
             mobile=mobile, country=country, **kwargs)
 
-    def create_message(self, author, course, **kwargs):
-        return Message.objects.create(author=author, course=course, **kwargs)
+    def create_message(self, author, course, classs, **kwargs):
+        return Message.objects.create(author=author, to_course=course, to_class=classs, **kwargs)
 
     def setUp(self):
         self.course = self.create_course()
+        self.classs = self.create_class(self.course)
         self.user = self.create_user()
 
     def test_get_messages(self):
@@ -36,17 +41,21 @@ class TestMessage(TestCase):
         self.create_message(
             self.user,
             self.course,
+            self.classs,
             name="msg1",
             publishdate=datetime.now()
         )
         msg2 = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            self.classs,
+            name="msg2",
             publishdate=datetime.now()
         )
         msg3 = self.create_message(
             self.user,
             self.course,
+            self.classs,
             name="msg3",
             publishdate=datetime.now()
         )
@@ -57,12 +66,15 @@ class TestMessage(TestCase):
     def test_unread_msg_count(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            self.classs,
+            name="msg2",
             publishdate=datetime.now()
         )
         msg2 = self.create_message(
             self.user,
             self.course,
+            self.classs,
             name="msg3",
             publishdate=datetime.now()
         )
@@ -73,7 +85,9 @@ class TestMessage(TestCase):
     def test_view_message(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            self.classs,
+            name="msg2",
             publishdate=datetime.now()
         )
 
@@ -93,7 +107,9 @@ class TestMessage(TestCase):
     def test_hide_message(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg",
+            self.course,
+            self.classs,
+            name="msg",
             publishdate=datetime.now()
         )
 
