@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http.response import HttpResponseRedirect
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
@@ -47,12 +48,6 @@ class ChatGroupAdmin(SummernoteModelAdmin):
     inlines = (ChatMessageInline, )
 
 
-def respond_to_selected_discussions(modeladmin, request, queryset):
-    pass
-
-respond_to_selected_discussions.short_description = 'Respond to selected'
-
-
 class DiscussionAdmin(admin.ModelAdmin):
     list_display = ("id", "get_question", "module", "course", "get_content",
                     "author", "publishdate", "get_response_posted", "moderated")
@@ -66,24 +61,37 @@ class DiscussionAdmin(admin.ModelAdmin):
         ("Discussion Group",
             {"fields": ["course", "module", "question", "response"]})
     ]
-    actions = [respond_to_selected_discussions]
+    actions = ['respond_to_selected_discussions']
+
+    def respond_to_selected_discussions(modeladmin, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        return HttpResponseRedirect('/discussion_response_selected/%s' %
+                                    ",".join(selected))
+
+    respond_to_selected_discussions.short_description = 'Respond to selected'
 
     def get_question(self, obj):
-        return u'<a href="/todo" target="_blank">%s</a>&nbsp;&nbsp;-' \
-               u'&nbsp;&nbsp;<a href="/preview/%s" target="_blank">' \
-               u'View Question</a>' % (obj.question.name, obj.question.id)
+        if obj.question:
+            return u'<a href="/admin/content/testingquestion/%s" target="_blank">%s</a><br>' \
+                   u'<a href="/preview/%s" target="_blank">' \
+                   u'View Question</a>' % (obj.question.id, obj.question.name, obj.question.id)
+        else:
+            return u'None'
 
     get_question.short_description = 'Question'
     get_question.allow_tags = True
 
     def get_content(self, obj):
-        return u'<a href="/todo" target="_blank">%s</a>' % obj.content
+        return u'<a href="/discussion_repsonse/%s" target="_blank">%s</a>' % (obj.id, obj.content)
 
     get_content.short_description = 'Content'
     get_content.allow_tags = True
 
     def get_response_posted(self, obj):
-        return u'Todo'
+        if obj.response:
+            return obj.response.publishdate
+        else:
+            return u'%s&nbsp&nbsp<a href="/discussion_repsonse/%s" target="_blank">Respond</a>' % (None, obj.id)
 
     get_response_posted.short_description = 'Response Posted'
     get_response_posted.allow_tags = True
@@ -161,7 +169,7 @@ class ReportAdmin(admin.ModelAdmin):
         if obj.response is None:
             return obj.issue
         else:
-            return u'<a href="">%s</a>' % obj.issue
+            return u'<a href="/report_response/%s" target="_blank">%s</a>' % (obj.id, obj.issue)
     get_issue.allow_tags = True
     get_issue.short_description = "What is wrong with this question?"
 
@@ -169,7 +177,7 @@ class ReportAdmin(admin.ModelAdmin):
         if obj.response is None:
             return obj.fix
         else:
-            return u'<a href="">%s</a>' % obj.fix
+            return u'<a href="/report_response/%s" target="_blank">%s</a>' % (obj.id, obj.fix)
     get_fix.allow_tags = True
     get_fix.short_description = "How can we fix the problem?"
 
