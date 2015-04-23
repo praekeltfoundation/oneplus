@@ -2489,7 +2489,7 @@ def add_message(request):
                         user = Participant.objects.filter(learner=learner).first()
                         create_message(user, course_obj, classs_obj, direction, dt, content)
 
-            return HttpResponseRedirect('/admin/communication/message/')
+        return HttpResponseRedirect('/admin/communication/message/')
 
     def create_message(name, course, classs, direction, publishdate, content):
         Message.objects.create(
@@ -2567,7 +2567,9 @@ def change_message(request, msg):
             db_msg.content = content
             db_msg.save()
 
-            return HttpResponseRedirect('/admin/communication/message/')
+        return HttpResponseRedirect('/admin/communication/message/')
+
+    return resolve_http_method(request, [get, post])
 
 
 @user_passes_test(lambda u: u.is_staff)
