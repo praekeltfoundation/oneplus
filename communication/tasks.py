@@ -6,6 +6,7 @@ from django.conf import settings
 from communication.utils import VumiSmsApi
 from datetime import datetime
 from django.core.mail import mail_managers
+from .models import SmsQueue
 
 @app.task
 def update_metric(name, value, metric_type):
@@ -42,3 +43,19 @@ def bulk_send_all(queryset, message):
     )
 
     return successful, fail
+
+
+@app.task
+def process_sms_queue():
+    dt = datetime.now()
+    smses = SmsQueue.objects.filter(sent=False, send_date__lt=dt)
+    vumi_api = VumiSmsApi()
+
+    for sms in smses:
+        dt = datetime.now()
+        obj, sent = vumi_api.send(sms.msisdn, sms.message, None, None)
+
+        if sent:
+            sms.sent = True
+            sms.sent_date = dt
+            sms.save()
