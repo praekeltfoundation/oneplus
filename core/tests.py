@@ -323,8 +323,14 @@ class TestMessage(TestCase):
         self.assertEquals(count, 1)
 
         # create another
+        learner_1 = self.create_learner(
+            self.school,
+            mobile="+27123456788",
+            country="country",
+            username="+27123456788")
+
         self.create_participant(
-            learner=self.learner,
+            learner=learner_1,
             classs=self.classs,
             datejoined=datetime.now()
         )
@@ -334,8 +340,14 @@ class TestMessage(TestCase):
         self.assertEquals(count, 2)
 
         # create another but older than 24h
+        learner_2 = self.create_learner(
+            self.school,
+            mobile="+27123456787",
+            country="country",
+            username="+27123456787")
+
         self.create_participant(
-            learner=self.learner,
+            learner=learner_2,
             classs=self.classs,
             datejoined=datetime.now() - timedelta(days=2)
         )

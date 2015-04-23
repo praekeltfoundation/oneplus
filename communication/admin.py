@@ -2,6 +2,7 @@ from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
+from core.filters import UserFilter
 from .utils import VumiSmsApi
 from organisation.models import CourseModuleRel
 
@@ -117,14 +118,25 @@ class MessageAdmin(SummernoteModelAdmin):
         if obj.responded:
             return obj.responddate
         else:
-            return '<a href="">Respond</a>'
+            return '<a href="/message_response/%s/">Respond</a>' % obj.id
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
 
 
 class SmsAdmin(SummernoteModelAdmin):
-    list_display = ("msisdn", "date_sent", "message")
+    list_display = ("msisdn", "date_sent", "message", "get_response")
+    search_fields = ("msisdn", "date_sent", "message")
+    list_filter = ("responded",)
+
+    def get_response(self, obj):
+        if obj.responded:
+            return obj.respond_date
+        else:
+            return '<a href="/sms_response/%s/">Respond</a>' % obj.id
+
+    get_response.short_description = 'Response Sent'
+    get_response.allow_tags = True
 
 
 class ReportAdmin(admin.ModelAdmin):
@@ -139,6 +151,7 @@ class ReportAdmin(admin.ModelAdmin):
         "publish_date",
         "get_response",
     )
+    list_filter = (UserFilter, 'question')
 
     def get_name(self, obj):
         return u'%s %s' % (obj.user.first_name, obj.user.last_name)
@@ -184,11 +197,23 @@ class ReportAdmin(admin.ModelAdmin):
 
     def get_response(self, obj):
         if obj.response is None:
-            return u'<p>None</p><a href="">Respond</a>'
+            return u'<p>None</p><a href="/report_response/%s" target="_blank">Respond</a>' % obj.id
         else:
             return obj.response.publish_date
     get_response.allow_tags = True
     get_response.short_description = "Response Sent"
+
+
+class ReportResponseAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publish_date', 'content')
+    search_fields = ['publish_date', 'title', 'content']
+
+
+class SmsQueuedAdmin(admin.ModelAdmin):
+    list_display = ('send_date', 'msisdn', 'message', 'sent')
+    list_filter = ('sent',)
+    search_fields = ('msisdn', 'message', 'send_date')
+
 
 # Communication
 admin.site.register(Sms, SmsAdmin)
@@ -197,3 +222,5 @@ admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(Discussion, DiscussionAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(ReportResponse, ReportResponseAdmin)
+admin.site.register(SmsQueue, SmsQueuedAdmin)

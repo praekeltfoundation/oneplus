@@ -224,6 +224,20 @@ class Sms(models.Model):
         blank=True,
         null=True
     )
+    responded = models.BooleanField(
+        default=False,
+        db_index=True,
+        blank=True)
+    respond_date = models.DateTimeField(
+        verbose_name="Time sms was responded too",
+        null=True,
+        blank=True
+    )
+    response = models.ForeignKey(
+        'SmsQueue',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = "Sms"
@@ -233,11 +247,12 @@ class Sms(models.Model):
 #ReportResponse
 class ReportResponse(models.Model):
     title = models.CharField("Title", max_length=50, blank=False)
-    publish_date = models.DateTimeField("Publish Date", blank=False, auto_now_add=True)
+    publish_date = models.DateTimeField("Publish Date",
+                                        blank=False, auto_now_add=True)
     content = models.TextField("Response Content", blank=False)
 
     class Meta:
-        verbose_name = "Response"
+        verbose_name = "Report Response"
 
 
 #Reports
@@ -249,8 +264,13 @@ class Report(models.Model):
     publish_date = models.DateTimeField("Publish Date", auto_now_add=True)
     response = models.ForeignKey(ReportResponse, null=True, blank=True)
 
-    def create_response(self, _title, _content):
-        response = ReportResponse.objects.create(title=_title, content=_content)
+    def create_response(self, _title, _content, _publish_date=datetime.now()):
+        response = ReportResponse.objects.create(
+            title=_title,
+            content=_content,
+            publish_date=_publish_date
+        )
+
         self.response = response
         self.save()
 
@@ -258,3 +278,31 @@ class Report(models.Model):
         verbose_name = "Report"
         verbose_name_plural = "Reports"
 
+
+class SmsQueue(models.Model):
+    message = models.TextField(
+        verbose_name="Message",
+        blank=False
+    )
+    send_date = models.DateTimeField(
+        verbose_name="Time Sms will be sent",
+        blank=False
+    )
+    msisdn = models.CharField(
+        verbose_name="Mobile Phone Number",
+        max_length=50,
+        blank=True,
+        null=True,
+        db_index=True
+    )
+    sent = models.BooleanField(default=False, db_index=True)
+    sent_date = models.DateTimeField(
+        verbose_name="Time Sms was sent",
+        blank=False,
+        null=True,
+        default=None
+    )
+
+    class Meta:
+        verbose_name = "Queued Sms"
+        verbose_name_plural = "Queued Smses"
