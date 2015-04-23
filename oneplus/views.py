@@ -357,6 +357,7 @@ def get_week_day():
         home_day = 0
     return home_day
 
+
 # First Time Log in Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -370,6 +371,7 @@ def first_time(request, state, user):
                                                         "user": user})
 
     return resolve_http_method(request, [get, post])
+
 
 # FAQ Screen
 @oneplus_state_required
@@ -385,19 +387,21 @@ def faq(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+
 #Terms Screen
 @oneplus_state_required
 @oneplus_login_required
 def terms(request, state, user):
     def get():
         return render(request, "misc/terms.html", {"state": state,
-                                                        "user": user})
+                                                   "user": user})
 
     def post():
         return render(request, "misc/terms.html", {"state": state,
-                                                        "user": user})
+                                                   "user": user})
 
     return resolve_http_method(request, [get, post])
+
 
 # Home Screen
 @oneplus_state_required
@@ -455,7 +459,7 @@ def home(request, state, user):
         = Participant.objects.filter(
             classs=_participant.classs,
             points__gt=_participant.points
-    ).count() + 1
+        ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day()
@@ -464,7 +468,7 @@ def home(request, state, user):
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-    ).count()
+        ).count()
 
     request.session["state"]["home_tasks_week"]\
         = learnerstate.get_questions_answered_week()
@@ -476,13 +480,13 @@ def home(request, state, user):
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=_start_of_week
-    ).count()
+        ).count()
     request.session["state"]["home_correct"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             correct=True,
             answerdate__gte=_start_of_week
-    ).count()
+        ).count()
     request.session["state"]["home_goal"]\
         = settings.ONEPLUS_WIN_REQUIRED\
         - request.session["state"]["home_correct"]
@@ -784,7 +788,7 @@ def adminpreview(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -825,7 +829,7 @@ def adminpreview(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -858,7 +862,7 @@ def adminpreview_right(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         # Discussion page?
         request.session["state"]["discussion_page"] = \
@@ -898,7 +902,7 @@ def adminpreview_wrong(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         # Discussion page?
         request.session["state"]["discussion_page"] = \
@@ -1120,7 +1124,7 @@ def wrong(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-    ).distinct('participant', 'question').count()
+        ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     if _learnerstate.active_question:
@@ -1136,7 +1140,7 @@ def wrong(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-            ).count()
+                ).count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
@@ -1682,8 +1686,8 @@ def leader(request, state, user):
 
         return Participant.objects.filter(
             classs=_participant.classs,
-                points__gt=_participant.points,
-            ).count() + 1
+            points__gt=_participant.points,
+        ).count() + 1
 
     def get_leaderboard(location):
         return Participant.objects.filter(
@@ -1949,6 +1953,7 @@ def contact(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+
 #Report Question Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -2025,7 +2030,7 @@ def report_question(request, state, user, questionid, frm):
                                             "user": user,
                                             "question": _question,
                                             "messages": _messages,
-                                    })
+                                        })
         else:
             return render(
                 request, "learn/report_question.html",
@@ -2044,15 +2049,15 @@ def dashboard_data(request):
     def get():
 
         from core.stats import (participants_registered_last_x_hours,
-            questions_answered_in_last_x_hours,
-            percentage_questions_answered_correctly_in_last_x_hours,
-            questions_answered_correctly_in_last_x_hours)
+                                questions_answered_in_last_x_hours,
+                                percentage_questions_answered_correctly_in_last_x_hours,
+                                questions_answered_correctly_in_last_x_hours)
         from auth.stats import (learners_active_in_last_x_hours,
-            percentage_learner_sms_opt_ins,
-            percentage_learner_email_opt_ins,
-            number_learner_sms_opt_ins,
-            number_learner_email_opt_ins,
-            total_active_learners)
+                                percentage_learner_sms_opt_ins,
+                                percentage_learner_email_opt_ins,
+                                number_learner_sms_opt_ins,
+                                number_learner_email_opt_ins,
+                                total_active_learners)
 
         response_data = {
             'num_learn_reg_24': participants_registered_last_x_hours(24),
@@ -2223,7 +2228,7 @@ def report_response(request, report):
         return render(
             request=request,
             template_name='misc/report_response.html',
-            dictionary={ 'report': db_report, 'participant': db_participant}
+            dictionary={'report': db_report, 'participant': db_participant}
         )
 
     def post():
@@ -2271,6 +2276,7 @@ def report_response(request, report):
 
     return resolve_http_method(request, [get, post])
 
+
 @user_passes_test(lambda u: u.is_staff)
 def message_response(request, msg):
     db_msg = Message.objects.filter(id=msg).first()
@@ -2288,7 +2294,7 @@ def message_response(request, msg):
         return render(
             request=request,
             template_name='misc/message_response.html',
-            dictionary={ 'msg': db_msg, 'participant': db_participant}
+            dictionary={'msg': db_msg, 'participant': db_participant}
         )
 
     def post():
@@ -2342,6 +2348,77 @@ def message_response(request, msg):
 
 
 @user_passes_test(lambda u: u.is_staff)
+def discussion_response(request, disc):
+    db_disc = Discussion.objects.filter(id=disc).first()
+
+    if db_disc:
+        db_participant = Participant.objects.filter(learner=db_disc.author).first()
+
+        if db_participant is None:
+            return HttpResponse("Participant not found")
+    else:
+        return HttpResponse("Discussion %s not found" % disc)
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/discussion_response.html',
+            dictionary={'disc': db_disc, 'participant': db_participant}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/discussion_response.html',
+                dictionary={
+                    'disc': db_disc,
+                    'participant': db_participant,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            disc = Discussion.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                content=content,
+                author=request.user,
+                publishdate=dt,
+                moderated=True,
+                course=db_disc.course,
+                module=db_disc.module,
+                question=db_disc.question
+            )
+
+            db_disc.response = disc
+            db_disc.save()
+
+            return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
 def sms_response(request, sms):
     db_sms = Sms.objects.filter(id=sms).first()
 
@@ -2356,7 +2433,7 @@ def sms_response(request, sms):
         return render(
             request=request,
             template_name='misc/sms_response.html',
-            dictionary={ 'sms': db_sms, 'participant': db_participant}
+            dictionary={'sms': db_sms, 'participant': db_participant}
         )
 
     def post():
