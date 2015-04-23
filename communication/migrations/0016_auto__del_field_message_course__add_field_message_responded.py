@@ -11,20 +11,12 @@ class Migration(SchemaMigration):
         # Deleting field 'Message.course'
         db.delete_column(u'communication_message', 'course_id')
 
-        # Adding field 'Message.responded'
-        db.add_column(u'communication_message', 'responded',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
 
     def backwards(self, orm):
         # Adding field 'Message.course'
         db.add_column(u'communication_message', 'course',
                       self.gf('django.db.models.fields.related.ForeignKey')(to=orm['organisation.Course'], null=True),
                       keep_default=False)
-
-        # Deleting field 'Message.responded'
-        db.delete_column(u'communication_message', 'responded')
 
 
     models = {
