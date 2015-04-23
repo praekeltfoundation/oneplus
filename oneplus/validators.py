@@ -55,7 +55,7 @@ def validate_publish_date_and_time(post):
 
 
 def validate_content(post):
-    content = ""
+    content = None
 
     if 'content' in post:
         content = post['content']
