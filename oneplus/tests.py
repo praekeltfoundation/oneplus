@@ -10,7 +10,8 @@ from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
-from communication.models import Message, ChatGroup, ChatMessage, Post, Report
+from communication.models import Message, ChatGroup, ChatMessage, Post, \
+    Report, ReportResponse, Sms, SmsQueue, Discussion
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -26,6 +27,11 @@ import logging
 
 @override_settings(VUMI_GO_FAKE=True)
 class GeneralTests(TestCase):
+
+    def create_test_question(self, name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name,
+                                              module=module,
+                                              **kwargs)
 
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
@@ -51,8 +57,13 @@ class GeneralTests(TestCase):
         return Learner.objects.create(school=school, **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):
-        return Participant.objects.create(
-            learner=learner, classs=classs, **kwargs)
+        try:
+            participant = Participant.objects.get(learner=learner)
+        except Participant.DoesNotExist:
+            participant = Participant.objects.create(
+                learner=learner, classs=classs, **kwargs)
+
+        return participant
 
     def create_test_question(self, name, module, **kwargs):
         return TestingQuestion.objects.create(name=name,
@@ -121,7 +132,9 @@ class GeneralTests(TestCase):
         self.learner = self.create_learner(
             self.school,
             username="+27123456789",
+            mobile="+27123456789",
             country="country",
+            area="Test_Area",
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
@@ -143,6 +156,13 @@ class GeneralTests(TestCase):
         logger = logging.getLogger('DEBUG')
         logger.setLevel(logging.INFO)
         logger.addHandler(self.handler)
+
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
 
     def test_get_next_question(self):
         self.create_test_question('question1', self.module)
@@ -206,7 +226,6 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('misc.terms'), follow=True)
         self.assertEquals(resp.status_code, 200)
-
 
     def check_logs(self, msg):
         logs = self.handler.logs
@@ -307,7 +326,6 @@ class GeneralTests(TestCase):
         self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
         self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
 
-
     def test_nextchallenge(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -335,9 +353,11 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'test')
 
+        disc = Discussion.objects.filter(content='test').first()
+
         resp = self.client.post(
             reverse('learn.next'),
-            data={'reply': 'testreply', 'reply_button': 1}, follow=True)
+            data={'reply': 'testreply', 'reply_button': disc.id}, follow=True)
 
         self.assertEquals(resp.status_code, 200)
 
@@ -534,9 +554,14 @@ class GeneralTests(TestCase):
                                 Follow=True)
         self.assertEquals(resp.status_code, 302)
 
-        resp = self.client.post(reverse('learn.report_question', kwargs={'questionid': question.id, 'frm': 'next'}),
-                        data={'is': 'Problem', 'fi': 'Solution'},
-                        Follow=True)
+        resp = self.client.post(
+            reverse(
+                'learn.report_question',
+                kwargs={'questionid': question.id, 'frm': 'next'}
+            ),
+            data={'is': 'Problem', 'fi': 'Solution'},
+            Follow=True
+        )
         self.assertEquals(resp.status_code, 200)
 
     def test_inbox(self):
@@ -558,7 +583,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('com.inbox'),
-            data={'hide': 1})
+            data={'hide': msg.id})
         self.assertEquals(resp.status_code, 200)
 
     def test_inbox_detail(self):
@@ -880,8 +905,17 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, "today")
     def test_saturday_no_questions_not_training(self, mock_get_today):
+        learner = self.learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",
+            country="country",
+            area="Test_Area",
+            unique_token='abc1233',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
         self.participant = self.create_participant(
-            self.learner, self.classs,
+            learner, self.classs,
             datejoined=datetime(2014, 8, 22, 0, 0, 0))
 
         mock_get_today.return_value = datetime(2014, 8, 23, 0, 0)
@@ -915,7 +949,7 @@ class GeneralTests(TestCase):
     def test_format_option_text_only(self):
         content = "Test"
         result = format_option(content)
-        self.assertEquals(result,u'Test')
+        self.assertEquals(result, u'Test')
 
     def test_format_option_text_and_image(self):
         content = "<b>Test</b><img/>"
@@ -1328,34 +1362,409 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_dashboard(self):
-        password = 'mypassword'
-        my_admin = CustomUser.objects.create_superuser(
-            username='asdf33',
-            email='asdf33@example.com',
-            password=password,
-            mobile='+27111111133')
-
         c = Client()
-        c.login(username=my_admin.username, password=password)
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('dash.board'))
         self.assertContains(resp, 'sapphire')
 
     def test_dashboard_data(self):
-        password = 'mypassword'
-        my_admin = CustomUser.objects.create_superuser(
-            username='asdf333',
-            email='asdf333@example.com',
-            password=password,
-            mobile='+27111111133')
-
         c = Client()
-        c.login(username=my_admin.username, password=password)
-
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('dash.data'))
         self.assertContains(resp, 'num_email_optin')
 
         resp = c.post(reverse('dash.data'))
         self.assertContains(resp, 'post office')
+
+    def test_question_difficulty_report(self):
+
+        def make_content(ftype):
+            d = datetime.now().date().strftime('%Y_%m_%d')
+            file_name_base = 'question_difficulty_report'
+            file_name = '%s_%s.%s' % (file_name_base, d, ftype)
+            return 'attachment; filename="%s"' % file_name
+
+        question1 = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        option1 = self.create_test_question_option(
+            name="option1",
+            question=question1,
+            correct=True
+        )
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.participant.answer(question1, option1)
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 1}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv'))
+
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 2}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('xls'))
+
+        resp = c.get(reverse('reports.question_difficulty', kwargs={'mode': 3}))
+        self.assertEquals(resp.status_code, 302)
+
+    def test_reports_page(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('reports.home'))
+        self.assertContains(resp, 'ONEPLUS')
+
+    def test_report_learner(self):
+        def make_content(ftype, region=None):
+            d = datetime.now().date().strftime('%Y_%m_%d')
+            file_name_base = 'learner_report'
+
+            if region is not None:
+                file_name_base = '%s_%s' % (file_name_base, region)
+
+            file_name = '%s_%s.%s' % (file_name_base, d, ftype)
+            return 'attachment; filename="%s"' % file_name
+
+        question1 = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        option1 = self.create_test_question_option(
+            name="option1",
+            question=question1,
+            correct=True
+        )
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.participant.answer(question1, option1)
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        #csv no region
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': ''}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv'))
+
+        #xls no region
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 2, 'region': ''}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('xls'))
+
+        #csv + region
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area'}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area'))
+        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
+        self.assertContains(resp, '+27123456789,,,school name,Test_Area,1,100')
+
+        #csv + region that doesn't exist
+        resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area44'}))
+        self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area44'))
+        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
+        self.assertNotContains(resp, '+27123456789')
+
+    def test_report_learner_unique_area(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('reports.unique_regions'))
+        self.assertContains(resp, 'Test_Area')
+
+    def test_admin_auth_app_changes(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get('/admin/auth/')
+        self.assertContains(resp, 'User Permissions')
+
+    def test_admin_report_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.question = self.create_test_question('q1', self.module)
+
+        resp = c.get('/report_response/1000')
+        self.assertContains(resp, 'Report 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            username="+27123456780",
+            mobile="+27123456780",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        rep = Report.objects.create(
+            user=learner,
+            question=self.question,
+            issue='e != mc^2',
+            fix='e == 42',
+            publish_date=datetime.now()
+        )
+
+        resp = c.get('/report_response/%s' % rep.id)
+        self.assertContains(resp, 'Participant not found')
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 1, 18, 1, 1)
+        )
+
+        resp = c.get('/report_response/%s' % rep.id)
+        self.assertContains(resp, 'Report Response')
+
+        resp = c.post('/report_response/%s' % rep.id,
+                      data={'title': '',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/report_response/%s' % rep.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/report_response/%s' % rep.id)
+        self.assertContains(resp, 'This field is required.')
+
+        rr_cnt = ReportResponse.objects.all().count()
+        msg_cnt = Message.objects.all().count()
+
+        resp = c.post('/report_response/%s' % rep.id,
+                      data={'title': 'test',
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        self.assertEquals(ReportResponse.objects.all().count(), rr_cnt + 1)
+        self.assertEquals(Message.objects.all().count(), msg_cnt + 1)
+
+    def test_admin_msg_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        question = self.create_test_question('q5', self.module)
+
+        resp = c.get('/message_response/1000')
+        self.assertContains(resp, 'Message 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            username="+27223456780",
+            mobile="+27223456780",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        msg = self.create_message(
+            learner,
+            self.course, name="msg",
+            publishdate=datetime.now(),
+            content='test message'
+        )
+
+        resp = c.get('/message_response/%s' % msg.id)
+        self.assertContains(resp, 'Participant not found')
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 3, 18, 1, 1)
+        )
+
+        resp = c.get('/message_response/%s' % msg.id)
+        self.assertContains(resp, 'Respond to Message')
+
+        resp = c.post('/message_response/%s' % msg.id,
+                      data={'title': '',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/message_response/%s' % msg.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/message_response/%s' % msg.id)
+        self.assertContains(resp, 'This field is required.')
+
+        msg_cnt = Message.objects.all().count()
+
+        resp = c.post('/message_response/%s' % msg.id,
+                      data={'title': 'test',
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        self.assertEquals(Message.objects.all().count(), msg_cnt + 1)
+        msg = Message.objects.get(pk=msg.id)
+        self.assertEquals(msg.responded, True)
+        self.assertEquals(msg.responddate.date(), datetime.now().date())
+
+    def test_admin_sms_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get('/sms_response/1000')
+        self.assertContains(resp, 'Sms 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            username="+27223456781",
+            mobile="+27223456781",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        sms = Sms.objects.create(
+            uuid='123123123',
+            message='test',
+            msisdn=learner.mobile,
+            date_sent=datetime.now()
+        )
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 3, 18, 1, 1)
+        )
+
+        resp = c.get('/sms_response/%s' % sms.id)
+        self.assertContains(resp, 'Respond to SMS')
+
+        resp = c.post('/sms_response/%s' % sms.id,
+                      data={'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/sms_response/%s' % sms.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/sms_response/%s' % sms.id)
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/sms_response/%s' % sms.id,
+                      data={'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        sms = Sms.objects.get(pk=sms.id)
+        self.assertEquals(sms.responded, True)
+        self.assertEquals(sms.respond_date.date(), datetime.now().date())
+        self.assertIsNotNone(sms.response)
+
+        qsms = SmsQueue.objects.get(msisdn=learner.mobile)
+        self.assertEquals(qsms.message, '<p>Test</p>')
+
+    def test_admin_discussion_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        question = self.create_test_question('q7', self.module)
+
+        resp = c.get('/discussion_response/1000')
+        self.assertContains(resp, 'Discussion 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            first_name="jan",
+            username="+27223456788",
+            mobile="+27223456788",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        disc = Discussion.objects.create(
+            name='Test',
+            description='Test',
+            content='Test content',
+            author=learner,
+            publishdate=datetime.now(),
+            course=self.course,
+            module=self.module,
+            question=question
+        )
+
+        resp = c.get('/discussion_response/%s' % disc.id)
+        self.assertContains(resp, 'Participant not found')
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 3, 18, 1, 1)
+        )
+
+        resp = c.get('/discussion_response/%s' % disc.id)
+        self.assertContains(resp, 'Respond to Discussion')
+
+        resp = c.post('/discussion_response/%s' % disc.id,
+                      data={'title': '',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/discussion_response/%s' % disc.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/discussion_response/%s' % disc.id)
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/discussion_response/%s' % disc.id,
+                      data={'title': 'test',
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        disc = Discussion.objects.get(pk=disc.id)
+        self.assertIsNotNone(disc.response)
+        self.assertEquals(disc.response.moderated, True)
+        self.assertEquals(disc.response.author, self.admin_user)
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -1385,8 +1794,13 @@ class LearnerStateTest(TestCase):
         return Learner.objects.create(school=school, **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):
-        return Participant.objects.create(
-            learner=learner, classs=classs, **kwargs)
+        try:
+            participant = Participant.objects.get(learner=learner)
+        except Participant.DoesNotExist:
+            participant = Participant.objects.create(
+                learner=learner, classs=classs, **kwargs)
+
+        return participant
 
     def create_test_question(self, name, module, **kwargs):
         return TestingQuestion.objects.create(name=name,
@@ -1442,6 +1856,7 @@ class LearnerStateTest(TestCase):
         self.learner = self.create_learner(
             self.school,
             username="+27123456789",
+            mobile="+27123456789",
             country="country",
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30))
@@ -1604,7 +2019,7 @@ class LearnerStateTest(TestCase):
         self.assertListEqual(training_questions, answers)
         self.assertEqual(
             self.learner_state.is_training_weekend(), True)
-        self.assertEquals(self.learner_state.get_questions_answered_week(),4)
+        self.assertEquals(self.learner_state.get_questions_answered_week(), 4)
 
     @patch.object(LearnerState, "today")
     def test_is_monday_after_training(self, mock_get_today):
@@ -1612,6 +2027,7 @@ class LearnerStateTest(TestCase):
         self.assertTrue(self.learner_state.check_monday_after_training(1))
         self.assertFalse(self.learner_state.check_monday_after_training(
             self.learner_state.QUESTIONS_PER_DAY + 1))
+
 
 class MockRequest(object):
     pass
@@ -1630,7 +2046,7 @@ class OneplusAdminMetricTest(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
@@ -1658,8 +2074,7 @@ class OneplusAdminMetricTest(TestCase):
         self.learner = self.create_learner(
             self.school,
             username="+27123456789",
+            mobile="+27123456789",
             country="country",
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30))
-
-

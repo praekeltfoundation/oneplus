@@ -1,0 +1,13 @@
+.rep_table{
+    border: 0px;
+    border-collapse: collapse;
+}
+
+.rep_table_th{
+    padding: 15px;
+    font-weight: bold;
+}
+
+.rep_table_td{
+    padding: 15px;
+}

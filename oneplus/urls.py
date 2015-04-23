@@ -53,6 +53,22 @@ urlpatterns = [
     url(r"^bloglist$", views.blog_list, name="com.bloglist"),
     url(r"^blog/(?P<blogid>\d+)$", views.blog, name="com.blog"),
 
+    url(r"^report_response/(?P<report>\d+)$",
+        views.report_response,
+        name="com.represp"),
+    url(r"^message_response/(?P<msg>\d+)$",
+        views.message_response,
+        name="com.msgresp"),
+    url(r"^discussion_response/(?P<disc>\d+)$",
+        views.discussion_response,
+        name="com.discresp"),
+    url(r"^sms_response/(?P<sms>\d+)$",
+        views.sms_response,
+        name="com.smsresp"),
+
+    url(r"^message/add/$", views.add_message, name="com.add_message"),
+    url(r"^message/(?P<msg>\d+)/$", views.view_message, name="com.view_message"),
+
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
     url(r"^leader$", views.leader, name="prog.leader"),
@@ -66,4 +82,21 @@ urlpatterns = [
     # Dashboard
     url(r'^dashboard_data$', views.dashboard_data, name="dash.data"),
     url(r'^dashboard$', views.dashboard, name='dash.board'),
+
+    # Reports
+    url(r'^reports$', views.reports, name='reports.home'),
+    url(r'^report_learner_report/(?P<mode>\d+)/(?P<region>\w*)$',
+        views.report_learner,
+        name="reports.learner"),
+    url(r'^reports_learner_unique_regions$',
+        views.reports_learner_unique_regions,
+        name="reports.unique_regions"),
+    url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
+        views.question_difficulty_report,
+        name='reports.question_difficulty'),
+
+    #filtering for message admin
+    url(r'^courses$', views.get_courses),
+    url(r'^classes/(?P<course>\w+)$', views.get_classes),
+    url(r'^users/(?P<classs>\w+)$', views.get_users),
 ]
