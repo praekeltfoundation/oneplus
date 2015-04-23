@@ -11,7 +11,7 @@ from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post, \
-    Report, ReportResponse, Discussion
+    Report, ReportResponse, Sms, SmsQueue, Discussion
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -1624,6 +1624,72 @@ class GeneralTests(TestCase):
         msg = Message.objects.get(pk=msg.id)
         self.assertEquals(msg.responded, True)
         self.assertEquals(msg.responddate.date(), datetime.now().date())
+
+    def test_admin_sms_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get('/sms_response/1000')
+        self.assertContains(resp, 'Sms 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            username="+27223456781",
+            mobile="+27223456781",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        sms = Sms.objects.create(
+            uuid='123123123',
+            message='test',
+            msisdn=learner.mobile,
+            date_sent=datetime.now()
+        )
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 3, 18, 1, 1)
+        )
+
+        resp = c.get('/sms_response/%s' % sms.id)
+        self.assertContains(resp, 'Respond to SMS')
+
+        resp = c.post('/sms_response/%s' % sms.id,
+                      data={'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/sms_response/%s' % sms.id,
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/sms_response/%s' % sms.id)
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/sms_response/%s' % sms.id,
+                      data={'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        sms = Sms.objects.get(pk=sms.id)
+        self.assertEquals(sms.responded, True)
+        self.assertEquals(sms.respond_date.date(), datetime.now().date())
+        self.assertIsNotNone(sms.response)
+
+        qsms = SmsQueue.objects.get(msisdn=learner.mobile)
+        self.assertEquals(qsms.message, '<p>Test</p>')
 
     def test_admin_discussion_response(self):
         c = Client()
