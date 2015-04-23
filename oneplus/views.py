@@ -2464,7 +2464,7 @@ def add_message(request):
                         all_users = Participant.objects.filter(classs=_classs)
 
                         for u in all_users:
-                            create_message(u, _course, _classs, direction, dt, content)
+                            create_message(name, _course, _classs, direction, dt, content)
             else:
                 course_obj = Course.objects.get(id=course)
 
@@ -2475,7 +2475,7 @@ def add_message(request):
                         all_users = Participant.objects.filter(classs=c)
 
                         for u in all_users:
-                            create_message(u, course_obj, c, direction, dt, content)
+                            create_message(name, course_obj, c, direction, dt, content)
                 else:
                     classs_obj = Class.objects.get(id=classs)
 
@@ -2483,18 +2483,17 @@ def add_message(request):
                         all_users = Participant.objects.filter(classs=classs_obj)
 
                         for u in all_users:
-                            create_message(u, course_obj, classs_obj, direction, dt, content)
+                            create_message(name, course_obj, classs_obj, direction, dt, content)
                     else:
                         learner = Learner.objects.get(id=users)
                         user = Participant.objects.filter(learner=learner).first()
-                        create_message(user, course_obj, classs_obj, direction, dt, content)
+                        create_message(name, course_obj, classs_obj, direction, dt, content)
 
         return HttpResponseRedirect('/admin/communication/message/')
 
     def create_message(name, course, classs, direction, publishdate, content):
         Message.objects.create(
-            name=gen_username(request.user),
-            description=name.learner.first_name,
+            name=name,
             to_course=course,
             to_class=classs,
             content=content,
@@ -2507,67 +2506,31 @@ def add_message(request):
 
 
 @user_passes_test(lambda u: u.is_staff)
-def change_message(request, msg):
+def view_message(request, msg):
     db_msg = Message.objects.filter(id=msg).first()
+
+    if db_msg is None:
+        return HttpResponse("Message not found")
 
     def get():
         return render(
             request=request,
             template_name='misc/message.html',
             dictionary={
-                'message': db_msg
+                'message': db_msg,
+                'ro': True
             }
         )
 
     def post():
-        name_error = False
-        course_error = False
-        class_error = False
-        users_error = False
-        direction_error = False
-        dt_error = False
-        content_error = False
-        name = None
-        course = None
-        classs = None
-        users = None
-        direction = None
-        date = None
-        time = None
-        content = None
-
-        name_error, name = validate_name(request.POST)
-        course_error, course = validate_to_course(request.POST)
-        class_error, classs = validate_to_class(request.POST)
-        users_error, users = validate_users(request.POST)
-        direction_error, direction = validate_direction(request.POST)
-        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
-        content_error, content = validate_content(request.POST)
-
-        if name_error or course_error or class_error or users_error or direction_error or dt_error or content_error:
-            return render(
-                request=request,
-                template_name='misc/message.html',
-                dictionary={
-                    'name_error': name_error,
-                    'to_course_error': course_error,
-                    'to_class_error': class_error,
-                    'direction_error': direction_error,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_name': name,
-                    'v_direction': direction,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
-                }
-            )
-        else:
-            db_msg.name = name
-            db_msg.content = content
-            db_msg.save()
-
-        return HttpResponseRedirect('/admin/communication/message/')
+        return render(
+            request=request,
+            template_name='misc/message.html',
+            dictionary={
+                'message': db_msg,
+                'ro': True
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 

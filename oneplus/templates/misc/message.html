@@ -75,13 +75,21 @@
                         <li><a href="/admin/">Home</a></li>
                         <li><a href="/admin/communication/">Communication</a></li>
                         <li><a href="/admin/communication/message/">Messages</a></li>
-                        <li>Add Message</li>
+                        {%  if ro %}
+                            <li>Message</li>
+                        {% else %}
+                            <li>Add Message</li>
+                        {% endif %}
                     </ul>
                 </nav>
             </div>
         </header>
         <article id="grp-content">
-            <h1>Add Message</h1>
+            {%  if ro %}
+                <h1>Message</h1>
+            {% else %}
+                <h1>Add Message</h1>
+            {% endif %}
             <form enctype="multipart/form-data" action="" method="post" id="report_response_form">
                 {% csrf_token %}
                 <div id="grp-content-container">
@@ -92,24 +100,38 @@
                                     <label class="required">Name</label>
                                 </div>
                                 <div class="c-2">
-                                    <input class="vTextField" id="id_name" maxlength="50" name="name" type="text" value="{{ v_name }}{{ message.name }}">
-                                    {% if name_error %}
-                                        <ul class="errorlist">
-                                            <li>This field is required.</li>
-                                        </ul>
-                                    {% endif %}
+                                    {% if ro %}
+                                        <label>{{ message.name }}</label>
+                                    {% else %}
+                                        <input class="vTextField" id="id_name" maxlength="50" name="name" type="text" value="{{ v_name }}{{ message.name }}">
+                                        {% if name_error %}
+                                            <ul class="errorlist">
+                                                <li>This field is required.</li>
+                                            </ul>
+                                        {% endif %}
+                                {% endif %}
                                 </div>
                             </div>
                         </div>
                         <div class="grp-row grp-cells-1">
                             <div class="l-2c-fluid l-d-4">
                                 <div class="c-1">
-                                    <label class="required">Send To:</label>
+                                    {%  if ro %}
+                                        <label class="required">Sent To:</label>
+                                    {% else %}
+                                        <label class="required">Send To:</label>
+                                    {% endif %}
                                 </div>
                                 <div class="c-2">
-                                    <select id="id_to_course" name="to_course"></select>
-                                    <select id="id_to_class" name="to_class"></select>
-                                    <select id="id_users" name="users"></select>
+                                    {% if ro %}
+                                        <label>{{ message.to_course }}</label>
+                                        &ensp; &ensp;
+                                        <label>{{ message.to_class }}</label>
+                                    {% else %}
+                                        <select id="id_to_course" name="to_course"></select>
+                                        <select id="id_to_class" name="to_class"></select>
+                                        <select id="id_users" name="users"></select>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -119,10 +141,18 @@
                                     <label class="required" for="id_direction">Direction</label>
                                 </div>
                                 <div class="c-2">
-                                    <select id="id_direction" name="direction">
-                                        <option selected="selected" value="1">Outgoing</option>
-                                        <option value="2">Incoming</option>
-                                    </select>
+                                    {% if ro %}
+                                        {% if message.direction == 1 %}
+                                            <label>Outgoing</label>
+                                        {% else %}
+                                            <label>Incoming</label>
+                                        {% endif %}
+                                    {% else %}
+                                        <select id="id_direction" name="direction">
+                                            <option selected="selected" value="1">Outgoing</option>
+                                            <option value="2">Incoming</option>
+                                        </select>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -133,7 +163,7 @@
                                 </div>
                                 <div class="c-2">
                                     {% if ro %}
-                                        <label>{{ message.publish_date }}</label>
+                                        <label>{{ message.publishdate }}</label>
                                     {% else %}
                                         <p class="datetime">
                                             <input class="vDateField" id="id_publishdate_0" name="publishdate_0" size="10" type="text" value="{{ v_date }}{{ message.publishdate |date:"Y-m-d" }}">
@@ -185,12 +215,14 @@
                             </div>
                         </div>
                     </fieldset>
+                {% if not ro %}
                     <footer class="grp-module grp-submit-row grp-fixed-footer">
                         <header style="display:none"><h1>Submit Options</h1></header>
                         <ul>
                             <li><input type="submit" value="Save" class="grp-button grp-default" name="_save"></li>
                         </ul>
                     </footer>
+                {% endif %}
                 </div>
             </form>
         </article>
