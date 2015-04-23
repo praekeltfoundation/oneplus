@@ -59,6 +59,9 @@ urlpatterns = [
     url(r"^message_response/(?P<msg>\d+)$",
         views.message_response,
         name="com.msgresp"),
+    url(r"^discussion_response/(?P<disc>\d+)$",
+        views.discussion_response,
+        name="com.discresp"),
 
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
