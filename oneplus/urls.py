@@ -65,6 +65,9 @@ urlpatterns = [
     url(r"^sms_response/(?P<sms>\d+)$",
         views.sms_response,
         name="com.smsresp"),
+    url(r"^discussion_response_selected/(?P<disc>(\d+)(,\s*\d+)*)$",
+        views.discussion_response_selected,
+        name="com.discrespsel"),
 
     url(r"^message/add/$", views.add_message, name="com.add_message"),
     url(r"^message/(?P<msg>\d+)/$", views.view_message, name="com.view_message"),
