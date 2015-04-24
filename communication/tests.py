@@ -3,9 +3,10 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse
+from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
+from core.models import Class
 
 from datetime import datetime
 
@@ -117,6 +118,27 @@ class TestChatMessage(TestCase):
     def test_created_message(self):
         msg = self.create_chat_message(content="Ò")
         self.assertEqual(msg.content, 'Ò', "They are not equal")
+
+
+class TestSmsQueue(TestCase):
+    def create_course(self, name="course name", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_class(self, course, name='class name', **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def setUp(self):
+        self.course = self.create_course()
+        self.classs = self.create_class(self.course)
+
+    def create_smsqueue(self, course, classs, **kwargs):
+        return SmsQueue.objects.create(to_course=course, to_class=classs, **kwargs)
+
+    def test_created_smsqueue(self):
+        sms_queue1 = self.create_smsqueue(self.course, self.classs, msisdn="+27721472583", send_date=datetime.now(),
+                                     message="Message")
+
+        self.assertEqual(sms_queue1.message, "Message", "Message text not the same")
 
 
 class TestReport(TestCase):

@@ -218,9 +218,14 @@ class ReportResponseAdmin(admin.ModelAdmin):
 
 
 class SmsQueuedAdmin(admin.ModelAdmin):
-    list_display = ('send_date', 'msisdn', 'message', 'sent')
+    list_display = ('get_send_date', 'msisdn', 'message', 'sent')
     list_filter = ('sent',)
     search_fields = ('msisdn', 'message', 'send_date')
+
+    def get_send_date(self, obj):
+        return u'<a href="/smsqueue/%s/">%s</a>' % (obj.id, obj.send_date)
+    get_send_date.short_description = 'Time Sms will be send'
+    get_send_date.allow_tags = True
 
 
 # Communication
