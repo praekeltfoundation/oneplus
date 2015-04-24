@@ -2478,6 +2478,7 @@ def sms_response(request, sms):
     return resolve_http_method(request, [get, post])
 
 
+@user_passes_test(lambda u: u.is_staff)
 def add_sms(request):
     def get():
         return render(
@@ -2560,6 +2561,7 @@ def add_sms(request):
     return resolve_http_method(request, [get, post])
 
 
+@user_passes_test(lambda u: u.is_staff)
 def view_sms(request, sms):
     db_sms = SmsQueue.objects.filter(id=sms).first()
 
@@ -2585,6 +2587,67 @@ def view_sms(request, sms):
                 'ro': True
             }
         )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def sms_response(request, sms):
+    db_sms = Sms.objects.filter(id=sms).first()
+
+    if db_sms:
+        db_participant = Participant.objects.filter(learner__mobile__contains=db_sms.msisdn).first()
+
+    else:
+        return HttpResponse("Sms %s not found" % sms)
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/sms_response.html',
+            dictionary={'sms': db_sms, 'participant': db_participant}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/sms_response.html',
+                dictionary={
+                    'sms': db_sms,
+                    'participant': db_participant,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            qsms = SmsQueue.objects.create(
+                message=content,
+                send_date=dt,
+                msisdn=db_sms.msisdn
+            )
+
+            db_sms.responded = True
+            db_sms.respond_date = datetime.now()
+            db_sms.response = qsms
+            db_sms.save()
+
+            return HttpResponseRedirect('/admin/communication/sms/')
 
     return resolve_http_method(request, [get, post])
 
@@ -2620,3 +2683,73 @@ def get_classes(request, course):
         data.append(line)
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def discussion_response_selected(request, disc):
+    discs = disc.split(',')
+    db_discs = Discussion.objects.filter(id__in=discs, response__isnull=True)
+
+    if db_discs.count() == 0:
+        no_discussions = True
+    else:
+        no_discussions = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/discussion_response_selected.html',
+            dictionary={'discs': db_discs, 'no_discs': no_discussions}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/discussion_response_selected.html',
+                dictionary={
+                    'discs': db_discs,
+                    'no_discs': no_discussions,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            disc = Discussion.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                content=content,
+                author=request.user,
+                publishdate=dt,
+                moderated=True,
+                course=db_discs[0].course,
+                module=db_discs[0].module,
+                question=db_discs[0].question
+            )
+
+            for db_disc in db_discs:
+                db_disc.response = disc
+                db_disc.save()
+
+            return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
