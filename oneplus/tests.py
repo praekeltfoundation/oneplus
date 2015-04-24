@@ -1683,7 +1683,7 @@ class GeneralTests(TestCase):
         resp = c.post('/sms_response/%s' % sms.id,
                       data={'publishdate_0': '2014-01-01',
                             'publishdate_1': '00:00:00',
-                            'content': '<p>Test</p>'
+                            'content': 'Test24'
                             })
 
         sms = Sms.objects.get(pk=sms.id)
@@ -1692,7 +1692,7 @@ class GeneralTests(TestCase):
         self.assertIsNotNone(sms.response)
 
         qsms = SmsQueue.objects.get(msisdn=learner.mobile)
-        self.assertEquals(qsms.message, '<p>Test</p>')
+        self.assertEquals(qsms.message, 'Test24')
 
     def test_admin_discussion_response(self):
         c = Client()

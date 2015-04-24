@@ -2665,67 +2665,6 @@ def sms_response(request, sms):
 
 
 @user_passes_test(lambda u: u.is_staff)
-def sms_response(request, sms):
-    db_sms = Sms.objects.filter(id=sms).first()
-
-    if db_sms:
-        db_participant = Participant.objects.filter(learner__mobile__contains=db_sms.msisdn).first()
-
-    else:
-        return HttpResponse("Sms %s not found" % sms)
-
-    def get():
-
-        return render(
-            request=request,
-            template_name='misc/sms_response.html',
-            dictionary={'sms': db_sms, 'participant': db_participant}
-        )
-
-    def post():
-
-        dt_error = False
-        content_error = False
-        title = None
-        date = None
-        time = None
-        content = None
-
-        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
-        content_error, content = validate_content(request.POST)
-
-        if dt_error or content_error:
-            return render(
-                request=request,
-                template_name='misc/sms_response.html',
-                dictionary={
-                    'sms': db_sms,
-                    'participant': db_participant,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
-                }
-            )
-        else:
-            qsms = SmsQueue.objects.create(
-                message=content,
-                send_date=dt,
-                msisdn=db_sms.msisdn
-            )
-
-            db_sms.responded = True
-            db_sms.respond_date = datetime.now()
-            db_sms.response = qsms
-            db_sms.save()
-
-            return HttpResponseRedirect('/admin/communication/sms/')
-
-    return resolve_http_method(request, [get, post])
-
-
-@user_passes_test(lambda u: u.is_staff)
 def discussion_response_selected(request, disc):
     discs = disc.split(',')
     db_discs = Discussion.objects.filter(id__in=discs, response__isnull=True)
