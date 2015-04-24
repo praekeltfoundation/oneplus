@@ -1,5 +1,6 @@
 from dateutil import parser
 from datetime import datetime
+import re
 
 
 def zero_len(value):
