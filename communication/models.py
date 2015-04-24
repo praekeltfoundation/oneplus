@@ -284,8 +284,6 @@ class SmsQueue(models.Model):
         verbose_name="Message",
         blank=False
     )
-    to_course = models.ForeignKey(Course, null=True, blank=False)
-    to_class = models.ForeignKey('core.Class', null=True, blank=False)
     send_date = models.DateTimeField(
         verbose_name="Time Sms will be sent",
         blank=False
