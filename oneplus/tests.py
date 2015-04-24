@@ -2369,8 +2369,8 @@ class MessageTest(TestCase):
                      'to_class': self.classs.id,
                      'users': leaner_1.id,
                      'direction': '1',
-                     'publishdate_0': datetime.now().time(),
-                     'publishdate_1': datetime.now().date(),
+                     'publishdate_0': '2013-02-01',
+                     'publishdate_1': '00:00:00',
                      'content': 'message'},
                follow=True)
 
@@ -2460,8 +2460,8 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': 'all',
                             'to_class': 'all',
-                            'date_sent_0': datetime.now().time(),
-                            'date_sent_1': datetime.now().date(),
+                            'date_sent_0': '2014-05-01',
+                            'date_sent_1': '00:00:00',
                             'message': 'message'},
                       follow=True)
 
@@ -2473,8 +2473,8 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': 'all',
-                            'date_sent_0': datetime.now().time(),
-                            'date_sent_1': datetime.now().date(),
+                            'date_sent_0': '2014-06-01',
+                            'date_sent_1': '01:00:00',
                             'message': 'message'},
                       follow=True)
 
@@ -2486,8 +2486,8 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
-                            'date_sent_0': datetime.now().time(),
-                            'date_sent_1': datetime.now().date(),
+                            'date_sent_0': '2014-07-01',
+                            'date_sent_1': '02:00:00',
                             'message': 'message'},
                       follow=True)
 
@@ -2498,6 +2498,18 @@ class SMSQueueTest(TestCase):
         resp = c.get(reverse('com.add_sms'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>SMS</title>")
+
+        resp = c.post(reverse('com.add_sms'),
+                      data={'to_course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'date_sent_0': '',
+                            'date_sent_1': '',
+                            'message': ''},
+                      follow=True)
+        self.assertContains(resp, 'This field is required')
+
+        resp = c.post(reverse('com.add_sms'), follow=True)
+        self.assertContains(resp, 'This field is required')
 
     def test_view_sms(self):
         password = "12345"
