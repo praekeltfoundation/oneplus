@@ -1766,6 +1766,93 @@ class GeneralTests(TestCase):
         self.assertEquals(disc.response.moderated, True)
         self.assertEquals(disc.response.author, self.admin_user)
 
+    def test_admin_discussion_response_selected(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        question = self.create_test_question('q9', self.module)
+
+        resp = c.get('/discussion_response_selected/1000')
+        self.assertContains(resp, 'All the selected Discussions have been responded too')
+
+        learner = self.create_learner(
+            self.school,
+            first_name="jan",
+            username="+27223456888",
+            mobile="+27223456888",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        disc = Discussion.objects.create(
+            name='Test',
+            description='Test',
+            content='Test content',
+            author=learner,
+            publishdate=datetime.now(),
+            course=self.course,
+            module=self.module,
+            question=question
+        )
+
+        disc2 = Discussion.objects.create(
+            name='Test',
+            description='Test',
+            content='Test content again',
+            author=learner,
+            publishdate=datetime.now(),
+            course=self.course,
+            module=self.module,
+            question=question
+        )
+
+        participant = self.create_participant(
+            learner=learner,
+            classs=self.classs,
+            datejoined=datetime(2014, 3, 18, 1, 1)
+        )
+
+        resp = c.get('/discussion_response_selected/%s,%s' % (disc.id, disc2.id))
+        self.assertContains(resp, 'Respond to Selected')
+
+        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id),
+                      data={'title': '',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id),
+                      data={'title': '',
+                            'publishdate_0': '2015-33-33',
+                            'publishdate_1': '99:99:99',
+                            'content': ''
+                            })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id))
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id),
+                      data={'title': 'test',
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': '<p>Test</p>'
+                            })
+
+        disc = Discussion.objects.get(pk=disc.id)
+        disc2 = Discussion.objects.get(pk=disc2.id)
+        self.assertIsNotNone(disc.response)
+        self.assertEquals(disc.response.moderated, True)
+        self.assertEquals(disc.response.author, self.admin_user)
+        self.assertIsNotNone(disc2.response)
+        self.assertEquals(disc2.response.moderated, True)
+        self.assertEquals(disc2.response.author, self.admin_user)
+
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
