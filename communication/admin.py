@@ -1,3 +1,4 @@
+from auth.models import Learner
 from django.contrib import admin
 from django.http.response import HttpResponseRedirect
 from django_summernote.admin import SummernoteModelAdmin
@@ -98,17 +99,15 @@ class DiscussionAdmin(admin.ModelAdmin):
 
 
 class MessageAdmin(SummernoteModelAdmin):
-    list_display = ("name", "get_content", "get_class", "course",
-                    "author", "direction", "publishdate", 'get_response')
-    list_filter = ("course", "direction", "responded")
+    list_display = ("get_name", "get_content", "get_class", "author", "direction", "publishdate", 'get_response')
+    list_filter = ("direction", "responded")
     search_fields = ("name", )
-    fieldsets = [
-        (None,
-            {"fields": ["name", "course", "author", "direction",
-                        "publishdate"]}),
-        ("Content",
-            {"fields": ["content"]})
-    ]
+
+    def get_name(self, obj):
+        return u'<a href="/message/%s/">%s</a>' % (obj.id, obj.name)
+
+    get_name.short_description = 'Name'
+    get_name.allow_tags = True
 
     def get_content(self, obj):
         return '<a href="">' + obj.content + '<a>'
@@ -130,6 +129,9 @@ class MessageAdmin(SummernoteModelAdmin):
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
+
+    class Media:
+        js = ("grappelli/jquery/jquery-1.9.1.min.js", 'js/auth.js', )
 
 
 class SmsAdmin(SummernoteModelAdmin):

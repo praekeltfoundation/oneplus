@@ -92,16 +92,66 @@ class Discussion(models.Model):
 
 class Message(models.Model):
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=False)
-    description = models.CharField("Description", max_length=50, blank=True)
-    course = models.ForeignKey(Course, null=True, blank=False)
-    content = models.TextField("Content", blank=True)
-    publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
-    direction = models.PositiveIntegerField("Direction", choices=(
-        (1, "Outgoing"), (2, "Incoming")), default=1)
-    responded = models.BooleanField(default=False)
-    responddate = models.DateTimeField('Respond Date', null=True, blank=True)
+        "Name",
+        max_length=50,
+        null=True,
+        blank=False,
+        unique=False
+    )
+    description = models.CharField(
+        "Description",
+        max_length=50,
+        blank=True
+    )
+    course = models.ForeignKey(
+        Course,
+        null=True,
+        blank=False,
+        related_name='message_course'
+    )
+    to_course = models.ForeignKey(
+        Course,
+        verbose_name="Send to",
+        null=True,
+        blank=True,
+        related_name='message_to_course'
+    )
+    to_class = models.ForeignKey(
+        'core.Class',
+        verbose_name="",
+        null=True,
+        blank=True
+    )
+    content = models.TextField(
+        "Message",
+        blank=True
+    )
+    publishdate = models.DateTimeField(
+        "Publish Date",
+        null=True,
+        blank=True
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True
+    )
+    direction = models.PositiveIntegerField(
+        "Direction",
+        choices=(
+            (1, "Outgoing"),
+            (2, "Incoming")
+        ),
+        default=1
+    )
+    responded = models.BooleanField(
+        default=False
+    )
+    responddate = models.DateTimeField(
+        'Respond Date',
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -109,7 +159,7 @@ class Message(models.Model):
     @staticmethod
     def get_messages(user, course, limit):
         _msgs = Message.objects.filter(
-            course=course, direction=1).order_by("publishdate").reverse()
+            to_course=course, direction=1).order_by("publishdate").reverse()
         _result = list()
         for m in _msgs:
             _status = MessageStatus.objects.filter(
@@ -124,7 +174,7 @@ class Message(models.Model):
 
     @staticmethod
     def unread_message_count(user, course):
-        _msgs = Message.objects.filter(course=course, direction=1)
+        _msgs = Message.objects.filter(to_course=course, direction=1)
         _counter = 0
         for m in _msgs:
             if not MessageStatus.objects.filter(
@@ -277,7 +327,6 @@ class Report(models.Model):
     class Meta:
         verbose_name = "Report"
         verbose_name_plural = "Reports"
-
 
 class SmsQueue(models.Model):
     message = models.TextField(
