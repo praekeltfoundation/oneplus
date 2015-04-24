@@ -2212,6 +2212,7 @@ def question_difficulty_report(request, mode):
         return HttpResponseRedirect(reverse("reports.home"))
 
 
+@user_passes_test(lambda u: u.is_staff)
 def get_courses(request):
     courses = Course.objects.all()
 
@@ -2223,6 +2224,7 @@ def get_courses(request):
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
 
+@user_passes_test(lambda u: u.is_staff)
 def get_classes(request, course):
     if course == 'all':
         classes = Class.objects.all()
@@ -2245,6 +2247,7 @@ def get_classes(request, course):
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
 
+@user_passes_test(lambda u: u.is_staff)
 def get_users(request, classs):
     if classs == 'all':
         participants = Participant.objects.all()

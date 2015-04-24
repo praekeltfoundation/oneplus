@@ -1856,6 +1856,36 @@ class GeneralTests(TestCase):
         self.assertEquals(disc2.response.moderated, True)
         self.assertEquals(disc2.response.author, self.admin_user)
 
+    def test_get_courses(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get('/courses')
+        self.assertContains(resp, '"name": "course name"')
+
+    def test_get_classes(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.create_class(name='test class 42', course=self.course)
+
+        resp = c.get('/classes/all')
+        self.assertContains(resp, '"name": "class name"')
+        self.assertContains(resp, '"name": "test class 42"')
+
+        resp = c.get('/classes/%s' % self.course.id)
+        self.assertContains(resp, '"name": "class name"')
+
+    def test_get_users(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get('/users/all')
+        self.assertContains(resp, '"name": "+27123456789"')
+
+        resp = c.get('/users/%s' % self.classs.id)
+        self.assertContains(resp, '"name": "+27123456789"')
+
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
@@ -2237,6 +2267,25 @@ class MessageTest(TestCase):
         leaner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
         self.create_participant(leaner_4, c2_class2, datejoined=datetime.now())
 
+        #test date and content validation errors
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': '',
+                            'course': 'all',
+                            'to_class': 'all',
+                            'users': 'all',
+                            'direction': '1',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''},
+                      follow=True)
+        self.assertContains(resp, 'This field is required')
+
+        #test no data posted
+        resp = c.post(reverse('com.add_message'), follow=True)
+        self.assertContains(resp, 'This field is required')
+
+        self.assertEquals(resp.status_code, 200)
+
         #send message to all course (4 messages, total 4)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
@@ -2244,8 +2293,8 @@ class MessageTest(TestCase):
                             'to_class': 'all',
                             'users': 'all',
                             'direction': '1',
-                            'publishdate_0': datetime.now().time(),
-                            'publishdate_1': datetime.now().date(),
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
                             'content': 'message'},
                       follow=True)
 
@@ -2260,8 +2309,8 @@ class MessageTest(TestCase):
                             'to_class': 'all',
                             'users': 'all',
                             'direction': '1',
-                            'publishdate_0': datetime.now().time(),
-                            'publishdate_1': datetime.now().date(),
+                            'publishdate_0': '2014-02-01',
+                            'publishdate_1': '01:00:00',
                             'content': 'message'},
                       follow=True)
 
@@ -2276,8 +2325,8 @@ class MessageTest(TestCase):
                             'to_class': c1_class2.id,
                             'users': 'all',
                             'direction': '1',
-                            'publishdate_0': datetime.now().time(),
-                            'publishdate_1': datetime.now().date(),
+                            'publishdate_0': '2014-03-01',
+                            'publishdate_1': '02:00:00',
                             'content': 'message'},
                       follow=True)
 
@@ -2292,8 +2341,8 @@ class MessageTest(TestCase):
                             'to_class': c1_class2.id,
                             'users': leaner_1.id,
                             'direction': '1',
-                            'publishdate_0': datetime.now().time(),
-                            'publishdate_1': datetime.now().date(),
+                            'publishdate_0': '2014-04-03',
+                            'publishdate_1': '03:00:00',
                             'content': 'message'},
                       follow=True)
 
