@@ -130,7 +130,7 @@ class MessageAdmin(SummernoteModelAdmin):
         if obj.responded:
             return obj.responddate
         else:
-            return '<a href="/message_response/%s/" target="_blank">Respond</a>' % obj.id
+            return '<a href="/message_response/%s" target="_blank">Respond</a>' % obj.id
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
