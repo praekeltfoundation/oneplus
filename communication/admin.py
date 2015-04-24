@@ -109,13 +109,13 @@ class MessageAdmin(SummernoteModelAdmin):
     search_fields = ("name", )
 
     def get_name(self, obj):
-        return u'<a href="/message/%s/">%s</a>' % (obj.id, obj.name)
+        return u'<a href="/message/%s">%s</a>' % (obj.id, obj.name)
 
     get_name.short_description = 'Name'
     get_name.allow_tags = True
 
     def get_content(self, obj):
-        return '<a href="/message_response/%s/" target="_blank">%s</a>' % (obj.id, obj.content)
+        return '<a href="/message_response/%s" target="_blank">%s</a>' % (obj.id, obj.content)
 
     get_content.short_description = 'Message Content'
     get_content.allow_tags = True
@@ -145,7 +145,7 @@ class SmsAdmin(SummernoteModelAdmin):
         if obj.responded:
             return obj.respond_date
         else:
-            return '<a href="/sms_response/%s/">Respond</a>' % obj.id
+            return '<a href="/sms_response/%s">Respond</a>' % obj.id
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
