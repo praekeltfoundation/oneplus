@@ -62,14 +62,19 @@ class DiscussionAdmin(admin.ModelAdmin):
         ("Discussion Group",
             {"fields": ["course", "module", "question", "response"]})
     ]
-    actions = ['respond_to_selected_discussions']
+    actions = ['respond_to_selected', 'moderate_selected']
 
-    def respond_to_selected_discussions(modeladmin, request, queryset):
+    def respond_to_selected(modeladmin, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect('/discussion_response_selected/%s' %
                                     ",".join(selected))
 
-    respond_to_selected_discussions.short_description = 'Respond to selected'
+    respond_to_selected.short_description = 'Respond to selected'
+
+    def moderate_selected(modeladmin, request, queryset):
+        queryset.update(moderated=True)
+
+    moderate_selected.short_description = 'Moderate selected'
 
     def get_question(self, obj):
         if obj.question:
