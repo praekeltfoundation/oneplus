@@ -20,6 +20,9 @@ class TestMessage(TestCase):
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
+    def create_class(self, course, name='class name', **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
     def create_user(self, mobile="+27123456789", country="country", **kwargs):
         model_class = get_user_model()
         return model_class.objects.create(
@@ -30,6 +33,7 @@ class TestMessage(TestCase):
 
     def setUp(self):
         self.course = self.create_course()
+        self.classs = self.create_class(self.course)
         self.user = self.create_user()
 
     def test_get_messages(self):
@@ -42,7 +46,8 @@ class TestMessage(TestCase):
         )
         msg2 = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            name="msg2",
             publishdate=datetime.now()
         )
         msg3 = self.create_message(
@@ -58,7 +63,8 @@ class TestMessage(TestCase):
     def test_unread_msg_count(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            name="msg2",
             publishdate=datetime.now()
         )
         msg2 = self.create_message(
@@ -74,7 +80,8 @@ class TestMessage(TestCase):
     def test_view_message(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            name="msg2",
             publishdate=datetime.now()
         )
 
@@ -94,7 +101,8 @@ class TestMessage(TestCase):
     def test_hide_message(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg",
+            self.course,
+            name="msg",
             publishdate=datetime.now()
         )
 

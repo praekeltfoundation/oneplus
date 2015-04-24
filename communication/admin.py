@@ -1,3 +1,4 @@
+from auth.models import Learner
 from django.contrib import admin
 from django.http.response import HttpResponseRedirect
 from django_summernote.admin import SummernoteModelAdmin
@@ -52,7 +53,7 @@ class DiscussionAdmin(admin.ModelAdmin):
     list_display = ("id", "get_question", "module", "course", "get_content",
                     "author", "publishdate", "get_response_posted", "moderated")
     list_filter = ("course", "module", "question", "moderated")
-    search_fields = ("author", "content")
+    search_fields = ("author__first_name", "author__last_name", "author__username", "author__mobile", "content")
     fieldsets = [
         (None,
             {"fields": ["name", "description"]}),
@@ -61,14 +62,19 @@ class DiscussionAdmin(admin.ModelAdmin):
         ("Discussion Group",
             {"fields": ["course", "module", "question", "response"]})
     ]
-    actions = ['respond_to_selected_discussions']
+    actions = ['respond_to_selected', 'moderate_selected']
 
-    def respond_to_selected_discussions(modeladmin, request, queryset):
+    def respond_to_selected(modeladmin, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect('/discussion_response_selected/%s' %
                                     ",".join(selected))
 
-    respond_to_selected_discussions.short_description = 'Respond to selected'
+    respond_to_selected.short_description = 'Respond to selected'
+
+    def moderate_selected(modeladmin, request, queryset):
+        queryset.update(moderated=True)
+
+    moderate_selected.short_description = 'Moderate selected'
 
     def get_question(self, obj):
         if obj.question:
@@ -98,20 +104,18 @@ class DiscussionAdmin(admin.ModelAdmin):
 
 
 class MessageAdmin(SummernoteModelAdmin):
-    list_display = ("name", "get_content", "get_class", "course",
-                    "author", "direction", "publishdate", 'get_response')
-    list_filter = ("course", "direction", "responded")
+    list_display = ("get_name", "get_content", "get_class", "author", "direction", "publishdate", 'get_response')
+    list_filter = ("direction", "responded")
     search_fields = ("name", )
-    fieldsets = [
-        (None,
-            {"fields": ["name", "course", "author", "direction",
-                        "publishdate"]}),
-        ("Content",
-            {"fields": ["content"]})
-    ]
+
+    def get_name(self, obj):
+        return u'<a href="/message/%s">%s</a>' % (obj.id, obj.name)
+
+    get_name.short_description = 'Name'
+    get_name.allow_tags = True
 
     def get_content(self, obj):
-        return '<a href="">' + obj.content + '<a>'
+        return '<a href="/message_response/%s" target="_blank">%s</a>' % (obj.id, obj.content)
 
     get_content.short_description = 'Message Content'
     get_content.allow_tags = True
@@ -126,14 +130,14 @@ class MessageAdmin(SummernoteModelAdmin):
         if obj.responded:
             return obj.responddate
         else:
-            return '<a href="/message_response/%s/">Respond</a>' % obj.id
+            return '<a href="/message_response/%s" target="_blank">Respond</a>' % obj.id
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
 
 
 class SmsAdmin(SummernoteModelAdmin):
-    list_display = ("msisdn", "date_sent", "message", "get_response")
+    list_display = ("id", "msisdn", "date_sent", "message", "get_response")
     search_fields = ("msisdn", "date_sent", "message")
     list_filter = ("responded",)
 
@@ -141,7 +145,7 @@ class SmsAdmin(SummernoteModelAdmin):
         if obj.responded:
             return obj.respond_date
         else:
-            return '<a href="/sms_response/%s/">Respond</a>' % obj.id
+            return '<a href="/sms_response/%s">Respond</a>' % obj.id
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
@@ -160,6 +164,7 @@ class ReportAdmin(admin.ModelAdmin):
         "get_response",
     )
     list_filter = (UserFilter, 'question')
+    search_fields = ("fix", "issue")
 
     def get_name(self, obj):
         return u'%s %s' % (obj.user.first_name, obj.user.last_name)
