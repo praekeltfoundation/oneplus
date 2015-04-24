@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from amqp.basic_message import Message
 from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta, date
 from django.contrib.admin.sites import AdminSite
@@ -25,7 +26,6 @@ from django.test.utils import override_settings
 import logging
 from django.db.models import Count
 from datetime import datetime
-
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -1683,7 +1683,7 @@ class GeneralTests(TestCase):
         resp = c.post('/sms_response/%s' % sms.id,
                       data={'publishdate_0': '2014-01-01',
                             'publishdate_1': '00:00:00',
-                            'content': '<p>Test</p>'
+                            'content': 'Test24'
                             })
 
         sms = Sms.objects.get(pk=sms.id)
@@ -1692,7 +1692,7 @@ class GeneralTests(TestCase):
         self.assertIsNotNone(sms.response)
 
         qsms = SmsQueue.objects.get(msisdn=learner.mobile)
-        self.assertEquals(qsms.message, '<p>Test</p>')
+        self.assertEquals(qsms.message, 'Test24')
 
     def test_admin_discussion_response(self):
         c = Client()
@@ -1855,6 +1855,36 @@ class GeneralTests(TestCase):
         self.assertIsNotNone(disc2.response)
         self.assertEquals(disc2.response.moderated, True)
         self.assertEquals(disc2.response.author, self.admin_user)
+
+    def test_get_courses(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get('/courses')
+        self.assertContains(resp, '"name": "course name"')
+
+    def test_get_classes(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.create_class(name='test class 42', course=self.course)
+
+        resp = c.get('/classes/all')
+        self.assertContains(resp, '"name": "class name"')
+        self.assertContains(resp, '"name": "test class 42"')
+
+        resp = c.get('/classes/%s' % self.course.id)
+        self.assertContains(resp, '"name": "class name"')
+
+    def test_get_users(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        resp = c.get('/users/all')
+        self.assertContains(resp, '"name": "+27123456789"')
+
+        resp = c.get('/users/%s' % self.classs.id)
+        self.assertContains(resp, '"name": "+27123456789"')
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -2168,6 +2198,198 @@ class OneplusAdminMetricTest(TestCase):
             country="country",
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30))
+
+
+class MessageTest(TestCase):
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(name=name, organisation=organisation, **kwargs)
+
+    def create_course(self, name="course1", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_admin(self, username, password, mobile):
+        return CustomUser.objects.create_superuser(
+            username=username,
+            email='asdf@example.com',
+            password=password,
+            mobile=mobile)
+
+    def create_learner(self, school, **kwargs):
+        return Learner.objects.create(school=school, **kwargs)
+
+    def create_participant(self, learner, classs, **kwargs):
+        return Participant.objects.create(learner=learner, classs=classs, **kwargs)
+
+    def create_message(self, author, course, **kwargs):
+        return Message.objects.create(author=author, course=course, **kwargs)
+
+    def setUp(self):
+        self.organisation = self.create_organisation()
+        self.school = self.create_school("abc", self.organisation)
+        self.course = self.create_course()
+        self.classs = self.create_class("class1", self.course)
+
+    def test_add_message(self):
+        password = "12345"
+        admin = self.create_admin("asdf", password, "+27123456789")
+        c = Client()
+        c.login(username=admin.username, password=password)
+
+        #create a participant in course 1 class 1
+        leaner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
+        self.create_participant(leaner_1, self.classs, datejoined=datetime.now())
+
+        #create another class in same course
+        c1_class2 = self.create_class("c1_class2", self.course)
+
+        #create a participant in course 1 class 2
+        leaner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
+        self.create_participant(leaner_2, c1_class2, datejoined=datetime.now())
+
+        #create a new course and a class
+        course2 = self.create_course("course2")
+        c2_class1 = self.create_class("c2_class1", course2)
+
+        #create a participant in course 2 class 1
+        leaner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
+        self.create_participant(leaner_3, c2_class1, datejoined=datetime.now())
+
+        #create another class in course 2
+        c2_class2 = self.create_class("c2_class2", course2)
+
+        #create a participant in course 1 class 2
+        leaner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
+        self.create_participant(leaner_4, c2_class2, datejoined=datetime.now())
+
+        #test date and content validation errors
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': '',
+                            'course': 'all',
+                            'to_class': 'all',
+                            'users': 'all',
+                            'direction': '1',
+                            'publishdate_0': '',
+                            'publishdate_1': '',
+                            'content': ''},
+                      follow=True)
+        self.assertContains(resp, 'This field is required')
+
+        #test no data posted
+        resp = c.post(reverse('com.add_message'), follow=True)
+        self.assertContains(resp, 'This field is required')
+
+        self.assertEquals(resp.status_code, 200)
+
+        #send message to all course (4 messages, total 4)
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': 'all',
+                            'to_class': 'all',
+                            'users': 'all',
+                            'direction': '1',
+                            'publishdate_0': '2014-01-01',
+                            'publishdate_1': '00:00:00',
+                            'content': 'message'},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = Message.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 4)
+
+        #send message to course 1 (2 messages, total 6)
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': self.course.id,
+                            'to_class': 'all',
+                            'users': 'all',
+                            'direction': '1',
+                            'publishdate_0': '2014-02-01',
+                            'publishdate_1': '01:00:00',
+                            'content': 'message'},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = Message.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 6)
+
+        #send message to course 1 class 1 (1 messages, total 7)
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'users': 'all',
+                            'direction': '1',
+                            'publishdate_0': '2014-03-01',
+                            'publishdate_1': '02:00:00',
+                            'content': 'message'},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = Message.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 7)
+
+        #send message to course 1 class 1  learner 1(1 messages, total 8)
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'users': leaner_1.id,
+                            'direction': '1',
+                            'publishdate_0': '2014-04-03',
+                            'publishdate_1': '03:00:00',
+                            'content': 'message'},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = Message.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 8)
+
+        resp = c.get(reverse('com.add_message'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>Message</title>")
+
+    def test_view_message(self):
+        password = "12345"
+        admin = self.create_admin("asdf", password, "+27123456789")
+        c = Client()
+        c.login(username=admin.username, password=password)
+
+        leaner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
+        self.create_participant(leaner_1, self.classs, datejoined=datetime.now())
+
+        c.post(reverse('com.add_message'),
+               data={'name': 'asdf',
+                     'course': self.course.id,
+                     'to_class': self.classs.id,
+                     'users': leaner_1.id,
+                     'direction': '1',
+                     'publishdate_0': datetime.now().time(),
+                     'publishdate_1': datetime.now().date(),
+                     'content': 'message'},
+               follow=True)
+
+        db_msg = Message.objects.all().first()
+
+        resp = c.get(reverse('com.view_message', kwargs={'msg': 99}))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Message not found")
+
+        resp = c.get(reverse('com.view_message', kwargs={'msg': db_msg.id}))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>Message</title>")
+
+        resp = c.post(reverse('com.view_message', kwargs={'msg': db_msg.id}), follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>Message</title>")
 
 
 class SMSQueueTest(TestCase):
