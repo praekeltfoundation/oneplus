@@ -109,13 +109,6 @@ class Message(models.Model):
         blank=False,
         related_name='message_course'
     )
-    to_course = models.ForeignKey(
-        Course,
-        verbose_name="Send to",
-        null=True,
-        blank=True,
-        related_name='message_to_course'
-    )
     to_class = models.ForeignKey(
         'core.Class',
         verbose_name="",
