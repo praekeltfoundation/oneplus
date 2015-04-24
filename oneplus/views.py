@@ -2427,7 +2427,7 @@ def add_message(request):
         content = None
 
         name_error, name = validate_name(request.POST)
-        course_error, course = validate_to_course(request.POST)
+        course_error, course = validate_course(request.POST)
         class_error, classs = validate_to_class(request.POST)
         users_error, users = validate_users(request.POST)
         direction_error, direction = validate_direction(request.POST)
@@ -2440,7 +2440,7 @@ def add_message(request):
                 template_name='misc/message.html',
                 dictionary={
                     'name_error': name_error,
-                    'to_course_error': course_error,
+                    'course_error': course_error,
                     'to_class_error': class_error,
                     'direction_error': direction_error,
                     'dt_error': dt_error,
@@ -2494,7 +2494,7 @@ def add_message(request):
     def create_message(name, course, classs, direction, publishdate, content):
         Message.objects.create(
             name=name,
-            to_course=course,
+            course=course,
             to_class=classs,
             content=content,
             publishdate=publishdate,

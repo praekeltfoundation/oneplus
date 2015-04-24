@@ -2,12 +2,12 @@ function loadCourses()
 {
     var url = "/courses";
     $.getJSON(url, function(data) {
-        $('#id_to_course').empty();
+        $('#id_course').empty();
         if (data.length != 0)
         {
-            $('#id_to_course').append(new Option('All', 'all'))
+            $('#id_course').append(new Option('All', 'all'))
             $.each(data, function() {
-                $('#id_to_course').append(new Option(this.name, this.id));
+                $('#id_course').append(new Option(this.name, this.id));
             });
         }
         else
@@ -58,8 +58,8 @@ $(document).ready(
         loadUsers('all');
 
         //on course change load correct classes
-        $('#id_to_course').on('change', function() {
-            loadClasses($("#id_to_course option:selected").val());
+        $('#id_course').on('change', function() {
+            loadClasses($("#id_course option:selected").val());
         });
 
         //on class change load correct users

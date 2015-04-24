@@ -65,7 +65,7 @@ def validate_content(post):
     else:
         return True, content
 
-    return False, content
+    return False, clean(content)
 
 
 def validate_name(post):
@@ -82,11 +82,11 @@ def validate_name(post):
     return False, name
 
 
-def validate_to_course(post):
+def validate_course(post):
     to_course = None
 
-    if 'to_course' in post:
-        to_course = post['to_course']
+    if 'course' in post:
+        to_course = post['course']
     else:
         return True, to_course
 
@@ -124,3 +124,13 @@ def validate_direction(post):
         return True, direction
 
     return False, direction
+
+
+def clean(content):
+    rep = {"<p>": "", "</p>": "", "<br>": ""}
+
+    rep = dict((re.escape(k), v) for k, v in rep.iteritems())
+    pattern = re.compile("|".join(rep.keys()))
+    content = pattern.sub(lambda m: rep[re.escape(m.group(0))], content)
+
+    return content
