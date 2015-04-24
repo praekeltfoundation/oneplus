@@ -2551,7 +2551,6 @@ def discussion_response(request, disc):
         return HttpResponse("Discussion %s not found" % disc)
 
     def get():
-
         return render(
             request=request,
             template_name='misc/discussion_response.html',
@@ -2602,6 +2601,119 @@ def discussion_response(request, disc):
             db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def add_sms(request):
+    def get():
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+        )
+
+    def post():
+        course_error = False
+        class_error = False
+        dt_error = False
+        message_error = False
+
+        course = None
+        classs = None
+        date = None
+        time = None
+        message = None
+
+        course_error, course = validate_to_course(request.POST)
+        class_error, classs = validate_to_class(request.POST)
+        dt_error, date, time, dt = validate_date_and_time(request.POST)
+        message_error, message = validate_message(request.POST)
+
+        if course_error or class_error or dt_error or message_error:
+            return render(
+                request=request,
+                template_name='misc/queued_sms.html',
+                dictionary={
+                    'to_course_error': course_error,
+                    'to_class_error': class_error,
+                    'dt_error': dt_error,
+                    'message_error': message_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_message': message
+                }
+            )
+
+        else:
+            if course == "all":
+                all_courses = Course.objects.all()
+
+                for _course in all_courses:
+                    all_classes = Class.objects.filter(course=_course)
+
+                    for _classs in all_classes:
+                        all_users = Participant.objects.filter(classs=_classs)
+
+                        for u in all_users:
+                            create_sms(u.learner.mobile, dt, message)
+            else:
+                course_obj = Course.objects.get(id=course)
+
+                if classs == "all":
+                    all_classes = Class.objects.filter(course=course_obj)
+
+                    for c in all_classes:
+                        all_users = Participant.objects.filter(classs=c)
+
+                        for u in all_users:
+                            create_sms(u.learner.mobile, dt, message)
+                else:
+                    classs_obj = Class.objects.get(id=classs)
+
+                    all_users = Participant.objects.filter(classs=classs_obj)
+
+                    for u in all_users:
+                        create_sms(u.learner.mobile, dt, message)
+
+        return HttpResponseRedirect('/admin/communication/smsqueue/')
+
+    def create_sms(identifier, send_date, message):
+        SmsQueue.objects.create(
+            msisdn=identifier,
+            send_date=send_date,
+            message=message
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def view_sms(request, sms):
+    db_sms = SmsQueue.objects.filter(id=sms).first()
+
+    if db_sms is None:
+        return HttpResponse("Queued SMS not found")
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
+
+    def post():
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -2665,6 +2777,39 @@ def sms_response(request, sms):
             return HttpResponseRedirect('/admin/communication/sms/')
 
     return resolve_http_method(request, [get, post])
+
+
+def get_courses(request):
+    courses = Course.objects.all()
+
+    data = []
+    for c in courses:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+def get_classes(request, course):
+    if course == 'all':
+        classes = Class.objects.all()
+    else:
+        try:
+            course = int(course)
+            if Course.objects.get(id=course):
+                current_course = Course.objects.get(id=course)
+                classes = Class.objects.all().filter(course=current_course)
+            else:
+                classes = None
+        except ValueError, ObjectDoesNotExist:
+            classes = None
+
+    data = []
+    for c in classes:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
 
 
 @user_passes_test(lambda u: u.is_staff)
