@@ -121,8 +121,8 @@ class TestChatMessage(TestCase):
 
 
 class TestSmsQueue(TestCase):
-    def create_smsqueue(self, course, classs, **kwargs):
-        return SmsQueue.objects.create(to_course=course, to_class=classs, **kwargs)
+    def create_smsqueue(self, **kwargs):
+        return SmsQueue.objects.create(**kwargs)
 
     def test_created_smsqueue(self):
         sms_queue1 = self.create_smsqueue(msisdn="+27721472583", send_date=datetime.now(), message="Message")
