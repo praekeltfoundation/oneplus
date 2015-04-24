@@ -69,6 +69,9 @@ urlpatterns = [
         views.discussion_response_selected,
         name="com.discrespsel"),
 
+    url(r"^message/add/$", views.add_message, name="com.add_message"),
+    url(r"^message/(?P<msg>\d+)/$", views.view_message, name="com.view_message"),
+
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
     url(r"^leader$", views.leader, name="prog.leader"),
@@ -94,4 +97,9 @@ urlpatterns = [
     url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
         views.question_difficulty_report,
         name='reports.question_difficulty'),
+
+    #filtering for message admin
+    url(r'^courses$', views.get_courses),
+    url(r'^classes/(?P<course>\w+)$', views.get_classes),
+    url(r'^users/(?P<classs>\w+)$', views.get_users),
 ]

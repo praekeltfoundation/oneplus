@@ -1,5 +1,6 @@
 from dateutil import parser
 from datetime import datetime
+import re
 
 
 def zero_len(value):
@@ -65,4 +66,72 @@ def validate_content(post):
     else:
         return True, content
 
-    return False, content
+    return False, clean(content)
+
+
+def validate_name(post):
+    name = None
+
+    if 'name' in post:
+        name = post['name']
+
+        if zero_len(name):
+            return True, name
+    else:
+        return True, name
+
+    return False, name
+
+
+def validate_course(post):
+    to_course = None
+
+    if 'course' in post:
+        to_course = post['course']
+    else:
+        return True, to_course
+
+    return False, to_course
+
+
+def validate_to_class(post):
+    to_class = None
+
+    if 'to_class' in post:
+        to_class = post['to_class']
+    else:
+        return True, to_class
+
+    return False, to_class
+
+
+def validate_users(post):
+    users = None
+
+    if 'users' in post:
+        users = post['users']
+    else:
+        return True, users
+
+    return False, users
+
+
+def validate_direction(post):
+    direction = None
+
+    if 'direction' in post:
+        direction = post['direction']
+    else:
+        return True, direction
+
+    return False, direction
+
+
+def clean(content):
+    rep = {"<p>": "", "</p>": "", "<br>": ""}
+
+    rep = dict((re.escape(k), v) for k, v in rep.iteritems())
+    pattern = re.compile("|".join(rep.keys()))
+    content = pattern.sub(lambda m: rep[re.escape(m.group(0))], content)
+
+    return content

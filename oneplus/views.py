@@ -2213,6 +2213,63 @@ def question_difficulty_report(request, mode):
 
 
 @user_passes_test(lambda u: u.is_staff)
+def get_courses(request):
+    courses = Course.objects.all()
+
+    data = []
+    for c in courses:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def get_classes(request, course):
+    if course == 'all':
+        classes = Class.objects.all()
+    else:
+        try:
+            course = int(course)
+            if Course.objects.get(id=course):
+                current_course = Course.objects.get(id=course)
+                classes = Class.objects.all().filter(course=current_course)
+            else:
+                classes = None
+        except ValueError, ObjectDoesNotExist:
+            classes = None
+
+    data = []
+    for c in classes:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def get_users(request, classs):
+    if classs == 'all':
+        participants = Participant.objects.all()
+    else:
+        try:
+            classs = int(classs)
+
+            if Class.objects.get(id=classs):
+                current_class = Class.objects.get(id=classs)
+                participants = Participant.objects.all().filter(classs=current_class)
+        except ValueError, ObjectDoesNotExist:
+            participants = None
+
+    data = []
+    for p in participants:
+        line = {"id": p.learner.id, "name": p.learner.mobile}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
 def report_response(request, report):
     db_report = Report.objects.filter(id=report).first()
     if db_report:
@@ -2348,6 +2405,140 @@ def message_response(request, msg):
 
 
 @user_passes_test(lambda u: u.is_staff)
+def add_message(request):
+    def get():
+        return render(
+            request=request,
+            template_name='misc/message.html',
+        )
+
+    def post():
+        name_error = False
+        course_error = False
+        class_error = False
+        users_error = False
+        direction_error = False
+        dt_error = False
+        content_error = False
+        name = None
+        course = None
+        classs = None
+        users = None
+        direction = None
+        date = None
+        time = None
+        content = None
+
+        name_error, name = validate_name(request.POST)
+        course_error, course = validate_course(request.POST)
+        class_error, classs = validate_to_class(request.POST)
+        users_error, users = validate_users(request.POST)
+        direction_error, direction = validate_direction(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if name_error or course_error or class_error or users_error or direction_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/message.html',
+                dictionary={
+                    'name_error': name_error,
+                    'course_error': course_error,
+                    'to_class_error': class_error,
+                    'direction_error': direction_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_name': name,
+                    'v_direction': direction,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+
+        else:
+            if course == "all":
+                all_courses = Course.objects.all()
+
+                for _course in all_courses:
+                    all_classes = Class.objects.filter(course=_course)
+
+                    for _classs in all_classes:
+                        all_users = Participant.objects.filter(classs=_classs)
+
+                        for u in all_users:
+                            create_message(name, _course, _classs, direction, dt, content)
+            else:
+                course_obj = Course.objects.get(id=course)
+
+                if classs == "all":
+                    all_classes = Class.objects.filter(course=course_obj)
+
+                    for c in all_classes:
+                        all_users = Participant.objects.filter(classs=c)
+
+                        for u in all_users:
+                            create_message(name, course_obj, c, direction, dt, content)
+                else:
+                    classs_obj = Class.objects.get(id=classs)
+
+                    if users == "all":
+                        all_users = Participant.objects.filter(classs=classs_obj)
+
+                        for u in all_users:
+                            create_message(name, course_obj, classs_obj, direction, dt, content)
+                    else:
+                        learner = Learner.objects.get(id=users)
+                        user = Participant.objects.filter(learner=learner).first()
+                        create_message(name, course_obj, classs_obj, direction, dt, content)
+
+        return HttpResponseRedirect('/admin/communication/message/')
+
+    def create_message(name, course, classs, direction, publishdate, content):
+        Message.objects.create(
+            name=name,
+            course=course,
+            to_class=classs,
+            content=content,
+            publishdate=publishdate,
+            author=request.user,
+            direction=direction,
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def view_message(request, msg):
+    db_msg = Message.objects.filter(id=msg).first()
+
+    if db_msg is None:
+        return HttpResponse("Message not found")
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/message.html',
+            dictionary={
+                'message': db_msg,
+                'ro': True
+            }
+        )
+
+    def post():
+        return render(
+            request=request,
+            template_name='misc/message.html',
+            dictionary={
+                'message': db_msg,
+                'ro': True
+            }
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
 def discussion_response(request, disc):
     db_disc = Discussion.objects.filter(id=disc).first()
 
@@ -2373,9 +2564,6 @@ def discussion_response(request, disc):
         dt_error = False
         content_error = False
         title = None
-        date = None
-        time = None
-        content = None
 
         title_error, title = validate_title(request.POST)
         dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
@@ -2414,67 +2602,6 @@ def discussion_response(request, disc):
             db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
-
-    return resolve_http_method(request, [get, post])
-
-
-@user_passes_test(lambda u: u.is_staff)
-def sms_response(request, sms):
-    db_sms = Sms.objects.filter(id=sms).first()
-
-    if db_sms:
-        db_participant = Participant.objects.filter(learner__mobile__contains=db_sms.msisdn).first()
-
-    else:
-        return HttpResponse("Sms %s not found" % sms)
-
-    def get():
-
-        return render(
-            request=request,
-            template_name='misc/sms_response.html',
-            dictionary={'sms': db_sms, 'participant': db_participant}
-        )
-
-    def post():
-
-        dt_error = False
-        content_error = False
-        title = None
-        date = None
-        time = None
-        content = None
-
-        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
-        content_error, content = validate_content(request.POST)
-
-        if dt_error or content_error:
-            return render(
-                request=request,
-                template_name='misc/sms_response.html',
-                dictionary={
-                    'sms': db_sms,
-                    'participant': db_participant,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
-                }
-            )
-        else:
-            qsms = SmsQueue.objects.create(
-                message=content,
-                send_date=dt,
-                msisdn=db_sms.msisdn
-            )
-
-            db_sms.responded = True
-            db_sms.respond_date = datetime.now()
-            db_sms.response = qsms
-            db_sms.save()
-
-            return HttpResponseRedirect('/admin/communication/sms/')
 
     return resolve_http_method(request, [get, post])
 
