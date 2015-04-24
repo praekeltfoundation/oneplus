@@ -2429,7 +2429,6 @@ def sms_response(request, sms):
         return HttpResponse("Sms %s not found" % sms)
 
     def get():
-
         return render(
             request=request,
             template_name='misc/sms_response.html',
@@ -2483,7 +2482,7 @@ def add_sms(request):
     def get():
         return render(
             request=request,
-            template_name='misc/sms.html',
+            template_name='misc/queued_sms.html',
         )
 
     def post():
@@ -2509,7 +2508,7 @@ def add_sms(request):
         if identifier_error or course_error or class_error or dt_error or message_error:
             return render(
                 request=request,
-                template_name='misc/message.html',
+                template_name='misc/queued_sms.html',
                 dictionary={
                     'identifier_error': identifier_error,
                     'to_course_error': course_error,
@@ -2552,17 +2551,16 @@ def add_sms(request):
                     all_users = Participant.objects.filter(classs=classs_obj)
 
                     for u in all_users:
-                        create_sms(identifier, course_obj, classs_obj, dt, message)
+                        create_sms(u.learner.mobile, course_obj, classs_obj, dt, message)
 
-        return HttpResponseRedirect('/admin/communication/sms/')
+        return HttpResponseRedirect('/admin/communication/smsqueue/')
 
-    def create_sms(identifier, course, classs, date_sent, message):
-        Sms.objects.create(
-            uuid=identifier,
+    def create_sms(identifier, course, classs, send_date, message):
+        SmsQueue.objects.create(
             msisdn=identifier,
             to_course=course,
             to_class=classs,
-            date_sent=date_sent,
+            send_date=send_date,
             message=message
         )
 
@@ -2570,15 +2568,15 @@ def add_sms(request):
 
 
 def view_sms(request, sms):
-    db_sms = Sms.objects.filter(id=sms).first()
+    db_sms = SmsQueue.objects.filter(id=sms).first()
 
     if db_sms is None:
-        return HttpResponse("SMS not found")
+        return HttpResponse("Queued SMS not found")
 
     def get():
         return render(
             request=request,
-            template_name='misc/sms.html',
+            template_name='misc/queued_sms.html',
             dictionary={
                 'sms': db_sms,
                 'ro': True
@@ -2588,7 +2586,7 @@ def view_sms(request, sms):
     def post():
         return render(
             request=request,
-            template_name='misc/sms.html',
+            template_name='misc/queued_sms.html',
             dictionary={
                 'sms': db_sms,
                 'ro': True
@@ -2596,3 +2594,36 @@ def view_sms(request, sms):
         )
 
     return resolve_http_method(request, [get, post])
+
+
+def get_courses(request):
+    courses = Course.objects.all()
+
+    data = []
+    for c in courses:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+def get_classes(request, course):
+    if course == 'all':
+        classes = Class.objects.all()
+    else:
+        try:
+            course = int(course)
+            if Course.objects.get(id=course):
+                current_course = Course.objects.get(id=course)
+                classes = Class.objects.all().filter(course=current_course)
+            else:
+                classes = None
+        except ValueError, ObjectDoesNotExist:
+            classes = None
+
+    data = []
+    for c in classes:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")

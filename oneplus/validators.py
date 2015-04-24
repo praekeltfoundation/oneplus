@@ -1,5 +1,6 @@
 from dateutil import parser
 from datetime import datetime
+import re
 
 
 def zero_len(value):
@@ -140,4 +141,14 @@ def validate_message(post):
     else:
         return True, message
 
-    return False, message
+    return False, clean(message)
+
+
+def clean(content):
+    rep = {"<p>": "", "</p>": "", "<br>": ""}
+
+    rep = dict((re.escape(k), v) for k, v in rep.iteritems())
+    pattern = re.compile("|".join(rep.keys()))
+    content = pattern.sub(lambda m: rep[re.escape(m.group(0))], content)
+
+    return content

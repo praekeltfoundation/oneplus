@@ -45,9 +45,4 @@ $(document).ready(
         $('#id_to_course').on('change', function() {
             loadClasses($("#id_to_course option:selected").val());
         });
-
-        //on class change load correct users
-        $('#id_to_class').on('change', function(){
-            loadUsers($("#id_to_class option:selected").val());
-        });
     });

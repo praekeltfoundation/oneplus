@@ -74,7 +74,7 @@
                     <ul>
                         <li><a href="/admin/">Home</a></li>
                         <li><a href="/admin/communication/">Communication</a></li>
-                        <li><a href="/admin/communication/message/">Smses</a></li>
+                        <li><a href="/admin/communication/smsqueue/">Queued Smses</a></li>
                         {%  if ro %}
                             <li>SMS</li>
                         {% else %}
@@ -97,36 +97,13 @@
                         <div class="grp-row grp-cells-1">
                             <div class="l-2c-fluid l-d-4">
                                 <div class="c-1">
-                                    <label class="required">Identifier</label>
+                                    <label class="required">Send To:</label>
                                 </div>
                                 <div class="c-2">
                                     {% if ro %}
-                                        <label>{{ sms.msisdn }}</label>
-                                    {% else %}
-                                        <input class="vTextField" id="id_identifier" maxlength="50" name="identifier" type="text" value="{{ v_identifier }}">
-                                        {% if identifier_error %}
-                                            <ul class="errorlist">
-                                                <li>This field is required.</li>
-                                            </ul>
-                                        {% endif %}
-                                {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="grp-row grp-cells-1">
-                            <div class="l-2c-fluid l-d-4">
-                                <div class="c-1">
-                                    {%  if ro %}
-                                        <label class="required">Sent To:</label>
-                                    {% else %}
-                                        <label class="required">Send To:</label>
-                                    {% endif %}
-                                </div>
-                                <div class="c-2">
-                                    {% if ro %}
-                                        <label>{{ message.to_course }}</label>
+                                        <label>{{ sms.to_course }}</label>
                                         &ensp; &ensp;
-                                        <label>{{ message.to_class }}</label>
+                                        <label>{{ sms.to_class }}</label>
                                     {% else %}
                                         <select id="id_to_course" name="to_course"></select>
                                         <select id="id_to_class" name="to_class"></select>
@@ -137,11 +114,11 @@
                         <div class="grp-row grp-cells-1">
                             <div class="l-2c-fluid l-d-4">
                                 <div class="c-1">
-                                    <label class="required">Time SMS is sent</label>
+                                    <label class="required">Time SMS is sent:</label>
                                 </div>
                                 <div class="c-2">
                                     {% if ro %}
-                                        <label>{{ message.date_sent }}</label>
+                                        <label>{{ sms.send_date }}</label>
                                     {% else %}
                                         <p class="datetime">
                                             <input class="vDateField" id="id_date_sent_0" name="date_sent_0" size="10" type="text" value="{{ v_date }}">
@@ -161,7 +138,7 @@
                         <div class="grp-row grp-cells-1">
                             <div class="l-2c-fluid l-d-4">
                                 <div class="c-1">
-                                    <label for="id_message">Message</label>
+                                    <label for="id_message" class="required">Message:</label>
                                 </div>
                                 <div class="c-2">
                                     {% if ro %}
@@ -169,7 +146,7 @@
                                     {% else %}
                                         <textarea cols="40" hidden="true" id="id_message" name="message" rows="10">{{ v_message }}</textarea>
                                         <script>
-                                            var settings_id_content = {
+                                            var settings_id_message = {
                                                 "lang": "en-US",
                                                 "url": {
                                                     "upload_attachment": "/summernote/upload_attachment/"
@@ -181,7 +158,7 @@
                                             };
                                         </script>
 
-                                        <iframe id="id_content_iframe" src="/summernote/editor/id_content/" frameborder="0" cols="40" rows="10" width="100%" height="400"></iframe>
+                                        <iframe id="id_message_iframe" src="/summernote/editor/id_message/" frameborder="0" cols="40" rows="10" width="100%" height="400"></iframe>
 
                                         {% if message_error %}
                                             <ul class="errorlist">
@@ -192,6 +169,26 @@
                                 </div>
                             </div>
                         </div>
+                        {%  if ro %}
+                            <div class="grp-row grp-cells-1">
+                                <div class="l-2c-fluid l-d-4">
+                                    <div class="c-1">
+                                        {%  if sms.sent %}
+                                            <label class="required">Sent Date:</label>
+                                        {% else %}
+                                            <label class="required">Sent:</label>
+                                        {% endif %}
+                                    </div>
+                                    <div class="c-2">
+                                        {%  if sms.sent %}
+                                            <label>{{ sms.sent_date }}</label>
+                                        {% else %}
+                                            <label>Not sent</label>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </fieldset>
                 {% if not ro %}
                     <footer class="grp-module grp-submit-row grp-fixed-footer">
@@ -205,6 +202,6 @@
             </form>
         </article>
         <script src="/static/grappelli/jquery/jquery-1.9.1.min.js"></script>
-        <script src="/static/js/auth.js"></script>
+        <script src="/static/js/sms.js"></script>
     </body>
 </html>

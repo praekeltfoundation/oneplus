@@ -65,8 +65,8 @@ urlpatterns = [
     url(r"^sms_response/(?P<sms>\d+)$",
         views.sms_response,
         name="com.smsresp"),
-    url(r"^sms/add/$", views.add_sms, name="com.add_sms"),
-    url(r"^sms/(?P<sms>\d+)/$", views.view_sms, name="com.view_sms"),
+    url(r"^smsqueue/add/$", views.add_sms, name="com.add_sms"),
+    url(r"^smsqueue/(?P<sms>\d+)/$", views.view_sms, name="com.view_sms"),
 
     # Progress
     url(r"^ontrack$", views.ontrack, name="prog.ontrack"),
@@ -93,4 +93,8 @@ urlpatterns = [
     url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
         views.question_difficulty_report,
         name='reports.question_difficulty'),
+
+   #filtering for message admin
+    url(r'^courses$', views.get_courses),
+    url(r'^classes/(?P<course>\w+)$', views.get_classes),
 ]
