@@ -28,8 +28,8 @@ class TestMessage(TestCase):
         return model_class.objects.create(
             mobile=mobile, country=country, **kwargs)
 
-    def create_message(self, author, course, classs, **kwargs):
-        return Message.objects.create(author=author, to_course=course, to_class=classs, **kwargs)
+    def create_message(self, author, course, **kwargs):
+        return Message.objects.create(author=author, course=course, **kwargs)
 
     def setUp(self):
         self.course = self.create_course()
@@ -41,21 +41,18 @@ class TestMessage(TestCase):
         self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg1",
             publishdate=datetime.now()
         )
         msg2 = self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg2",
             publishdate=datetime.now()
         )
         msg3 = self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg3",
             publishdate=datetime.now()
         )
@@ -67,14 +64,12 @@ class TestMessage(TestCase):
         msg = self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg2",
             publishdate=datetime.now()
         )
         msg2 = self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg3",
             publishdate=datetime.now()
         )
@@ -86,7 +81,6 @@ class TestMessage(TestCase):
         msg = self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg2",
             publishdate=datetime.now()
         )
@@ -108,7 +102,6 @@ class TestMessage(TestCase):
         msg = self.create_message(
             self.user,
             self.course,
-            self.classs,
             name="msg",
             publishdate=datetime.now()
         )

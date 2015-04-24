@@ -328,6 +328,7 @@ class Report(models.Model):
         verbose_name = "Report"
         verbose_name_plural = "Reports"
 
+
 class SmsQueue(models.Model):
     message = models.TextField(
         verbose_name="Message",
