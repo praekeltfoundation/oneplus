@@ -3,6 +3,7 @@ from django.conf import settings
 from datetime import datetime
 from organisation.models import Course, Module
 from content.models import TestingQuestion
+from django.db.models import Q
 
 
 class Page(models.Model):
@@ -127,7 +128,8 @@ class Message(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="message_author"
     )
     direction = models.PositiveIntegerField(
         "Direction",
@@ -145,14 +147,44 @@ class Message(models.Model):
         null=True,
         blank=True
     )
+    to_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="message_for_learner"
+    )
 
     def __str__(self):
         return self.name
 
     @staticmethod
     def get_messages(user, course, limit):
-        _msgs = Message.objects.filter(
-            course=course, direction=1).order_by("publishdate").reverse()
+        from core.models import Class
+
+        _msgs_for_course = Q(
+            course=course,
+            direction=1,
+            to_class__isnull=True
+        )
+
+        _classes = Class.objects.filter(course=course).values('id')
+
+        _msgs_for_class = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user__isnull=True
+        )
+
+        _msgs_for_user = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user=user
+        )
+
+        _msgs = Message.objects.filter(_msgs_for_course | _msgs_for_class | _msgs_for_user).order_by("-publishdate")
+
         _result = list()
         for m in _msgs:
             _status = MessageStatus.objects.filter(
@@ -167,7 +199,32 @@ class Message(models.Model):
 
     @staticmethod
     def unread_message_count(user, course):
-        _msgs = Message.objects.filter(course=course, direction=1)
+        from core.models import Class
+
+        _msgs_for_course = Q(
+            course=course,
+            direction=1,
+            to_class__isnull=True
+        )
+
+        _classes = Class.objects.filter(course=course).values('id')
+
+        _msgs_for_class = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user__isnull=True
+        )
+
+        _msgs_for_user = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user=user
+        )
+
+        _msgs = Message.objects.filter(_msgs_for_course | _msgs_for_class | _msgs_for_user)
+        
         _counter = 0
         for m in _msgs:
             if not MessageStatus.objects.filter(

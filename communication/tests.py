@@ -8,7 +8,7 @@ from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
 from core.models import Class
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class TestMessage(TestCase):
@@ -38,23 +38,26 @@ class TestMessage(TestCase):
 
     def test_get_messages(self):
         # unused
+        dt1 = datetime.now()
+        dt2 = dt1 + timedelta(minutes=5)
+        dt3 = dt2 + timedelta(minutes=5)
         self.create_message(
             self.user,
             self.course,
             name="msg1",
-            publishdate=datetime.now()
+            publishdate=dt1
         )
         msg2 = self.create_message(
             self.user,
             self.course,
             name="msg2",
-            publishdate=datetime.now()
+            publishdate=dt2
         )
         msg3 = self.create_message(
             self.user,
             self.course,
             name="msg3",
-            publishdate=datetime.now()
+            publishdate=dt3
         )
         # should return the most recent two in descending order of publishdate
         self.assertEqual(
