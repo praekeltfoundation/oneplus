@@ -69,20 +69,6 @@ def validate_content(post):
     return False, content
 
 
-def validate_identifier(post):
-    identifier = None
-
-    if 'identifier' in post:
-        identifier = post['identifier']
-
-        if zero_len(identifier):
-            return True, identifier
-    else:
-        return True, identifier
-
-    return False, identifier
-
-
 def validate_to_course(post):
     to_course = None
 

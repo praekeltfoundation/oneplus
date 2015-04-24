@@ -101,9 +101,7 @@
                                 </div>
                                 <div class="c-2">
                                     {% if ro %}
-                                        <label>{{ sms.to_course }}</label>
-                                        &ensp; &ensp;
-                                        <label>{{ sms.to_class }}</label>
+                                        <label>{{ sms.msisdn }}</label>
                                     {% else %}
                                         <select id="id_to_course" name="to_course"></select>
                                         <select id="id_to_class" name="to_class"></select>

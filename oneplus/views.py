@@ -2486,36 +2486,31 @@ def add_sms(request):
         )
 
     def post():
-        identifier_error = False
         course_error = False
         class_error = False
         dt_error = False
         message_error = False
 
-        identifier = None
         course = None
         classs = None
         date = None
         time = None
         message = None
 
-        identifier_error, identifier = validate_identifier(request.POST)
         course_error, course = validate_to_course(request.POST)
         class_error, classs = validate_to_class(request.POST)
         dt_error, date, time, dt = validate_date_and_time(request.POST)
         message_error, message = validate_message(request.POST)
 
-        if identifier_error or course_error or class_error or dt_error or message_error:
+        if course_error or class_error or dt_error or message_error:
             return render(
                 request=request,
                 template_name='misc/queued_sms.html',
                 dictionary={
-                    'identifier_error': identifier_error,
                     'to_course_error': course_error,
                     'to_class_error': class_error,
                     'dt_error': dt_error,
                     'message_error': message_error,
-                    'v_identifier': identifier,
                     'v_date': date,
                     'v_time': time,
                     'v_message': message
@@ -2533,7 +2528,7 @@ def add_sms(request):
                         all_users = Participant.objects.filter(classs=_classs)
 
                         for u in all_users:
-                            create_sms(identifier, _course, _classs, dt, message)
+                            create_sms(u.learner.mobile, dt, message)
             else:
                 course_obj = Course.objects.get(id=course)
 
@@ -2544,22 +2539,20 @@ def add_sms(request):
                         all_users = Participant.objects.filter(classs=c)
 
                         for u in all_users:
-                            create_sms(identifier, course_obj, c, dt, message)
+                            create_sms(u.learner.mobile, dt, message)
                 else:
                     classs_obj = Class.objects.get(id=classs)
 
                     all_users = Participant.objects.filter(classs=classs_obj)
 
                     for u in all_users:
-                        create_sms(u.learner.mobile, course_obj, classs_obj, dt, message)
+                        create_sms(u.learner.mobile, dt, message)
 
         return HttpResponseRedirect('/admin/communication/smsqueue/')
 
-    def create_sms(identifier, course, classs, send_date, message):
+    def create_sms(identifier, send_date, message):
         SmsQueue.objects.create(
             msisdn=identifier,
-            to_course=course,
-            to_class=classs,
             send_date=send_date,
             message=message
         )
