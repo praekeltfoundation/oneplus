@@ -53,7 +53,7 @@ class DiscussionAdmin(admin.ModelAdmin):
     list_display = ("id", "get_question", "module", "course", "get_content",
                     "author", "publishdate", "get_response_posted", "moderated")
     list_filter = ("course", "module", "question", "moderated")
-    search_fields = ("author", "content")
+    search_fields = ("author__first_name", "author__last_name", "author__username", "author__mobile", "content")
     fieldsets = [
         (None,
             {"fields": ["name", "description"]}),
@@ -110,7 +110,7 @@ class MessageAdmin(SummernoteModelAdmin):
     get_name.allow_tags = True
 
     def get_content(self, obj):
-        return '<a href="">' + obj.content + '<a>'
+        return '<a href="/message_response/%s/" target="_blank">%s</a>' % (obj.id, obj.content)
 
     get_content.short_description = 'Message Content'
     get_content.allow_tags = True
@@ -125,17 +125,14 @@ class MessageAdmin(SummernoteModelAdmin):
         if obj.responded:
             return obj.responddate
         else:
-            return '<a href="/message_response/%s/">Respond</a>' % obj.id
+            return '<a href="/message_response/%s/" target="_blank">Respond</a>' % obj.id
 
     get_response.short_description = 'Response Sent'
     get_response.allow_tags = True
 
-    class Media:
-        js = ("grappelli/jquery/jquery-1.9.1.min.js", 'js/auth.js', )
-
 
 class SmsAdmin(SummernoteModelAdmin):
-    list_display = ("msisdn", "date_sent", "message", "get_response")
+    list_display = ("id", "msisdn", "date_sent", "message", "get_response")
     search_fields = ("msisdn", "date_sent", "message")
     list_filter = ("responded",)
 
@@ -162,6 +159,7 @@ class ReportAdmin(admin.ModelAdmin):
         "get_response",
     )
     list_filter = (UserFilter, 'question')
+    search_fields = ("fix", "issue")
 
     def get_name(self, obj):
         return u'%s %s' % (obj.user.first_name, obj.user.last_name)
