@@ -159,7 +159,7 @@ class Message(models.Model):
     @staticmethod
     def get_messages(user, course, limit):
         _msgs = Message.objects.filter(
-            to_course=course, direction=1).order_by("publishdate").reverse()
+            course=course, direction=1).order_by("publishdate").reverse()
         _result = list()
         for m in _msgs:
             _status = MessageStatus.objects.filter(
@@ -174,7 +174,7 @@ class Message(models.Model):
 
     @staticmethod
     def unread_message_count(user, course):
-        _msgs = Message.objects.filter(to_course=course, direction=1)
+        _msgs = Message.objects.filter(course=course, direction=1)
         _counter = 0
         for m in _msgs:
             if not MessageStatus.objects.filter(
