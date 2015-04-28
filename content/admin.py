@@ -6,7 +6,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm
-from organisation.models import CourseModuleRel
+from organisation.models import Course, CourseModuleRel
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
@@ -98,14 +98,15 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     form = TestingQuestionCreateForm
 
     def get_course(self, question):
-        courses = CourseModuleRel.objects.filter(course=question.course)
+        courses = Course.objects.filter(coursemodulerel__module=question.module)
 
         course_list = ""
 
         for c in courses:
-            course_list += c.course.name + "\n"
+            course_list += c.name + "\n"
 
         return course_list
+    get_course.short_description = "Courses"
 
     def correct(self, question):
         return ParticipantQuestionAnswer.objects.filter(
