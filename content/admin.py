@@ -91,7 +91,7 @@ class TestingQuestionResource(resources.ModelResource):
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "order", "module", "get_course", "description",
-                    "correct", "incorrect", "percentage_correct", "state")
+                    "correct", "incorrect", "percentage_correct", "preview_link", "state")
     list_filter = ("module", )
     search_fields = ("name", "description")
 
@@ -138,6 +138,11 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             return 0
     percentage_correct.allow_tags = True
     percentage_correct.short_description = "Percentage Correct"
+
+    def preview_link(self, question):
+        return u'<a href="/preview/%s">Preview</a>' % question.id
+    preview_link.allow_tags = True
+    preview_link.short_description = "Preview"
 
     fieldsets = [
         (None,
