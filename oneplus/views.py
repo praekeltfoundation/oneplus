@@ -422,6 +422,7 @@ def home(request, state, user):
     questions = TestingQuestion.objects.filter(
         module__in=learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
+        state=3
     ).exclude(id__in=answered)
 
     learner = learnerstate.participant.learner
@@ -542,6 +543,7 @@ def nextchallenge(request, state, user):
     questions = TestingQuestion.objects.filter(
         module__in=_learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
+        state=3
     ).exclude(id__in=answered)
 
     if not questions:
