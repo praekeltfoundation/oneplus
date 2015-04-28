@@ -17,6 +17,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 djcelery.setup_loader()
 
+
 def abspath(*args):
     """convert relative paths to absolute paths relative to PROJECT_ROOT"""
     return os.path.join(PROJECT_ROOT, *args)
@@ -51,15 +52,15 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 SITE_ID = 1
 
 INSTALLED_APPS = (
-    "grappelli",
     "mobileu",
-    "import_export",
     "oneplus",
+    "grappelli",
+    "import_export",
+    "communication",
+    "auth",
     "core",
     "gamification",
-    "communication",
     "content",
-    "auth",
     "djcelery",
     "organisation",
     "django_summernote",

@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'OnePlus site admin' %}{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">{% trans 'OnePlus administration' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+    <ul id="grp-user-tools">
+        <li class="grp-user-options-container grp-collapse grp-closed">
+            <a href="javascript://" class="user-options-handler grp-collapse-handler grp-switch-user-is-original">Extras</a>
+            <ul id="grp-user-options">
+                <li>
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/reports">Reports</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+{% endblock %}

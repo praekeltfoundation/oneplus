@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ONEPLUS | {% block title %}Reports{% endblock %}</title>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
+        <link rel="stylesheet" type="text/css" href="{% static "css/reports.css" %}">
+        <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
+        <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    </head>
+    <body class="readable-bg">
+        <div class="header">
+
+            <div class="menu-wrapper">
+            </div>
+
+            <a href="/home">
+                <div class="logo">
+                </div>
+            </a>
+        </div>
+
+        <table class="rep_table">
+            <thead>
+                <tr>
+                    <td class="rep_table_th">Report</td>
+                    <td class="rep_table_th">Parameters</td>
+                    <td class="rep_table_th"></td>
+                    <td class="rep_table_th"></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="rep_table_td">Question Difficulty</td>
+                    <td class="rep_table_td"></td>
+                    <td class="rep_table_td"><a href="/report_question_difficulty_report/1">csv</a></td>
+                    <td class="rep_table_td"><a href="/report_question_difficulty_report/2">xls</a></td>
+                </tr>
+                <tr>
+                    <td class="rep_table_td">Learner Report</td>
+                    <td class="rep_table_td">
+                        <select id="learner_report_param">
+                        </select>
+                    </td>
+                    <td class="rep_table_td" id="learner_report_csv"><a href="javascript://">csv</a></td>
+                    <td class="rep_table_td" id="learner_report_xls"><a href="javascript://">xls</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script src="/static/grappelli/jquery/jquery-1.9.1.min.js"></script>
+        <script src="/static/js/reports.js"></script>
+    </body>
+</html>

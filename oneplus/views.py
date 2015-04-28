@@ -14,17 +14,26 @@ from auth.models import CustomUser
 from functools import wraps
 from django.contrib.auth.decorators import user_passes_test
 from communication.utils import VumiSmsApi
-import oneplusmvp.settings as settings
-import koremutake
 from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
+from django.core.urlresolvers import reverse
+from django.db import connection
+import oneplusmvp.settings as settings
+import koremutake
 import json
+from report_utils import get_csv_report, get_xls_report
+from django.core.urlresolvers import reverse
+from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
+from dateutil import parser
+from .validators import *
+
 
 COUNTRYWIDE = "Countrywide"
+
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
@@ -34,6 +43,7 @@ def oneplus_login_required(f):
             return redirect("auth.login")
         return f(request, user=request.session["user"], *args, **kwargs)
     return wrap
+
 
 # Code decorator to check if user is logged in or not
 def oneplus_check_user(f):
@@ -151,6 +161,7 @@ def login(request, state):
             return get()
 
     return resolve_http_method(request, [get, post])
+
 
 def autologin(request, token):
     def get():
@@ -346,6 +357,7 @@ def get_week_day():
         home_day = 0
     return home_day
 
+
 # First Time Log in Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -359,6 +371,7 @@ def first_time(request, state, user):
                                                         "user": user})
 
     return resolve_http_method(request, [get, post])
+
 
 # FAQ Screen
 @oneplus_state_required
@@ -374,19 +387,21 @@ def faq(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+
 #Terms Screen
 @oneplus_state_required
 @oneplus_login_required
 def terms(request, state, user):
     def get():
         return render(request, "misc/terms.html", {"state": state,
-                                                        "user": user})
+                                                   "user": user})
 
     def post():
         return render(request, "misc/terms.html", {"state": state,
-                                                        "user": user})
+                                                   "user": user})
 
     return resolve_http_method(request, [get, post])
+
 
 # Home Screen
 @oneplus_state_required
@@ -444,7 +459,7 @@ def home(request, state, user):
         = Participant.objects.filter(
             classs=_participant.classs,
             points__gt=_participant.points
-    ).count() + 1
+        ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day()
@@ -453,7 +468,7 @@ def home(request, state, user):
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-    ).count()
+        ).count()
 
     request.session["state"]["home_tasks_week"]\
         = learnerstate.get_questions_answered_week()
@@ -465,13 +480,13 @@ def home(request, state, user):
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=_start_of_week
-    ).count()
+        ).count()
     request.session["state"]["home_correct"]\
         = ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             correct=True,
             answerdate__gte=_start_of_week
-    ).count()
+        ).count()
     request.session["state"]["home_goal"]\
         = settings.ONEPLUS_WIN_REQUIRED\
         - request.session["state"]["home_correct"]
@@ -773,7 +788,7 @@ def adminpreview(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -814,7 +829,7 @@ def adminpreview(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         request.session["state"]["discussion_page"] = \
             min(2, request.session["state"]["discussion_page_max"])
@@ -847,7 +862,7 @@ def adminpreview_right(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         # Discussion page?
         request.session["state"]["discussion_page"] = \
@@ -887,7 +902,7 @@ def adminpreview_wrong(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-        ).count()
+            ).count()
 
         # Discussion page?
         request.session["state"]["discussion_page"] = \
@@ -1109,7 +1124,7 @@ def wrong(request, state, user):
         ParticipantQuestionAnswer.objects.filter(
             participant=_participant,
             answerdate__gte=date.today()
-    ).distinct('participant', 'question').count()
+        ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     if _learnerstate.active_question:
@@ -1125,7 +1140,7 @@ def wrong(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-            ).count()
+                ).count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
@@ -1671,8 +1686,8 @@ def leader(request, state, user):
 
         return Participant.objects.filter(
             classs=_participant.classs,
-                points__gt=_participant.points,
-            ).count() + 1
+            points__gt=_participant.points,
+        ).count() + 1
 
     def get_leaderboard(location):
         return Participant.objects.filter(
@@ -1938,6 +1953,7 @@ def contact(request, state, user):
 
     return resolve_http_method(request, [get, post])
 
+
 #Report Question Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -2014,7 +2030,7 @@ def report_question(request, state, user, questionid, frm):
                                             "user": user,
                                             "question": _question,
                                             "messages": _messages,
-                                    })
+                                        })
         else:
             return render(
                 request, "learn/report_question.html",
@@ -2033,15 +2049,15 @@ def dashboard_data(request):
     def get():
 
         from core.stats import (participants_registered_last_x_hours,
-            questions_answered_in_last_x_hours,
-            percentage_questions_answered_correctly_in_last_x_hours,
-            questions_answered_correctly_in_last_x_hours)
+                                questions_answered_in_last_x_hours,
+                                percentage_questions_answered_correctly_in_last_x_hours,
+                                questions_answered_correctly_in_last_x_hours)
         from auth.stats import (learners_active_in_last_x_hours,
-            percentage_learner_sms_opt_ins,
-            percentage_learner_email_opt_ins,
-            number_learner_sms_opt_ins,
-            number_learner_email_opt_ins,
-            total_active_learners)
+                                percentage_learner_sms_opt_ins,
+                                percentage_learner_email_opt_ins,
+                                number_learner_sms_opt_ins,
+                                number_learner_email_opt_ins,
+                                total_active_learners)
 
         response_data = {
             'num_learn_reg_24': participants_registered_last_x_hours(24),
@@ -2087,9 +2103,780 @@ def dashboard_data(request):
 
 @user_passes_test(lambda u: u.is_staff)
 def dashboard(request):
-    if request.user.is_staff or request.user.is_superuser:
+    return render(
+        request, "misc/dashboard.html",
+        {
+        }
+    )
+
+
+@user_passes_test(lambda u: u.is_staff)
+def reports(request):
+    return render(
+        request, "misc/reports.html",
+        {
+        }
+    )
+
+
+@user_passes_test(lambda u: u.is_staff)
+def reports_learner_unique_regions(request):
+    data = CustomUser.objects.exclude(area__isnull=True).exclude(area__exact='').values('area').distinct()
+    return HttpResponse(json.dumps(list(data)), content_type="application/json")
+
+
+def report_learner_get_sql(qtype=1):
+    # qtype: 1 - all
+    #        2 - filtered by region
+    sql = \
+        'select cu.username, cu.first_name, cu.last_name, s.name, cu.area, ' \
+        '    qt.cnt, ' \
+        '    qc.cnt / ' \
+        '    (case  ' \
+        '        when qt.cnt is null then 1 ' \
+        '        when qt.cnt = 0 then 1 ' \
+        '        else qt.cnt ' \
+        '    end)::numeric * 100 perc_corr ' \
+        'from core_participant p ' \
+        'inner join auth_customuser cu ' \
+        '    on cu.id = p.learner_id ' \
+        'inner join auth_learner l ' \
+        '    on l.customuser_ptr_id = cu.id ' \
+        'inner join organisation_school s ' \
+        '    on s.id = l.school_id ' \
+        'left join ( ' \
+        '    select participant_id, count(correct) cnt ' \
+        '    from core_participantquestionanswer ' \
+        '    where correct = true ' \
+        '    group by participant_id ' \
+        '    ) qc ' \
+        '    on qc.participant_id = p.id ' \
+        'left join ( ' \
+        '    select participant_id, count(1) cnt ' \
+        '    from core_participantquestionanswer ' \
+        '    group by participant_id ' \
+        '    ) qt ' \
+        '    on qt.participant_id = p.id '
+
+    if qtype == 2:
+        sql = sql + ' where cu.area = %s'
+
+    return sql
+
+
+@user_passes_test(lambda u: u.is_staff)
+def report_learner(request, mode, region):
+    if mode != '1' and mode != '2':
+        return HttpResponseRedirect(reverse("reports.home"))
+
+    headers = [('MSISDN', 'First Name', 'Last Name', 'School', 'Region', 'Questions Completed', 'Percentage Correct')]
+    cursor = connection.cursor()
+    file_name = 'learner_report'
+
+    if region:
+        sql = report_learner_get_sql(2)
+        cursor.execute(sql, [region])
+        file_name = '%s_%s' % (file_name, region)
+    else:
+        sql = report_learner_get_sql()
+        cursor.execute(sql)
+
+    data = cursor.fetchall()
+
+    if mode == '1':
+        return get_csv_report(data, file_name, headers)
+    elif mode == '2':
+        return get_xls_report(data, file_name, headers)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def question_difficulty_report(request, mode):
+    questions = TestingQuestion.objects.all()
+    question_list = []
+    headers = [('Question', 'Total Correct', 'Total Incorrect', 'Percentage Correct')]
+
+    for question in questions:
+        total_answers = question_answered(question)
+        total_correct = question_answered_correctly(question)
+        total_incorrect = total_answers - total_correct
+        percent_correct = percentage_question_answered_correctly(question)
+
+        question_list.append((question.name, total_correct, total_incorrect, percent_correct))
+
+    question_list = sorted(question_list, key=lambda x: (-x[2], -x[3]))
+    if mode == '1':
+        return get_csv_report(question_list, 'question_difficulty_report', headers)
+    elif mode == '2':
+        return get_xls_report(question_list, 'question_difficulty_report', headers)
+    else:
+        return HttpResponseRedirect(reverse("reports.home"))
+
+
+@user_passes_test(lambda u: u.is_staff)
+def get_courses(request):
+    courses = Course.objects.all()
+
+    data = []
+    for c in courses:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def get_classes(request, course):
+    if course == 'all':
+        classes = Class.objects.all()
+    else:
+        try:
+            course = int(course)
+            if Course.objects.get(id=course):
+                current_course = Course.objects.get(id=course)
+                classes = Class.objects.all().filter(course=current_course)
+            else:
+                classes = None
+        except ValueError, ObjectDoesNotExist:
+            classes = None
+
+    data = []
+    for c in classes:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def get_users(request, classs):
+    if classs == 'all':
+        participants = Participant.objects.all()
+    else:
+        try:
+            classs = int(classs)
+
+            if Class.objects.get(id=classs):
+                current_class = Class.objects.get(id=classs)
+                participants = Participant.objects.all().filter(classs=current_class)
+        except ValueError, ObjectDoesNotExist:
+            participants = None
+
+    data = []
+    for p in participants:
+        line = {"id": p.learner.id, "name": p.learner.mobile}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def report_response(request, report):
+    db_report = Report.objects.filter(id=report).first()
+    if db_report:
+        db_participant = Participant.objects.filter(learner=db_report.user).first()
+
+        if db_participant is None:
+            return HttpResponse("Participant not found")
+    else:
+        return HttpResponse("Report %s not found" % report)
+
+    def get():
+
         return render(
-            request, "misc/dashboard.html",
-            {
+            request=request,
+            template_name='misc/report_response.html',
+            dictionary={'report': db_report, 'participant': db_participant}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/report_response.html',
+                dictionary={
+                    'report': db_report,
+                    'participant': db_participant,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            db_report.create_response(title, content, dt)
+            Message.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                course=db_participant.classs.course,
+                content=content,
+                publishdate=dt,
+                author=request.user,
+                direction=1,
+            )
+            return HttpResponseRedirect('/admin/communication/report')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def message_response(request, msg):
+    db_msg = Message.objects.filter(id=msg).first()
+
+    if db_msg:
+        db_participant = Participant.objects.filter(learner=db_msg.author).first()
+
+        if db_participant is None:
+            return HttpResponse("Participant not found")
+    else:
+        return HttpResponse("Message %s not found" % msg)
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/message_response.html',
+            dictionary={'msg': db_msg, 'participant': db_participant}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/message_response.html',
+                dictionary={
+                    'msg': db_msg,
+                    'participant': db_participant,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            Message.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                course=db_participant.classs.course,
+                content=content,
+                publishdate=dt,
+                author=request.user,
+                direction=1,
+            )
+
+            db_msg.responded = True
+            db_msg.responddate = datetime.now()
+            db_msg.save()
+
+            return HttpResponseRedirect('/admin/communication/message/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def add_message(request):
+    def get():
+        return render(
+            request=request,
+            template_name='misc/message.html',
+        )
+
+    def post():
+        name_error = False
+        course_error = False
+        class_error = False
+        users_error = False
+        direction_error = False
+        dt_error = False
+        content_error = False
+        name = None
+        course = None
+        classs = None
+        users = None
+        direction = None
+        date = None
+        time = None
+        content = None
+
+        name_error, name = validate_name(request.POST)
+        course_error, course = validate_course(request.POST)
+        class_error, classs = validate_to_class(request.POST)
+        users_error, users = validate_users(request.POST)
+        direction_error, direction = validate_direction(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if name_error or course_error or class_error or users_error or direction_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/message.html',
+                dictionary={
+                    'name_error': name_error,
+                    'course_error': course_error,
+                    'to_class_error': class_error,
+                    'direction_error': direction_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_name': name,
+                    'v_direction': direction,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+
+        else:
+            if course == "all":
+                all_courses = Course.objects.all()
+
+                for _course in all_courses:
+                    all_classes = Class.objects.filter(course=_course)
+
+                    for _classs in all_classes:
+                        all_users = Participant.objects.filter(classs=_classs)
+
+                        for u in all_users:
+                            create_message(name, _course, _classs, direction, dt, content)
+            else:
+                course_obj = Course.objects.get(id=course)
+
+                if classs == "all":
+                    all_classes = Class.objects.filter(course=course_obj)
+
+                    for c in all_classes:
+                        all_users = Participant.objects.filter(classs=c)
+
+                        for u in all_users:
+                            create_message(name, course_obj, c, direction, dt, content)
+                else:
+                    classs_obj = Class.objects.get(id=classs)
+
+                    if users == "all":
+                        all_users = Participant.objects.filter(classs=classs_obj)
+
+                        for u in all_users:
+                            create_message(name, course_obj, classs_obj, direction, dt, content)
+                    else:
+                        learner = Learner.objects.get(id=users)
+                        user = Participant.objects.filter(learner=learner).first()
+                        create_message(name, course_obj, classs_obj, direction, dt, content)
+
+        return HttpResponseRedirect('/admin/communication/message/')
+
+    def create_message(name, course, classs, direction, publishdate, content):
+        Message.objects.create(
+            name=name,
+            course=course,
+            to_class=classs,
+            content=content,
+            publishdate=publishdate,
+            author=request.user,
+            direction=direction,
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def view_message(request, msg):
+    db_msg = Message.objects.filter(id=msg).first()
+
+    if db_msg is None:
+        return HttpResponse("Message not found")
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/message.html',
+            dictionary={
+                'message': db_msg,
+                'ro': True
             }
         )
+
+    def post():
+        return render(
+            request=request,
+            template_name='misc/message.html',
+            dictionary={
+                'message': db_msg,
+                'ro': True
+            }
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def discussion_response(request, disc):
+    db_disc = Discussion.objects.filter(id=disc).first()
+
+    if db_disc:
+        db_participant = Participant.objects.filter(learner=db_disc.author).first()
+
+        if db_participant is None:
+            return HttpResponse("Participant not found")
+    else:
+        return HttpResponse("Discussion %s not found" % disc)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/discussion_response.html',
+            dictionary={'disc': db_disc, 'participant': db_participant}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/discussion_response.html',
+                dictionary={
+                    'disc': db_disc,
+                    'participant': db_participant,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            disc = Discussion.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                content=content,
+                author=request.user,
+                publishdate=dt,
+                moderated=True,
+                course=db_disc.course,
+                module=db_disc.module,
+                question=db_disc.question
+            )
+
+            db_disc.response = disc
+            db_disc.save()
+
+            return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def add_sms(request):
+    def get():
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+        )
+
+    def post():
+        course_error = False
+        class_error = False
+        dt_error = False
+        message_error = False
+
+        course = None
+        classs = None
+        date = None
+        time = None
+        message = None
+
+        course_error, course = validate_to_course(request.POST)
+        class_error, classs = validate_to_class(request.POST)
+        dt_error, date, time, dt = validate_date_and_time(request.POST)
+        message_error, message = validate_message(request.POST)
+
+        if course_error or class_error or dt_error or message_error:
+            return render(
+                request=request,
+                template_name='misc/queued_sms.html',
+                dictionary={
+                    'to_course_error': course_error,
+                    'to_class_error': class_error,
+                    'dt_error': dt_error,
+                    'message_error': message_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_message': message
+                }
+            )
+
+        else:
+            if course == "all":
+                all_courses = Course.objects.all()
+
+                for _course in all_courses:
+                    all_classes = Class.objects.filter(course=_course)
+
+                    for _classs in all_classes:
+                        all_users = Participant.objects.filter(classs=_classs)
+
+                        for u in all_users:
+                            create_sms(u.learner.mobile, dt, message)
+            else:
+                course_obj = Course.objects.get(id=course)
+
+                if classs == "all":
+                    all_classes = Class.objects.filter(course=course_obj)
+
+                    for c in all_classes:
+                        all_users = Participant.objects.filter(classs=c)
+
+                        for u in all_users:
+                            create_sms(u.learner.mobile, dt, message)
+                else:
+                    classs_obj = Class.objects.get(id=classs)
+
+                    all_users = Participant.objects.filter(classs=classs_obj)
+
+                    for u in all_users:
+                        create_sms(u.learner.mobile, dt, message)
+
+        return HttpResponseRedirect('/admin/communication/smsqueue/')
+
+    def create_sms(identifier, send_date, message):
+        SmsQueue.objects.create(
+            msisdn=identifier,
+            send_date=send_date,
+            message=message
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def view_sms(request, sms):
+    db_sms = SmsQueue.objects.filter(id=sms).first()
+
+    if db_sms is None:
+        return HttpResponse("Queued SMS not found")
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
+
+    def post():
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def sms_response(request, sms):
+    db_sms = Sms.objects.filter(id=sms).first()
+
+    if db_sms:
+        db_participant = Participant.objects.filter(learner__mobile__contains=db_sms.msisdn).first()
+
+    else:
+        return HttpResponse("Sms %s not found" % sms)
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/sms_response.html',
+            dictionary={'sms': db_sms, 'participant': db_participant}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/sms_response.html',
+                dictionary={
+                    'sms': db_sms,
+                    'participant': db_participant,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            qsms = SmsQueue.objects.create(
+                message=content,
+                send_date=dt,
+                msisdn=db_sms.msisdn
+            )
+
+            db_sms.responded = True
+            db_sms.respond_date = datetime.now()
+            db_sms.response = qsms
+            db_sms.save()
+
+            return HttpResponseRedirect('/admin/communication/sms/')
+
+    return resolve_http_method(request, [get, post])
+
+
+def get_courses(request):
+    courses = Course.objects.all()
+
+    data = []
+    for c in courses:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+def get_classes(request, course):
+    if course == 'all':
+        classes = Class.objects.all()
+    else:
+        try:
+            course = int(course)
+            if Course.objects.get(id=course):
+                current_course = Course.objects.get(id=course)
+                classes = Class.objects.all().filter(course=current_course)
+            else:
+                classes = None
+        except ValueError, ObjectDoesNotExist:
+            classes = None
+
+    data = []
+    for c in classes:
+        line = {"id": c.id, "name": c.name}
+        data.append(line)
+
+    return HttpResponse(json.dumps(data), content_type="application/javascript")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def discussion_response_selected(request, disc):
+    discs = disc.split(',')
+    db_discs = Discussion.objects.filter(id__in=discs, response__isnull=True)
+
+    if db_discs.count() == 0:
+        no_discussions = True
+    else:
+        no_discussions = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/discussion_response_selected.html',
+            dictionary={'discs': db_discs, 'no_discs': no_discussions}
+        )
+
+    def post():
+
+        title_error = False
+        dt_error = False
+        content_error = False
+        title = None
+        date = None
+        time = None
+        content = None
+
+        title_error, title = validate_title(request.POST)
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if title_error or dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/discussion_response_selected.html',
+                dictionary={
+                    'discs': db_discs,
+                    'no_discs': no_discussions,
+                    'title_error': title_error,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_title': title,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            disc = Discussion.objects.create(
+                name=gen_username(request.user),
+                description=title,
+                content=content,
+                author=request.user,
+                publishdate=dt,
+                moderated=True,
+                course=db_discs[0].course,
+                module=db_discs[0].module,
+                question=db_discs[0].question
+            )
+
+            for db_disc in db_discs:
+                db_disc.response = disc
+                db_disc.save()
+
+            return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
