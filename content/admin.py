@@ -92,7 +92,7 @@ class TestingQuestionResource(resources.ModelResource):
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "order", "module", "get_course", "description",
                     "correct", "incorrect", "percentage_correct", "preview_link", "state")
-    list_filter = ("module", )
+    list_filter = ("module", "state")
     search_fields = ("name", "description")
 
     form = TestingQuestionCreateForm
