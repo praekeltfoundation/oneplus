@@ -4,6 +4,7 @@ from .models import (
     SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Learner, Teacher)
 import csv
 from organisation.models import School, Course
+from core.models import Class
 
 
 # Note: why don't these forms inherit from UserCreationForm and UserChangeForm?
@@ -321,8 +322,19 @@ class TeacherChangeForm(forms.ModelForm):
                   "this user's password, but you can change the password "
                   "using <a href=\"password/\">this form</a>.")
 
+    classs = forms.ModelMultipleChoiceField(queryset=Class.objects.all(),
+                                            required=False,
+                                            label="Classes",
+                                            help_text="The classes this teacher belongs to. A teacher will get all "
+                                                      "reports from his/her. Hold down 'Control', or 'Command' on "
+                                                      "Mac, to select more than one.")
+
     class Meta:
         model = Teacher
+
+    def __init__(self, *args,**kwargs):
+        super(TeacherChangeForm, self).__init__(*args, **kwargs)
+        self.fields['classs'].queryset = Class.objects.filter(teacher=self.instance)
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
