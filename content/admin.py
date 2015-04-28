@@ -144,6 +144,20 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     preview_link.allow_tags = True
     preview_link.short_description = "Preview"
 
+    def make_incomplete(modeladmin, request, queryset):
+        queryset.update(state='1')
+    make_incomplete.short_description = "Change state to Incomplete"
+
+    def make_ready(modeladmin, request, queryset):
+        queryset.update(state='2')
+    make_ready.short_description = "Change state to Ready for Review"
+
+    def make_published(modeladmin, request, queryset):
+        queryset.update(state='3')
+    make_published.short_description = "Change state to Published"
+
+    actions = [make_incomplete, make_ready, make_published]
+
     fieldsets = [
         (None,
             {"fields": ["name", "description", "module", "order"]}),
