@@ -36,7 +36,7 @@ class ClassAdmin(admin.ModelAdmin):
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
-        (None, {"fields": ["name", "description", "course"]}),
+        (None, {"fields": ["name", "description", "course", "teacher"]}),
         ("Classification", {"fields": ["type", "startdate", "enddate"]})
     ]
     inlines = (ParticipantInline,)

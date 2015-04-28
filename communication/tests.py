@@ -3,11 +3,12 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse
+from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
+from core.models import Class
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class TestMessage(TestCase):
@@ -19,6 +20,9 @@ class TestMessage(TestCase):
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
+    def create_class(self, course, name='class name', **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
     def create_user(self, mobile="+27123456789", country="country", **kwargs):
         model_class = get_user_model()
         return model_class.objects.create(
@@ -29,26 +33,31 @@ class TestMessage(TestCase):
 
     def setUp(self):
         self.course = self.create_course()
+        self.classs = self.create_class(self.course)
         self.user = self.create_user()
 
     def test_get_messages(self):
         # unused
+        dt1 = datetime.now()
+        dt2 = dt1 + timedelta(minutes=5)
+        dt3 = dt2 + timedelta(minutes=5)
         self.create_message(
             self.user,
             self.course,
             name="msg1",
-            publishdate=datetime.now()
+            publishdate=dt1
         )
         msg2 = self.create_message(
             self.user,
-            self.course, name="msg2",
-            publishdate=datetime.now()
+            self.course,
+            name="msg2",
+            publishdate=dt2
         )
         msg3 = self.create_message(
             self.user,
             self.course,
             name="msg3",
-            publishdate=datetime.now()
+            publishdate=dt3
         )
         # should return the most recent two in descending order of publishdate
         self.assertEqual(
@@ -57,7 +66,8 @@ class TestMessage(TestCase):
     def test_unread_msg_count(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            name="msg2",
             publishdate=datetime.now()
         )
         msg2 = self.create_message(
@@ -73,7 +83,8 @@ class TestMessage(TestCase):
     def test_view_message(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg2",
+            self.course,
+            name="msg2",
             publishdate=datetime.now()
         )
 
@@ -93,7 +104,8 @@ class TestMessage(TestCase):
     def test_hide_message(self):
         msg = self.create_message(
             self.user,
-            self.course, name="msg",
+            self.course,
+            name="msg",
             publishdate=datetime.now()
         )
 
@@ -117,6 +129,16 @@ class TestChatMessage(TestCase):
     def test_created_message(self):
         msg = self.create_chat_message(content="Ò")
         self.assertEqual(msg.content, 'Ò', "They are not equal")
+
+
+class TestSmsQueue(TestCase):
+    def create_smsqueue(self, **kwargs):
+        return SmsQueue.objects.create(**kwargs)
+
+    def test_created_smsqueue(self):
+        sms_queue1 = self.create_smsqueue(msisdn="+27721472583", send_date=datetime.now(), message="Message")
+
+        self.assertEqual(sms_queue1.message, "Message", "Message text not the same")
 
 
 class TestReport(TestCase):

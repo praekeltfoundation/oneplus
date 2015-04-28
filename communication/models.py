@@ -3,6 +3,7 @@ from django.conf import settings
 from datetime import datetime
 from organisation.models import Course, Module
 from content.models import TestingQuestion
+from django.db.models import Q
 
 
 class Page(models.Model):
@@ -92,24 +93,98 @@ class Discussion(models.Model):
 
 class Message(models.Model):
     name = models.CharField(
-        "Name", max_length=50, null=True, blank=False, unique=False)
-    description = models.CharField("Description", max_length=50, blank=True)
-    course = models.ForeignKey(Course, null=True, blank=False)
-    content = models.TextField("Content", blank=True)
-    publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
-    direction = models.PositiveIntegerField("Direction", choices=(
-        (1, "Outgoing"), (2, "Incoming")), default=1)
-    responded = models.BooleanField(default=False)
-    responddate = models.DateTimeField('Respond Date', null=True, blank=True)
+        "Name",
+        max_length=50,
+        null=True,
+        blank=False,
+        unique=False
+    )
+    description = models.CharField(
+        "Description",
+        max_length=50,
+        blank=True
+    )
+    course = models.ForeignKey(
+        Course,
+        null=True,
+        blank=False,
+        related_name='message_course'
+    )
+    to_class = models.ForeignKey(
+        'core.Class',
+        verbose_name="",
+        null=True,
+        blank=True
+    )
+    content = models.TextField(
+        "Message",
+        blank=True
+    )
+    publishdate = models.DateTimeField(
+        "Publish Date",
+        null=True,
+        blank=True
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="message_author"
+    )
+    direction = models.PositiveIntegerField(
+        "Direction",
+        choices=(
+            (1, "Outgoing"),
+            (2, "Incoming")
+        ),
+        default=1
+    )
+    responded = models.BooleanField(
+        default=False
+    )
+    responddate = models.DateTimeField(
+        'Respond Date',
+        null=True,
+        blank=True
+    )
+    to_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="message_for_learner"
+    )
 
     def __str__(self):
         return self.name
 
     @staticmethod
     def get_messages(user, course, limit):
-        _msgs = Message.objects.filter(
-            course=course, direction=1).order_by("publishdate").reverse()
+        from core.models import Class
+
+        _msgs_for_course = Q(
+            course=course,
+            direction=1,
+            to_class__isnull=True
+        )
+
+        _classes = Class.objects.filter(course=course).values('id')
+
+        _msgs_for_class = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user__isnull=True
+        )
+
+        _msgs_for_user = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user=user
+        )
+
+        _msgs = Message.objects.filter(_msgs_for_course | _msgs_for_class | _msgs_for_user).order_by("-publishdate")
+
         _result = list()
         for m in _msgs:
             _status = MessageStatus.objects.filter(
@@ -124,7 +199,32 @@ class Message(models.Model):
 
     @staticmethod
     def unread_message_count(user, course):
-        _msgs = Message.objects.filter(course=course, direction=1)
+        from core.models import Class
+
+        _msgs_for_course = Q(
+            course=course,
+            direction=1,
+            to_class__isnull=True
+        )
+
+        _classes = Class.objects.filter(course=course).values('id')
+
+        _msgs_for_class = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user__isnull=True
+        )
+
+        _msgs_for_user = Q(
+            course=course,
+            direction=1,
+            to_class__in=_classes,
+            to_user=user
+        )
+
+        _msgs = Message.objects.filter(_msgs_for_course | _msgs_for_class | _msgs_for_user)
+        
         _counter = 0
         for m in _msgs:
             if not MessageStatus.objects.filter(
@@ -224,6 +324,20 @@ class Sms(models.Model):
         blank=True,
         null=True
     )
+    responded = models.BooleanField(
+        default=False,
+        db_index=True,
+        blank=True)
+    respond_date = models.DateTimeField(
+        verbose_name="Time sms was responded too",
+        null=True,
+        blank=True
+    )
+    response = models.ForeignKey(
+        'SmsQueue',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         verbose_name = "Sms"
@@ -233,11 +347,12 @@ class Sms(models.Model):
 #ReportResponse
 class ReportResponse(models.Model):
     title = models.CharField("Title", max_length=50, blank=False)
-    publish_date = models.DateTimeField("Publish Date", blank=False, auto_now_add=True)
+    publish_date = models.DateTimeField("Publish Date",
+                                        blank=False, auto_now_add=True)
     content = models.TextField("Response Content", blank=False)
 
     class Meta:
-        verbose_name = "Response"
+        verbose_name = "Report Response"
 
 
 #Reports
@@ -249,8 +364,13 @@ class Report(models.Model):
     publish_date = models.DateTimeField("Publish Date", auto_now_add=True)
     response = models.ForeignKey(ReportResponse, null=True, blank=True)
 
-    def create_response(self, _title, _content):
-        response = ReportResponse.objects.create(title=_title, content=_content)
+    def create_response(self, _title, _content, _publish_date=datetime.now()):
+        response = ReportResponse.objects.create(
+            title=_title,
+            content=_content,
+            publish_date=_publish_date
+        )
+
         self.response = response
         self.save()
 
@@ -258,3 +378,31 @@ class Report(models.Model):
         verbose_name = "Report"
         verbose_name_plural = "Reports"
 
+
+class SmsQueue(models.Model):
+    message = models.TextField(
+        verbose_name="Message",
+        blank=False
+    )
+    send_date = models.DateTimeField(
+        verbose_name="Time Sms will be sent",
+        blank=False
+    )
+    msisdn = models.CharField(
+        verbose_name="Mobile Phone Number",
+        max_length=50,
+        blank=True,
+        null=True,
+        db_index=True
+    )
+    sent = models.BooleanField(default=False, db_index=True)
+    sent_date = models.DateTimeField(
+        verbose_name="Time Sms was sent",
+        blank=False,
+        null=True,
+        default=None
+    )
+
+    class Meta:
+        verbose_name = "Queued Sms"
+        verbose_name_plural = "Queued Smses"

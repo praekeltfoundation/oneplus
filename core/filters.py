@@ -14,8 +14,7 @@ class ParticipantFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         result = set([c.learner for c in Learner.objects.all()])
         return [(c.id, c.first_name + ' ' + c.last_name)
-                for c in sorted(result,key=operator.attrgetter('first_name'))]
-
+                for c in sorted(result, key=operator.attrgetter('first_name'))]
 
     def queryset(self, request, queryset):
         if self.value() is None:
@@ -73,13 +72,14 @@ class LearnerFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         result = set([c.learner for c in Learner.objects.all()])
         return [(c.id, c.first_name + ' ' + c.last_name)
-                for c in sorted(result,key=operator.attrgetter('first_name'))]
+                for c in sorted(result, key=operator.attrgetter('first_name'))]
 
     def queryset(self, request, queryset):
         if self.value() is None:
             return queryset
         else:
             return queryset.filter(learner__id=self.value())
+
 
 class ParticipantFirstNameFilter(admin.SimpleListFilter):
     title = _('First Name')
@@ -121,3 +121,19 @@ class ParticipantMobileFilter(admin.SimpleListFilter):
             return queryset
         else:
             return queryset.filter(learner__id=self.value())
+
+
+class UserFilter(admin.SimpleListFilter):
+    title = _('User')
+    parameter_name = 'id'
+
+    def lookups(self, request, model_admin):
+        result = set([c.learner for c in Learner.objects.all()])
+        return [(c.id, c.first_name + ' ' + c.last_name)
+                for c in sorted(result, key=operator.attrgetter('first_name'))]
+
+    def queryset(self, request, queryset):
+        if self.value() is None:
+            return queryset
+        else:
+            return queryset.filter(user__id=self.value())
