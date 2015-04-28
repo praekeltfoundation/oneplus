@@ -6,7 +6,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm
-
+from organisation.models import Course, CourseModuleRel
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
@@ -90,12 +90,23 @@ class TestingQuestionResource(resources.ModelResource):
 
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
-    list_display = ("module", "order", "name", "description",
-                    "correct", "incorrect", "percentage_correct")
-    list_filter = ("module", )
+    list_display = ("name", "order", "module", "get_course", "description",
+                    "correct", "incorrect", "percentage_correct", "preview_link", "state")
+    list_filter = ("module", "state")
     search_fields = ("name", "description")
 
     form = TestingQuestionCreateForm
+
+    def get_course(self, question):
+        courses = Course.objects.filter(coursemodulerel__module=question.module)
+
+        course_list = ""
+
+        for c in courses:
+            course_list += c.name + "\n"
+
+        return course_list
+    get_course.short_description = "Courses"
 
     def correct(self, question):
         return ParticipantQuestionAnswer.objects.filter(
@@ -127,6 +138,25 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             return 0
     percentage_correct.allow_tags = True
     percentage_correct.short_description = "Percentage Correct"
+
+    def preview_link(self, question):
+        return u'<a href="/preview/%s">Preview</a>' % question.id
+    preview_link.allow_tags = True
+    preview_link.short_description = "Preview"
+
+    def make_incomplete(modeladmin, request, queryset):
+        queryset.update(state='1')
+    make_incomplete.short_description = "Change state to Incomplete"
+
+    def make_ready(modeladmin, request, queryset):
+        queryset.update(state='2')
+    make_ready.short_description = "Change state to Ready for Review"
+
+    def make_published(modeladmin, request, queryset):
+        queryset.update(state='3')
+    make_published.short_description = "Change state to Published"
+
+    actions = [make_incomplete, make_ready, make_published]
 
     fieldsets = [
         (None,
