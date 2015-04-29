@@ -335,12 +335,12 @@ class GeneralTests(TestCase):
             kwargs={'token': self.learner.unique_token})
         )
         question1 = self.create_test_question(
-            'question1', self.module, question_content='test question')
+            'question1', self.module, question_content='test question', state=3)
         questionoption1 = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
             content='questionanswer1',
-            correct=True
+            correct=True,
         )
 
         resp = self.client.get(reverse('learn.next'))
@@ -381,7 +381,7 @@ class GeneralTests(TestCase):
 
         # Create a question
         question1 = self.create_test_question(
-            'question1', self.module, question_content='test question')
+            'question1', self.module, question_content='test question', state=3)
         option = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
@@ -419,7 +419,7 @@ class GeneralTests(TestCase):
 
         # Create a question
         question1 = self.create_test_question(
-            'question1', self.module, question_content='test question')
+            'question1', self.module, question_content='test question', state=3)
         option = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
@@ -1052,7 +1052,7 @@ class GeneralTests(TestCase):
             kwargs={'token': self.learner.unique_token})
         )
         question = self.create_test_question('question1', self.module,
-                                             question_content='test question')
+                                             question_content='test question', state=3)
         questionoption = self.create_test_question_option('questionoption1',
                                                           question)
 
@@ -1142,7 +1142,8 @@ class GeneralTests(TestCase):
         self.question = self.create_test_question(
             'question1',
             self.module,
-            question_content='test question')
+            question_content='test question',
+            state=3)
 
         self.questionoption = self.create_test_question_option(
             'questionoption1',
@@ -1163,7 +1164,8 @@ class GeneralTests(TestCase):
         )
         question = self.create_test_question(
             'question1', self.module,
-            question_content='test question')
+            question_content='test question',
+            state=3)
 
         self.create_test_question_option(
             'questionoption1',

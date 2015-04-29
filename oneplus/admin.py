@@ -88,16 +88,5 @@ class OnePlusLearnerAdmin(LearnerAdmin):
                 "SUM",
             )
 
-
-class TestingQuestionLinkAdmin(TestingQuestionAdmin):
-    list_display = TestingQuestionAdmin.list_display + ("preview_link",)
-
-    def preview_link(self, question):
-        return u'<a href="/preview/%s">Preview</a>' % question.id
-    preview_link.allow_tags = True
-    preview_link.short_description = "Preview"
-
-admin.site.unregister(TestingQuestion)
 admin.site.unregister(Learner)
-admin.site.register(TestingQuestion, TestingQuestionLinkAdmin)
 admin.site.register(Learner, OnePlusLearnerAdmin)
