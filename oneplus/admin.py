@@ -5,7 +5,9 @@ from oneplus.utils import update_metric
 from import_export import fields
 from django.db.models import Q
 from organisation.models import School
+from django.contrib.admin.sites import AdminSite
 
+AdminSite.index_template = 'admin/my_index.html'
 
 class OnePlusLearnerResource(LearnerResource):
     class_name = fields.Field(column_name=u'class')
