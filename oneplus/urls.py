@@ -11,6 +11,7 @@ urlpatterns = [
     url(r"^menu$", views.menu, name="core.menu"),
     url(r"^faq$", views.faq, name="misc.faq"),
     url(r'^terms$', views.terms, name="misc.terms"),
+    url(r'^signup$', views.signup, name="misc.signup"),
 
     # Auth
     url(r"^login$", views.login, name="auth.login"),

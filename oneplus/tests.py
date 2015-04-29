@@ -16,7 +16,7 @@ from communication.models import Message, ChatGroup, ChatMessage, Post, \
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
-from .views import get_points_awarded, get_badge_awarded, get_week_day
+from .views import get_points_awarded, get_badge_awarded, get_week_day, space_available, available_space_required
 from .utils import get_today
 from oneplus.admin import OnePlusLearnerAdmin, OnePlusLearnerResource
 from go_http.tests.test_send import RecordingHandler
@@ -1886,6 +1886,56 @@ class GeneralTests(TestCase):
         resp = c.get('/users/%s' % self.classs.id)
         self.assertContains(resp, '"name": "+27123456789"')
 
+    #assuming MAX_SPACES is 300
+    def test_space_available(self):
+        learner = self.learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",)
+
+        self.participant = self.create_participant(
+            learner,
+            self.classs)
+
+        space, number_spaces = space_available()
+
+        self.assertEquals(space, True)
+        self.assertContains(number_spaces, 299)
+
+        learner2 = self.learner = self.create_learner(
+            self.school,
+            username="+27123456988",
+            mobile="+2712345688")
+
+        self.participant = self.create_participant(
+            learner2,
+            self.classs,
+            datejoined=datetime.now())
+
+        self.assertEquals(space, True)
+        self.assertContains(number_spaces, 298)
+
+    #assuming MAX_SPACES is 300
+    def test_signup(self):
+        learner = self.learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",)
+
+        self.participant = self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        resp = self.client.get(reverse('misc.signup'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.signup'), data={'yes': "Yes, please sign me up!"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('misc.signup'), data={'no': "Not interested right now"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | HELLO</title>")
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
