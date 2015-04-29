@@ -30,9 +30,12 @@ from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
 from dateutil import parser
 from .validators import *
+from django.db.models import Count
 
 
 COUNTRYWIDE = "Countrywide"
+
+MAX_SPACES = 300
 
 
 # Code decorator to ensure that the user is logged in
@@ -199,6 +202,50 @@ def autologin(request, token):
     return resolve_http_method(request, [get, post])
 
 
+def space_available():
+    total_reg = Participant.objects.aggregate(registered=Count('id'))
+    num = MAX_SPACES - total_reg.get('registered')
+    if num > 0:
+        return True, num
+    else:
+        return False, 0
+
+
+# Code decorator to check if there are available sign up spaces
+def available_space_required(f):
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        space, num_spaces = space_available()
+
+        if space:
+            return f(request, space=space, num_spaces=num_spaces, *args, **kwargs)
+        else:
+            return redirect("misc.welcome")
+    return wrap
+
+
+#sign up screen
+@available_space_required
+def signup(request, space, num_spaces):
+    def get():
+        return render(
+            request,
+            "misc/signup.html",
+            {
+                "space": space,
+                "num_spaces": num_spaces
+            }
+        )
+
+    def post():
+        if 'yes' in request.POST.keys():
+            return redirect("misc.signup")
+        else:
+            return redirect("misc.welcome")
+
+    return resolve_http_method(request, [get, post])
+
+
 # Signout Function
 @oneplus_state_required
 def signout(request, state):
@@ -343,7 +390,8 @@ def getconnected(request, state):
 @oneplus_state_required
 def welcome(request, state):
     def get():
-        return render(request, "misc/welcome.html", {"state": state})
+        space, nums_spaces = space_available()
+        return render(request, "misc/welcome.html", {"state": state, "space": space})
 
     def post():
         return render(request, "misc/welcome.html", {"state": state})
