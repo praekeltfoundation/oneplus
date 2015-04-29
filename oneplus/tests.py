@@ -25,7 +25,6 @@ from auth.admin import LearnerCreationForm
 from django.test.utils import override_settings
 import logging
 from django.db.models import Count
-from datetime import datetime
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -1895,12 +1894,13 @@ class GeneralTests(TestCase):
 
         self.participant = self.create_participant(
             learner,
-            self.classs)
+            self.classs,
+            datejoined=datetime.now())
 
         space, number_spaces = space_available()
 
         self.assertEquals(space, True)
-        self.assertContains(number_spaces, 299)
+        self.assertEquals(number_spaces, 298)
 
         learner2 = self.learner = self.create_learner(
             self.school,
@@ -1912,8 +1912,10 @@ class GeneralTests(TestCase):
             self.classs,
             datejoined=datetime.now())
 
+        space, number_spaces = space_available()
+
         self.assertEquals(space, True)
-        self.assertContains(number_spaces, 298)
+        self.assertEquals(number_spaces, 297)
 
     #assuming MAX_SPACES is 300
     def test_signup(self):
