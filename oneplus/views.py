@@ -249,6 +249,20 @@ def signup(request):
     return resolve_http_method(request, [get, post])
 
 
+#Signed Up Screen
+def signedup(request):
+    def get():
+        return render(
+            request,
+            "auth/signedup.html",
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
 #Validate mobile number and return international format if it's not
 def validate_mobile(mobile):
     pattern_both = "^(\+\d{1,2})?\d{10}$"
@@ -322,9 +336,9 @@ def signup_form(request):
                                         send_date=datetime.now(),
                                         msisdn=cellphone)
 
-                return redirect("misc.welcome")
+                return redirect("auth.signedup")
             else:
-                get()
+                return get()
                 # raise forms.ValidationError(
                 #     'Invalid cellphone number',
                 #     code='invalid')

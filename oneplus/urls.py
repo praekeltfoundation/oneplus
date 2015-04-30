@@ -22,6 +22,7 @@ urlpatterns = [
     url(r"^a/(?P<token>\S+)$", views.autologin, name="auth.autologin"),
     url(r'^signup$', views.signup, name="auth.signup"),
     url(r'signup/form', views.signup_form, name="auth.signup_form"),
+    url(r'^signedup$', views.signedup, name="auth.signedup"),
 
     # Learn
     url(r"^home", views.home, name="learn.home"),
