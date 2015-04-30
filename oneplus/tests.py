@@ -2042,6 +2042,14 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
 
+        #pass missing data
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
         #pass invalid class id
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={'first_name': first_name,

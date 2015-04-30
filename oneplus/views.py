@@ -336,9 +336,9 @@ def signup_form(request):
                                         send_date=datetime.now(),
                                         msisdn=cellphone)
 
-                return redirect("misc.welcome")
+                return redirect("auth.signedup")
             else:
-                get()
+                return get()
                 # raise forms.ValidationError(
                 #     'Invalid cellphone number',
                 #     code='invalid')
