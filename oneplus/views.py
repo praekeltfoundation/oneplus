@@ -1,9 +1,8 @@
 from __future__ import division
-from django.contrib.auth.models import AbstractBaseUser
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from .forms import LoginForm, SmsPasswordForm, ChangeDetailsForm
+from .forms import LoginForm, SmsPasswordForm, SignupForm, ChangeDetailsForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from core.models import *
@@ -20,7 +19,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
-from django.core.urlresolvers import reverse
 from django.db import connection
 import oneplusmvp.settings as settings
 import koremutake
@@ -28,9 +26,10 @@ import json
 from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
-from dateutil import parser
 from .validators import *
 from django.db.models import Count
+from django.db.models import Q
+import re
 
 
 COUNTRYWIDE = "Countrywide"
@@ -218,19 +217,20 @@ def available_space_required(f):
         space, num_spaces = space_available()
 
         if space:
-            return f(request, space=space, num_spaces=num_spaces, *args, **kwargs)
+            return f(request, *args, **kwargs)
         else:
             return redirect("misc.welcome")
     return wrap
 
 
-#sign up screen
+#Sign Up Screen
 @available_space_required
-def signup(request, space, num_spaces):
+def signup(request):
     def get():
+        space, num_spaces = space_available()
         return render(
             request,
-            "misc/signup.html",
+            "auth/signup.html",
             {
                 "space": space,
                 "num_spaces": num_spaces
@@ -239,9 +239,94 @@ def signup(request, space, num_spaces):
 
     def post():
         if 'yes' in request.POST.keys():
-            return redirect("misc.signup")
+            return redirect("auth.signup_form")
         else:
             return redirect("misc.welcome")
+
+    return resolve_http_method(request, [get, post])
+
+
+#Validate mobile number and return international format if it's not
+def validate_mobile(mobile):
+    pattern_both = "^(\+\d{1,2})?\d{10}$"
+    match = re.match(pattern_both, mobile)
+    if match:
+        pattern_non_int = "^\d{10}$"
+
+        match_non_int = re.match(pattern_non_int, mobile)
+
+        if match_non_int:
+            mobile = "+27" + mobile[1:]
+
+        return mobile
+
+    else:
+        return None
+
+
+#Sign up Form Screen
+@available_space_required
+def signup_form(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"form": SignupForm})
+
+    def post():
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            #check if the cellphone number is valid
+            cellphone = form.cleaned_data["cellphone"]
+            cellphone = validate_mobile(cellphone)
+            if cellphone is not None:
+                #check if user with this cellphone number exists
+                user = CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))
+                if user:
+                    return get()
+
+                first_name = form.cleaned_data["first_name"]
+                surname = form.cleaned_data["surname"]
+                school = form.cleaned_data["school"]
+                classs = form.cleaned_data["classs"]
+                area = form.cleaned_data["area"]
+                city = form.cleaned_data["city"]
+                country = form.cleaned_data["country"]
+                enrolled = form.cleaned_data["enrolled"]
+                grade = form.cleaned_data["grade"]
+
+                #create learner
+                new_learner = Learner.objects.create(first_name=first_name,
+                                                     last_name=surname,
+                                                     mobile=cellphone,
+                                                     username=cellphone,
+                                                     area=area,
+                                                     city=city,
+                                                     country=country,
+                                                     school=school,
+                                                     grade=grade,
+                                                     enrolled=enrolled)
+
+                #generate random password
+                password = CustomUser.objects.make_random_password(length=8)
+                new_learner.set_password(password)
+                new_learner.save()
+
+                #create participant
+                new_participant = Participant.objects.create(learner=new_learner,
+                                                             classs=classs,
+                                                             datejoined=datetime.now())
+
+                #sms the learner their OnePlus password
+                SmsQueue.objects.create(message="Your OnePlus password: %s" % password,
+                                        send_date=datetime.now(),
+                                        msisdn=cellphone)
+
+                return redirect("misc.welcome")
+            else:
+                get()
+                # raise forms.ValidationError(
+                #     'Invalid cellphone number',
+                #     code='invalid')
+        else:
+            return redirect("auth.signup_form")
 
     return resolve_http_method(request, [get, post])
 
