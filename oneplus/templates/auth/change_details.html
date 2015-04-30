@@ -1,0 +1,41 @@
+{% extends "core/main.html" %}
+
+{% block title %}Change Details{% endblock %}
+
+{% block content %}
+    <div class="menu">
+        <a href="/menu"><div class="text heading green-back darkgrey-front"><li class="icon"></li><p>Change Number/Email</p></div></a>
+    </div>
+    <div class="content">
+        <p class="center-font">
+            Changing your details will change the number you use to log in to OnePlus as well as the number or email to which all the communication is sent.
+            Leave details blank if you do not wish to change them.
+        </p>
+        <form action="changedetails" method="post" class="">
+
+            {{ form.non_field_errors }}
+            <div class="fieldWrapper">
+                {{ form.subject.errors }}
+                <label for="{{ form.subject.id_for_label }}">Email subject:</label>
+                {{ form.subject }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.message.errors }}
+                <label for="{{ form.message.id_for_label }}">Your message:</label>
+                {{ form.message }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.sender.errors }}
+                <label for="{{ form.sender.id_for_label }}">Your email address:</label>
+                {{ form.sender }}
+            </div>
+            <div class="fieldWrapper">
+                {{ form.cc_myself.errors }}
+                <label for="{{ form.cc_myself.id_for_label }}">CC yourself?</label>
+                {{ form.cc_myself }}
+            </div>
+
+            <input type="submit" value="Submit" class="button green-back grey-front" />
+        </form>
+    </div>
+{% endblock %}

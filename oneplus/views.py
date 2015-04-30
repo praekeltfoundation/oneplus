@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from .forms import LoginForm, SmsPasswordForm
+from .forms import LoginForm, SmsPasswordForm, ChangeDetailsForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from core.models import *
@@ -2928,5 +2928,19 @@ def discussion_response_selected(request, disc):
                 db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
+
+
+def change_details(request):
+    def get():
+        return render(
+            request,
+            "auth/change_details.html",
+            {"form": ChangeDetailsForm()}
+        )
+
+    def post():
+        form = ChangeDetailsForm(request.POST)
 
     return resolve_http_method(request, [get, post])
