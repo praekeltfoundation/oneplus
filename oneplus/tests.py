@@ -16,7 +16,7 @@ from communication.models import Message, ChatGroup, ChatMessage, Post, \
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
-from .views import get_points_awarded, get_badge_awarded, get_week_day, space_available, available_space_required
+from .views import get_points_awarded, get_badge_awarded, get_week_day, space_available, validate_mobile
 from .utils import get_today
 from oneplus.admin import OnePlusLearnerAdmin, OnePlusLearnerResource
 from go_http.tests.test_send import RecordingHandler
@@ -1931,15 +1931,133 @@ class GeneralTests(TestCase):
             self.classs,
             datejoined=datetime.now())
 
-        resp = self.client.get(reverse('misc.signup'))
+        resp = self.client.get(reverse('auth.signup'))
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse('misc.signup'), data={'yes': "Yes, please sign me up!"}, follow=True)
+        resp = self.client.post(reverse('auth.signup'), data={'yes': "Yes, please sign me up!"}, follow=True)
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse('misc.signup'), data={'no': "Not interested right now"}, follow=True)
+        resp = self.client.post(reverse('auth.signup'), data={'no': "Not interested right now"}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>ONEPLUS | HELLO</title>")
+
+    def test_validate_mobile(self):
+        v_mobile_1 = "0721234567"
+        v_mobile_1 = validate_mobile(v_mobile_1)
+        self.assertEquals(v_mobile_1, "+27721234567")
+
+        v_mobile_2 = "+27721234569"
+        v_mobile_2 = validate_mobile(v_mobile_2)
+        self.assertEquals(v_mobile_2, "+27721234569")
+
+        v_mobile_3 = "+123721234567"
+        v_mobile_3 = validate_mobile(v_mobile_3)
+        self.assertEquals(v_mobile_3, "+123721234567")
+
+        i_mobile_1 = "072123456"
+        i_mobile_1 = validate_mobile(i_mobile_1)
+        self.assertEquals(i_mobile_1, None)
+
+        i_mobile_2 = "07212345678"
+        i_mobile_2 = validate_mobile(i_mobile_2)
+        self.assertEquals(i_mobile_2, None)
+
+        i_mobile_3 = "+2821234567"
+        i_mobile_3 = validate_mobile(i_mobile_3)
+        self.assertEquals(i_mobile_3, None)
+
+        i_mobile_4 = "+1237212345678"
+        i_mobile_4 = validate_mobile(i_mobile_4)
+        self.assertEquals(i_mobile_4, None)
+
+    def test_signup_form(self):
+
+        resp = self.client.get(reverse('auth.signup_form'))
+        self.assertEqual(resp.status_code, 200)
+
+        first_name = "Bob"
+        surname = "Bobby"
+        cellphone = "+277123456789"
+        school = self.school.id
+        classs = self.classs.id
+        area = "Lynwood"
+        city = "Pretoria"
+        country = "South Africa"
+        enrolled = 0
+        grade = "Grade 10"
+
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': school,
+                                      'classs': classs,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+
+        learner = Learner.objects.get(mobile=cellphone)
+        self.assertIsNotNone(learner, "Learner not created")
+        self.assertEqual(learner.first_name, first_name, "First name is not correct.")
+
+        participant = Participant.objects.get(learner=learner)
+        self.assertIsNotNone(participant, "Participant not created.")
+
+        #try register same user
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': school,
+                                      'classs': classs,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+        #pass invalid school id
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': 100,
+                                      'classs': classs,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+        #pass invalid class id
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': school,
+                                      'classs': 100,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
 
     def test_signedup(self):
         resp = self.client.get(reverse("auth.signedup"))
@@ -1947,7 +2065,6 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse("auth.signedup"))
         self.assertEquals(resp.status_code, 200)
-
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
