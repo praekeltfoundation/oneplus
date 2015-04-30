@@ -22,6 +22,7 @@ urlpatterns = [
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
     url(r"^a/(?P<token>\S+)$", views.autologin, name="auth.autologin"),
 
+    url(r'^signedup$', views.signedup, name="auth.signedup"),
     # Learn
     url(r"^home", views.home, name="learn.home"),
     url(r"^next$", views.nextchallenge, name="learn.next"),

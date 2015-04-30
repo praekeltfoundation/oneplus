@@ -1941,6 +1941,14 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>ONEPLUS | HELLO</title>")
 
+    def test_signedup(self):
+        resp = self.client.get(reverse("auth.signedup"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse("auth.signedup"))
+        self.assertEquals(resp.status_code, 200)
+
+
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
 

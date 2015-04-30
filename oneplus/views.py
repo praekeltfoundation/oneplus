@@ -246,6 +246,20 @@ def signup(request, space, num_spaces):
     return resolve_http_method(request, [get, post])
 
 
+#Signed Up Screen
+def signedup(request):
+    def get():
+        return render(
+            request,
+            "auth/signedup.html",
+        )
+
+    def post():
+        get()
+
+    return resolve_http_method(request, [get, post])
+
+
 # Signout Function
 @oneplus_state_required
 def signout(request, state):
