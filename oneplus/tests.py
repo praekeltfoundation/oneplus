@@ -2042,6 +2042,14 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
 
+        #pass missing data
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
         #pass invalid class id
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={'first_name': first_name,
@@ -2165,6 +2173,13 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Your number has been changes to +27721478529")
         self.assertContains(resp, "Your email has been changes to asdf@asdf.com.")
+
+    def test_signedup(self):
+        resp = self.client.get(reverse("auth.signedup"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse("auth.signedup"))
+        self.assertEquals(resp.status_code, 200)
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
