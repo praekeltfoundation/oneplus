@@ -55,6 +55,18 @@ class CustomUser(AbstractUser):
                     unique_token=self.unique_token).exists():
                 self.generate_valid_token()
 
+    def get_display_name(self):
+        if self.first_name:
+            temp = self.first_name + ' ' + self.last_name
+        else:
+            temp = self.username
+
+        return temp
+
+    def is_banned(self):
+        # TODO - add some elaborate query here
+        return False
+
     def __str__(self):
         return self.username
 

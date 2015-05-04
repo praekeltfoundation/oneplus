@@ -4,6 +4,7 @@ from datetime import datetime
 from organisation.models import Course, Module
 from content.models import TestingQuestion
 from django.db.models import Q
+from django.utils.html import format_html, mark_safe
 
 
 class Page(models.Model):
@@ -58,6 +59,25 @@ class Post(models.Model):
         verbose_name_plural = "Posts"
 
 
+class PostComment(models.Model):
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="postcomment_user"
+    )
+    post = models.ForeignKey(Post, blank=False)
+    content = models.TextField(blank=False)
+    publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
+    moderated = models.NullBooleanField("Moderated", null=True, blank=True)
+    unmoderated_date = models.DateTimeField(null=True, blank=True)
+    unmoderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="unmoderated_user"
+    )
+    original_content = models.TextField("Original Content", blank=True, null=True)
+
+
 class Discussion(models.Model):
 
     """
@@ -74,14 +94,26 @@ class Discussion(models.Model):
     name = models.CharField("Name", max_length=50, null=True, blank=True)
     description = models.CharField("Description", max_length=50, blank=True)
     content = models.TextField("Content", blank=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="discussion_author"
+    )
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
     moderated = models.BooleanField("Moderated", default=False)
-
     course = models.ForeignKey(Course, null=True, blank=True)
     module = models.ForeignKey(Module, null=True, blank=True)
     question = models.ForeignKey(TestingQuestion, null=True, blank=True)
     response = models.ForeignKey("self", null=True, blank=True)
+    unmoderated_date = models.DateTimeField(null=True, blank=True)
+    unmoderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="discussion_unmoderated_user"
+    )
+    original_content = models.TextField("Original Content", blank=True, null=True)
 
     def __unicode__(self):
         return self.author.first_name + ": " + self.content
@@ -290,12 +322,32 @@ class ChatGroup(models.Model):
 
 class ChatMessage(models.Model):
     chatgroup = models.ForeignKey(ChatGroup, null=True, blank=False)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="chatmessage_author"
+    )
     content = models.TextField("Content", blank=True)
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
+    moderated = models.BooleanField("Moderated", default=False)
+    unmoderated_date = models.DateTimeField(null=True, blank=True)
+    unmoderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="chatmessage_unmoderated_user"
+    )
+    original_content = models.TextField("Original Content", blank=True, null=True)
 
     def __unicode__(self):
         return self.content
+
+    def safe_content(self):
+        return format_html(u"{0}", mark_safe(self.content))
+
+    def safe_orig_content(self):
+        return format_html(u"{0}", mark_safe(self.original_content))
 
     class Meta:
         verbose_name = "Chat Message"
@@ -406,3 +458,71 @@ class SmsQueue(models.Model):
     class Meta:
         verbose_name = "Queued Sms"
         verbose_name_plural = "Queued Smses"
+
+
+class Moderation(models.Model):
+
+    # pk for the view
+    mod_pk = models.CharField(max_length=50, primary_key=True)
+    # pk for the underlying model
+    mod_id = models.PositiveIntegerField()
+    type = models.PositiveIntegerField(null=True, blank=True)
+    description = models.CharField(max_length=100, null=True, blank=True)
+    content = models.TextField(null=True, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="moderation_author"
+    )
+    moderated = models.BooleanField(default=False, blank=True)
+    publishdate = models.DateTimeField(null=True, blank=True)
+    response = models.TextField(null=True, blank=True)
+    unmoderated_date = models.DateTimeField(null=True, blank=True)
+    unmoderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="moderation_unmoderator"
+    )
+    original_content = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        return
+
+    def delete(self, *args, **kwargs):
+        return
+
+    class Meta():
+        managed = False
+        db_table = 'view_communication_moderation'
+
+
+class Profanity(models.Model):
+    word = models.CharField(max_length=75, blank=False, null=False)
+    translation = models.CharField(max_length=100, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "Profanities"
+
+
+class Ban(models.Model):
+    source_types = (
+        (1, 'Blog'),
+        (2, 'Discussion'),
+        (3, 'Chat')
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=False,
+        blank=False
+    )
+    when = models.DateTimeField(null=False, blank=False)
+    till_when = models.DateTimeField(null=False, blank=False)
+    source_type = models.PositiveIntegerField(
+        null=False,
+        blank=False,
+        choices=source_types
+    )
+    source_pk = models.PositiveIntegerField(null=False, blank=False)
