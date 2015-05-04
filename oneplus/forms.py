@@ -59,14 +59,3 @@ class SignupForm(forms.Form):
                               widget=forms.RadioSelect,
                               choices=GRADE_CHOICES,
                               required=True, )
-
-
-class ChangeDetailsForm(forms.Form):
-    old_number = forms.CharField(label="Old Number",
-                                 max_length=13)
-    new_number = forms.CharField(label="New Number",
-                                 max_length=13)
-    old_email = forms.CharField(label="Old Email",
-                                max_length=13)
-    new_email = forms.CharField(label="New Email",
-                                max_length=13)

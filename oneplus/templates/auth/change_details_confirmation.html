@@ -1,0 +1,16 @@
+{% extends "core/main.html" %}
+
+{% block title %}Change Details{% endblock %}
+
+{% block content %}
+    <div class="menu">
+        <a href="/menu"><div class="text heading green-back darkgrey-front"><li class="icon"></li><p>Change Number/Email</p></div></a>
+    </div>
+    <div class="content">
+        {% for change in changes %}
+            <p class="center-font">
+                {{ change.change_details }}
+            </p>
+        {% endfor %}
+    </div>
+{% endblock %}

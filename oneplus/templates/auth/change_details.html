@@ -12,27 +12,47 @@
             Leave details blank if you do not wish to change them.
         </p>
         <form action="changedetails" method="post" class="">
+            {% csrf_token %}
 
-            {{ form.non_field_errors }}
-            <div class="fieldWrapper">
-                {{ form.subject.errors }}
-                <label for="{{ form.subject.id_for_label }}">Email subject:</label>
-                {{ form.subject }}
+            <div class="content.narrow">
+                <label class="bold-font" for="id_old_number">Old Number</label>
+                <input class="comment" type="text" id="id_old_number" name="old_number">
+                {% if old_mobile_error %}
+                    <p class="red-front">
+                        {{ old_mobile_error }}
+                    </p>
+                {% endif %}
             </div>
-            <div class="fieldWrapper">
-                {{ form.message.errors }}
-                <label for="{{ form.message.id_for_label }}">Your message:</label>
-                {{ form.message }}
+            <br>
+            <div class="content.narrow">
+                <label class="bold-font" for="id_new_number">New Number</label>
+                <input type="text" id="id_new_number" name="new_number">
+                {% if new_mobile_error %}
+                    <p class="red-front">
+                        {{ new_mobile_error }}
+                    </p>
+                {% endif %}
             </div>
+            <br>
+            <br>
             <div class="fieldWrapper">
-                {{ form.sender.errors }}
-                <label for="{{ form.sender.id_for_label }}">Your email address:</label>
-                {{ form.sender }}
+                <label class="bold-font" for="id_old_email">Old Email</label>
+                <input type="text" id="id_old_email" name="old_email">
+                {% if old_email_error %}
+                    <p class="red-front">
+                        {{ old_email_error }}
+                    </p>
+                {% endif %}
             </div>
+            <br>
             <div class="fieldWrapper">
-                {{ form.cc_myself.errors }}
-                <label for="{{ form.cc_myself.id_for_label }}">CC yourself?</label>
-                {{ form.cc_myself }}
+                <label class="bold-font" for="id_new_email">New Email</label>
+                <input type="text" id="id_new_email" name="new_email">
+                {% if new_email_error %}
+                    <p class="red-front">
+                        {{ new_email_error }}
+                    </p>
+                {% endif %}
             </div>
 
             <input type="submit" value="Submit" class="button green-back grey-front" />
