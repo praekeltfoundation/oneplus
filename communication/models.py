@@ -7,6 +7,20 @@ from django.db.models import Q
 from django.utils.html import format_html, mark_safe
 
 
+class ModerationBase(models.Model):
+    def moderate(self):
+        self.moderated = True
+        self.unmoderated_date = None
+        self.unmoderated_by = None
+        self.save()
+
+    def unmoderate(self, user):
+        self.moderated = False
+        self.unmoderated_by = user
+        self.unmoderated_date = datetime.now()
+        self.save()
+
+
 class Page(models.Model):
 
     """
@@ -59,7 +73,7 @@ class Post(models.Model):
         verbose_name_plural = "Posts"
 
 
-class PostComment(models.Model):
+class PostComment(ModerationBase):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="postcomment_user"
@@ -78,7 +92,7 @@ class PostComment(models.Model):
     original_content = models.TextField("Original Content", blank=True, null=True)
 
 
-class Discussion(models.Model):
+class Discussion(ModerationBase):
 
     """
     A minimal forum experience is available on
@@ -320,7 +334,7 @@ class ChatGroup(models.Model):
         verbose_name_plural = "Chat Groups"
 
 
-class ChatMessage(models.Model):
+class ChatMessage(ModerationBase):
     chatgroup = models.ForeignKey(ChatGroup, null=True, blank=False)
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -526,3 +540,11 @@ class Ban(models.Model):
         choices=source_types
     )
     source_pk = models.PositiveIntegerField(null=False, blank=False)
+
+    def get_duration(self):
+        diff = self.till_when - self.when
+
+        if diff.seconds > 0:
+            return diff.days + 1
+        else:
+            return diff.days

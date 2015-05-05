@@ -7,6 +7,8 @@ import koremutake
 from django.contrib.auth.hashers import make_password
 from random import randint
 import logging
+from datetime import datetime
+from .models import Ban
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -137,3 +139,9 @@ class VumiSmsApi:
             learner.save()
 
         return successful, fail
+
+def get_user_bans(user):
+    today = datetime.now()
+    today_start = datetime(today.year, today.month, today.day)
+
+    return Ban.objects.filter(user=user, till_when__gte=today_start)

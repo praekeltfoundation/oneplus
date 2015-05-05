@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test.client import Client
 from utils import format_option, format_content
+from communication.models import ChatMessage, Discussion, PostComment, ChatGroup
+from auth.models import CustomUser
+from datetime import datetime
 
 
 class TestContent(TestCase):
@@ -70,3 +75,68 @@ class TestContent(TestCase):
         content = u'Zoë'
         output = format_option(content)
         self.assertEquals(output, u'Zoë')
+
+
+class TestPublishViews(TestCase):
+
+    def create_user(self, mobile="+27123456789", country="country", **kwargs):
+        model_class = get_user_model()
+        return model_class.objects.create(
+            mobile=mobile, country=country, **kwargs)
+
+    def create_chatgroup(self, name='TestGroup', description='TestGroup'):
+        return ChatGroup.objects.create(
+            name=name,
+            description=description
+        )
+
+    def create_chatmessage(self, content):
+        return ChatMessage.objects.create(
+            chatgroup=self.chatgroup,
+            author=self.user,
+            content=content,
+            publishdate=datetime.now()
+        )
+
+    def setUp(self):
+        self.user = self.create_user()
+        self.chatgroup = self.create_chatgroup()
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
+
+    def test_chatmessage_publish_unpublish(self):
+        cm = self.create_chatmessage('Test Test test')
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        base_url = '/admin/communication/chatmessage/publish/'
+
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(cm.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'ChatMessage has been published')
+
+        cm = ChatMessage.objects.get(pk=cm.pk)
+        self.assertEquals(cm.moderated, True)
+
+        base_url = '/admin/communication/chatmessage/unpublish/'
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(cm.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'ChatMessage has been unpublished')
+
+        cm = ChatMessage.objects.get(pk=cm.pk)
+        self.assertEquals(cm.moderated, False)
+        self.assertEquals(cm.unmoderated_by__username, self.admin_user.username)
+        self.assertIsNotNone(cm.unmoderated_date)

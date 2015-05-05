@@ -8,6 +8,7 @@ from gamification.models import (GamificationBadgeTemplate,
                                  GamificationPointBonus,
                                  GamificationScenario)
 from content.models import TestingQuestion, TestingQuestionOption
+from communication.models import Ban
 from auth.stats import *
 
 
@@ -138,3 +139,19 @@ class TestAuth(TestCase):
         count = number_learner_email_opt_ins()
         self.assertEquals(perc, 100)
         self.assertEquals(count, 1)
+
+    def test_is_banned(self):
+        today = datetime.now()
+        ban_date = datetime(today.year, today.month, today.day, 23, 59, 59, 999999)
+
+        self.assertEquals(self.learner.is_banned(), False)
+
+        Ban.objects.create(
+            user=self.learner,
+            when=today,
+            till_when=ban_date,
+            source_type=1,
+            source_pk=1
+        )
+
+        self.assertEquals(self.learner.is_banned(), True)

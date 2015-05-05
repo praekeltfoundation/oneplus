@@ -6,6 +6,7 @@ import string
 from datetime import datetime, timedelta
 from communication.models import Sms
 from django.utils import timezone
+from communication.utils import get_user_bans
 
 
 # Base class for custom MobileU user model
@@ -64,8 +65,12 @@ class CustomUser(AbstractUser):
         return temp
 
     def is_banned(self):
-        # TODO - add some elaborate query here
-        return False
+        cnt = get_user_bans(self).count()
+
+        if cnt > 0:
+            return True
+        else:
+            return False
 
     def __str__(self):
         return self.username

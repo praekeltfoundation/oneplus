@@ -2,8 +2,7 @@
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-
-from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue
+from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue, Ban
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
 from core.models import Class
@@ -201,3 +200,35 @@ class TestReportResponse(TestCase):
 
         self.assertEquals(response.title, "title", "They are not equal")
         self.assertEquals(response.content, "content", "They are equal")
+
+
+class TestBan(TestCase):
+    def create_user(self, mobile="+27123456789", country="country", **kwargs):
+        model_class = get_user_model()
+        return model_class.objects.create(
+            mobile=mobile, country=country, **kwargs)
+
+    def create_ban(self, till_when):
+        return Ban.objects.create(
+            user=self.user,
+            when=datetime.now(),
+            till_when=till_when,
+            source_type=1,
+            source_pk=1
+        )
+
+    def setUp(self):
+        self.user = self.create_user()
+
+    def test_ban_duration(self):
+        today = datetime.now()
+        today = datetime(today.year, today.month, today.day, 23, 59, 59, 999999)
+        b1tw = today
+        b2tw = today + timedelta(days=2)
+
+        ban1 = self.create_ban(b1tw)
+        self.assertEquals(ban1.get_duration(), 1)
+        ban1.delete()
+
+        ban2 = self.create_ban(b2tw)
+        self.assertEquals(ban2.get_duration(), 3)

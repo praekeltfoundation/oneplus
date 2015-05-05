@@ -5,9 +5,10 @@ from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
 from core.filters import UserFilter
-from .utils import VumiSmsApi
+from .utils import VumiSmsApi, get_user_bans
 from organisation.models import CourseModuleRel
 from .filters import *
+from django.utils.http import urlquote
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -277,26 +278,54 @@ class ModerationAdmin(admin.ModelAdmin):
     )
 
     def get_content(self, obj):
-        return '<a href="" target="_blank">%s</a>' % obj.description
+        if obj.description:
+            url = ".?content=%s" % urlquote(obj.description)
+            return '<a href="%s" target="_blank">%s</a>' % (url, obj.description)
+        else:
+            return ''
 
     get_content.short_description = 'Content'
     get_content.allow_tags = True
 
     def get_comment(self, obj):
-        return '<a href="" target="_blank">%s</a>' % obj.content
+        url_base = "/admin/communication/"
+        if obj.type == 1:
+            url = url_base + "postcomment/%s" % obj.mod_id
+        elif obj.type == 2:
+            url = url_base + "discussion/%s" % obj.mod_id
+        elif obj.type == 3:
+            url = url_base + "chatmessage/%s" % obj.mod_id
+        else:
+            url = ''
+
+        return '<a href="%s" target="_blank">%s</a>' % (url, obj.content)
 
     get_comment.short_description = 'Comment'
     get_comment.allow_tags = True
 
     def get_author(self, obj):
-        return '<a href="" target="_blank">%s</a>' % obj.author.get_display_name()
+        if obj.author:
+            url = ".?user=%d" % obj.author.id
+            return '<a href="%s" target="_blank">%s</a>' % (url, obj.author.get_display_name())
+        else:
+            return obj.author
 
     get_author.short_description = 'User'
     get_author.allow_tags = True
 
     def get_reply(self, obj):
         if obj.response is None or len(obj.response.strip()) == 0:
-            return '<a href="" target="_blank">Add Reply</a>'
+            if obj.type == 1:
+                retval = 'Add Reply'
+            elif obj.type == 2:
+                url = '/admin/discussion_response/%d' % obj.mod_id
+                retval = '<a href="%s" target="_blank">Add Reply</a>' % url
+            elif obj.type == 3:
+                retval = 'Add Reply'
+            else:
+                retval = 'Add Reply'
+
+            return retval
         elif obj.original_content and len(obj.original_content.strip()) > 0:
             # Comment has been removed
             return obj.content
@@ -342,7 +371,18 @@ class ModerationAdmin(admin.ModelAdmin):
     get_unmoderated_date.allow_tags = True
 
     def get_ban(self, obj):
-        return ''
+        bans = get_user_bans(obj.author)
+
+        if bans.count() == 0:
+            return ''
+        else:
+            dur = bans[0].get_duration()
+            plural = ''
+
+            if dur > 1:
+                plural = 's'
+
+            return '%d day%s' % (dur, plural)
 
     get_ban.short_description = 'Ban'
     get_ban.allow_tags = True
