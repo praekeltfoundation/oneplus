@@ -7,20 +7,6 @@ from django.db.models import Q
 from django.utils.html import format_html, mark_safe
 
 
-class ModerationBase(models.Model):
-    def moderate(self):
-        self.moderated = True
-        self.unmoderated_date = None
-        self.unmoderated_by = None
-        self.save()
-
-    def unmoderate(self, user):
-        self.moderated = False
-        self.unmoderated_by = user
-        self.unmoderated_date = datetime.now()
-        self.save()
-
-
 class Page(models.Model):
 
     """
@@ -73,7 +59,7 @@ class Post(models.Model):
         verbose_name_plural = "Posts"
 
 
-class PostComment(ModerationBase):
+class PostComment(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="postcomment_user"
@@ -92,7 +78,7 @@ class PostComment(ModerationBase):
     original_content = models.TextField("Original Content", blank=True, null=True)
 
 
-class Discussion(ModerationBase):
+class Discussion(models.Model):
 
     """
     A minimal forum experience is available on
@@ -334,7 +320,7 @@ class ChatGroup(models.Model):
         verbose_name_plural = "Chat Groups"
 
 
-class ChatMessage(ModerationBase):
+class ChatMessage(models.Model):
     chatgroup = models.ForeignKey(ChatGroup, null=True, blank=False)
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,

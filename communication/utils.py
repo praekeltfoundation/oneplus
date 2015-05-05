@@ -51,7 +51,6 @@ class VumiSmsApi:
             elif msisdn.startswith('0'):
                 return '+27' + msisdn[1:]
 
-
     def templatize(self, message, password, autologin):
         if password is not None:
             message = message.replace("|password|", password)
@@ -140,8 +139,23 @@ class VumiSmsApi:
 
         return successful, fail
 
+
 def get_user_bans(user):
     today = datetime.now()
     today_start = datetime(today.year, today.month, today.day)
 
     return Ban.objects.filter(user=user, till_when__gte=today_start)
+
+
+def moderate(comm):
+    comm.moderated = True
+    comm.unmoderated_date = None
+    comm.unmoderated_by = None
+    comm.save()
+
+
+def unmoderate(comm, user):
+    comm.moderated = False
+    comm.unmoderated_by = user
+    comm.unmoderated_date = datetime.now()
+    comm.save()

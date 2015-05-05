@@ -2,82 +2,70 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import user_passes_test
 from communication.models import PostComment, ChatMessage, Discussion
+from communication.utils import moderate, unmoderate
+
+
+def _publish(obj, name):
+    msg = ''
+    err_msg = '%s has not been published. Reason: ' % name
+    if obj:
+        try:
+            moderate(obj)
+            msg = '%s has been published' % name
+        except Exception as ex:
+            msg = '%s%s' % (err_msg, ex.message)
+    else:
+        msg = '%s%s' % (err_msg, 'Can''t find record.')
+
+    return msg
+
+
+def _unpublish(obj, name, user):
+    msg = ''
+    err_msg = '%s has not been unpublished. Reason: ' % name
+    if obj:
+        try:
+            unmoderate(obj, user)
+            msg = '%s has been unpublished' % name
+        except Exception as ex:
+            msg = '%s%s' % (err_msg, ex.message)
+    else:
+        msg = '%s%s' % (err_msg, 'Can''t find record.')
+
+    return msg
 
 
 @user_passes_test(lambda u: u.is_staff)
 def publish_postcomment(request, pk):
-    pc = PostComment.objects.filter(pk=pk)
-    msg = ''
-    err_msg = 'PostComment has not been published. Reason: '
-    if pc:
-        pc.moderate()
-        msg = 'PostComment has been published'
-    else:
-        msg = '%s%s' % (err_msg, 'Can''t find record.')
+    pc = PostComment.objects.filter(pk=pk).first()
+    return HttpResponse(_publish(pc, 'PostComment'))
 
-    return HttpResponse(msg)
 
 @user_passes_test(lambda u: u.is_staff)
 def unpublish_postcomment(request, pk):
-    pc = PostComment.objects.filter(pk=pk)
-    msg = ''
-    err_msg = 'PostComment has not been unpublished. Reason: '
-    if pc:
-        pc.update(moderated=True)
-        msg = 'PostComment has been unpublished'
-    else:
-        msg = '%s%s' % (err_msg, 'Can''t find record.')
+    pc = PostComment.objects.filter(pk=pk).first()
+    return HttpResponse(_unpublish(pc, 'PostComment', request.user))
 
-    return HttpResponse(msg)
 
 @user_passes_test(lambda u: u.is_staff)
 def publish_chatmessage(request, pk):
-    pc = ChatMessage.objects.filter(pk=pk)
-    msg = ''
-    err_msg = 'ChatMessage has not been published. Reason: '
-    if pc:
-        pc.update(moderated=True)
-        msg = 'ChatMessage has been published'
-    else:
-        msg = '%s%s' % (err_msg, 'Can''t find record.')
+    cm = ChatMessage.objects.filter(pk=pk).first()
+    return HttpResponse(_publish(cm, 'ChatMessage'))
 
-    return HttpResponse(msg)
 
 @user_passes_test(lambda u: u.is_staff)
 def unpublish_chatmessage(request, pk):
-    pc = ChatMessage.objects.filter(pk=pk)
-    msg = ''
-    err_msg = 'ChatMessage has not been unpublished. Reason: '
-    if pc:
-        pc.update(moderated=True)
-        msg = 'ChatMessage has been unpublished'
-    else:
-        msg = '%s%s' % (err_msg, 'Can''t find record.')
+    cm = ChatMessage.objects.filter(pk=pk).first()
+    return HttpResponse(_unpublish(cm, 'ChatMessage', request.user))
 
-    return HttpResponse(msg)
 
 @user_passes_test(lambda u: u.is_staff)
 def publish_discussion(request, pk):
-    pc = Discussion.objects.filter(pk=pk)
-    msg = ''
-    err_msg = 'Discussion has not been published. Reason: '
-    if pc:
-        pc.update(moderated=True)
-        msg = 'Discussion has been published'
-    else:
-        msg = '%s%s' % (err_msg, 'Can''t find record.')
+    d = Discussion.objects.filter(pk=pk).first()
+    return HttpResponse(_publish(d, 'Discussion'))
 
-    return HttpResponse(msg)
 
 @user_passes_test(lambda u: u.is_staff)
 def unpublish_discussion(request, pk):
-    pc = Discussion.objects.filter(pk=pk)
-    msg = ''
-    err_msg = 'Discussion has not been unpublished. Reason: '
-    if pc:
-        pc.update(moderated=True)
-        msg = 'Discussion has been unpublished'
-    else:
-        msg = '%s%s' % (err_msg, 'Can''t find record.')
-
-    return HttpResponse(msg)
+    d = Discussion.objects.filter(pk=pk).first()
+    return HttpResponse(_unpublish(d, 'Discussion', request.user))
