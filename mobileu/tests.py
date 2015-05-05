@@ -236,7 +236,6 @@ class TestPublishViews(TestCase):
 
         url = base_url + str(pc.pk)
         resp = c.get(url)
-        print resp
         self.assertContains(resp, 'PostComment has been unpublished')
 
         pc = PostComment.objects.get(pk=pc.pk)

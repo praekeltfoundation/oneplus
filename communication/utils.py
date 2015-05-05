@@ -8,7 +8,7 @@ from django.contrib.auth.hashers import make_password
 from random import randint
 import logging
 from datetime import datetime
-from .models import Ban
+from .models import Ban, Profanity
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -159,3 +159,15 @@ def unmoderate(comm, user):
     comm.unmoderated_by = user
     comm.unmoderated_date = datetime.now()
     comm.save()
+
+
+def contains_profanity(content):
+    qs = Profanity.objects.all()
+
+    for prof in qs:
+        lprof = prof.word.lower()
+        lcontent = content.lower()
+        if lprof in lcontent:
+            return True
+
+    return False

@@ -2,10 +2,11 @@
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue, Ban
+from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue, Ban, Profanity
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
 from core.models import Class
+from communication.utils import contains_profanity
 
 from datetime import datetime, timedelta
 
@@ -232,3 +233,16 @@ class TestBan(TestCase):
 
         ban2 = self.create_ban(b2tw)
         self.assertEquals(ban2.get_duration(), 3)
+
+
+class TestProfanity(TestCase):
+    def test_profanity(self):
+        Profanity.objects.create(
+            word = 'test'
+        )
+
+        self.assertEquals(contains_profanity('foo bar'), False)
+        self.assertEquals(contains_profanity('test testees testing'), True)
+        self.assertEquals(contains_profanity('Test testees testing'), True)
+        self.assertEquals(contains_profanity('TeSt testees TesTing'), True)
+        self.assertEquals(contains_profanity('test TesTees testing'), True)
