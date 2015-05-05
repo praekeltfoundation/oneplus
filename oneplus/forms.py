@@ -59,4 +59,3 @@ class SignupForm(forms.Form):
                               widget=forms.RadioSelect,
                               choices=GRADE_CHOICES,
                               required=True, )
-

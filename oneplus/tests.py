@@ -1889,7 +1889,7 @@ class GeneralTests(TestCase):
 
     #assuming MAX_SPACES is 300
     def test_space_available(self):
-        learner = self.learner = self.create_learner(
+        learner =  self.create_learner(
             self.school,
             username="+27123456999",
             mobile="+2712345699",)
@@ -1921,7 +1921,7 @@ class GeneralTests(TestCase):
 
     #assuming MAX_SPACES is 300
     def test_signup(self):
-        learner = self.learner = self.create_learner(
+        learner = self.create_learner(
             self.school,
             username="+27123456999",
             mobile="+2712345699",)
@@ -2066,6 +2066,113 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+    def test_change_details(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('auth.change_details'))
+        self.assertEqual(resp.status_code, 200)
+
+        #no change
+        resp = self.client.post(reverse("auth.change_details"), follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "No changes made.")
+
+        #invalid old_number
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '012'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter a valid mobile number.")
+
+        #incorrect old_number
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27721234567'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "This number is not associated with this account.")
+
+        #invalid new_mobile
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '012'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter a valid mobile number.")
+
+        #invalid new_mobile
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '+27123456789'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "You cannot change your number to your current number.")
+
+        #new number same as an existing user
+        learner = self.create_learner(
+            self.school,
+            username="+271234569999",
+            mobile="+27123456999",
+            email="abcd@abcd.com")
+
+        self.participant = self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '+27123456999'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "A user with this mobile number (+27123456999) already exists.")
+
+        self.learner.email = "qwer@qwer.com"
+        self.learner.save()
+        #incorrect old_email
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'xyz@xyz.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "This email is not associated with this account.")
+
+        #changing to current email
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'qwer@qwer.com',
+                                      'new_email': 'qwer@qwer.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "This is your current email.")
+
+        #invalid new_email
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'qwer@qwer.com',
+                                      'new_email': 'abc'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter a valid email.")
+
+        #email exists
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'qwer@qwer.com',
+                                      'new_email': 'abcd@abcd.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "A user with this email (abcd@abcd.com) already exists.")
+
+        #valid
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '0721478529',
+                                      'old_email': 'qwer@qwer.com',
+                                      'new_email': 'asdf@asdf.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Your number has been changes to +27721478529")
+        self.assertContains(resp, "Your email has been changes to asdf@asdf.com.")
 
     def test_signedup(self):
         resp = self.client.get(reverse("auth.signedup"))
