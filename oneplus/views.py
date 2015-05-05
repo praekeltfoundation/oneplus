@@ -2217,6 +2217,9 @@ def change_details(request, state, user):
         if "old_number" in request.POST.keys() or "new_number" in request.POST.keys() or \
                 "old_email" in request.POST.keys() or "new_email" in request.POST.keys():
 
+            error_field = ""
+            error_message = ""
+
             #check if NUMBER wants to be changed
             if "old_number" in request.POST.keys() and request.POST["old_number"] != "" or \
                     "new_number" in request.POST.keys() and request.POST["new_number"] != "":
@@ -2224,48 +2227,61 @@ def change_details(request, state, user):
                 old_mobile = request.POST["old_number"]
 
                 if validate_mobile(old_mobile) is None:
+                    error_field = "old_mobile_error"
+                    error_message = "Please enter a valid mobile number."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "old_mobile_error": "Please enter a valid mobile number."
+                            "error_field": error_field,
+                            "error_message": error_message
+
                         }
                     )
 
                 if learner.mobile != old_mobile:
+                    error_field = "old_mobile_error"
+                    error_message = "This number is not associated with this account."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "old_mobile_error": "This number is not associated with this account."
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
                 new_mobile = request.POST["new_number"]
                 validated_mobile = validate_mobile(new_mobile)
                 if not validated_mobile:
+                    error_field = "new_mobile_error"
+                    error_message = "Please enter a valid mobile number."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "new_mobile_error": "Please enter a valid mobile number."
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
                 if new_mobile == old_mobile:
+                    error_field = "new_mobile_error"
+                    error_message = "You cannot change your number to your current number."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "new_mobile_error": "You cannot change your number to your current number."
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
@@ -2274,13 +2290,16 @@ def change_details(request, state, user):
                 #check if a user with the new mobile number already exits
                 existing = Learner.objects.filter(mobile=new_mobile)
                 if existing:
+                    error_field = "new_mobile_error"
+                    error_message = "A user with this mobile number (%s) already exists." % new_mobile
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "new_mobile_error": "A user with this mobile number (%s) already exists." % new_mobile
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
@@ -2292,50 +2311,62 @@ def change_details(request, state, user):
 
                 old_email = request.POST["old_email"]
                 if learner.email != old_email:
+                    error_field = "old_email_error"
+                    error_message = "This email is not associated with this account."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "old_email_error": "This email is not associated with this account."
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
                 new_email = request.POST["new_email"]
 
                 if new_email == old_email:
+                    error_field = "new_email_error"
+                    error_message = "This is your current email."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "new_email_error": "This is your current email."
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
                 if not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+                    error_field = "new_email_error"
+                    error_message = "Please enter a valid email."
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "new_email_error": "Please enter a valid email."
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 
                 #check if a user with this email number already exits
                 existing = Learner.objects.filter(email=new_email)
                 if existing:
+                    error_field = "new_email_error"
+                    error_message = "A user with this email (%s) already exists." % new_email
                     return render(
                         request,
                         "auth/change_details.html",
                         {
                             "state": state,
                             "user": user,
-                            "new_email_error": "A user with this email (%s) already exists." % new_email
+                            "error_field": error_field,
+                            "error_message": error_message
                         }
                     )
 

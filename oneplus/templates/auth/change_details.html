@@ -17,9 +17,9 @@
             <div class="content.narrow">
                 <label class="bold-font" for="id_old_number">Old Number</label>
                 <input class="comment" type="text" id="id_old_number" name="old_number">
-                {% if old_mobile_error %}
+                {% if error_field == "old_mobile_error" %}
                     <p class="red-front">
-                        {{ old_mobile_error }}
+                        {{ error_message }}
                     </p>
                 {% endif %}
             </div>
@@ -27,9 +27,9 @@
             <div class="content.narrow">
                 <label class="bold-font" for="id_new_number">New Number</label>
                 <input type="text" id="id_new_number" name="new_number">
-                {% if new_mobile_error %}
+                {% if error_field == "new_mobile_error" %}
                     <p class="red-front">
-                        {{ new_mobile_error }}
+                        {{ error_message }}
                     </p>
                 {% endif %}
             </div>
@@ -38,9 +38,9 @@
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_old_email">Old Email</label>
                 <input type="text" id="id_old_email" name="old_email">
-                {% if old_email_error %}
+                {% if error_field == "old_email_error" %}
                     <p class="red-front">
-                        {{ old_email_error }}
+                        {{ error_message }}
                     </p>
                 {% endif %}
             </div>
@@ -48,9 +48,9 @@
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_new_email">New Email</label>
                 <input type="text" id="id_new_email" name="new_email">
-                {% if new_email_error %}
+                {% if error_field == "new_email_error" %}
                     <p class="red-front">
-                        {{ new_email_error }}
+                        {{ error_message }}
                     </p>
                 {% endif %}
             </div>
