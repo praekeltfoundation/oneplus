@@ -120,12 +120,15 @@
                     {% endif %}
                 {% endfor %}
             {% endfor %}
-            <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
-                {{ state.discussion_page }} of {{ state.discussion_page_max }}
-                {% if state.discussion_page < state.discussion_page_max %}
-                <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
-                <input type="hidden" name="page" value="" />
-                {% endif %}
+            <form name="more_form" method="post" action="?">
+                {% csrf_token %}
+                <div class="item grey-back">
+                    {{ state.discussion_page }} of {{ state.discussion_page_max }}
+                    {% if state.discussion_page < state.discussion_page_max %}
+                    <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
+                    <input type="hidden" name="page" value="" />
+                    {% endif %}
+                </div>
             </form>
         </div>
         {% endif %}

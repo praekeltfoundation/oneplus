@@ -1755,20 +1755,21 @@ def blog(request, state, user, blogid):
     else:
         state["blog_previous"] = None
 
+    request.session["state"]["post_comment"] = False
+
     def get():
-        request.session["state"]["post_page_max"] = \
-                PostComment.objects.filter(
-                    post=_post,
-                    moderated=True
-                ).count()
+        request.session["state"]["post_page_max"] =\
+            PostComment.objects.filter(
+                post=_post,
+                moderated=True
+            ).count()
 
-        request.session["state"]["post_page"] = \
-            min(2, request.session["state"]["post_page_max"])
+        request.session["state"]["post_page"] =\
+            min(5, request.session["state"]["post_page_max"])
 
-        post_comments = PostComment.objects \
-                            .filter(post=_post, moderated=True) \
-                            .order_by("publishdate") \
-                            .reverse()[:request.session["state"]["post_page"]]
+        post_comments = PostComment.objects.filter(post=_post, moderated=True)\
+            .order_by("publishdate") \
+            .reverse()[:request.session["state"]["post_page"]]
 
         return render(
             request,
@@ -1778,7 +1779,7 @@ def blog(request, state, user, blogid):
                 "user": user,
                 "post": _post,
                 "post_comments": post_comments
-             }
+            }
         )
 
     def post():
@@ -1787,22 +1788,24 @@ def blog(request, state, user, blogid):
             _comment = request.POST["comment"]
 
             _post_comment = PostComment(
+                post=_post,
                 author=_usr,
                 content=_comment,
                 publishdate=datetime.now()
             )
             _post_comment.save()
-
-        elif "more_comments" in request.POST.keys():
-            request.session["state"]["post_page"] += 2
+            request.session["state"]["post_comment"] = True
+        elif "page" in request.POST.keys():
+            print "more"
+            request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
                 request.session["state"]["post_page"] = request.session["state"]["post_page_max"]
-
+                print request.session["state"]["post_page"]
 
         post_comments = PostComment.objects \
-                            .filter(post=_post, moderated=True) \
-                            .order_by("publishdate") \
-                            .reverse()[:request.session["state"]["post_page"]]
+            .filter(post=_post, moderated=True) \
+            .order_by("publishdate") \
+            .reverse()[:request.session["state"]["post_page"]]
 
         return render(
             request,

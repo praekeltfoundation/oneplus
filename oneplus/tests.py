@@ -673,6 +673,24 @@ class GeneralTests(TestCase):
         )
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(reverse('com.blog',
+                                        kwargs={'blogid': blog.id}),
+                                data={'comment': 'New comment'},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Thank you for your contribution. Your message will display shortly!")
+
+        resp = self.client.post(reverse('com.blog',
+                                        kwargs={'blogid': blog.id}),
+                                data={'page': 1},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+
     def test_smspassword_get(self):
         resp = self.client.get(reverse('auth.smspassword'), follow=True)
         self.assertEquals(resp.status_code, 200)

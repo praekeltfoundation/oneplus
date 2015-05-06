@@ -1,11 +1,11 @@
 {% extends "core/main.html" %}
-{% load oneplus_extras %}
 {% block title %}BLOG{% endblock %}
 
 {% block content %}
-<div class="menu">
-    <a href="/blog"><div class="text heading purple-back darkgrey-front"><li class="icon blog"></li><p>Blog</p></div></a>
-</div>
+    {% load humanize %}
+    <div class="menu">
+        <a href="/blog"><div class="text heading purple-back darkgrey-front"><li class="icon blog"></li><p>Blog</p></div></a>
+    </div>
     <div class="text heading purple-back"><p>What we have to tell you</p></div>
 
     <div class="content narrow white-back">
@@ -15,30 +15,32 @@
         <div class="purple-front large-font">{{ post.name }}</div>
         <div class="darkgrey-front bold-font">{{ post.publishdate|date:"d M" }}</div>
         <div class="darkgrey-front">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
+    </div>
 
         {% if state.post_page_max > 0 %}
-            <div class="menu grey-back">
+            <div class="menu darkgrey-back">
                 {% for comment in post_comments %}
                     {% if comment.moderated %}
                         <div class="item-large grey-back">
                             <div>
-                                <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front"></span>
+                                <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front">{{ comment.publishdate | naturaltime }}</span>
                             </div>
                             <p class="white-front">{{ comment.content }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
-                <form name="more_comments" method="post" action="?" class="item grey-back">
+                <form name="more_comments" method="post" action="?">
                     {% csrf_token %}
-                    {{ request.session.state.post_page | length }} of {{ request.session.state.post_page_max }}
-                    {% if request.session.state.post_page | length < request.session.state.post_page_max %}
-                        <button type="submit" name="more_button" class="green-front link" value="">See more comments ></button>
-                        <input type="hidden" name="page" value="" />
-                    {% endif %}
+                    <div class="item grey-back">
+                        <span>{{ request.session.state.post_page }} of {{ request.session.state.post_page_max }}</span>
+                        {% if request.session.state.post_page < request.session.state.post_page_max %}
+                            <button type="submit" name="more_button" class="green-front link" value="">See more comments ></button>
+                            <input type="hidden" name="page" value="" />
+                        {% endif %}
+                    </div>
                 </form>
             </div>
         {% endif %}
-    </div>
 
     <div class="content narrow darkgrey-back pad-bottom">
         <div class="white-front bold-font">Post a Comment</div>
@@ -47,6 +49,9 @@
             <input type="text" name="comment" value="">
             <button type="submit" name="comment_button" class="button green-back grey-front">Post</button>
         </form>
+        {% if state.post_comment %}
+            <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
+        {% endif %}
     </div>
 
     <div class="content narrow white-back">
