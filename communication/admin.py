@@ -5,8 +5,10 @@ from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
 from core.filters import UserFilter
-from .utils import VumiSmsApi
+from .utils import VumiSmsApi, get_user_bans
 from organisation.models import CourseModuleRel
+from .filters import *
+from django.utils.http import urlquote
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -25,7 +27,7 @@ class PostAdmin(SummernoteModelAdmin):
         (None,
             {"fields": ["name", "description", "course", "publishdate"]}),
         ("Content",
-            {"fields": ["big_image", "small_image", "moderated", "content"]})
+            {"fields": ["big_image", "small_image", "moderated", "content"]}),
     ]
 
 
@@ -49,6 +51,24 @@ class ChatGroupAdmin(SummernoteModelAdmin):
     inlines = (ChatMessageInline, )
 
 
+class ChatMessageAdmin(SummernoteModelAdmin):
+    list_display = ("id", "chatgroup", "author", "safe_content", "publishdate", "moderated")
+    list_filter = ("chatgroup", "moderated")
+    search_fields = (
+        "content",
+        "original_content",
+        "author__first_name",
+        "author__last_name",
+        "author__username",
+    )
+    fieldsets = [
+        (None,
+            {"fields": ["chatgroup", "author", "content", "publishdate", "moderated"]}),
+        ("Moderation",
+            {"fields": ["original_content", "unmoderated_date", "unmoderated_by"]}),
+    ]
+
+
 class DiscussionAdmin(admin.ModelAdmin):
     list_display = ("id", "get_question", "module", "course", "get_content",
                     "author", "publishdate", "get_response_posted", "moderated")
@@ -59,6 +79,8 @@ class DiscussionAdmin(admin.ModelAdmin):
             {"fields": ["name", "description"]}),
         ("Content",
             {"fields": ["content", "author", "publishdate", "moderated"]}),
+        ("Moderation",
+            {"fields": ["original_content", "unmoderated_date", "unmoderated_by"]}),
         ("Discussion Group",
             {"fields": ["course", "module", "question", "response"]})
     ]
@@ -233,12 +255,203 @@ class SmsQueuedAdmin(admin.ModelAdmin):
     get_send_date.allow_tags = True
 
 
+class ModerationAdmin(admin.ModelAdmin):
+    list_display = (
+        'get_content',
+        'get_comment',
+        'get_author',
+        'get_reply',
+        'get_publishdate',
+        'get_published',
+        'get_unmoderated_by',
+        'get_unmoderated_date',
+        'get_ban'
+    )
+
+    list_filter = (
+        ModerationContentFilter,
+        ModerationUserFilter,
+        ModerationContentTypeFilter,
+        ModerationStateFilter
+    )
+
+    def get_content(self, obj):
+        if obj.description:
+            url = ".?content=%s" % urlquote(obj.description)
+            return '<a href="%s" target="_blank">%s</a>' % (url, obj.description)
+        else:
+            return ''
+
+    get_content.short_description = 'Content'
+    get_content.allow_tags = True
+
+    def get_comment(self, obj):
+        url_base = "/admin/communication/"
+        if obj.type == 1:
+            url = url_base + "postcomment/%s" % obj.mod_id
+        elif obj.type == 2:
+            url = url_base + "discussion/%s" % obj.mod_id
+        elif obj.type == 3:
+            url = url_base + "chatmessage/%s" % obj.mod_id
+        else:
+            url = ''
+
+        return '<a href="%s" target="_blank">%s</a>' % (url, obj.content)
+
+    get_comment.short_description = 'Comment'
+    get_comment.allow_tags = True
+
+    def get_author(self, obj):
+        if obj.author:
+            url = ".?user=%d" % obj.author.id
+            return '<a href="%s" target="_blank">%s</a>' % (url, obj.author.get_display_name())
+        else:
+            return obj.author
+
+    get_author.short_description = 'User'
+    get_author.allow_tags = True
+
+    def get_reply(self, obj):
+        if obj.response is None or len(obj.response.strip()) == 0:
+            if obj.type == 1:
+                retval = 'Add Reply'
+            elif obj.type == 2:
+                url = '/admin/discussion_response/%d' % obj.mod_id
+                retval = '<a href="%s" target="_blank">Add Reply</a>' % url
+            elif obj.type == 3:
+                retval = 'Add Reply'
+            else:
+                retval = 'Add Reply'
+
+            return retval
+        elif obj.original_content and len(obj.original_content.strip()) > 0:
+            # Comment has been removed
+            return obj.content
+        else:
+            return obj.response
+
+    get_reply.short_description = 'Reply'
+    get_reply.allow_tags = True
+
+    def get_publishdate(self, obj):
+        return obj.publishdate
+
+    get_publishdate.short_description = 'Created on'
+    get_publishdate.allow_tags = True
+
+    def get_published(self, obj):
+        url_base = '/admin/communication/'
+        if obj.type == 1:
+            url_part = 'postcomment'
+        elif obj.type == 2:
+            url_part = 'discussion'
+        elif obj.type == 3:
+            url_part = 'chatmessage'
+
+        if obj.moderated:
+            return '<p>Published</p><a href="%s%s/unpublish/%d" target="_blank">Unpublish</a>' % \
+                   (url_base, url_part, obj.mod_id)
+        elif obj.moderated is False and obj.unmoderated_date is not None:
+            return '<p>Unpublished</p><a href="%s%s/publish/%d" target="_blank">Publish</a>' % \
+                   (url_base, url_part, obj.mod_id)
+        else:
+            return '<a href="%s%s/publish/%d" target="_blank">Publish</a>' % (url_base, url_part, obj.mod_id)
+
+    get_published.short_description = 'Published'
+    get_published.allow_tags = True
+
+    def get_unmoderated_by(self, obj):
+        if obj.unmoderated_by:
+            return obj.unmoderated_by.get_display_name()
+        else:
+            return ''
+
+    get_unmoderated_by.short_description = 'Unpublished by'
+    get_unmoderated_by.allow_tags = True
+
+    def get_unmoderated_date(self, obj):
+        if obj.unmoderated_date:
+            return obj.unmoderated_date
+        else:
+            return ''
+
+    get_unmoderated_date.short_description = 'Unpublished on'
+    get_unmoderated_date.allow_tags = True
+
+    def get_ban(self, obj):
+        bans = get_user_bans(obj.author)
+
+        if bans.count() == 0:
+            return ''
+        else:
+            dur = bans[0].get_duration()
+            plural = ''
+
+            if dur > 1:
+                plural = 's'
+
+            return '%d day%s' % (dur, plural)
+
+    get_ban.short_description = 'Ban'
+    get_ban.allow_tags = True
+
+    actions = ['reply_to_selected', 'unpublish_selected', 'publish_selected']
+
+    def reply_to_selected(modeladmin, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        # we only have a discussion respond to selected page so
+        # filter the results accordingly
+        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=2).values('mod_id'))
+        return HttpResponseRedirect('/discussion_response_selected/%s' %
+                                    ",".join(qs))
+
+    reply_to_selected.short_description = 'Add reply'
+
+    def unpublish_selected(modeladmin, request, queryset):
+        queryset.update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
+
+    unpublish_selected.short_description = 'Unpublish'
+
+    def publish_selected(modeladmin, request, queryset):
+        queryset.update(moderated=True)
+
+    publish_selected.short_description = 'Publish'
+
+
+class BanAdmin(admin.ModelAdmin):
+    list_display = ('banned_user', 'banning_user', 'when', 'till_when', 'source_type', 'source_pk')
+
+
+class PostCommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'author',
+        'post',
+        'content',
+        'publishdate',
+        'moderated',
+        'unmoderated_date',
+        'unmoderated_by',
+        'original_content'
+    )
+
+    fieldsets = [
+        ("Content",
+            {"fields": ["post", "content", "author", "publishdate", "moderated"]}),
+        ("Moderation",
+            {"fields": ["original_content", "unmoderated_date", "unmoderated_by"]}),
+    ]
+
+
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
+admin.site.register(PostComment, PostCommentAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
+admin.site.register(ChatMessage, ChatMessageAdmin)
 admin.site.register(Discussion, DiscussionAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(ReportResponse, ReportResponseAdmin)
 admin.site.register(SmsQueue, SmsQueuedAdmin)
+admin.site.register(Moderation, ModerationAdmin)
+admin.site.register(Ban, BanAdmin)

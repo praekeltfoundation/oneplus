@@ -1,5 +1,4 @@
 from django.conf import settings
-from communication.models import Sms
 import requests
 from django.contrib.sites.models import Site
 from go_http import HttpApiSender, LoggingSender
@@ -7,6 +6,8 @@ import koremutake
 from django.contrib.auth.hashers import make_password
 from random import randint
 import logging
+from datetime import datetime, timedelta
+from .models import Sms, Ban, Profanity, ChatMessage, PostComment, Discussion
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -48,7 +49,6 @@ class VumiSmsApi:
                 return '+' + msisdn
             elif msisdn.startswith('0'):
                 return '+27' + msisdn[1:]
-
 
     def templatize(self, message, password, autologin):
         if password is not None:
@@ -137,3 +137,80 @@ class VumiSmsApi:
             learner.save()
 
         return successful, fail
+
+
+def get_user_bans(user):
+    today = datetime.now()
+    today_start = datetime(today.year, today.month, today.day)
+
+    return Ban.objects.filter(banned_user=user, till_when__gte=today_start)
+
+
+def moderate(comm):
+    comm.moderated = True
+    comm.unmoderated_date = None
+    comm.unmoderated_by = None
+    comm.save()
+
+
+def unmoderate(comm, user):
+    comm.moderated = False
+    comm.unmoderated_by = user
+    comm.unmoderated_date = datetime.now()
+    comm.save()
+
+
+def contains_profanity(content):
+    qs = Profanity.objects.all()
+
+    for prof in qs:
+        lprof = prof.word.lower()
+        lcontent = content.lower()
+        if lprof in lcontent:
+            return True
+
+    return False
+
+
+def get_ban_source_info(obj):
+    if isinstance(obj, PostComment):
+        return (1, obj.id)
+    elif isinstance(obj, Discussion):
+        return (2, obj.id)
+    elif isinstance(obj, ChatMessage):
+        return (3, obj.id)
+    else:
+        return (None, None)
+
+
+def ban_user(banned_user, banning_user, obj):
+    today = datetime.now()
+    till_when = datetime(today.year, today.month, today.day, 23, 59, 59, 999999)
+    (source_type, source_pk) = get_ban_source_info(obj)
+
+    if banning_user.is_staff:
+        # admin ban gets you 3 days
+        duration = 2
+    else:
+        # community ban gets you 1 day
+        duration = 0
+
+    till_when = till_when + timedelta(days=duration)
+
+    Ban.objects.create(
+        banned_user=banned_user,
+        banning_user=banning_user,
+        till_when=till_when,
+        source_type=source_type,
+        source_pk=source_pk,
+        when=today
+    )
+
+
+def get_replacement_content(banning_user):
+    if banning_user.is_staff:
+        msg = 'This comment has been reported by a moderator and the user has been banned from commenting for 3 days.'
+    else:
+        msg = 'This comment has been reported by the community and the user has been banned from commenting for 1 day.'
+
+    return msg
