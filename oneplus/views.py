@@ -1756,22 +1756,62 @@ def blog(request, state, user, blogid):
         state["blog_previous"] = None
 
     def get():
-        return render(
-            request,
-            "com/blog.html",
-            {"state": state,
-             "user": user,
-             "post": _post}
-        )
+        request.session["state"]["post_page_max"] = \
+                PostComment.objects.filter(
+                    post=_post,
+                    moderated=True
+                ).count()
 
-    def post():
+        request.session["state"]["post_page"] = \
+            min(2, request.session["state"]["post_page_max"])
+
+        post_comments = PostComment.objects \
+                            .filter(post=_post, moderated=True) \
+                            .order_by("publishdate") \
+                            .reverse()[:request.session["state"]["post_page"]]
+
         return render(
             request,
             "com/blog.html",
             {
                 "state": state,
                 "user": user,
-                "post": _post
+                "post": _post,
+                "post_comments": post_comments
+             }
+        )
+
+    def post():
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _usr = Learner.objects.get(pk=user["id"])
+            _comment = request.POST["comment"]
+
+            _post_comment = PostComment(
+                author=_usr,
+                content=_comment,
+                publishdate=datetime.now()
+            )
+            _post_comment.save()
+
+        elif "more_comments" in request.POST.keys():
+            request.session["state"]["post_page"] += 2
+            if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
+                request.session["state"]["post_page"] = request.session["state"]["post_page_max"]
+
+
+        post_comments = PostComment.objects \
+                            .filter(post=_post, moderated=True) \
+                            .order_by("publishdate") \
+                            .reverse()[:request.session["state"]["post_page"]]
+
+        return render(
+            request,
+            "com/blog.html",
+            {
+                "state": state,
+                "user": user,
+                "post": _post,
+                "post_comments": post_comments
             }
         )
 

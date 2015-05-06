@@ -1,5 +1,5 @@
 {% extends "core/main.html" %}
-
+{% load oneplus_extras %}
 {% block title %}BLOG{% endblock %}
 
 {% block content %}
@@ -14,9 +14,42 @@
         {% endif %}
         <div class="purple-front large-font">{{ post.name }}</div>
         <div class="darkgrey-front bold-font">{{ post.publishdate|date:"d M" }}</div>
-        <div class="darkgrey-front bold-font">{{ post.description }}</div>
         <div class="darkgrey-front">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
 
+        {% if state.post_page_max > 0 %}
+            <div class="menu grey-back">
+                {% for comment in post_comments %}
+                    {% if comment.moderated %}
+                        <div class="item-large grey-back">
+                            <div>
+                                <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front"></span>
+                            </div>
+                            <p class="white-front">{{ comment.content }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                <form name="more_comments" method="post" action="?" class="item grey-back">
+                    {% csrf_token %}
+                    {{ request.session.state.post_page | length }} of {{ request.session.state.post_page_max }}
+                    {% if request.session.state.post_page | length < request.session.state.post_page_max %}
+                        <button type="submit" name="more_button" class="green-front link" value="">See more comments ></button>
+                        <input type="hidden" name="page" value="" />
+                    {% endif %}
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="content narrow darkgrey-back pad-bottom">
+        <div class="white-front bold-font">Post a Comment</div>
+        <form name="comment_form" method="post" action="?" class="comment">
+            {% csrf_token %}
+            <input type="text" name="comment" value="">
+            <button type="submit" name="comment_button" class="button green-back grey-front">Post</button>
+        </form>
+    </div>
+
+    <div class="content narrow white-back">
         {% if state.blog_previous %}
             <a class="purple-front bold-font pull-left" href="/blog/{{ state.blog_previous }}">< Previous</a>
         {% endif %}
