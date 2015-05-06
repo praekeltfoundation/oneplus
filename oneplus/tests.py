@@ -348,21 +348,6 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'test question')
         self.assertContains(resp, 'questionanswer1')
 
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={'comment': 'test'}, follow=True)
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, 'test')
-
-        disc = Discussion.objects.filter(content='test').first()
-
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={'reply': 'testreply', 'reply_button': disc.id}, follow=True)
-
-        self.assertEquals(resp.status_code, 200)
-
         resp = self.client.post(reverse(
             'learn.next'),
             data={'page': 1},
