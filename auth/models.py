@@ -152,6 +152,15 @@ class Learner(CustomUser):
         null=True,
         blank=True,
     )
+    ENROLLED_CHOICES = (
+        ("0", "Yes"),
+        ("1", "No"))
+
+    enrolled = models.PositiveIntegerField(
+        verbose_name="Currently enrolled in ProMaths class?",
+        blank=True,
+        choices=ENROLLED_CHOICES,
+        default=1)
 
     class Meta:
         verbose_name = "Learner"
