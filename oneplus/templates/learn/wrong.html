@@ -87,7 +87,7 @@
             {% endif %}
         </div>
 
-        {% if state.discussion_page_max > 0%}
+        {% if request.session.state.discussion_page_max > 0 %}
             <div class="menu grey-back">
             {% for msg in messages %}
                 <div class="item-large grey-back">

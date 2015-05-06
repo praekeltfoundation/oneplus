@@ -46,18 +46,7 @@
             </div>
         {% endif %}
 
-        <div class="content narrow darkgrey-back pad-top">
-            <div class="white-front bold-font">Discuss the Challenge</div>
-            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                <input type="text" name="comment" value="" />
-                <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Submit</button>
-            </form>
-            {% if state.discussion_comment %}
-                <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
-            {% endif %}
-        </div>
-
-        {% if state.discussion_page_max > 0%}
+        {% if request.session.state.discussion_page_max > 0 and preview %}
             <div class="menu grey-back">
             {% for msg in messages %}
                 <div class="item-large grey-back">

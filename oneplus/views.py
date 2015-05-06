@@ -709,25 +709,6 @@ def nextchallenge(request, state, user):
                                                   + str(question_id) + "-->"
 
     def get():
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
-        _messages = Discussion.objects.filter(
-            course=_participant.classs.course,
-            question=_learnerstate.active_question,
-            moderated=True,
-            response=None
-        ).order_by("publishdate").reverse()[:index]
-
         state["total_tasks_today"] = _learnerstate.get_total_questions()
         if state['next_tasks_today'] > state["total_tasks_today"]:
             return redirect("learn.home")
@@ -736,7 +717,6 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "messages": _messages,
         })
 
     def update_num_question_metric():
@@ -775,8 +755,6 @@ def nextchallenge(request, state, user):
         update_perc_correct_answers('32days', 32)
 
     def post():
-        request.session["state"]["discussion_comment"] = False
-        request.session["state"]["discussion_responded_id"] = None
         request.session["state"]["report_sent"] = False
 
         # answer provided
@@ -858,58 +836,6 @@ def nextchallenge(request, state, user):
             else:
                 return redirect("learn.wrong")
 
-        # new comment created
-        elif "comment" in request.POST.keys() \
-                and request.POST["comment"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
-            _comment = request.POST["comment"]
-            _message = Discussion(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                response=None,
-                content=_comment, author=_usr, publishdate=datetime.now()
-            )
-            _message.save()
-            request.session["state"]["discussion_comment"] = True
-            request.session["state"]["discussion_response_id"] = None
-
-        elif "reply" in request.POST.keys() and request.POST["reply"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
-            _comment = request.POST["reply"]
-            _parent = Discussion.objects.get(pk=request.POST["reply_button"])
-            _message = Discussion(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                response=_parent,
-                content=_comment, author=_usr, publishdate=datetime.now())
-            _message.save()
-            request.session["state"]["discussion_responded_id"] \
-                = request.session["state"]["discussion_response_id"]
-            request.session["state"]["discussion_response_id"] = None
-
-        # show more comments
-        elif "page" in request.POST.keys():
-            request.session["state"]["discussion_page"] += 2
-            if request.session["state"]["discussion_page"] \
-                    > request.session["state"]["discussion_page_max"]:
-                request.session["state"]["discussion_page"] \
-                    = request.session["state"]["discussion_page_max"]
-            request.session["state"]["discussion_response_id"] = None
-
-        # show reply to comment comment
-        elif "comment_response_button" in request.POST.keys():
-            request.session["state"]["discussion_response_id"] \
-                = request.POST["comment_response_button"]
-
-        _messages = \
-            Discussion.objects.filter(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                moderated=True,
-                response=None
-            ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
-
         state["total_tasks_today"] = _learnerstate.get_total_questions()
 
         return render(
@@ -919,7 +845,6 @@ def nextchallenge(request, state, user):
                 "state": state,
                 "user": user,
                 "question": _learnerstate.active_question,
-                "messages": _messages,
             }
         )
 
