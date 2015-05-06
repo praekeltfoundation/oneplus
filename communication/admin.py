@@ -28,8 +28,6 @@ class PostAdmin(SummernoteModelAdmin):
             {"fields": ["name", "description", "course", "publishdate"]}),
         ("Content",
             {"fields": ["big_image", "small_image", "moderated", "content"]}),
-        ("Moderation",
-            {"fields": ["original_content", "unmoderated_date", "unmoderated_by"]}),
     ]
 
 
@@ -421,12 +419,33 @@ class ModerationAdmin(admin.ModelAdmin):
 
 
 class BanAdmin(admin.ModelAdmin):
-    list_display = ('user', 'when', 'till_when', 'source_type', 'source_pk')
+    list_display = ('banned_user', 'banning_user', 'when', 'till_when', 'source_type', 'source_pk')
+
+
+class PostCommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'author',
+        'post',
+        'content',
+        'publishdate',
+        'moderated',
+        'unmoderated_date',
+        'unmoderated_by',
+        'original_content'
+    )
+
+    fieldsets = [
+        ("Content",
+            {"fields": ["post", "content", "author", "publishdate", "moderated"]}),
+        ("Moderation",
+            {"fields": ["original_content", "unmoderated_date", "unmoderated_by"]}),
+    ]
 
 
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
+admin.site.register(PostComment, PostCommentAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(ChatMessage, ChatMessageAdmin)

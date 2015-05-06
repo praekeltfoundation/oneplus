@@ -147,7 +147,8 @@ class TestAuth(TestCase):
         self.assertEquals(self.learner.is_banned(), False)
 
         Ban.objects.create(
-            user=self.learner,
+            banning_user=self.learner,
+            banned_user=self.learner,
             when=today,
             till_when=ban_date,
             source_type=1,

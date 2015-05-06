@@ -211,7 +211,8 @@ class TestBan(TestCase):
 
     def create_ban(self, till_when):
         return Ban.objects.create(
-            user=self.user,
+            banned_user=self.user,
+            banning_user=self.user2,
             when=datetime.now(),
             till_when=till_when,
             source_type=1,
@@ -220,6 +221,7 @@ class TestBan(TestCase):
 
     def setUp(self):
         self.user = self.create_user()
+        self.user2 = self.create_user(mobile='123123', username='123123')
 
     def test_ban_duration(self):
         today = datetime.now()

@@ -49,7 +49,7 @@ class Post(models.Model):
         "Small Image", upload_to="img/", blank=True, null=True)
     content = models.TextField("Content", blank=True)
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
-    moderated = models.NullBooleanField("Moderated", null=True, blank=True)
+    moderated = models.NullBooleanField("Moderated", null=True, blank=True, default=False)
 
     def __str__(self):
         return self.name
@@ -67,7 +67,7 @@ class PostComment(models.Model):
     post = models.ForeignKey(Post, blank=False)
     content = models.TextField(blank=False)
     publishdate = models.DateTimeField("Publish Date", null=True, blank=True)
-    moderated = models.NullBooleanField("Moderated", null=True, blank=True)
+    moderated = models.NullBooleanField("Moderated", null=True, blank=True, default=False)
     unmoderated_date = models.DateTimeField(null=True, blank=True)
     unmoderated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -508,15 +508,22 @@ class Profanity(models.Model):
 
 class Ban(models.Model):
     source_types = (
-        (1, 'Blog'),
+        (1, 'Blog Comment'),
         (2, 'Discussion'),
         (3, 'Chat')
     )
 
-    user = models.ForeignKey(
+    banned_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=False,
-        blank=False
+        blank=False,
+        related_name='ban_banned_user'
+    )
+    banning_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=False,
+        blank=False,
+        related_name='ban_banning_user'
     )
     when = models.DateTimeField(null=False, blank=False)
     till_when = models.DateTimeField(null=False, blank=False)

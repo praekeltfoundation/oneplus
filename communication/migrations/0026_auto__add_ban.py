@@ -11,7 +11,8 @@ class Migration(SchemaMigration):
         # Adding model 'Ban'
         db.create_table(u'communication_ban', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.CustomUser'])),
+            ('banned_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='ban_banned_user', to=orm['auth.CustomUser'])),
+            ('banning_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='ban_banning_user', to=orm['auth.CustomUser'])),
             ('when', self.gf('django.db.models.fields.DateTimeField')()),
             ('till_when', self.gf('django.db.models.fields.DateTimeField')()),
             ('source_type', self.gf('django.db.models.fields.PositiveIntegerField')()),
@@ -73,11 +74,12 @@ class Migration(SchemaMigration):
         },
         u'communication.ban': {
             'Meta': {'object_name': 'Ban'},
+            'banned_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ban_banned_user'", 'to': u"orm['auth.CustomUser']"}),
+            'banning_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ban_banning_user'", 'to': u"orm['auth.CustomUser']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'source_pk': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'source_type': ('django.db.models.fields.PositiveIntegerField', [], {}),
             'till_when': ('django.db.models.fields.DateTimeField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.CustomUser']"}),
             'when': ('django.db.models.fields.DateTimeField', [], {})
         },
         u'communication.chatgroup': {
