@@ -5,7 +5,9 @@ from oneplus.utils import update_metric
 from import_export import fields
 from django.db.models import Q
 from organisation.models import School
+from django.contrib.admin.sites import AdminSite
 
+AdminSite.index_template = 'admin/my_index.html'
 
 class OnePlusLearnerResource(LearnerResource):
     class_name = fields.Field(column_name=u'class')
@@ -88,16 +90,5 @@ class OnePlusLearnerAdmin(LearnerAdmin):
                 "SUM",
             )
 
-
-class TestingQuestionLinkAdmin(TestingQuestionAdmin):
-    list_display = TestingQuestionAdmin.list_display + ("preview_link",)
-
-    def preview_link(self, question):
-        return u'<a href="/preview/%s">Preview</a>' % question.id
-    preview_link.allow_tags = True
-    preview_link.short_description = "Preview"
-
-admin.site.unregister(TestingQuestion)
 admin.site.unregister(Learner)
-admin.site.register(TestingQuestion, TestingQuestionLinkAdmin)
 admin.site.register(Learner, OnePlusLearnerAdmin)

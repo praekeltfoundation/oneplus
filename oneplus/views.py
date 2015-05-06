@@ -1,9 +1,8 @@
 from __future__ import division
-from django.contrib.auth.models import AbstractBaseUser
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from .forms import LoginForm, SmsPasswordForm
+from .forms import LoginForm, SmsPasswordForm, SignupForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from core.models import *
@@ -20,7 +19,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
-from django.core.urlresolvers import reverse
 from django.db import connection
 import oneplusmvp.settings as settings
 import koremutake
@@ -28,11 +26,15 @@ import json
 from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
-from dateutil import parser
 from .validators import *
+from django.db.models import Count
+from django.db.models import Q
+import re
 
 
 COUNTRYWIDE = "Countrywide"
+
+MAX_SPACES = 300
 
 
 # Code decorator to ensure that the user is logged in
@@ -199,6 +201,151 @@ def autologin(request, token):
     return resolve_http_method(request, [get, post])
 
 
+def space_available():
+    total_reg = Participant.objects.aggregate(registered=Count('id'))
+    num = MAX_SPACES - total_reg.get('registered')
+    if num > 0:
+        return True, num
+    else:
+        return False, 0
+
+
+# Code decorator to check if there are available sign up spaces
+def available_space_required(f):
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        space, num_spaces = space_available()
+
+        if space:
+            return f(request, *args, **kwargs)
+        else:
+            return redirect("misc.welcome")
+    return wrap
+
+
+#Sign Up Screen
+@available_space_required
+def signup(request):
+    def get():
+        space, num_spaces = space_available()
+        return render(
+            request,
+            "auth/signup.html",
+            {
+                "space": space,
+                "num_spaces": num_spaces
+            }
+        )
+
+    def post():
+        if 'yes' in request.POST.keys():
+            return redirect("auth.signup_form")
+        else:
+            return redirect("misc.welcome")
+
+    return resolve_http_method(request, [get, post])
+
+
+#Signed Up Screen
+def signedup(request):
+    def get():
+        return render(
+            request,
+            "auth/signedup.html",
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+#Validate mobile number and return international format if it's not
+def validate_mobile(mobile):
+    pattern_both = "^(\+\d{1,2})?\d{10}$"
+    match = re.match(pattern_both, mobile)
+    if match:
+        pattern_non_int = "^\d{10}$"
+
+        match_non_int = re.match(pattern_non_int, mobile)
+
+        if match_non_int:
+            mobile = "+27" + mobile[1:]
+
+        return mobile
+
+    else:
+        return None
+
+
+#Sign up Form Screen
+@available_space_required
+def signup_form(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"form": SignupForm})
+
+    def post():
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            #check if the cellphone number is valid
+            cellphone = form.cleaned_data["cellphone"]
+            cellphone = validate_mobile(cellphone)
+            if cellphone is not None:
+                #check if user with this cellphone number exists
+                user = CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))
+                if user:
+                    return get()
+
+                first_name = form.cleaned_data["first_name"]
+                surname = form.cleaned_data["surname"]
+                school = form.cleaned_data["school"]
+                classs = form.cleaned_data["classs"]
+                area = form.cleaned_data["area"]
+                city = form.cleaned_data["city"]
+                country = form.cleaned_data["country"]
+                enrolled = form.cleaned_data["enrolled"]
+                grade = form.cleaned_data["grade"]
+
+                #create learner
+                new_learner = Learner.objects.create(first_name=first_name,
+                                                     last_name=surname,
+                                                     mobile=cellphone,
+                                                     username=cellphone,
+                                                     area=area,
+                                                     city=city,
+                                                     country=country,
+                                                     school=school,
+                                                     grade=grade,
+                                                     enrolled=enrolled)
+
+                #generate random password
+                password = CustomUser.objects.make_random_password(length=8)
+                new_learner.set_password(password)
+                new_learner.save()
+
+                #create participant
+                new_participant = Participant.objects.create(learner=new_learner,
+                                                             classs=classs,
+                                                             datejoined=datetime.now())
+
+                #sms the learner their OnePlus password
+                SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to this "
+                                                "link: http://www.oneplus.co.za/login" % password,
+                                        send_date=datetime.now(),
+                                        msisdn=cellphone)
+
+                return redirect("auth.signedup")
+            else:
+                return get()
+                # raise forms.ValidationError(
+                #     'Invalid cellphone number',
+                #     code='invalid')
+        else:
+            return redirect("auth.signup_form")
+
+    return resolve_http_method(request, [get, post])
+
+
 # Signout Function
 @oneplus_state_required
 def signout(request, state):
@@ -343,7 +490,8 @@ def getconnected(request, state):
 @oneplus_state_required
 def welcome(request, state):
     def get():
-        return render(request, "misc/welcome.html", {"state": state})
+        space, nums_spaces = space_available()
+        return render(request, "misc/welcome.html", {"state": state, "space": space})
 
     def post():
         return render(request, "misc/welcome.html", {"state": state})
@@ -422,6 +570,7 @@ def home(request, state, user):
     questions = TestingQuestion.objects.filter(
         module__in=learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
+        state=3
     ).exclude(id__in=answered)
 
     learner = learnerstate.participant.learner
@@ -542,6 +691,7 @@ def nextchallenge(request, state, user):
     questions = TestingQuestion.objects.filter(
         module__in=_learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
+        state=3
     ).exclude(id__in=answered)
 
     if not questions:
@@ -2040,6 +2190,144 @@ def report_question(request, state, user, questionid, frm):
                     "question_number": _question.order,
                 }
             )
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def change_details(request, state, user):
+    def render_error(error_field, error_message):
+        return render(
+            request,
+            "auth/change_details.html",
+            {
+                "state": state,
+                "user": user,
+                "error_field": error_field,
+                "error_message": error_message
+            }
+        )
+
+    def get():
+        return render(
+            request,
+            "auth/change_details.html",
+            {
+                "state": state,
+                "user": user
+            }
+        )
+
+    def post():
+
+        mobile_change = False
+        email_change = False
+        changes = []
+        learner = Learner.objects.get(id=request.session["user"]["id"])
+
+        #are there any changes to be made
+        if "old_number" in request.POST.keys() or "new_number" in request.POST.keys() or \
+                "old_email" in request.POST.keys() or "new_email" in request.POST.keys():
+
+            error_field = ""
+            error_message = ""
+
+            #check if NUMBER wants to be changed
+            if "old_number" in request.POST.keys() and request.POST["old_number"] != "" or \
+                    "new_number" in request.POST.keys() and request.POST["new_number"] != "":
+
+                old_mobile = request.POST["old_number"]
+
+                if validate_mobile(old_mobile) is None:
+                    error_field = "old_mobile_error"
+                    error_message = "Please enter a valid mobile number."
+                    return render_error(error_field, error_message)
+
+                if learner.mobile != old_mobile:
+                    error_field = "old_mobile_error"
+                    error_message = "This number is not associated with this account."
+                    return render_error(error_field, error_message)
+
+                new_mobile = request.POST["new_number"]
+                validated_mobile = validate_mobile(new_mobile)
+                if not validated_mobile:
+                    error_field = "new_mobile_error"
+                    error_message = "Please enter a valid mobile number."
+                    return render_error(error_field, error_message)
+
+                if new_mobile == old_mobile:
+                    error_field = "new_mobile_error"
+                    error_message = "You cannot change your number to your current number."
+                    return render_error(error_field, error_message)
+
+                new_mobile = validated_mobile
+
+                #check if a user with the new mobile number already exits
+                existing = Learner.objects.filter(mobile=new_mobile)
+                if existing:
+                    error_field = "new_mobile_error"
+                    error_message = "A user with this mobile number (%s) already exists." % new_mobile
+                    return render_error(error_field, error_message)
+
+                mobile_change = True
+
+            #check if EMAIL wants to be changed
+            if "old_email" in request.POST.keys() and request.POST["old_email"] != "" or \
+                    "new_email" in request.POST.keys() and request.POST["new_email"] != "":
+
+                old_email = request.POST["old_email"]
+                if learner.email != old_email:
+                    error_field = "old_email_error"
+                    error_message = "This email is not associated with this account."
+                    return render_error(error_field, error_message)
+
+                new_email = request.POST["new_email"]
+
+                if new_email == old_email:
+                    error_field = "new_email_error"
+                    error_message = "This is your current email."
+                    return render_error(error_field, error_message)
+
+                if not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+                    error_field = "new_email_error"
+                    error_message = "Please enter a valid email."
+                    return render_error(error_field, error_message)
+
+                #check if a user with this email number already exits
+                existing = Learner.objects.filter(email=new_email)
+                if existing:
+                    error_field = "new_email_error"
+                    error_message = "A user with this email (%s) already exists." % new_email
+                    return render_error(error_field, error_message)
+
+                email_change = True
+
+            if mobile_change:
+                learner.mobile = new_mobile
+                learner.username = new_mobile
+                learner.save()
+                line = {"change_details":  "Your number has been changes to %s." % new_mobile}
+                changes.append(line)
+
+            if email_change:
+                learner.email = new_email
+                learner.save()
+                line = {"change_details":  "Your email has been changes to %s." % new_email}
+                changes.append(line)
+
+        else:
+            line = {"change_details":  "No changes made."}
+            changes.append(line)
+
+        return render(request,
+                      "auth/change_details_confirmation.html",
+                      {
+                          "state": state,
+                          "user": user,
+                          "changes": changes
+                      }
+        )
 
     return resolve_http_method(request, [get, post])
 
