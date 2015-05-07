@@ -33,14 +33,17 @@ class ModerationContentFilter(admin.SimpleListFilter):
             return queryset.filter(description=self.value())
 
 
-class ModerationUserFilter(admin.SimpleListFilter):
-    title = 'User'
-    parameter_name = 'user'
+class UserFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         result = set(CustomUser.objects.all())
         return [(c.id, c.get_display_name())
                 for c in sorted(result, key=operator.methodcaller('get_display_name'))]
+
+
+class ModerationUserFilter(UserFilter):
+    title = 'User'
+    parameter_name = 'user'
 
     def queryset(self, request, queryset):
         if self.value() is None:
@@ -99,3 +102,25 @@ class ModerationStateFilter(admin.SimpleListFilter):
                 return queryset.filter(moderated=False, unmoderated_date__isnull=False, unmoderated_by__is_staff=True)
             else:
                 return queryset
+
+
+class BannedUserFilter(UserFilter):
+    title = 'Banned User'
+    parameter_name = 'banu'
+
+    def queryset(self, request, queryset):
+        if self.value() is None:
+            return queryset
+        else:
+            return queryset.filter(banned_user=self.value())
+
+
+class BanningUserFilter(UserFilter):
+    title = 'Banning User'
+    parameter_name = 'busr'
+
+    def queryset(self, request, queryset):
+        if self.value() is None:
+            return queryset
+        else:
+            return queryset.filter(banning_user=self.value())
