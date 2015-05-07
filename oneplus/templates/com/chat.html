@@ -11,10 +11,10 @@
 
     <div class="menu">
         {% for msg in messages %}
-            {% if comment.moderated %}
+            {% if msg.moderated %}
                 <div class="item-large grey-back">
                     <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span></div>
-                    {% if  comment.unmoderated_date == None %}
+                    {% if  msg.unmoderated_date == None %}
                         <p class="white-front">{{ msg.content }}</p>
                         <form name="report_comment" method="post" action="?">
                             {% csrf_token %}

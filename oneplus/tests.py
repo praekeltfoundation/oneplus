@@ -608,7 +608,8 @@ class GeneralTests(TestCase):
             chatgroup=chatgroup,
             author=self.learner,
             content='chatmsg1content',
-            publishdate=datetime.now()
+            publishdate=datetime.now(),
+            moderated=True
         )
 
         resp = self.client.get(reverse(

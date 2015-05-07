@@ -1518,12 +1518,12 @@ def chatgroups(request, state, user):
 def chat(request, state, user, chatid):
     # get chat group
     _group = ChatGroup.objects.get(pk=chatid)
-    request.session["state"]["chat_page_max"] = _group.chatmessage_set.count()
+    request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True).count()
 
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set\
+        _messages = _group.chatmessage_set.filter(moderated=True)\
             .order_by("publishdate")\
             .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
@@ -1540,7 +1540,8 @@ def chat(request, state, user, chatid):
                 chatgroup=_group,
                 content=_comment,
                 author=_usr,
-                publishdate=datetime.now()
+                publishdate=datetime.now(),
+                moderated=True
             )
             _message.save()
             request.session["state"]["chat_page_max"] += 1
@@ -1554,13 +1555,13 @@ def chat(request, state, user, chatid):
                     = request.session["state"]["chat_page_max"]
 
         elif "report" in request.POST.keys():
-            msg_id = request.POST.keys()
+            msg_id = request.POST["report"]
             msg = ChatMessage.objects.filter(id=msg_id).first()
             if msg is not None:
                 _usr = Learner.objects.get(pk=user["id"])
                 report_user_post(msg, _usr, 3)
 
-        _messages = _group.chatmessage_set.order_by("publishdate")\
+        _messages = _group.chatmessage_set.filter(moderated=True).order_by("publishdate")\
             .reverse()[:request.session["state"]["chat_page"]]
         return render(
             request,
@@ -1740,7 +1741,6 @@ def blog(request, state, user, blogid):
             request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
                 request.session["state"]["post_page"] = request.session["state"]["post_page_max"]
-                print request.session["state"]["post_page"]
 
         elif "report" in request.POST.keys():
             post_id = request.POST["report"]
