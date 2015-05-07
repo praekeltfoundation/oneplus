@@ -13,7 +13,6 @@
                             {% trans app.name %}
                         {% endif %}
                     </h2>
-
                     {% for model in app.models %}
                         <div class="grp-row">
                             {% if model.perms.change %}<a href="{{ model.admin_url }}"><strong>{{ model.name }}</strong></a>{% else %}<span><strong>{{ model.name }}</strong></span>{% endif %}
@@ -21,7 +20,7 @@
                                 <ul class="grp-actions">
                                     {% if model.name == "Queued Smses" %}
                                         {% if model.perms.add %}<li class="grp-add-link"><a href="/smsqueue/add/">{% trans 'Add' %}</a></li>{% endif %}
-                                    {% elif model.name == "Messages"%}
+                                    {% elif model.name == "Messages" %}
                                         {% if model.perms.add %}<li class="grp-add-link"><a href="/message/add/">{% trans 'Add' %}</a></li>{% endif %}
                                     {% else %}
                                         {% if model.perms.add %}<li class="grp-add-link"><a href="{{ model.admin_url }}add/">{% trans 'Add' %}</a></li>{% endif %}
