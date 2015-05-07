@@ -420,6 +420,10 @@ class ModerationAdmin(admin.ModelAdmin):
 
 class BanAdmin(admin.ModelAdmin):
     list_display = ('banned_user', 'banning_user', 'when', 'till_when', 'source_type', 'source_pk')
+    list_filter = (
+        BannedUserFilter,
+        BanningUserFilter,
+    )
 
 
 class PostCommentAdmin(admin.ModelAdmin):

@@ -183,18 +183,11 @@ def get_ban_source_info(obj):
         return (None, None)
 
 
-def ban_user(banned_user, banning_user, obj):
+def ban_user(banned_user, banning_user, obj, num_days):
     today = datetime.now()
     till_when = datetime(today.year, today.month, today.day, 23, 59, 59, 999999)
     (source_type, source_pk) = get_ban_source_info(obj)
-
-    if banning_user.is_staff:
-        # admin ban gets you 3 days
-        duration = 2
-    else:
-        # community ban gets you 1 day
-        duration = 0
-
+    duration = num_days - 1
     till_when = till_when + timedelta(days=duration)
 
     Ban.objects.create(
@@ -207,10 +200,32 @@ def ban_user(banned_user, banning_user, obj):
     )
 
 
-def get_replacement_content(banning_user):
-    if banning_user.is_staff:
-        msg = 'This comment has been reported by a moderator and the user has been banned from commenting for 3 days.'
+def get_replacement_content(admin_ban=False, num_days=1):
+    plural = ''
+
+    if num_days > 1:
+        plural = 's'
+
+    if admin_ban:
+        msg = 'This comment has been reported by a moderator and the user has ' \
+              'been banned from commenting for %d day%s.' % (num_days, plural)
     else:
-        msg = 'This comment has been reported by the community and the user has been banned from commenting for 1 day.'
+        msg = 'This comment has been reported by the community and the user has ' \
+              'been banned from commenting for %d day%s.' % (num_days, plural)
 
     return msg
+
+
+def report_user_post(obj, banning_user, num_days):
+    obj.unmoderated_by = banning_user
+    obj.unmoderated_date = datetime.now()
+    obj.original_content = obj.content
+    obj.content = get_replacement_content(admin_ban=False, num_days=num_days)
+    obj.save()
+
+    ban_user(
+        banned_user=obj.author,
+        banning_user=banning_user,
+        obj=obj,
+        num_days=num_days
+    )
