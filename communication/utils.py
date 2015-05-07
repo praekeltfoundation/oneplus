@@ -79,7 +79,10 @@ class VumiSmsApi:
             logger.error(e)
             return None, sent
 
-        if u'success' in response.keys() and response[u'success'] is False:
+        if u'success' not in response.keys():
+            sms = None
+            sent = False
+        elif u'success' in response.keys() and response[u'success'] is False:
             sms = self.save_sms_log(response[u'success'], message,
                                     None, msisdn)
             sent = False
