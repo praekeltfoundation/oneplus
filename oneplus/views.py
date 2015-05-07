@@ -1065,6 +1065,15 @@ def right(request, state, user):
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
 
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
+
     def get():
         if _learnerstate.active_result:
             # Max discussion page
@@ -1207,6 +1216,15 @@ def wrong(request, state, user):
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
 
     def get():
         if not _learnerstate.active_result:
@@ -1520,6 +1538,15 @@ def chat(request, state, user, chatid):
     _group = ChatGroup.objects.get(pk=chatid)
     request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True).count()
 
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
+
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
@@ -1534,7 +1561,6 @@ def chat(request, state, user, chatid):
     def post():
         # new comment created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
             _message = ChatMessage(
                 chatgroup=_group,
@@ -1558,7 +1584,6 @@ def chat(request, state, user, chatid):
             msg_id = request.POST["report"]
             msg = ChatMessage.objects.filter(id=msg_id).first()
             if msg is not None:
-                _usr = Learner.objects.get(pk=user["id"])
                 report_user_post(msg, _usr, 3)
 
         _messages = _group.chatmessage_set.filter(moderated=True).order_by("publishdate")\
