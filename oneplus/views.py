@@ -30,6 +30,7 @@ from .validators import *
 from django.db.models import Count
 from django.db.models import Q
 import re
+from communication.utils import report_user_post
 
 
 COUNTRYWIDE = "Countrywide"
@@ -1757,6 +1758,15 @@ def blog(request, state, user, blogid):
 
     request.session["state"]["post_comment"] = False
 
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
+
     def get():
         request.session["state"]["post_page_max"] =\
             PostComment.objects.filter(
@@ -1784,7 +1794,6 @@ def blog(request, state, user, blogid):
 
     def post():
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
 
             _post_comment = PostComment(
@@ -1796,11 +1805,16 @@ def blog(request, state, user, blogid):
             _post_comment.save()
             request.session["state"]["post_comment"] = True
         elif "page" in request.POST.keys():
-            print "more"
             request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
                 request.session["state"]["post_page"] = request.session["state"]["post_page_max"]
                 print request.session["state"]["post_page"]
+
+        elif "report" in request.POST.keys():
+            post_id = request.POST["report"]
+            post_comment = PostComment.objects.filter(id=post_id).first()
+            if post_comment is not None:
+                report_user_post(post_comment, _usr, 1, 1)
 
         post_comments = PostComment.objects \
             .filter(post=_post, moderated=True) \

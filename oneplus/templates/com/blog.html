@@ -21,12 +21,22 @@
             <div class="menu darkgrey-back">
                 {% for comment in post_comments %}
                     {% if comment.moderated %}
-                        <div class="item-large grey-back">
-                            <div>
-                                <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front">{{ comment.publishdate | naturaltime }}</span>
+                            <div class="item-large grey-back">
+                                <div>
+                                    <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front">{{ comment.publishdate | naturaltime }}</span>
+                                </div>
+                                {{ comment.unmoderated_date }}
+                                {% if  comment.unmoderated_date == None %}
+                                    <p class="white-front">{{ comment.content }}</p>
+                                    <form name="report_comment" method="post" action="?">
+                                        {% csrf_token %}
+                                        <button type="submit" name="report_button" class="bold link" value="">Report Comment</button>
+                                        <input type="hidden" name="report" value="{{ comment.id }}" />
+                                    </form>
+                                {% else %}
+                                    <p class="red-front">{{ comment.content }}</p>
+                                {% endif %}
                             </div>
-                            <p class="white-front">{{ comment.content }}</p>
-                        </div>
                     {% endif %}
                 {% endfor %}
                 <form name="more_comments" method="post" action="?">
@@ -42,17 +52,19 @@
             </div>
         {% endif %}
 
-    <div class="content narrow darkgrey-back pad-bottom">
-        <div class="white-front bold-font">Post a Comment</div>
-        <form name="comment_form" method="post" action="?" class="comment">
-            {% csrf_token %}
-            <input type="text" name="comment" value="">
-            <button type="submit" name="comment_button" class="button green-back grey-front">Post</button>
-        </form>
-        {% if state.post_comment %}
-            <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
-        {% endif %}
-    </div>
+    {% if not state.banned and not preview%}
+        <div class="content narrow darkgrey-back pad-bottom">
+            <div class="white-front bold-font">Post a Comment</div>
+            <form name="comment_form" method="post" action="?" class="comment">
+                {% csrf_token %}
+                <input type="text" name="comment" value="">
+                <button type="submit" name="comment_button" class="button green-back grey-front">Post</button>
+            </form>
+            {% if state.post_comment %}
+                <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
+            {% endif %}
+        </div>
+    {% endif %}
 
     <div class="content narrow white-back">
         {% if state.blog_previous %}
