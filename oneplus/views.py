@@ -2426,41 +2426,6 @@ def question_difficulty_report(request, mode):
 
 
 @user_passes_test(lambda u: u.is_staff)
-def get_courses(request):
-    courses = Course.objects.all()
-
-    data = []
-    for c in courses:
-        line = {"id": c.id, "name": c.name}
-        data.append(line)
-
-    return HttpResponse(json.dumps(data), content_type="application/javascript")
-
-
-@user_passes_test(lambda u: u.is_staff)
-def get_classes(request, course):
-    if course == 'all':
-        classes = Class.objects.all()
-    else:
-        try:
-            course = int(course)
-            if Course.objects.get(id=course):
-                current_course = Course.objects.get(id=course)
-                classes = Class.objects.all().filter(course=current_course)
-            else:
-                classes = None
-        except ValueError, ObjectDoesNotExist:
-            classes = None
-
-    data = []
-    for c in classes:
-        line = {"id": c.id, "name": c.name}
-        data.append(line)
-
-    return HttpResponse(json.dumps(data), content_type="application/javascript")
-
-
-@user_passes_test(lambda u: u.is_staff)
 def get_users(request, classs):
     if classs == 'all':
         participants = Participant.objects.all()

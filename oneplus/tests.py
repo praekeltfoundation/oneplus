@@ -669,7 +669,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
-                'msisdn': '+2712345678',
+                'msisdn': '+27123456789'
 
             },
             follow=True
