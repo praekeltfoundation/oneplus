@@ -214,3 +214,20 @@ def get_replacement_content(banning_user):
         msg = 'This comment has been reported by the community and the user has been banned from commenting for 1 day.'
 
     return msg
+
+
+def report_user_post(obj, banning_user, source_type, num_days):
+    obj.unmoderated_by = banning_user
+    obj.unmoderated_date = datetime.now()
+    obj.original_content = obj.content
+    obj.content = "This comment has been reported by the community and the user has been" \
+                  " banned for %s day." % num_days
+    obj.save()
+
+    ban = Ban(source_type=source_type,
+              banned_user=obj.author,
+              banning_user=banning_user,
+              when=datetime.now(),
+              till_when=datetime.now() + timedelta(days=num_days),
+              source_pk=obj.id)
+    ban.save()
