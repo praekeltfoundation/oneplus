@@ -1628,6 +1628,13 @@ def chat(request, state, user, chatid):
                 request.session["state"]["chat_page"]\
                     = request.session["state"]["chat_page_max"]
 
+        elif "report" in request.POST.keys():
+            msg_id = request.POST.keys()
+            msg = ChatMessage.objects.filter(id=msg_id).first()
+            if msg is not None:
+                _usr = Learner.objects.get(pk=user["id"])
+                report_user_post(msg, _usr, 3)
+
         _messages = _group.chatmessage_set.order_by("publishdate")\
             .reverse()[:request.session["state"]["chat_page"]]
         return render(

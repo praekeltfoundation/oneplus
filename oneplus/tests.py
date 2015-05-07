@@ -651,6 +651,15 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(reverse('com.chat',
+                                        kwargs={'chatid': chatgroup.id}),
+                                data={'report': chatmsg1.id},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "This comment has been reported")
+
     def test_blog(self):
         self.client.get(reverse('auth.autologin',
                                 kwargs={'token': self.learner.unique_token}))
@@ -699,6 +708,31 @@ class GeneralTests(TestCase):
         self.outgoing_vumi_text.append((to_addr, content))
 
     def test_smspassword_post(self):
+        #invalid form
+        resp = self.client.post(
+            reverse('auth.smspassword'),
+            {
+                'msisdn': '+2712345678',
+
+            },
+            follow=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+
+        #incorrect msisdn
+        resp = self.client.post(
+            reverse('auth.smspassword'),
+            {
+                'msisdn': '+2712345678',
+
+            },
+            follow=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+
+        #correct msisdn
         resp = self.client.post(
             reverse('auth.smspassword'),
             {

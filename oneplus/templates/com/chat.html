@@ -11,10 +11,21 @@
 
     <div class="menu">
         {% for msg in messages %}
-            <div class="item-large grey-back">
-                <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span></div>
-                <p class="white-front">{{ msg.content }}</p>
-            </div>
+            {% if comment.moderated %}
+                <div class="item-large grey-back">
+                    <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span></div>
+                    {% if  comment.unmoderated_date == None %}
+                        <p class="white-front">{{ msg.content }}</p>
+                        <form name="report_comment" method="post" action="?">
+                            {% csrf_token %}
+                            <button type="submit" name="report_button" class="bold link" value="">Report Comment</button>
+                            <input type="hidden" name="report" value="{{ msg.id }}" />
+                        </form>
+                    {% else %}
+                        <p class="red-front">{{ msg.content }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
         {% endfor %}
 
         <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
@@ -26,12 +37,14 @@
         </form>
     </div>
 
-    <div class="content narrow darkgrey-back">
-        Post a comment
-        <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-            <input type="text" name="comment" value="" />
-            <button type="submit" name="comment_button" class="button blue-back grey-front" value="Submit">Post</button>
-        </form>
-    </div>
+    {% if not state.banned and not preview%}
+        <div class="content narrow darkgrey-back">
+            Post a comment
+            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+                <input type="text" name="comment" value="" />
+                <button type="submit" name="comment_button" class="button blue-back grey-front" value="Submit">Post</button>
+            </form>
+        </div>
+    {% endif %}
 
 {% endblock %}
