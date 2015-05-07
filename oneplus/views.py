@@ -854,28 +854,13 @@ def nextchallenge(request, state, user):
 
 @user_passes_test(lambda u: u.is_staff)
 def adminpreview(request, questionid):
+    question = TestingQuestion.objects.get(id=questionid)
     def get():
-        question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
-
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()[:index]
+        ).order_by("publishdate").reverse()
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -884,38 +869,22 @@ def adminpreview(request, questionid):
         })
 
     def post():
-        request.session["state"]["discussion_comment"] = False
-        request.session["state"]["discussion_responded_id"] = None
-        question = TestingQuestion.objects.get(id=questionid)
         # answer provided
         if "answer" in request.POST.keys():
             ans_id = request.POST["answer"]
             option = question.testingquestionoption_set.get(pk=ans_id)
 
-            # Check for awards
             if option.correct:
                 return HttpResponseRedirect("right/%s" % questionid)
 
             else:
                 return HttpResponseRedirect("wrong/%s" % questionid)
 
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()[:index]
+        ).order_by("publishdate").reverse()
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -930,19 +899,6 @@ def adminpreview(request, questionid):
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        # Discussion page?
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
 
         # Messages for discussion page
         messages = \
@@ -951,7 +907,7 @@ def adminpreview_right(request, questionid):
                 moderated=True,
                 response=None
             ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            .reverse()
 
         return render(
             request,
@@ -959,7 +915,8 @@ def adminpreview_right(request, questionid):
             {
                 "question": question,
                 "messages": messages,
-                "points": 1
+                "points": 1,
+                "preview": True
             }
         )
 
@@ -970,19 +927,6 @@ def adminpreview_right(request, questionid):
 def adminpreview_wrong(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        # Discussion page?
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
 
         # Messages for discussion page
         messages = \
@@ -991,7 +935,7 @@ def adminpreview_wrong(request, questionid):
                 moderated=True,
                 response=None
             ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            .reverse()
 
         return render(
             request,
@@ -999,6 +943,7 @@ def adminpreview_wrong(request, questionid):
             {
                 "question": question,
                 "messages": messages,
+                "preview": True
             }
         )
 

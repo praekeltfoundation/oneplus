@@ -46,11 +46,20 @@
             </div>
         {% endif %}
 
-        {% if request.session.state.discussion_page_max > 0 and preview %}
+        {% if request.session.state.discussion_page_max > 0 or preview %}
             <div class="menu grey-back">
             {% for msg in messages %}
                 <div class="item-large grey-back">
-                    <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>{% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}<form name="comment_response" method="post" action="?" class="inline">{% csrf_token %}<button type="submit" name="comment_response_button" class="link green-front" value="{{ msg.id }}">Reply</button></form>{% endifnotequal %}</div>
+                    <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>
+                        {% if not state.banned and not preview%}
+                            {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
+                                <form name="comment_response" method="post" action="?" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="comment_response_button" class="link green-front" value="{{ msg.id }}">Reply</button>
+                                </form>
+                            {% endifnotequal %}
+                    {% endif %}
+                    </div>
                     <p class="white-front">{{ msg.content }}</p>
                     {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                         <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
@@ -72,13 +81,15 @@
                     {% endif %}
                 {% endfor %}
             {% endfor %}
-            <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
-                {{ state.discussion_page }} of {{ state.discussion_page_max }}
-                {% if state.discussion_page < state.discussion_page_max %}
-                <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
-                <input type="hidden" name="page" value="" />
-                {% endif %}
-            </form>
+            {% if not preview %}
+                <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
+                    {{ request.session.state.discussion_page }} of {{ request.session.state.discussion_page_max }}
+                    {% if request.session.state.discussion_page < request.session.state.discussion_page_max %}
+                    <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
+                    <input type="hidden" name="page" value="" />
+                    {% endif %}
+                </form>
+            {% endif %}
         </div>
         {% endif %}
 {% endblock %}
