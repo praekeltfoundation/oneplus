@@ -25,7 +25,6 @@
                                 <div>
                                     <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front">{{ comment.publishdate | naturaltime }}</span>
                                 </div>
-                                {{ comment.unmoderated_date }}
                                 {% if  comment.unmoderated_date == None %}
                                     <p class="white-front">{{ comment.content }}</p>
                                     <form name="report_comment" method="post" action="?">

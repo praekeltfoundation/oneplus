@@ -1814,7 +1814,7 @@ def blog(request, state, user, blogid):
             post_id = request.POST["report"]
             post_comment = PostComment.objects.filter(id=post_id).first()
             if post_comment is not None:
-                report_user_post(post_comment, _usr, 1, 1)
+                report_user_post(post_comment, _usr, 1)
 
         post_comments = PostComment.objects \
             .filter(post=_post, moderated=True) \
