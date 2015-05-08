@@ -30,6 +30,7 @@ from .validators import *
 from django.db.models import Count
 from django.db.models import Q
 import re
+from communication.utils import report_user_post
 
 
 COUNTRYWIDE = "Countrywide"
@@ -853,28 +854,13 @@ def nextchallenge(request, state, user):
 
 @user_passes_test(lambda u: u.is_staff)
 def adminpreview(request, questionid):
+    question = TestingQuestion.objects.get(id=questionid)
     def get():
-        question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
-
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()[:index]
+        ).order_by("publishdate").reverse()
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -883,38 +869,22 @@ def adminpreview(request, questionid):
         })
 
     def post():
-        request.session["state"]["discussion_comment"] = False
-        request.session["state"]["discussion_responded_id"] = None
-        question = TestingQuestion.objects.get(id=questionid)
         # answer provided
         if "answer" in request.POST.keys():
             ans_id = request.POST["answer"]
             option = question.testingquestionoption_set.get(pk=ans_id)
 
-            # Check for awards
             if option.correct:
                 return HttpResponseRedirect("right/%s" % questionid)
 
             else:
                 return HttpResponseRedirect("wrong/%s" % questionid)
 
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()[:index]
+        ).order_by("publishdate").reverse()
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -929,19 +899,6 @@ def adminpreview(request, questionid):
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        # Discussion page?
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
 
         # Messages for discussion page
         messages = \
@@ -950,7 +907,7 @@ def adminpreview_right(request, questionid):
                 moderated=True,
                 response=None
             ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            .reverse()
 
         return render(
             request,
@@ -958,7 +915,8 @@ def adminpreview_right(request, questionid):
             {
                 "question": question,
                 "messages": messages,
-                "points": 1
+                "points": 1,
+                "preview": True
             }
         )
 
@@ -969,19 +927,6 @@ def adminpreview_right(request, questionid):
 def adminpreview_wrong(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        # Discussion page?
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
 
         # Messages for discussion page
         messages = \
@@ -990,7 +935,7 @@ def adminpreview_wrong(request, questionid):
                 moderated=True,
                 response=None
             ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            .reverse()
 
         return render(
             request,
@@ -998,6 +943,7 @@ def adminpreview_wrong(request, questionid):
             {
                 "question": question,
                 "messages": messages,
+                "preview": True
             }
         )
 
@@ -1063,6 +1009,15 @@ def right(request, state, user):
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
 
     def get():
         if _learnerstate.active_result:
@@ -1206,6 +1161,15 @@ def wrong(request, state, user):
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
 
     def get():
         if not _learnerstate.active_result:
@@ -1517,12 +1481,21 @@ def chatgroups(request, state, user):
 def chat(request, state, user, chatid):
     # get chat group
     _group = ChatGroup.objects.get(pk=chatid)
-    request.session["state"]["chat_page_max"] = _group.chatmessage_set.count()
+    request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True).count()
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
 
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set\
+        _messages = _group.chatmessage_set.filter(moderated=True)\
             .order_by("publishdate")\
             .reverse()[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
@@ -1533,13 +1506,13 @@ def chat(request, state, user, chatid):
     def post():
         # new comment created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
             _message = ChatMessage(
                 chatgroup=_group,
                 content=_comment,
                 author=_usr,
-                publishdate=datetime.now()
+                publishdate=datetime.now(),
+                moderated=True
             )
             _message.save()
             request.session["state"]["chat_page_max"] += 1
@@ -1552,7 +1525,13 @@ def chat(request, state, user, chatid):
                 request.session["state"]["chat_page"]\
                     = request.session["state"]["chat_page_max"]
 
-        _messages = _group.chatmessage_set.order_by("publishdate")\
+        elif "report" in request.POST.keys():
+            msg_id = request.POST["report"]
+            msg = ChatMessage.objects.filter(id=msg_id).first()
+            if msg is not None:
+                report_user_post(msg, _usr, 3)
+
+        _messages = _group.chatmessage_set.filter(moderated=True).order_by("publishdate")\
             .reverse()[:request.session["state"]["chat_page"]]
         return render(
             request,
@@ -1680,23 +1659,78 @@ def blog(request, state, user, blogid):
     else:
         state["blog_previous"] = None
 
-    def get():
-        return render(
-            request,
-            "com/blog.html",
-            {"state": state,
-             "user": user,
-             "post": _post}
-        )
+    request.session["state"]["post_comment"] = False
 
-    def post():
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
+
+    def get():
+        request.session["state"]["post_page_max"] =\
+            PostComment.objects.filter(
+                post=_post,
+                moderated=True
+            ).count()
+
+        request.session["state"]["post_page"] =\
+            min(5, request.session["state"]["post_page_max"])
+
+        post_comments = PostComment.objects.filter(post=_post, moderated=True)\
+            .order_by("publishdate") \
+            .reverse()[:request.session["state"]["post_page"]]
+
         return render(
             request,
             "com/blog.html",
             {
                 "state": state,
                 "user": user,
-                "post": _post
+                "post": _post,
+                "post_comments": post_comments
+            }
+        )
+
+    def post():
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _comment = request.POST["comment"]
+
+            _post_comment = PostComment(
+                post=_post,
+                author=_usr,
+                content=_comment,
+                publishdate=datetime.now()
+            )
+            _post_comment.save()
+            request.session["state"]["post_comment"] = True
+        elif "page" in request.POST.keys():
+            request.session["state"]["post_page"] += 5
+            if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
+                request.session["state"]["post_page"] = request.session["state"]["post_page_max"]
+
+        elif "report" in request.POST.keys():
+            post_id = request.POST["report"]
+            post_comment = PostComment.objects.filter(id=post_id).first()
+            if post_comment is not None:
+                report_user_post(post_comment, _usr, 1)
+
+        post_comments = PostComment.objects \
+            .filter(post=_post, moderated=True) \
+            .order_by("publishdate") \
+            .reverse()[:request.session["state"]["post_page"]]
+
+        return render(
+            request,
+            "com/blog.html",
+            {
+                "state": state,
+                "user": user,
+                "post": _post,
+                "post_comments": post_comments
             }
         )
 
