@@ -29,10 +29,12 @@
                             </div>
                         </a>
                     {% endif %}
-                    {% if state.wrong_tasks_today >= state.total_tasks_today %}
-                        <a class="button green-back grey-front drop" href="home">Done For Today</a>
-                    {% else %}
-                        <a class="button green-back grey-front drop" href="next">Next Question</a>
+                    {% if not preview %}
+                        {% if state.wrong_tasks_today >= state.total_tasks_today %}
+                            <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        {% else %}
+                            <a class="button green-back grey-front drop" href="next">Next Question</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -119,7 +121,7 @@
 
                                 {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                     <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                                        <button type="submit" name="reply_button" class="button green-back" value="{{ msg.id }}"></button>
+                                        <button type="submit" name="reply_button" class="button green-back grey-front" value="{{ msg.id }}">Reply</button>
                                         <input type="text" name="reply" value="" />
                                     </form>
                                 {% endifequal %}
