@@ -993,7 +993,6 @@ def get_points_awarded(participant):
 @oneplus_state_required
 @oneplus_login_required
 def right(request, state, user):
-
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
@@ -1005,6 +1004,7 @@ def right(request, state, user):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
+
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
@@ -1072,7 +1072,6 @@ def right(request, state, user):
             # new comment created
             if "comment" in request.POST.keys()\
                     and request.POST["comment"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
@@ -1085,7 +1084,6 @@ def right(request, state, user):
 
             elif "reply" in request.POST.keys() \
                     and request.POST["reply"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]
@@ -1214,7 +1212,6 @@ def wrong(request, state, user):
             # new comment created
             if "comment" in request.POST.keys() \
                     and request.POST["comment"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
@@ -1227,7 +1224,6 @@ def wrong(request, state, user):
 
             elif "reply" in request.POST.keys() \
                     and request.POST["reply"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]
@@ -1257,13 +1253,23 @@ def wrong(request, state, user):
                 request.session["state"]["discussion_response_id"]\
                     = request.POST["comment_response_button"]
 
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).order_by("publishdate")\
+                .reverse()[:request.session["state"]["discussion_page"]]
+
             return render(
                 request,
                 "learn/wrong.html",
                 {
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question
+                    "question": _learnerstate.active_question,
+                    "messages": _messages
                 }
             )
         else:

@@ -36,10 +36,12 @@
                             <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
                             </div>
                     {% endif %}
-                    {% if state.right_tasks_today >= state.total_tasks_today %}
-                        <a class="button green-back grey-front drop" href="home">Done For Today</a>
-                    {% else %}
-                        <a class="button green-back grey-front drop" href="next">Next Question</a>
+                    {% if not preview %}
+                        {% if state.right_tasks_today >= state.total_tasks_today %}
+                            <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        {% else %}
+                            <a class="button green-back grey-front drop" href="next">Next Question</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
