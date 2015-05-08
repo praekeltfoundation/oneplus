@@ -403,6 +403,10 @@ li.contact {
     background-image: url("../img/icn_contact.png");
 }
 
+li.info {
+    background-image: url("../img/icn_info.png");
+}
+
 .badgecontainer {
     display: block;
     position: relative;

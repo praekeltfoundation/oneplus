@@ -46,50 +46,41 @@
             </div>
         {% endif %}
 
-        <div class="content narrow darkgrey-back pad-top">
-            <div class="white-front bold-font">Discuss the Challenge</div>
-            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                <input type="text" name="comment" value="" />
-                <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Submit</button>
-            </form>
-            {% if state.discussion_comment %}
-                <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
-            {% endif %}
-        </div>
-
-        {% if state.discussion_page_max > 0%}
+        {% if preview %}
             <div class="menu grey-back">
-            {% for msg in messages %}
-                <div class="item-large grey-back">
-                    <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>{% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}<form name="comment_response" method="post" action="?" class="inline">{% csrf_token %}<button type="submit" name="comment_response_button" class="link green-front" value="{{ msg.id }}">Reply</button></form>{% endifnotequal %}</div>
-                    <p class="white-front">{{ msg.content }}</p>
-                    {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                        <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                            <button type="submit" name="reply_button" class="button green-back" value="{{ msg.id }}"></button>
-                            <input type="text" name="reply" value="" />
-                        </form>
-                    {% endifequal %}
-                    {% ifequal state.discussion_responded_id|add:"0" msg.id|add:"0" %}
-                        <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
-                    {% endifequal %}
-                </div>
-
-                {% for rsp in msg.discussion_set.all reversed %}
-                    {% if rsp.moderated %}
-                        <div class="item-large grey-back reply">
-                            <div><span class="white-front bold-font">{{ rsp.author.first_name }}</span> <span class="lightgrey-front">{{ rsp.publishdate | naturaltime }}</span></div>
-                            <p class="white-front">{{ rsp.content }}</p>
+                {% for msg in messages %}
+                    <div class="item-large grey-back">
+                        <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>
+                            {% if not state.banned and not preview%}
+                                {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
+                                    <form name="comment_response" method="post" action="?" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" name="comment_response_button" class="link green-front" value="{{ msg.id }}">Reply</button>
+                                    </form>
+                                {% endifnotequal %}
+                        {% endif %}
                         </div>
-                    {% endif %}
+                        <p class="white-front">{{ msg.content }}</p>
+                        {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
+                            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+                                <button type="submit" name="reply_button" class="button green-back" value="{{ msg.id }}"></button>
+                                <input type="text" name="reply" value="" />
+                            </form>
+                        {% endifequal %}
+                        {% ifequal state.discussion_responded_id|add:"0" msg.id|add:"0" %}
+                            <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
+                        {% endifequal %}
+                    </div>
+
+                    {% for rsp in msg.discussion_set.all reversed %}
+                        {% if rsp.moderated %}
+                            <div class="item-large grey-back reply">
+                                <div><span class="white-front bold-font">{{ rsp.author.first_name }}</span> <span class="lightgrey-front">{{ rsp.publishdate | naturaltime }}</span></div>
+                                <p class="white-front">{{ rsp.content }}</p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-            <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
-                {{ state.discussion_page }} of {{ state.discussion_page_max }}
-                {% if state.discussion_page < state.discussion_page_max %}
-                <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
-                <input type="hidden" name="page" value="" />
-                {% endif %}
-            </form>
-        </div>
+            </div>
         {% endif %}
 {% endblock %}

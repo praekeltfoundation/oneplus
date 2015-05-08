@@ -16,7 +16,7 @@ from communication.models import Message, ChatGroup, ChatMessage, Post, \
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
-from .views import get_points_awarded, get_badge_awarded, get_week_day
+from .views import get_points_awarded, get_badge_awarded, get_week_day, space_available, validate_mobile
 from .utils import get_today
 from oneplus.admin import OnePlusLearnerAdmin, OnePlusLearnerResource
 from go_http.tests.test_send import RecordingHandler
@@ -25,7 +25,6 @@ from auth.admin import LearnerCreationForm
 from django.test.utils import override_settings
 import logging
 from django.db.models import Count
-from datetime import datetime
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -335,12 +334,12 @@ class GeneralTests(TestCase):
             kwargs={'token': self.learner.unique_token})
         )
         question1 = self.create_test_question(
-            'question1', self.module, question_content='test question')
+            'question1', self.module, question_content='test question', state=3)
         questionoption1 = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
             content='questionanswer1',
-            correct=True
+            correct=True,
         )
 
         resp = self.client.get(reverse('learn.next'))
@@ -348,21 +347,6 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, 'test question')
         self.assertContains(resp, 'questionanswer1')
-
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={'comment': 'test'}, follow=True)
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, 'test')
-
-        disc = Discussion.objects.filter(content='test').first()
-
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={'reply': 'testreply', 'reply_button': disc.id}, follow=True)
-
-        self.assertEquals(resp.status_code, 200)
 
         resp = self.client.post(reverse(
             'learn.next'),
@@ -381,7 +365,7 @@ class GeneralTests(TestCase):
 
         # Create a question
         question1 = self.create_test_question(
-            'question1', self.module, question_content='test question')
+            'question1', self.module, question_content='test question', state=3)
         option = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
@@ -419,7 +403,7 @@ class GeneralTests(TestCase):
 
         # Create a question
         question1 = self.create_test_question(
-            'question1', self.module, question_content='test question')
+            'question1', self.module, question_content='test question', state=3)
         option = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
@@ -624,7 +608,8 @@ class GeneralTests(TestCase):
             chatgroup=chatgroup,
             author=self.learner,
             content='chatmsg1content',
-            publishdate=datetime.now()
+            publishdate=datetime.now(),
+            moderated=True
         )
 
         resp = self.client.get(reverse(
@@ -652,6 +637,15 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(reverse('com.chat',
+                                        kwargs={'chatid': chatgroup.id}),
+                                data={'report': chatmsg1.id},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "This comment has been reported")
+
     def test_blog(self):
         self.client.get(reverse('auth.autologin',
                                 kwargs={'token': self.learner.unique_token}))
@@ -674,6 +668,24 @@ class GeneralTests(TestCase):
         )
         self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(reverse('com.blog',
+                                        kwargs={'blogid': blog.id}),
+                                data={'comment': 'New comment'},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Thank you for your contribution. Your message will display shortly!")
+
+        resp = self.client.post(reverse('com.blog',
+                                        kwargs={'blogid': blog.id}),
+                                data={'page': 1},
+                                follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+
     def test_smspassword_get(self):
         resp = self.client.get(reverse('auth.smspassword'), follow=True)
         self.assertEquals(resp.status_code, 200)
@@ -682,10 +694,35 @@ class GeneralTests(TestCase):
         self.outgoing_vumi_text.append((to_addr, content))
 
     def test_smspassword_post(self):
+        #invalid form
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
                 'msisdn': '+2712345678',
+
+            },
+            follow=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+
+        #incorrect msisdn
+        resp = self.client.post(
+            reverse('auth.smspassword'),
+            {
+                'msisdn': '+2712345678',
+
+            },
+            follow=True
+        )
+
+        self.assertEqual(resp.status_code, 200)
+
+        #correct msisdn
+        resp = self.client.post(
+            reverse('auth.smspassword'),
+            {
+                'msisdn': '+27123456789'
 
             },
             follow=True
@@ -1052,7 +1089,7 @@ class GeneralTests(TestCase):
             kwargs={'token': self.learner.unique_token})
         )
         question = self.create_test_question('question1', self.module,
-                                             question_content='test question')
+                                             question_content='test question', state=3)
         questionoption = self.create_test_question_option('questionoption1',
                                                           question)
 
@@ -1142,7 +1179,8 @@ class GeneralTests(TestCase):
         self.question = self.create_test_question(
             'question1',
             self.module,
-            question_content='test question')
+            question_content='test question',
+            state=3)
 
         self.questionoption = self.create_test_question_option(
             'questionoption1',
@@ -1163,7 +1201,8 @@ class GeneralTests(TestCase):
         )
         question = self.create_test_question(
             'question1', self.module,
-            question_content='test question')
+            question_content='test question',
+            state=3)
 
         self.create_test_question_option(
             'questionoption1',
@@ -1886,6 +1925,299 @@ class GeneralTests(TestCase):
         resp = c.get('/users/%s' % self.classs.id)
         self.assertContains(resp, '"name": "+27123456789"')
 
+    #assuming MAX_SPACES is 300
+    def test_space_available(self):
+        learner =  self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",)
+
+        self.participant = self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        space, number_spaces = space_available()
+
+        self.assertEquals(space, True)
+        self.assertEquals(number_spaces, 298)
+
+        learner2 = self.learner = self.create_learner(
+            self.school,
+            username="+27123456988",
+            mobile="+2712345688")
+
+        self.participant = self.create_participant(
+            learner2,
+            self.classs,
+            datejoined=datetime.now())
+
+        space, number_spaces = space_available()
+
+        self.assertEquals(space, True)
+        self.assertEquals(number_spaces, 297)
+
+    #assuming MAX_SPACES is 300
+    def test_signup(self):
+        learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",)
+
+        self.participant = self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        resp = self.client.get(reverse('auth.signup'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('auth.signup'), data={'yes': "Yes, please sign me up!"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('auth.signup'), data={'no': "Not interested right now"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | HELLO</title>")
+
+    def test_validate_mobile(self):
+        v_mobile_1 = "0721234567"
+        v_mobile_1 = validate_mobile(v_mobile_1)
+        self.assertEquals(v_mobile_1, "+27721234567")
+
+        v_mobile_2 = "+27721234569"
+        v_mobile_2 = validate_mobile(v_mobile_2)
+        self.assertEquals(v_mobile_2, "+27721234569")
+
+        v_mobile_3 = "+123721234567"
+        v_mobile_3 = validate_mobile(v_mobile_3)
+        self.assertEquals(v_mobile_3, "+123721234567")
+
+        i_mobile_1 = "072123456"
+        i_mobile_1 = validate_mobile(i_mobile_1)
+        self.assertEquals(i_mobile_1, None)
+
+        i_mobile_2 = "07212345678"
+        i_mobile_2 = validate_mobile(i_mobile_2)
+        self.assertEquals(i_mobile_2, None)
+
+        i_mobile_3 = "+2821234567"
+        i_mobile_3 = validate_mobile(i_mobile_3)
+        self.assertEquals(i_mobile_3, None)
+
+        i_mobile_4 = "+1237212345678"
+        i_mobile_4 = validate_mobile(i_mobile_4)
+        self.assertEquals(i_mobile_4, None)
+
+    def test_signup_form(self):
+
+        resp = self.client.get(reverse('auth.signup_form'))
+        self.assertEqual(resp.status_code, 200)
+
+        first_name = "Bob"
+        surname = "Bobby"
+        cellphone = "+277123456789"
+        school = self.school.id
+        classs = self.classs.id
+        area = "Lynwood"
+        city = "Pretoria"
+        country = "South Africa"
+        enrolled = 0
+        grade = "Grade 10"
+
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': school,
+                                      'classs': classs,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEqual(resp.status_code, 200)
+
+        learner = Learner.objects.get(mobile=cellphone)
+        self.assertIsNotNone(learner, "Learner not created")
+        self.assertEqual(learner.first_name, first_name, "First name is not correct.")
+
+        participant = Participant.objects.get(learner=learner)
+        self.assertIsNotNone(participant, "Participant not created.")
+
+        #try register same user
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': school,
+                                      'classs': classs,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+        #pass invalid school id
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': 100,
+                                      'classs': classs,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+        #pass missing data
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+        #pass invalid class id
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={'first_name': first_name,
+                                      'surname': surname,
+                                      'cellphone': cellphone,
+                                      'school': school,
+                                      'classs': 100,
+                                      'area': area,
+                                      'city': city,
+                                      'country': country,
+                                      'enrolled': enrolled,
+                                      'grade': grade},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+
+    def test_change_details(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('auth.change_details'))
+        self.assertEqual(resp.status_code, 200)
+
+        #no change
+        resp = self.client.post(reverse("auth.change_details"), follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "No changes made.")
+
+        #invalid old_number
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '012'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter a valid mobile number.")
+
+        #incorrect old_number
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27721234567'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "This number is not associated with this account.")
+
+        #invalid new_mobile
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '012'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter a valid mobile number.")
+
+        #invalid new_mobile
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '+27123456789'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "You cannot change your number to your current number.")
+
+        #new number same as an existing user
+        learner = self.create_learner(
+            self.school,
+            username="+271234569999",
+            mobile="+27123456999",
+            email="abcd@abcd.com")
+
+        self.participant = self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '+27123456999'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "A user with this mobile number (+27123456999) already exists.")
+
+        self.learner.email = "qwer@qwer.com"
+        self.learner.save()
+        #incorrect old_email
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'xyz@xyz.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "This email is not associated with this account.")
+
+        #changing to current email
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'qwer@qwer.com',
+                                      'new_email': 'qwer@qwer.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "This is your current email.")
+
+        #invalid new_email
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'qwer@qwer.com',
+                                      'new_email': 'abc'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter a valid email.")
+
+        #email exists
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_email': 'qwer@qwer.com',
+                                      'new_email': 'abcd@abcd.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "A user with this email (abcd@abcd.com) already exists.")
+
+        #valid
+        resp = self.client.post(reverse("auth.change_details"),
+                                data={'old_number': '+27123456789',
+                                      'new_number': '0721478529',
+                                      'old_email': 'qwer@qwer.com',
+                                      'new_email': 'asdf@asdf.com'},
+                                follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Your number has been changes to +27721478529")
+        self.assertContains(resp, "Your email has been changes to asdf@asdf.com.")
+
+    def test_signedup(self):
+        resp = self.client.get(reverse("auth.signedup"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse("auth.signedup"))
+        self.assertEquals(resp.status_code, 200)
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):

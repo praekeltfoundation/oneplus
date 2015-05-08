@@ -1,9 +1,8 @@
 from __future__ import division
-from django.contrib.auth.models import AbstractBaseUser
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from .forms import LoginForm, SmsPasswordForm
+from .forms import LoginForm, SmsPasswordForm, SignupForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from core.models import *
@@ -20,7 +19,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from oneplus.utils import update_metric
 from lockout import LockedOut
-from django.core.urlresolvers import reverse
 from django.db import connection
 import oneplusmvp.settings as settings
 import koremutake
@@ -28,11 +26,16 @@ import json
 from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
-from dateutil import parser
 from .validators import *
+from django.db.models import Count
+from django.db.models import Q
+import re
+from communication.utils import report_user_post
 
 
 COUNTRYWIDE = "Countrywide"
+
+MAX_SPACES = 300
 
 
 # Code decorator to ensure that the user is logged in
@@ -199,6 +202,151 @@ def autologin(request, token):
     return resolve_http_method(request, [get, post])
 
 
+def space_available():
+    total_reg = Participant.objects.aggregate(registered=Count('id'))
+    num = MAX_SPACES - total_reg.get('registered')
+    if num > 0:
+        return True, num
+    else:
+        return False, 0
+
+
+# Code decorator to check if there are available sign up spaces
+def available_space_required(f):
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        space, num_spaces = space_available()
+
+        if space:
+            return f(request, *args, **kwargs)
+        else:
+            return redirect("misc.welcome")
+    return wrap
+
+
+#Sign Up Screen
+@available_space_required
+def signup(request):
+    def get():
+        space, num_spaces = space_available()
+        return render(
+            request,
+            "auth/signup.html",
+            {
+                "space": space,
+                "num_spaces": num_spaces
+            }
+        )
+
+    def post():
+        if 'yes' in request.POST.keys():
+            return redirect("auth.signup_form")
+        else:
+            return redirect("misc.welcome")
+
+    return resolve_http_method(request, [get, post])
+
+
+#Signed Up Screen
+def signedup(request):
+    def get():
+        return render(
+            request,
+            "auth/signedup.html",
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+#Validate mobile number and return international format if it's not
+def validate_mobile(mobile):
+    pattern_both = "^(\+\d{1,2})?\d{10}$"
+    match = re.match(pattern_both, mobile)
+    if match:
+        pattern_non_int = "^\d{10}$"
+
+        match_non_int = re.match(pattern_non_int, mobile)
+
+        if match_non_int:
+            mobile = "+27" + mobile[1:]
+
+        return mobile
+
+    else:
+        return None
+
+
+#Sign up Form Screen
+@available_space_required
+def signup_form(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"form": SignupForm})
+
+    def post():
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            #check if the cellphone number is valid
+            cellphone = form.cleaned_data["cellphone"]
+            cellphone = validate_mobile(cellphone)
+            if cellphone is not None:
+                #check if user with this cellphone number exists
+                user = CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))
+                if user:
+                    return get()
+
+                first_name = form.cleaned_data["first_name"]
+                surname = form.cleaned_data["surname"]
+                school = form.cleaned_data["school"]
+                classs = form.cleaned_data["classs"]
+                area = form.cleaned_data["area"]
+                city = form.cleaned_data["city"]
+                country = form.cleaned_data["country"]
+                enrolled = form.cleaned_data["enrolled"]
+                grade = form.cleaned_data["grade"]
+
+                #create learner
+                new_learner = Learner.objects.create(first_name=first_name,
+                                                     last_name=surname,
+                                                     mobile=cellphone,
+                                                     username=cellphone,
+                                                     area=area,
+                                                     city=city,
+                                                     country=country,
+                                                     school=school,
+                                                     grade=grade,
+                                                     enrolled=enrolled)
+
+                #generate random password
+                password = CustomUser.objects.make_random_password(length=8)
+                new_learner.set_password(password)
+                new_learner.save()
+
+                #create participant
+                new_participant = Participant.objects.create(learner=new_learner,
+                                                             classs=classs,
+                                                             datejoined=datetime.now())
+
+                #sms the learner their OnePlus password
+                SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to this "
+                                                "link: http://www.oneplus.co.za/login" % password,
+                                        send_date=datetime.now(),
+                                        msisdn=cellphone)
+
+                return redirect("auth.signedup")
+            else:
+                return get()
+                # raise forms.ValidationError(
+                #     'Invalid cellphone number',
+                #     code='invalid')
+        else:
+            return redirect("auth.signup_form")
+
+    return resolve_http_method(request, [get, post])
+
+
 # Signout Function
 @oneplus_state_required
 def signout(request, state):
@@ -343,7 +491,8 @@ def getconnected(request, state):
 @oneplus_state_required
 def welcome(request, state):
     def get():
-        return render(request, "misc/welcome.html", {"state": state})
+        space, nums_spaces = space_available()
+        return render(request, "misc/welcome.html", {"state": state, "space": space})
 
     def post():
         return render(request, "misc/welcome.html", {"state": state})
@@ -422,6 +571,7 @@ def home(request, state, user):
     questions = TestingQuestion.objects.filter(
         module__in=learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
+        state=3
     ).exclude(id__in=answered)
 
     learner = learnerstate.participant.learner
@@ -542,6 +692,7 @@ def nextchallenge(request, state, user):
     questions = TestingQuestion.objects.filter(
         module__in=_learnerstate.participant.classs.course.modules.all(),
         module__is_active=True,
+        state=3
     ).exclude(id__in=answered)
 
     if not questions:
@@ -559,25 +710,6 @@ def nextchallenge(request, state, user):
                                                   + str(question_id) + "-->"
 
     def get():
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
-        _messages = Discussion.objects.filter(
-            course=_participant.classs.course,
-            question=_learnerstate.active_question,
-            moderated=True,
-            response=None
-        ).order_by("publishdate").reverse()[:index]
-
         state["total_tasks_today"] = _learnerstate.get_total_questions()
         if state['next_tasks_today'] > state["total_tasks_today"]:
             return redirect("learn.home")
@@ -586,7 +718,6 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "messages": _messages,
         })
 
     def update_num_question_metric():
@@ -625,8 +756,6 @@ def nextchallenge(request, state, user):
         update_perc_correct_answers('32days', 32)
 
     def post():
-        request.session["state"]["discussion_comment"] = False
-        request.session["state"]["discussion_responded_id"] = None
         request.session["state"]["report_sent"] = False
 
         # answer provided
@@ -708,58 +837,6 @@ def nextchallenge(request, state, user):
             else:
                 return redirect("learn.wrong")
 
-        # new comment created
-        elif "comment" in request.POST.keys() \
-                and request.POST["comment"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
-            _comment = request.POST["comment"]
-            _message = Discussion(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                response=None,
-                content=_comment, author=_usr, publishdate=datetime.now()
-            )
-            _message.save()
-            request.session["state"]["discussion_comment"] = True
-            request.session["state"]["discussion_response_id"] = None
-
-        elif "reply" in request.POST.keys() and request.POST["reply"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
-            _comment = request.POST["reply"]
-            _parent = Discussion.objects.get(pk=request.POST["reply_button"])
-            _message = Discussion(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                response=_parent,
-                content=_comment, author=_usr, publishdate=datetime.now())
-            _message.save()
-            request.session["state"]["discussion_responded_id"] \
-                = request.session["state"]["discussion_response_id"]
-            request.session["state"]["discussion_response_id"] = None
-
-        # show more comments
-        elif "page" in request.POST.keys():
-            request.session["state"]["discussion_page"] += 2
-            if request.session["state"]["discussion_page"] \
-                    > request.session["state"]["discussion_page_max"]:
-                request.session["state"]["discussion_page"] \
-                    = request.session["state"]["discussion_page_max"]
-            request.session["state"]["discussion_response_id"] = None
-
-        # show reply to comment comment
-        elif "comment_response_button" in request.POST.keys():
-            request.session["state"]["discussion_response_id"] \
-                = request.POST["comment_response_button"]
-
-        _messages = \
-            Discussion.objects.filter(
-                course=_participant.classs.course,
-                question=_learnerstate.active_question,
-                moderated=True,
-                response=None
-            ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
-
         state["total_tasks_today"] = _learnerstate.get_total_questions()
 
         return render(
@@ -769,7 +846,6 @@ def nextchallenge(request, state, user):
                 "state": state,
                 "user": user,
                 "question": _learnerstate.active_question,
-                "messages": _messages,
             }
         )
 
@@ -778,28 +854,14 @@ def nextchallenge(request, state, user):
 
 @user_passes_test(lambda u: u.is_staff)
 def adminpreview(request, questionid):
+    question = TestingQuestion.objects.get(id=questionid)
+
     def get():
-        question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
-
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()[:index]
+        ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -808,38 +870,22 @@ def adminpreview(request, questionid):
         })
 
     def post():
-        request.session["state"]["discussion_comment"] = False
-        request.session["state"]["discussion_responded_id"] = None
-        question = TestingQuestion.objects.get(id=questionid)
         # answer provided
         if "answer" in request.POST.keys():
             ans_id = request.POST["answer"]
             option = question.testingquestionoption_set.get(pk=ans_id)
 
-            # Check for awards
             if option.correct:
                 return HttpResponseRedirect("right/%s" % questionid)
 
             else:
                 return HttpResponseRedirect("wrong/%s" % questionid)
 
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
-
-        index = request.session["state"]["discussion_page"]
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()[:index]
+        ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -854,19 +900,6 @@ def adminpreview(request, questionid):
 def adminpreview_right(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        # Discussion page?
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
 
         # Messages for discussion page
         messages = \
@@ -874,8 +907,7 @@ def adminpreview_right(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            ).order_by("-publishdate")
 
         return render(
             request,
@@ -883,7 +915,8 @@ def adminpreview_right(request, questionid):
             {
                 "question": question,
                 "messages": messages,
-                "points": 1
+                "points": 1,
+                "preview": True
             }
         )
 
@@ -894,19 +927,6 @@ def adminpreview_right(request, questionid):
 def adminpreview_wrong(request, questionid):
     def get():
         question = TestingQuestion.objects.get(id=questionid)
-        if "state" not in request.session.keys():
-            request.session["state"] = {}
-        request.session["state"]["next_tasks_today"] = 1
-        request.session["state"]["discussion_page_max"] = \
-            Discussion.objects.filter(
-                question=question,
-                moderated=True,
-                response=None
-            ).count()
-
-        # Discussion page?
-        request.session["state"]["discussion_page"] = \
-            min(2, request.session["state"]["discussion_page_max"])
 
         # Messages for discussion page
         messages = \
@@ -914,8 +934,7 @@ def adminpreview_wrong(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).order_by("publishdate")\
-            .reverse()[:request.session["state"]["discussion_page"]]
+            ).order_by("-publishdate")
 
         return render(
             request,
@@ -923,6 +942,7 @@ def adminpreview_wrong(request, questionid):
             {
                 "question": question,
                 "messages": messages,
+                "preview": True
             }
         )
 
@@ -972,7 +992,6 @@ def get_points_awarded(participant):
 @oneplus_state_required
 @oneplus_login_required
 def right(request, state, user):
-
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
@@ -984,10 +1003,20 @@ def right(request, state, user):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
     state["total_tasks_today"] = _learnerstate.get_total_questions()
+
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
 
     def get():
         if _learnerstate.active_result:
@@ -1011,8 +1040,7 @@ def right(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
@@ -1042,7 +1070,6 @@ def right(request, state, user):
             # new comment created
             if "comment" in request.POST.keys()\
                     and request.POST["comment"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
@@ -1055,7 +1082,6 @@ def right(request, state, user):
 
             elif "reply" in request.POST.keys() \
                     and request.POST["reply"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]
@@ -1092,8 +1118,7 @@ def right(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -1132,6 +1157,15 @@ def wrong(request, state, user):
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
 
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
+
     def get():
         if not _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
@@ -1151,8 +1185,7 @@ def wrong(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -1175,7 +1208,6 @@ def wrong(request, state, user):
             # new comment created
             if "comment" in request.POST.keys() \
                     and request.POST["comment"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
@@ -1188,7 +1220,6 @@ def wrong(request, state, user):
 
             elif "reply" in request.POST.keys() \
                     and request.POST["reply"] != "":
-                _usr = Learner.objects.get(pk=user["id"])
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]
@@ -1218,13 +1249,22 @@ def wrong(request, state, user):
                 request.session["state"]["discussion_response_id"]\
                     = request.POST["comment_response_button"]
 
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    response=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
             return render(
                 request,
                 "learn/wrong.html",
                 {
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question
+                    "question": _learnerstate.active_question,
+                    "messages": _messages
                 }
             )
         else:
@@ -1413,7 +1453,7 @@ def chatgroups(request, state, user):
     ).classs.course.chatgroup_set.all()
 
     for g in _groups:
-        _last_msg = g.chatmessage_set.order_by("publishdate").reverse().first()
+        _last_msg = g.chatmessage_set.order_by("-publishdate").first()
         if _last_msg is not None:
             g.last_message = _last_msg
 
@@ -1442,14 +1482,22 @@ def chatgroups(request, state, user):
 def chat(request, state, user, chatid):
     # get chat group
     _group = ChatGroup.objects.get(pk=chatid)
-    request.session["state"]["chat_page_max"] = _group.chatmessage_set.count()
+    request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True).count()
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
 
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set\
-            .order_by("publishdate")\
-            .reverse()[:request.session["state"]["chat_page"]]
+        _messages = _group.chatmessage_set.filter(moderated=True)\
+            .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
@@ -1458,13 +1506,13 @@ def chat(request, state, user, chatid):
     def post():
         # new comment created
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
-            _usr = Learner.objects.get(pk=user["id"])
             _comment = request.POST["comment"]
             _message = ChatMessage(
                 chatgroup=_group,
                 content=_comment,
                 author=_usr,
-                publishdate=datetime.now()
+                publishdate=datetime.now(),
+                moderated=True
             )
             _message.save()
             request.session["state"]["chat_page_max"] += 1
@@ -1477,8 +1525,14 @@ def chat(request, state, user, chatid):
                 request.session["state"]["chat_page"]\
                     = request.session["state"]["chat_page_max"]
 
-        _messages = _group.chatmessage_set.order_by("publishdate")\
-            .reverse()[:request.session["state"]["chat_page"]]
+        elif "report" in request.POST.keys():
+            msg_id = request.POST["report"]
+            msg = ChatMessage.objects.filter(id=msg_id).first()
+            if msg is not None:
+                report_user_post(msg, _usr, 3)
+
+        _messages = _group.chatmessage_set.filter(moderated=True)\
+            .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(
             request,
             "com/chat.html",
@@ -1504,7 +1558,7 @@ def blog_hero(request, state, user):
     ).count()
     _posts = Post.objects.filter(
         course=_course
-    ).order_by("publishdate").reverse()[:4]
+    ).order_by("-publishdate")[:4]
     request.session["state"]["blog_num"] = _posts.count()
 
     def get():
@@ -1545,8 +1599,7 @@ def blog_list(request, state, user):
         request.session["state"]["blog_page"] \
             = min(10, request.session["state"]["blog_page_max"])
         _posts = Post.objects.filter(course=_course)\
-            .order_by("publishdate")\
-            .reverse()[:request.session["state"]["blog_page"]]
+            .order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(request, "com/bloglist.html", {"state": state,
                                                      "user": user,
@@ -1563,8 +1616,7 @@ def blog_list(request, state, user):
 
         _posts = Post.objects.filter(
             course=_course
-        ).order_by("publishdate") \
-            .reverse()[:request.session["state"]["blog_page"]]
+        ).order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(
             request,
@@ -1593,7 +1645,7 @@ def blog(request, state, user, blogid):
     _previous = Post.objects.filter(
         course=_course,
         publishdate__lt=_post.publishdate
-    ).exclude(id=_post.id).order_by("publishdate").reverse().first()
+    ).exclude(id=_post.id).order_by("-publishdate").first()
 
     if _next is not None:
         state["blog_next"] = _next.id
@@ -1605,23 +1657,76 @@ def blog(request, state, user, blogid):
     else:
         state["blog_previous"] = None
 
-    def get():
-        return render(
-            request,
-            "com/blog.html",
-            {"state": state,
-             "user": user,
-             "post": _post}
-        )
+    request.session["state"]["post_comment"] = False
 
-    def post():
+    _usr = Learner.objects.get(pk=user["id"])
+
+    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
+
+    if not banned:
+        request.session["state"]["banned"] = False
+    else:
+        request.session["state"]["banned"] = True
+
+    def get():
+        request.session["state"]["post_page_max"] =\
+            PostComment.objects.filter(
+                post=_post,
+                moderated=True
+            ).count()
+
+        request.session["state"]["post_page"] =\
+            min(5, request.session["state"]["post_page_max"])
+
+        post_comments = PostComment.objects.filter(post=_post, moderated=True)\
+            .order_by("-publishdate")[:request.session["state"]["post_page"]]
+
         return render(
             request,
             "com/blog.html",
             {
                 "state": state,
                 "user": user,
-                "post": _post
+                "post": _post,
+                "post_comments": post_comments
+            }
+        )
+
+    def post():
+        if "comment" in request.POST.keys() and request.POST["comment"] != "":
+            _comment = request.POST["comment"]
+
+            _post_comment = PostComment(
+                post=_post,
+                author=_usr,
+                content=_comment,
+                publishdate=datetime.now()
+            )
+            _post_comment.save()
+            request.session["state"]["post_comment"] = True
+        elif "page" in request.POST.keys():
+            request.session["state"]["post_page"] += 5
+            if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
+                request.session["state"]["post_page"] = request.session["state"]["post_page_max"]
+
+        elif "report" in request.POST.keys():
+            post_id = request.POST["report"]
+            post_comment = PostComment.objects.filter(id=post_id).first()
+            if post_comment is not None:
+                report_user_post(post_comment, _usr, 1)
+
+        post_comments = PostComment.objects \
+            .filter(post=_post, moderated=True) \
+            .order_by("-publishdate")[:request.session["state"]["post_page"]]
+
+        return render(
+            request,
+            "com/blog.html",
+            {
+                "state": state,
+                "user": user,
+                "post": _post,
+                "post_comments": post_comments
             }
         )
 
@@ -2021,8 +2126,7 @@ def report_question(request, state, user, questionid, frm):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return HttpResponseRedirect('/' + frm,
                                         {
@@ -2040,6 +2144,144 @@ def report_question(request, state, user, questionid, frm):
                     "question_number": _question.order,
                 }
             )
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def change_details(request, state, user):
+    def render_error(error_field, error_message):
+        return render(
+            request,
+            "auth/change_details.html",
+            {
+                "state": state,
+                "user": user,
+                "error_field": error_field,
+                "error_message": error_message
+            }
+        )
+
+    def get():
+        return render(
+            request,
+            "auth/change_details.html",
+            {
+                "state": state,
+                "user": user
+            }
+        )
+
+    def post():
+
+        mobile_change = False
+        email_change = False
+        changes = []
+        learner = Learner.objects.get(id=request.session["user"]["id"])
+
+        #are there any changes to be made
+        if "old_number" in request.POST.keys() or "new_number" in request.POST.keys() or \
+                "old_email" in request.POST.keys() or "new_email" in request.POST.keys():
+
+            error_field = ""
+            error_message = ""
+
+            #check if NUMBER wants to be changed
+            if "old_number" in request.POST.keys() and request.POST["old_number"] != "" or \
+                    "new_number" in request.POST.keys() and request.POST["new_number"] != "":
+
+                old_mobile = request.POST["old_number"]
+
+                if validate_mobile(old_mobile) is None:
+                    error_field = "old_mobile_error"
+                    error_message = "Please enter a valid mobile number."
+                    return render_error(error_field, error_message)
+
+                if learner.mobile != old_mobile:
+                    error_field = "old_mobile_error"
+                    error_message = "This number is not associated with this account."
+                    return render_error(error_field, error_message)
+
+                new_mobile = request.POST["new_number"]
+                validated_mobile = validate_mobile(new_mobile)
+                if not validated_mobile:
+                    error_field = "new_mobile_error"
+                    error_message = "Please enter a valid mobile number."
+                    return render_error(error_field, error_message)
+
+                if new_mobile == old_mobile:
+                    error_field = "new_mobile_error"
+                    error_message = "You cannot change your number to your current number."
+                    return render_error(error_field, error_message)
+
+                new_mobile = validated_mobile
+
+                #check if a user with the new mobile number already exits
+                existing = Learner.objects.filter(mobile=new_mobile)
+                if existing:
+                    error_field = "new_mobile_error"
+                    error_message = "A user with this mobile number (%s) already exists." % new_mobile
+                    return render_error(error_field, error_message)
+
+                mobile_change = True
+
+            #check if EMAIL wants to be changed
+            if "old_email" in request.POST.keys() and request.POST["old_email"] != "" or \
+                    "new_email" in request.POST.keys() and request.POST["new_email"] != "":
+
+                old_email = request.POST["old_email"]
+                if learner.email != old_email:
+                    error_field = "old_email_error"
+                    error_message = "This email is not associated with this account."
+                    return render_error(error_field, error_message)
+
+                new_email = request.POST["new_email"]
+
+                if new_email == old_email:
+                    error_field = "new_email_error"
+                    error_message = "This is your current email."
+                    return render_error(error_field, error_message)
+
+                if not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+                    error_field = "new_email_error"
+                    error_message = "Please enter a valid email."
+                    return render_error(error_field, error_message)
+
+                #check if a user with this email number already exits
+                existing = Learner.objects.filter(email=new_email)
+                if existing:
+                    error_field = "new_email_error"
+                    error_message = "A user with this email (%s) already exists." % new_email
+                    return render_error(error_field, error_message)
+
+                email_change = True
+
+            if mobile_change:
+                learner.mobile = new_mobile
+                learner.username = new_mobile
+                learner.save()
+                line = {"change_details":  "Your number has been changes to %s." % new_mobile}
+                changes.append(line)
+
+            if email_change:
+                learner.email = new_email
+                learner.save()
+                line = {"change_details":  "Your email has been changes to %s." % new_email}
+                changes.append(line)
+
+        else:
+            line = {"change_details":  "No changes made."}
+            changes.append(line)
+
+        return render(request,
+                      "auth/change_details_confirmation.html",
+                      {
+                          "state": state,
+                          "user": user,
+                          "changes": changes
+                      }
+        )
 
     return resolve_http_method(request, [get, post])
 
@@ -2210,41 +2452,6 @@ def question_difficulty_report(request, mode):
         return get_xls_report(question_list, 'question_difficulty_report', headers)
     else:
         return HttpResponseRedirect(reverse("reports.home"))
-
-
-@user_passes_test(lambda u: u.is_staff)
-def get_courses(request):
-    courses = Course.objects.all()
-
-    data = []
-    for c in courses:
-        line = {"id": c.id, "name": c.name}
-        data.append(line)
-
-    return HttpResponse(json.dumps(data), content_type="application/javascript")
-
-
-@user_passes_test(lambda u: u.is_staff)
-def get_classes(request, course):
-    if course == 'all':
-        classes = Class.objects.all()
-    else:
-        try:
-            course = int(course)
-            if Course.objects.get(id=course):
-                current_course = Course.objects.get(id=course)
-                classes = Class.objects.all().filter(course=current_course)
-            else:
-                classes = None
-        except ValueError, ObjectDoesNotExist:
-            classes = None
-
-    data = []
-    for c in classes:
-        line = {"id": c.id, "name": c.name}
-        data.append(line)
-
-    return HttpResponse(json.dumps(data), content_type="application/javascript")
 
 
 @user_passes_test(lambda u: u.is_staff)
