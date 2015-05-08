@@ -33,7 +33,7 @@ class ModerationContentFilter(admin.SimpleListFilter):
             return queryset.filter(description=self.value())
 
 
-class UserFilter(admin.SimpleListFilter):
+class ModerationUserBaseFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         result = set(CustomUser.objects.all())
@@ -41,7 +41,7 @@ class UserFilter(admin.SimpleListFilter):
                 for c in sorted(result, key=operator.methodcaller('get_display_name'))]
 
 
-class ModerationUserFilter(UserFilter):
+class ModerationUserFilter(ModerationUserBaseFilter):
     title = 'User'
     parameter_name = 'user'
 
@@ -104,7 +104,7 @@ class ModerationStateFilter(admin.SimpleListFilter):
                 return queryset
 
 
-class BannedUserFilter(UserFilter):
+class BannedUserFilter(ModerationUserBaseFilter):
     title = 'Banned User'
     parameter_name = 'banu'
 
@@ -115,7 +115,7 @@ class BannedUserFilter(UserFilter):
             return queryset.filter(banned_user=self.value())
 
 
-class BanningUserFilter(UserFilter):
+class BanningUserFilter(ModerationUserBaseFilter):
     title = 'Banning User'
     parameter_name = 'busr'
 
