@@ -855,12 +855,13 @@ def nextchallenge(request, state, user):
 @user_passes_test(lambda u: u.is_staff)
 def adminpreview(request, questionid):
     question = TestingQuestion.objects.get(id=questionid)
+
     def get():
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()
+        ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -884,7 +885,7 @@ def adminpreview(request, questionid):
             question=question,
             moderated=True,
             response=None
-        ).order_by("publishdate").reverse()
+        ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
             "question": question,
@@ -906,8 +907,7 @@ def adminpreview_right(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).order_by("publishdate")\
-            .reverse()
+            ).order_by("-publishdate")
 
         return render(
             request,
@@ -934,8 +934,7 @@ def adminpreview_wrong(request, questionid):
                 question=question,
                 moderated=True,
                 response=None
-            ).order_by("publishdate")\
-            .reverse()
+            ).order_by("-publishdate")
 
         return render(
             request,
@@ -1041,8 +1040,7 @@ def right(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
@@ -1120,8 +1118,7 @@ def right(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -1188,8 +1185,7 @@ def wrong(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -1259,8 +1255,7 @@ def wrong(request, state, user):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -1458,7 +1453,7 @@ def chatgroups(request, state, user):
     ).classs.course.chatgroup_set.all()
 
     for g in _groups:
-        _last_msg = g.chatmessage_set.order_by("publishdate").reverse().first()
+        _last_msg = g.chatmessage_set.order_by("-publishdate").first()
         if _last_msg is not None:
             g.last_message = _last_msg
 
@@ -1502,8 +1497,7 @@ def chat(request, state, user, chatid):
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
         _messages = _group.chatmessage_set.filter(moderated=True)\
-            .order_by("publishdate")\
-            .reverse()[:request.session["state"]["chat_page"]]
+            .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
@@ -1537,8 +1531,8 @@ def chat(request, state, user, chatid):
             if msg is not None:
                 report_user_post(msg, _usr, 3)
 
-        _messages = _group.chatmessage_set.filter(moderated=True).order_by("publishdate")\
-            .reverse()[:request.session["state"]["chat_page"]]
+        _messages = _group.chatmessage_set.filter(moderated=True)\
+            .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(
             request,
             "com/chat.html",
@@ -1564,7 +1558,7 @@ def blog_hero(request, state, user):
     ).count()
     _posts = Post.objects.filter(
         course=_course
-    ).order_by("publishdate").reverse()[:4]
+    ).order_by("-publishdate")[:4]
     request.session["state"]["blog_num"] = _posts.count()
 
     def get():
@@ -1605,8 +1599,7 @@ def blog_list(request, state, user):
         request.session["state"]["blog_page"] \
             = min(10, request.session["state"]["blog_page_max"])
         _posts = Post.objects.filter(course=_course)\
-            .order_by("publishdate")\
-            .reverse()[:request.session["state"]["blog_page"]]
+            .order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(request, "com/bloglist.html", {"state": state,
                                                      "user": user,
@@ -1623,8 +1616,7 @@ def blog_list(request, state, user):
 
         _posts = Post.objects.filter(
             course=_course
-        ).order_by("publishdate") \
-            .reverse()[:request.session["state"]["blog_page"]]
+        ).order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(
             request,
@@ -1653,7 +1645,7 @@ def blog(request, state, user, blogid):
     _previous = Post.objects.filter(
         course=_course,
         publishdate__lt=_post.publishdate
-    ).exclude(id=_post.id).order_by("publishdate").reverse().first()
+    ).exclude(id=_post.id).order_by("-publishdate").first()
 
     if _next is not None:
         state["blog_next"] = _next.id
@@ -1687,8 +1679,7 @@ def blog(request, state, user, blogid):
             min(5, request.session["state"]["post_page_max"])
 
         post_comments = PostComment.objects.filter(post=_post, moderated=True)\
-            .order_by("publishdate") \
-            .reverse()[:request.session["state"]["post_page"]]
+            .order_by("-publishdate")[:request.session["state"]["post_page"]]
 
         return render(
             request,
@@ -1726,8 +1717,7 @@ def blog(request, state, user, blogid):
 
         post_comments = PostComment.objects \
             .filter(post=_post, moderated=True) \
-            .order_by("publishdate") \
-            .reverse()[:request.session["state"]["post_page"]]
+            .order_by("-publishdate")[:request.session["state"]["post_page"]]
 
         return render(
             request,
@@ -2136,8 +2126,7 @@ def report_question(request, state, user, questionid, frm):
                     question=_learnerstate.active_question,
                     moderated=True,
                     response=None
-                ).order_by("publishdate")\
-                .reverse()[:request.session["state"]["discussion_page"]]
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return HttpResponseRedirect('/' + frm,
                                         {
