@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.test.client import Client
 from utils import format_option, format_content
+from communication.models import ChatMessage, Discussion, PostComment, ChatGroup, Post
+from organisation.models import Course
+from auth.models import CustomUser
+from datetime import datetime
 
 
 class TestContent(TestCase):
@@ -18,7 +24,7 @@ class TestContent(TestCase):
     def test_format_option_text_only(self):
         content = "Test"
         result = format_option(content)
-        self.assertEquals(result,u'Test')
+        self.assertEquals(result, u'Test')
 
     def test_format_option_text_and_image(self):
         content = "<b>Test</b><img/>"
@@ -70,3 +76,169 @@ class TestContent(TestCase):
         content = u'Zoë'
         output = format_option(content)
         self.assertEquals(output, u'Zoë')
+
+
+class TestPublishViews(TestCase):
+
+    def create_user(self, mobile="+27123456789", country="country", **kwargs):
+        model_class = get_user_model()
+        return model_class.objects.create(
+            mobile=mobile, country=country, **kwargs)
+
+    def create_chatgroup(self, name='TestGroup', description='TestGroup'):
+        return ChatGroup.objects.create(
+            name=name,
+            description=description
+        )
+
+    def create_chatmessage(self, content):
+        return ChatMessage.objects.create(
+            chatgroup=self.chatgroup,
+            author=self.user,
+            content=content,
+            publishdate=datetime.now()
+        )
+
+    def create_discussion(self, content, name='Test', description='Test'):
+        return Discussion.objects.create(
+            name=name,
+            description=description,
+            content=content,
+            author=self.user,
+            publishdate=datetime.now()
+        )
+
+    def create_course(self, name='Test', description='Test', slug='Test'):
+        return Course.objects.create(
+            name=name,
+            description=description,
+            slug=slug
+        )
+
+    def create_post(self, content, name='Test', description='Test'):
+        return Post.objects.create(
+            name=name,
+            description=description,
+            course=self.course,
+            content=content,
+            publishdate=datetime.now()
+        )
+
+    def create_postcomment(self, post, content):
+        return PostComment.objects.create(
+            post=post,
+            content=content,
+            author=self.user,
+            publishdate=datetime.now()
+        )
+
+    def setUp(self):
+        self.user = self.create_user()
+        self.chatgroup = self.create_chatgroup()
+        self.course = self.create_course()
+        self.post = self.create_post('Test Test Test Test')
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
+
+    def test_chatmessage_publish_unpublish(self):
+        cm = self.create_chatmessage('Test Test test')
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        base_url = '/admin/communication/chatmessage/publish/'
+
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(cm.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'ChatMessage has been published')
+
+        cm = ChatMessage.objects.get(pk=cm.pk)
+        self.assertEquals(cm.moderated, True)
+
+        base_url = '/admin/communication/chatmessage/unpublish/'
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(cm.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'ChatMessage has been unpublished')
+
+        cm = ChatMessage.objects.get(pk=cm.pk)
+        self.assertEquals(cm.moderated, False)
+        self.assertEquals(cm.unmoderated_by.username, self.admin_user.username)
+        self.assertIsNotNone(cm.unmoderated_date)
+
+    def test_discussion_publish_unpublish(self):
+        d = self.create_discussion('Test Test test')
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        base_url = '/admin/communication/discussion/publish/'
+
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(d.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'Discussion has been published')
+
+        d = Discussion.objects.get(pk=d.pk)
+        self.assertEquals(d.moderated, True)
+
+        base_url = '/admin/communication/discussion/unpublish/'
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(d.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'Discussion has been unpublished')
+
+        d = Discussion.objects.get(pk=d.pk)
+        self.assertEquals(d.moderated, False)
+        self.assertEquals(d.unmoderated_by.username, self.admin_user.username)
+        self.assertIsNotNone(d.unmoderated_date)
+
+    def test_postcomment_publish_unpublish(self):
+        pc = self.create_postcomment(self.post, 'Test Test test')
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        base_url = '/admin/communication/postcomment/publish/'
+
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(pc.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'PostComment has been published')
+
+        pc = PostComment.objects.get(pk=pc.pk)
+        self.assertEquals(pc.moderated, True)
+
+        base_url = '/admin/communication/postcomment/unpublish/'
+        url = base_url + '10000'
+        resp = c.get(url)
+        self.assertContains(resp, 'Can''t find record')
+
+        url = base_url + str(pc.pk)
+        resp = c.get(url)
+        self.assertContains(resp, 'PostComment has been unpublished')
+
+        pc = PostComment.objects.get(pk=pc.pk)
+        self.assertEquals(pc.moderated, False)
+        self.assertEquals(pc.unmoderated_by.username, self.admin_user.username)
+        self.assertIsNotNone(pc.unmoderated_date)

@@ -62,6 +62,13 @@ class TestingQuestion(models.Model):
         max_length=500,
         blank=True,
         null=True)
+    state = models.PositiveIntegerField("State",
+                                        choices=(
+                                            (1, "Incomplete"),
+                                            (2, "Ready for Review"),
+                                            (3, "Published")
+                                        ),
+                                        default=1)
 
     def __str__(self):
         return self.name

@@ -1,0 +1,2762 @@
+[
+    {
+        "pk": 1,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "anus",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "arse",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "arsehole",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "ass",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "hat",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jabber",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pirate",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assbag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assbandit",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assbanger",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assbite",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 12,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assclown",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 13,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asscock",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 14,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asscracker",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 15,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asses",
+            "translation": "butts"
+        }
+    },
+    {
+        "pk": 16,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assface",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 17,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assfuck",
+            "translation": "rear-loving"
+        }
+    },
+    {
+        "pk": 18,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assfucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 19,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assgoblin",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 20,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asshat",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 21,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asshead",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 22,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asshole",
+            "translation": "jerk"
+        }
+    },
+    {
+        "pk": 23,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asshopper",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 24,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assjacker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 25,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asslick",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 26,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asslicker",
+            "translation": "Buttlicker"
+        }
+    },
+    {
+        "pk": 27,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assmonkey",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 28,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assmunch",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 29,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assmuncher",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 30,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assnigger",
+            "translation": "Racial Slur"
+        }
+    },
+    {
+        "pk": 31,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asspirate",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 32,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assshit",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 33,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "assshole",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 34,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asssucker",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 35,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asswad",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 36,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "asswipe",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 37,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "axwound",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 38,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bampot",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 39,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bastard",
+            "translation": "illegitimate child"
+        }
+    },
+    {
+        "pk": 40,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "beaner",
+            "translation": "Mexican"
+        }
+    },
+    {
+        "pk": 41,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bitch",
+            "translation": "female dog"
+        }
+    },
+    {
+        "pk": 42,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bitchass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 43,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bitches",
+            "translation": "female dogs"
+        }
+    },
+    {
+        "pk": 44,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bitchtits",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 45,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bitchy",
+            "translation": "mean"
+        }
+    },
+    {
+        "pk": 46,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "blowjob",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 47,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "blowjob",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 48,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bollocks",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 49,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bollox",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 50,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "boner",
+            "translation": "erection"
+        }
+    },
+    {
+        "pk": 51,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "brotherfucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 52,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bullshit",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 53,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "bumblefuck",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 54,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "buttplug",
+            "translation": "cork"
+        }
+    },
+    {
+        "pk": 55,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pirate",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 56,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "buttfucka",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 57,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "buttfucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 58,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cameltoe",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 59,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "carpetmuncher",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 60,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "chesticle",
+            "translation": "Breast"
+        }
+    },
+    {
+        "pk": 61,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "chinc",
+            "translation": "Chinese"
+        }
+    },
+    {
+        "pk": 62,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "chink",
+            "translation": "asian"
+        }
+    },
+    {
+        "pk": 63,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "choad",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 64,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "chode",
+            "translation": "small penis"
+        }
+    },
+    {
+        "pk": 65,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "clit",
+            "translation": "female genitals"
+        }
+    },
+    {
+        "pk": 66,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "clitface",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 67,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "clitfuck",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 68,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "clusterfuck",
+            "translation": "mess up"
+        }
+    },
+    {
+        "pk": 69,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cock",
+            "translation": "penis"
+        }
+    },
+    {
+        "pk": 70,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockass",
+            "translation": "Jerk"
+        }
+    },
+    {
+        "pk": 71,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockbite",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 72,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockburger",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 73,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockface",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 74,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockfucker",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 75,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockhead",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 76,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockjockey",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 77,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockknoker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 78,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockmaster",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 79,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockmongler",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 80,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockmongruel",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 81,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockmonkey",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 82,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockmuncher",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 83,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocknose",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 84,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocknugget",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 85,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockshit",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 86,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocksmith",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 87,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocksmoke",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 88,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocksmoker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 89,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocksniffer",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 90,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cocksucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 91,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cockwaffle",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 92,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "coochie",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 93,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "coochy",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 94,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "coon",
+            "translation": "African American"
+        }
+    },
+    {
+        "pk": 95,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cooter",
+            "translation": "vagina"
+        }
+    },
+    {
+        "pk": 96,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cracker",
+            "translation": "Caucasian"
+        }
+    },
+    {
+        "pk": 97,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cum",
+            "translation": "semen"
+        }
+    },
+    {
+        "pk": 98,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cumbubble",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 99,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cumdumpster",
+            "translation": "prostitute"
+        }
+    },
+    {
+        "pk": 100,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cumguzzler",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 101,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cumjockey",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 102,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cumslut",
+            "translation": "dirty girl"
+        }
+    },
+    {
+        "pk": 103,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cumtart",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 104,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cunnie",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 105,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cunnilingus",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 106,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cunt",
+            "translation": "vagina"
+        }
+    },
+    {
+        "pk": 107,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cuntass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 108,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cuntface",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 109,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cunthole",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 110,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cuntlicker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 111,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cuntrag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 112,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "cuntslut",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 113,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "doos",
+            "translation": "jerk"
+        }
+    },
+    {
+        "pk": 114,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dago",
+            "translation": "Italian"
+        }
+    },
+    {
+        "pk": 115,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "damn",
+            "translation": "darn"
+        }
+    },
+    {
+        "pk": 116,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "deggo",
+            "translation": "Italian"
+        }
+    },
+    {
+        "pk": 117,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dick",
+            "translation": "penis"
+        }
+    },
+    {
+        "pk": 118,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "sneeze",
+            "translation": "orgasm"
+        }
+    },
+    {
+        "pk": 119,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickbag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 120,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickbeaters",
+            "translation": "Hands"
+        }
+    },
+    {
+        "pk": 121,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickface",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 122,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickfuck",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 123,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickfucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 124,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickhead",
+            "translation": "phallace face"
+        }
+    },
+    {
+        "pk": 125,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickhole",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 126,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickjuice",
+            "translation": "semen"
+        }
+    },
+    {
+        "pk": 127,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickmilk",
+            "translation": "sperm"
+        }
+    },
+    {
+        "pk": 128,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickmonger",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 129,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dicks",
+            "translation": "penises"
+        }
+    },
+    {
+        "pk": 130,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickslap",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 131,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dicksucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 132,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dicksucking",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 133,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dicktickler",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 134,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickwad",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 135,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickweasel",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 136,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickweed",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 137,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dickwod",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 138,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dike",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 139,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dildo",
+            "translation": "sexual toy"
+        }
+    },
+    {
+        "pk": 140,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dipshit",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 141,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "doochbag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 142,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dookie",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 143,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "douche",
+            "translation": "female hygene product"
+        }
+    },
+    {
+        "pk": 144,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 145,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "douchebag",
+            "translation": "female hygene accessory"
+        }
+    },
+    {
+        "pk": 146,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "douchewaffle",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 147,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dumass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 148,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dumbass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 149,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dumbass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 150,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dumbfuck",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 151,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dumbshit",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 152,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dumshit",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 153,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "dyke",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 154,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fag",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 155,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fagbag",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 156,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fagfucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 157,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "faggit",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 158,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "faggot",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 159,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "faggotcock",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 160,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fagtard",
+            "translation": "homosexual idiot"
+        }
+    },
+    {
+        "pk": 161,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fatass",
+            "translation": "a fat person"
+        }
+    },
+    {
+        "pk": 162,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fellatio",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 163,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "feltch",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 164,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "flamer",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 165,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuck",
+            "translation": "fornicate"
+        }
+    },
+    {
+        "pk": 166,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 167,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckbag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 168,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckboy",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 169,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckbrain",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 170,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckbutt",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 171,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckbutter",
+            "translation": "Sexual fluids"
+        }
+    },
+    {
+        "pk": 172,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucked",
+            "translation": "had intercourse"
+        }
+    },
+    {
+        "pk": 173,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucker",
+            "translation": "fornicator"
+        }
+    },
+    {
+        "pk": 174,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckersucker",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 175,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckface",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 176,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckhead",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 177,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckhole",
+            "translation": "jerk"
+        }
+    },
+    {
+        "pk": 178,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckin",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 179,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucking",
+            "translation": "freaking"
+        }
+    },
+    {
+        "pk": 180,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucknut",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 181,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucknutt",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 182,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckoff",
+            "translation": "go away"
+        }
+    },
+    {
+        "pk": 183,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucks",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 184,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckstick",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 185,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucktard",
+            "translation": "Moron"
+        }
+    },
+    {
+        "pk": 186,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fucktart",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 187,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckup",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 188,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckwad",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 189,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckwit",
+            "translation": "dummy"
+        }
+    },
+    {
+        "pk": 190,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fuckwitt",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 191,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "fudgepacker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 192,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gayass",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 193,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gaybob",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 194,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gaydo",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 195,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gayfuck",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 196,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gayfuckist",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 197,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gaylord",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 198,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gaytard",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 199,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gaywad",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 200,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "goddamn",
+            "translation": "goshdarn"
+        }
+    },
+    {
+        "pk": 201,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "goddamnit",
+            "translation": "goshdarnit"
+        }
+    },
+    {
+        "pk": 202,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gooch",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 203,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gook",
+            "translation": "Chinese"
+        }
+    },
+    {
+        "pk": 204,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "gringo",
+            "translation": "foreigner"
+        }
+    },
+    {
+        "pk": 205,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "guido",
+            "translation": "italian"
+        }
+    },
+    {
+        "pk": 206,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "handjob",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 207,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "hardon",
+            "translation": "erection"
+        }
+    },
+    {
+        "pk": 208,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "heeb",
+            "translation": "Jewish Person"
+        }
+    },
+    {
+        "pk": 209,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "hell",
+            "translation": "heck"
+        }
+    },
+    {
+        "pk": 210,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "ho",
+            "translation": "woman"
+        }
+    },
+    {
+        "pk": 211,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "hoe",
+            "translation": "Woman"
+        }
+    },
+    {
+        "pk": 212,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "homo",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 213,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "homodumbshit",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 214,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "honkey",
+            "translation": "white person"
+        }
+    },
+    {
+        "pk": 215,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "humping",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 216,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jackass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 217,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jagoff",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 218,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jap",
+            "translation": "japanesse person"
+        }
+    },
+    {
+        "pk": 219,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jerkoff",
+            "translation": "masturbate"
+        }
+    },
+    {
+        "pk": 220,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jerkass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 221,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jigaboo",
+            "translation": "African American"
+        }
+    },
+    {
+        "pk": 222,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "jizz",
+            "translation": "Semen"
+        }
+    },
+    {
+        "pk": 223,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "junglebunny",
+            "translation": "african american"
+        }
+    },
+    {
+        "pk": 224,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kak",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 225,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kike",
+            "translation": "Jewish Person"
+        }
+    },
+    {
+        "pk": 226,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kooch",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 227,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kootch",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 228,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kraut",
+            "translation": "german"
+        }
+    },
+    {
+        "pk": 229,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kunt",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 230,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "kyke",
+            "translation": "Jewish person"
+        }
+    },
+    {
+        "pk": 231,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "lameass",
+            "translation": "loser"
+        }
+    },
+    {
+        "pk": 232,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "lardass",
+            "translation": "overweight individual"
+        }
+    },
+    {
+        "pk": 233,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "lesbian",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 234,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "lesbo",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 235,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "lezzie",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 236,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "mcfagget",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 237,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "mick",
+            "translation": "irish"
+        }
+    },
+    {
+        "pk": 238,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "minge",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 239,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "mothafucka",
+            "translation": "Jerk"
+        }
+    },
+    {
+        "pk": 240,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "motherfucker",
+            "translation": "mother lover"
+        }
+    },
+    {
+        "pk": 241,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "motherfucking",
+            "translation": "fornicating with mother"
+        }
+    },
+    {
+        "pk": 242,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "muff",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 243,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "muffdiver",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 244,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "munging",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 245,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "negro",
+            "translation": "african american"
+        }
+    },
+    {
+        "pk": 246,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "nigaboo",
+            "translation": "African American"
+        }
+    },
+    {
+        "pk": 247,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "nigga",
+            "translation": "african american"
+        }
+    },
+    {
+        "pk": 248,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "nigger",
+            "translation": "african american"
+        }
+    },
+    {
+        "pk": 249,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "niggers",
+            "translation": "African Americans"
+        }
+    },
+    {
+        "pk": 250,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "niglet",
+            "translation": "african american child"
+        }
+    },
+    {
+        "pk": 251,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "nutsack",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 252,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "paki",
+            "translation": "pakistanien"
+        }
+    },
+    {
+        "pk": 253,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "panooch",
+            "translation": "femail genitalia"
+        }
+    },
+    {
+        "pk": 254,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pecker",
+            "translation": "Penis"
+        }
+    },
+    {
+        "pk": 255,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "peckerhead",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 256,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "penis",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 257,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "penisbanger",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 258,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "penisfucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 259,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "penispuffer",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 260,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "piss",
+            "translation": "urinate"
+        }
+    },
+    {
+        "pk": 261,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pissed",
+            "translation": "urinated"
+        }
+    },
+    {
+        "pk": 262,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pissedoff",
+            "translation": "angry"
+        }
+    },
+    {
+        "pk": 263,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pissflaps",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 264,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "polesmoker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 265,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pollock",
+            "translation": "polish person"
+        }
+    },
+    {
+        "pk": 266,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "poon",
+            "translation": "female genitals"
+        }
+    },
+    {
+        "pk": 267,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "poonani",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 268,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "poonany",
+            "translation": "vagina"
+        }
+    },
+    {
+        "pk": 269,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "poontang",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 270,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "porchmonkey",
+            "translation": "African American"
+        }
+    },
+    {
+        "pk": 271,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "prick",
+            "translation": "penis"
+        }
+    },
+    {
+        "pk": 272,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "punanny",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 273,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "punta",
+            "translation": "female dog"
+        }
+    },
+    {
+        "pk": 274,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pussies",
+            "translation": "Female Genitalias"
+        }
+    },
+    {
+        "pk": 275,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pussy",
+            "translation": "female reproductive organ"
+        }
+    },
+    {
+        "pk": 276,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "pussylicking",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 277,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "puto",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 278,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "queef",
+            "translation": "vaginal fart."
+        }
+    },
+    {
+        "pk": 279,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "queer",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 280,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "queerbait",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 281,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "queerhole",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 282,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "renob",
+            "translation": "erection"
+        }
+    },
+    {
+        "pk": 283,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "rimjob",
+            "translation": "dirty sexual act"
+        }
+    },
+    {
+        "pk": 284,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "ruski",
+            "translation": "Russian"
+        }
+    },
+    {
+        "pk": 285,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "sandnigger",
+            "translation": "middle eastern"
+        }
+    },
+    {
+        "pk": 286,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "schlong",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 287,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "scrote",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 288,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shit",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 289,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 290,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitbag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 291,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitbagger",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 292,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitbrains",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 293,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitbreath",
+            "translation": "Bad Breath"
+        }
+    },
+    {
+        "pk": 294,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitcanned",
+            "translation": "Fired"
+        }
+    },
+    {
+        "pk": 295,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitcunt",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 296,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitdick",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 297,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitface",
+            "translation": "pooface"
+        }
+    },
+    {
+        "pk": 298,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitfaced",
+            "translation": "Drunk"
+        }
+    },
+    {
+        "pk": 299,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shithead",
+            "translation": "jerk"
+        }
+    },
+    {
+        "pk": 300,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shithole",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 301,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shithouse",
+            "translation": "bathroom"
+        }
+    },
+    {
+        "pk": 302,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitspitter",
+            "translation": "butt"
+        }
+    },
+    {
+        "pk": 303,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitstain",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 304,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitter",
+            "translation": "defecator"
+        }
+    },
+    {
+        "pk": 305,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shittiest",
+            "translation": "worst"
+        }
+    },
+    {
+        "pk": 306,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitting",
+            "translation": "pooping"
+        }
+    },
+    {
+        "pk": 307,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shitty",
+            "translation": "bad"
+        }
+    },
+    {
+        "pk": 308,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shiz",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 309,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "shiznit",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 310,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "skank",
+            "translation": "dirty girl"
+        }
+    },
+    {
+        "pk": 311,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "skeet",
+            "translation": "semen"
+        }
+    },
+    {
+        "pk": 312,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "skullfuck",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 313,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "slut",
+            "translation": "sexually popular woman"
+        }
+    },
+    {
+        "pk": 314,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "slutbag",
+            "translation": "sexually popular woman"
+        }
+    },
+    {
+        "pk": 315,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "smeg",
+            "translation": "poop"
+        }
+    },
+    {
+        "pk": 316,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "snatch",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 317,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "spic",
+            "translation": "mexican"
+        }
+    },
+    {
+        "pk": 318,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "spick",
+            "translation": "mexican american"
+        }
+    },
+    {
+        "pk": 319,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "splooge",
+            "translation": "ejaculate"
+        }
+    },
+    {
+        "pk": 320,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "spook",
+            "translation": "White person"
+        }
+    },
+    {
+        "pk": 321,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "suckass",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 322,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "tard",
+            "translation": "mentally challenged"
+        }
+    },
+    {
+        "pk": 323,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "testicle",
+            "translation": "male genitalia"
+        }
+    },
+    {
+        "pk": 324,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "thundercunt",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 325,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "tit",
+            "translation": "breast"
+        }
+    },
+    {
+        "pk": 326,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "titfuck",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 327,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "tits",
+            "translation": "breasts"
+        }
+    },
+    {
+        "pk": 328,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "tittyfuck",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 329,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "twat",
+            "translation": "female genitals"
+        }
+    },
+    {
+        "pk": 330,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "twatlips",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 331,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "twats",
+            "translation": "vaginas"
+        }
+    },
+    {
+        "pk": 332,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "twatwaffle",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 333,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "unclefucker",
+            "translation": "homosexual"
+        }
+    },
+    {
+        "pk": 334,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "vag",
+            "translation": "femail genitalia"
+        }
+    },
+    {
+        "pk": 335,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "vagina",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 336,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "vajayjay",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 337,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "vjayjay",
+            "translation": "female genitalia"
+        }
+    },
+    {
+        "pk": 338,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "wank",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 339,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "wanker",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 340,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "wankjob",
+            "translation": "sexual act"
+        }
+    },
+    {
+        "pk": 341,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "wetback",
+            "translation": "Mexican"
+        }
+    },
+    {
+        "pk": 342,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "whore",
+            "translation": "hussy"
+        }
+    },
+    {
+        "pk": 343,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "whorebag",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 344,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "whoreface",
+            "translation": "idiot"
+        }
+    },
+    {
+        "pk": 345,
+        "model": "communication.profanity",
+        "fields": {
+            "word": "wop",
+            "translation": "Italian"
+        }
+    }
+]

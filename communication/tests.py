@@ -2,11 +2,11 @@
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-
-from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue
+from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue, Ban, Profanity
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
 from core.models import Class
+from communication.utils import contains_profanity, report_user_post, get_user_bans, get_replacement_content
 
 from datetime import datetime, timedelta
 
@@ -201,3 +201,90 @@ class TestReportResponse(TestCase):
 
         self.assertEquals(response.title, "title", "They are not equal")
         self.assertEquals(response.content, "content", "They are equal")
+
+
+class TestBan(TestCase):
+    def create_user(self, mobile="+27123456789", country="country", **kwargs):
+        model_class = get_user_model()
+        return model_class.objects.create(
+            mobile=mobile, country=country, **kwargs)
+
+    def create_chat_message(self, content="Test", **kwargs):
+        return ChatMessage.objects.create(content=content, **kwargs)
+
+    def create_ban(self, till_when):
+        return Ban.objects.create(
+            banned_user=self.user,
+            banning_user=self.user2,
+            when=datetime.now(),
+            till_when=till_when,
+            source_type=1,
+            source_pk=1
+        )
+
+    def setUp(self):
+        self.user = self.create_user()
+        self.user2 = self.create_user(mobile='123123', username='123123')
+
+    def test_ban_duration(self):
+        today = datetime.now()
+        today = datetime(today.year, today.month, today.day, 23, 59, 59, 999999)
+        b1tw = today
+        b2tw = today + timedelta(days=2)
+
+        ban1 = self.create_ban(b1tw)
+        self.assertEquals(ban1.get_duration(), 1)
+        ban1.delete()
+
+        ban2 = self.create_ban(b2tw)
+        self.assertEquals(ban2.get_duration(), 3)
+
+    def test_report_user_post(self):
+        chat = self.create_chat_message(author=self.user)
+        report_user_post(obj=chat, banning_user=self.user2, num_days=1)
+        self.assertEquals(chat.unmoderated_by.id, self.user2.pk)
+        qs = get_user_bans(user=self.user)
+        self.assertEquals(qs.count(), 1)
+        self.assertEquals(qs.first().get_duration(), 1)
+
+    def test_report_user_post_more_days(self):
+        chat = self.create_chat_message(author=self.user)
+        report_user_post(obj=chat, banning_user=self.user2, num_days=7)
+        self.assertEquals(chat.unmoderated_by.id, self.user2.pk)
+        qs = get_user_bans(user=self.user)
+        self.assertEquals(qs.count(), 1)
+        self.assertEquals(qs.first().get_duration(), 7)
+
+    def test_replacement_content_admin(self):
+        exp_admin = 'This comment has been reported by a moderator and the user has ' \
+                    'been banned from commenting for 5 days.'
+        act = get_replacement_content(admin_ban=True, num_days=5)
+        self.assertEquals(exp_admin, act)
+
+        exp_admin = 'This comment has been reported by a moderator and the user has ' \
+                    'been banned from commenting for 1 day.'
+        act = get_replacement_content(admin_ban=True, num_days=1)
+        self.assertEquals(exp_admin, act)
+
+    def test_replacement_content_community(self):
+        exp_com = 'This comment has been reported by the community and the user has ' \
+                  'been banned from commenting for 7 days.'
+        act = get_replacement_content(admin_ban=False, num_days=7)
+        self.assertEquals(exp_com, act)
+
+        exp_com = 'This comment has been reported by the community and the user has ' \
+                  'been banned from commenting for 1 day.'
+        act = get_replacement_content(admin_ban=False, num_days=1)
+        self.assertEquals(exp_com, act)
+
+class TestProfanity(TestCase):
+    def test_profanity(self):
+        Profanity.objects.create(
+            word='test'
+        )
+
+        self.assertEquals(contains_profanity('foo bar'), False)
+        self.assertEquals(contains_profanity('test testees testing'), True)
+        self.assertEquals(contains_profanity('Test testees testing'), True)
+        self.assertEquals(contains_profanity('TeSt testees TesTing'), True)
+        self.assertEquals(contains_profanity('test TesTees testing'), True)
