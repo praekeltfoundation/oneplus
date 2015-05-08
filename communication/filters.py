@@ -24,7 +24,7 @@ class ModerationContentFilter(admin.SimpleListFilter):
         if connection.vendor == 'sqlite':
             return [(c['uni_description'], c['uni_description']) for c in data]
         else:
-            return [(c.description, c.description) for c in data]
+            return [(c['description'], c['description']) for c in data]
 
     def queryset(self, request, queryset):
         if self.value() is None:

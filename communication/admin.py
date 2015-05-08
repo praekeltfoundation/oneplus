@@ -316,7 +316,7 @@ class ModerationAdmin(admin.ModelAdmin):
             if obj.type == 1:
                 retval = 'Add Reply'
             elif obj.type == 2:
-                url = '/admin/discussion_response/%d' % obj.mod_id
+                url = '/discussion_response/%d' % obj.mod_id
                 retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             elif obj.type == 3:
                 retval = 'Add Reply'
