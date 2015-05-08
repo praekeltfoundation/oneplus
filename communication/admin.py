@@ -424,6 +424,7 @@ class BanAdmin(admin.ModelAdmin):
         BannedUserFilter,
         BanningUserFilter,
     )
+    ordering = ('-till_when',)
 
 
 class PostCommentAdmin(admin.ModelAdmin):
