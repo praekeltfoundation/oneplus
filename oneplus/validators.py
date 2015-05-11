@@ -159,7 +159,11 @@ def validate_users(post):
     users = None
 
     if 'users' in post:
-        users = post['users']
+        user_list = post.getlist('users')
+        for u in user_list:
+            if u == "all" and len(user_list) > 1:
+                return True, user_list
+            users = user_list
     else:
         return True, users
 

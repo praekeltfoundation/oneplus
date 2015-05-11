@@ -124,13 +124,26 @@
                                 </div>
                                 <div class="c-2">
                                     {% if ro %}
-                                        <label>{{ message.course }}</label>
-                                        &ensp; &ensp;
-                                        <label>{{ message.to_class }}</label>
+                                        {% if message.course %}
+                                            <label>{{ message.course }}</label>
+                                            &ensp; &ensp;
+                                        {% endif %}
+                                        {% if message.to_class %}
+                                            <label>{{ message.to_class }}</label>
+                                            &ensp; &ensp;
+                                        {% endif %}
+                                        {% if message.to_user %}
+                                            <label>{{ message.to_user }}</label>
+                                        {% endif %}
                                     {% else %}
                                         <select id="id_course" name="course"></select>
                                         <select id="id_to_class" name="to_class"></select>
-                                        <select id="id_users" name="users"></select>
+                                        <select id="id_users" name="users" multiple="multiple"></select>
+                                        {% if users_error %}
+                                            <ul class="errorlist">
+                                                <li>Please make a valid learner selection.</li>
+                                            </ul>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </div>
@@ -220,6 +233,7 @@
                         <header style="display:none"><h1>Submit Options</h1></header>
                         <ul>
                             <li><input type="submit" value="Save" class="grp-button grp-default" name="_save"></li>
+                            <li><input type="submit" value="Save and add another" class="grp-button grp-default" name="_save_add"></li>
                         </ul>
                     </footer>
                 {% endif %}
