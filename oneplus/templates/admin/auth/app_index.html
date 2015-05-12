@@ -1,5 +1,6 @@
 {% extends "admin/app_index.html" %}
 {% load i18n grp_tags %}
+{% load i18n app_order %}
 
 {% block javascripts %}
     {{ block.super }}
@@ -28,31 +29,34 @@
 {% block content %}
    <div class="g-d-c">
         <div class="g-d-12" id="apps_init">
-            {% for app in app_list %}
-                <div class="grp-module" id="app_{{ app.name|lower }}">
-                    <h2>
-                        {% if app.name|lower == 'auth' %}
-                            Permissions
-                        {% else %}
-                            {% trans app.name %}
-                        {% endif %}
-                    </h2>
-
-                    {% for model in app.models %}
-                        <div class="grp-row">
-                            {% if model.perms.change %}<a href="{{ model.admin_url }}"><strong>{{ model.name }}</strong></a>{% else %}<span><strong>{{ model.name }}</strong></span>{% endif %}
-                            {% if model.perms.add or model.perms.change %}
-                                <ul class="grp-actions">
-                                    {% if model.perms.add %}<li class="grp-add-link"><a href="{{ model.admin_url }}add/">{% trans 'Add' %}</a></li>{% endif %}
-                                    {% if model.perms.change %}<li class="grp-change-link"><a href="{{ model.admin_url }}">{% trans 'Change' %}</a></li>{% endif %}
-                                </ul>
+            {% if app_list %}
+                {% app_order %}
+                {% for app in app_list %}
+                    <div class="grp-module" id="app_{{ app.name|lower }}">
+                        <h2>
+                            {% if app.name|lower == 'auth' %}
+                                Permissions
+                            {% else %}
+                                {% trans app.name %}
                             {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% empty %}
-                <p>{% trans "You don´t have permission to edit anything." %}</p>
-            {% endfor %}
+                        </h2>
+
+                        {% for model in app.models %}
+                            <div class="grp-row">
+                                {% if model.perms.change %}<a href="{{ model.admin_url }}"><strong>{{ model.name }}</strong></a>{% else %}<span><strong>{{ model.name }}</strong></span>{% endif %}
+                                {% if model.perms.add or model.perms.change %}
+                                    <ul class="grp-actions">
+                                        {% if model.perms.add %}<li class="grp-add-link"><a href="{{ model.admin_url }}add/">{% trans 'Add' %}</a></li>{% endif %}
+                                        {% if model.perms.change %}<li class="grp-change-link"><a href="{{ model.admin_url }}">{% trans 'Change' %}</a></li>{% endif %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% empty %}
+                    <p>{% trans "You don´t have permission to edit anything." %}</p>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}
