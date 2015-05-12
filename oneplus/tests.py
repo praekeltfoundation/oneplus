@@ -2626,19 +2626,7 @@ class MessageTest(TestCase):
 
         #test invalid date
         resp = c.post(reverse('com.add_message'),
-                      data={'name': '',
-                            'course': 'all',
-                            'to_class': 'all',
-                            'users': 'all',
-                            'direction': '1',
-                            'publishdate_0': '1900-01-01',
-                            'publishdate_1': '',
-                            'content': 'message'},
-                      follow=True)
-        self.assertContains(resp, 'This field is required')
-
-        resp = c.post(reverse('com.add_message'),
-                      data={'name': '',
+                      data={'name': 'asdf',
                             'course': 'all',
                             'to_class': 'all',
                             'users': 'all',
@@ -2647,7 +2635,7 @@ class MessageTest(TestCase):
                             'publishdate_1': 'abc',
                             'content': 'message'},
                       follow=True)
-        self.assertContains(resp, 'This field is required')
+        self.assertContains(resp, 'Please enter a valid date and time.')
 
         #test users list, all + user
         resp = c.post(reverse('com.add_message'),
