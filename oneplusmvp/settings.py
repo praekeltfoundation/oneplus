@@ -246,6 +246,11 @@ MANAGERS = (
 
 MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
 
+ADMIN_REORDER = (
+    ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Teachers", "School Managers",
+              "System Administrators")),
+)
+
 try:
     from local_settings import *
 except ImportError as e:
