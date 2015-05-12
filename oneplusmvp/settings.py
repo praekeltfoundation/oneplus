@@ -249,15 +249,6 @@ MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
 ADMIN_REORDER = (
     ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Teachers", "School Managers",
               "System Administrators")),
-    ("Communication", ("Bans", "Chat Groups", "Chat Messages", "Discussions", "Messages", "Moderations",
-                       "Post comments", "Posts", "Queued Smses", "Report Responses", "Reports", "Smses")),
-    ("Content", ("Learning Chapters", "Mathmls", "Question Options", "Test Questions")),
-    ("Core", ("Classes", "Participant Question Responses", "Participants")),
-    ("Django_Summernote", "Attachments"),
-    ("Djcelery", ("Crontabs", "Intervals", "Periodic tasks", "Tasks", "Workers")),
-    ("Gamification", ("Badge Templates", "Point Bonuses", "Scenarios")),
-    ("Organisation", ("Courses", "Modules", "Organisations", "Schools")),
-    ("Sites", "Sites")
 )
 
 try:
