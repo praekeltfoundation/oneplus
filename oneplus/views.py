@@ -2462,16 +2462,18 @@ def get_users(request, classs):
         try:
             classs = int(classs)
 
-            if Class.objects.get(id=classs):
+            current_class = Class.objects.get(id=classs)
+            if current_class:
                 current_class = Class.objects.get(id=classs)
                 participants = Participant.objects.all().filter(classs=current_class)
-        except ValueError, ObjectDoesNotExist:
+        except (ValueError, Class.DoesNotExist):
             participants = None
 
     data = []
-    for p in participants:
-        line = {"id": p.learner.id, "name": p.learner.mobile}
-        data.append(line)
+    if participants:
+        for p in participants:
+            line = {"id": p.learner.id, "name": p.learner.mobile}
+            data.append(line)
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
@@ -3011,18 +3013,19 @@ def get_classes(request, course):
     else:
         try:
             course = int(course)
-            if Course.objects.get(id=course):
-                current_course = Course.objects.get(id=course)
+            current_course = Course.objects.get(id=course)
+            if current_course:
                 classes = Class.objects.all().filter(course=current_course)
             else:
                 classes = None
-        except ValueError, ObjectDoesNotExist:
+        except (ValueError, Course.DoesNotExist):
             classes = None
 
     data = []
-    for c in classes:
-        line = {"id": c.id, "name": c.name}
-        data.append(line)
+    if classes:
+        for c in classes:
+            line = {"id": c.id, "name": c.name}
+            data.append(line)
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
