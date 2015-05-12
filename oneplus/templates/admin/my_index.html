@@ -28,6 +28,10 @@
                                                 <li class="grp-add-link">
                                                     <a href="/message/add/" class="addlink">{% trans 'Add' %}</a>
                                                 </li>
+                                            {% elif model.name == "Smses" %}
+                                                <li class="grp-add-link">
+                                                    <a href="/smsqueue/add/" class="addlink">{% trans 'Add' %}</a>
+                                                </li>
                                             {% else %}
                                                 <li class="grp-add-link">
                                                     <a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a>
