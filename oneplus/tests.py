@@ -1915,6 +1915,12 @@ class GeneralTests(TestCase):
         resp = c.get('/classes/%s' % self.course.id)
         self.assertContains(resp, '"name": "class name"')
 
+        resp = c.get('/classes/abc')
+        self.assertEquals(resp.status_code, 200)
+
+        resp = c.get('/classes/%s' % 999)
+        self.assertEquals(resp.status_code, 200)
+
     def test_get_users(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
@@ -1924,6 +1930,12 @@ class GeneralTests(TestCase):
 
         resp = c.get('/users/%s' % self.classs.id)
         self.assertContains(resp, '"name": "+27123456789"')
+
+        resp = c.get('/users/abc')
+        self.assertEquals(resp.status_code, 200)
+
+        resp = c.get('/users/%s' % 99)
+        self.assertEquals(resp.status_code, 200)
 
     #assuming MAX_SPACES is 300
     def test_space_available(self):
@@ -2612,6 +2624,32 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'This field is required')
 
+        #test invalid date
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': 'all',
+                            'to_class': 'all',
+                            'users': 'all',
+                            'direction': '1',
+                            'publishdate_0': 'abc',
+                            'publishdate_1': 'abc',
+                            'content': 'message'},
+                      follow=True)
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        #test users list, all + user
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': self.course.id,
+                            'to_class': 'all',
+                            'users': ["all", "1"],
+                            'direction': '1',
+                            'publishdate_0': '2014-02-01',
+                            'publishdate_1': '01:00:00',
+                            'content': 'message'},
+                      follow=True)
+        self.assertContains(resp, 'Please make a valid learner selection')
+
         #test no data posted
         resp = c.post(reverse('com.add_message'), follow=True)
         self.assertContains(resp, 'This field is required')
@@ -2681,6 +2719,25 @@ class MessageTest(TestCase):
         self.assertEquals(resp.status_code, 200)
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 8)
+
+        #send message to course 1 class 1  learner 1(1 messages, total 9)
+        #testing _save button
+        resp = c.post(reverse('com.add_message'),
+                      data={'name': 'asdf',
+                            'course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'users': leaner_1.id,
+                            'direction': '1',
+                            'publishdate_0': '2014-04-03',
+                            'publishdate_1': '03:00:00',
+                            'content': 'message',
+                            '_save': "_save"},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = Message.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 9)
+        self.assertContains(resp, "<title>Select Message to change | OnePlus site admin</title>")
 
         resp = c.get(reverse('com.add_message'))
         self.assertEquals(resp.status_code, 200)
@@ -2836,6 +2893,15 @@ class SMSQueueTest(TestCase):
                             'to_class': c1_class2.id,
                             'date_sent_0': '',
                             'date_sent_1': '',
+                            'message': ''},
+                      follow=True)
+        self.assertContains(resp, 'This field is required')
+
+        resp = c.post(reverse('com.add_sms'),
+                      data={'to_course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'date_sent_0': '1900-01-01',
+                            'date_sent_1': 'abc',
                             'message': ''},
                       follow=True)
         self.assertContains(resp, 'This field is required')

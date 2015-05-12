@@ -2462,16 +2462,18 @@ def get_users(request, classs):
         try:
             classs = int(classs)
 
-            if Class.objects.get(id=classs):
+            current_class = Class.objects.get(id=classs)
+            if current_class:
                 current_class = Class.objects.get(id=classs)
                 participants = Participant.objects.all().filter(classs=current_class)
-        except ValueError, ObjectDoesNotExist:
+        except (ValueError, Class.DoesNotExist):
             participants = None
 
     data = []
-    for p in participants:
-        line = {"id": p.learner.id, "name": p.learner.mobile}
-        data.append(line)
+    if participants:
+        for p in participants:
+            line = {"id": p.learner.id, "name": p.learner.mobile}
+            data.append(line)
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
@@ -2652,6 +2654,7 @@ def add_message(request):
                     'name_error': name_error,
                     'course_error': course_error,
                     'to_class_error': class_error,
+                    'users_error': users_error,
                     'direction_error': direction_error,
                     'dt_error': dt_error,
                     'content_error': content_error,
@@ -2662,50 +2665,57 @@ def add_message(request):
                     'v_content': content
                 }
             )
-
         else:
-            if course == "all":
-                all_courses = Course.objects.all()
-
-                for _course in all_courses:
-                    all_classes = Class.objects.filter(course=_course)
-
-                    for _classs in all_classes:
-                        all_users = Participant.objects.filter(classs=_classs)
-
-                        for u in all_users:
-                            create_message(name, _course, _classs, direction, dt, content)
-            else:
-                course_obj = Course.objects.get(id=course)
-
+            if "all" in users:
+                #means all users in certain class and course
                 if classs == "all":
-                    all_classes = Class.objects.filter(course=course_obj)
+                    if course == "all":
+                        #All registered learners
+                        all_courses = Course.objects.all()
 
-                    for c in all_classes:
-                        all_users = Participant.objects.filter(classs=c)
+                        for _course in all_courses:
+                            all_classes = Class.objects.filter(course=_course)
 
-                        for u in all_users:
-                            create_message(name, course_obj, c, direction, dt, content)
-                else:
-                    classs_obj = Class.objects.get(id=classs)
+                            for _classs in all_classes:
+                                all_users = Participant.objects.filter(classs=_classs)
 
-                    if users == "all":
-                        all_users = Participant.objects.filter(classs=classs_obj)
-
-                        for u in all_users:
-                            create_message(name, course_obj, classs_obj, direction, dt, content)
+                                for usr in all_users:
+                                    create_message(name, _course, _classs, usr.learner, direction, dt, content)
                     else:
-                        learner = Learner.objects.get(id=users)
-                        user = Participant.objects.filter(learner=learner).first()
-                        create_message(name, course_obj, classs_obj, direction, dt, content)
+                        #All users registered in this course
+                        course_obj = Course.objects.get(id=course)
+                        all_classes = Class.objects.filter(course=course_obj)
 
-        return HttpResponseRedirect('/admin/communication/message/')
+                        for c in all_classes:
+                            all_users = Participant.objects.filter(classs=c)
 
-    def create_message(name, course, classs, direction, publishdate, content):
+                            for u in all_users:
+                                create_message(name, course_obj, c, u.learner, direction, dt, content)
+                else:
+                    #All learners in specific class
+                    classs_obj = Class.objects.get(id=classs)
+                    all_users = Participant.objects.filter(classs=classs_obj)
+
+                    for u in all_users:
+                        create_message(name, classs_obj.course, classs_obj, u.learner, direction, dt, content)
+            else:
+                #Specific learners
+                for u in users:
+                    usr = Learner.objects.get(id=u)
+                    _participant = Participant.objects.get(learner=usr)
+                    create_message(name, _participant.classs.course, _participant.classs, usr, direction, dt, content)
+
+        if "_save" in request.POST.keys():
+            return HttpResponseRedirect('/admin/communication/message/')
+        else:
+            return HttpResponseRedirect('/message/add')
+
+    def create_message(name, course, classs, user, direction, publishdate, content):
         Message.objects.create(
             name=name,
             course=course,
             to_class=classs,
+            to_user=user,
             content=content,
             publishdate=publishdate,
             author=request.user,
@@ -3003,18 +3013,19 @@ def get_classes(request, course):
     else:
         try:
             course = int(course)
-            if Course.objects.get(id=course):
-                current_course = Course.objects.get(id=course)
+            current_course = Course.objects.get(id=course)
+            if current_course:
                 classes = Class.objects.all().filter(course=current_course)
             else:
                 classes = None
-        except ValueError, ObjectDoesNotExist:
+        except (ValueError, Course.DoesNotExist):
             classes = None
 
     data = []
-    for c in classes:
-        line = {"id": c.id, "name": c.name}
-        data.append(line)
+    if classes:
+        for c in classes:
+            line = {"id": c.id, "name": c.name}
+            data.append(line)
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
