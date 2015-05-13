@@ -32,7 +32,7 @@ class ParticipantInline(admin.TabularInline):
 
 
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ("course", "name", "description")
+    list_display = ("course", "name", "description", "is_active")
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
@@ -40,6 +40,12 @@ class ClassAdmin(admin.ModelAdmin):
         ("Classification", {"fields": ["type", "startdate", "enddate"]})
     ]
     inlines = (ParticipantInline,)
+
+    def deactivate_class(modeladmin, request, queryset):
+        queryset.update(is_active=False)
+    deactivate_class.short_description = "Deactivate Class"
+
+    actions = [deactivate_class]
 
 
 class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):

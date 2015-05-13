@@ -24,6 +24,7 @@ class Class(models.Model):
         (1, "Traditional"), (2, "Open Class ")), default=1)
     startdate = models.DateTimeField("Start Date", null=True, blank=True)
     enddate = models.DateTimeField("End Date", null=True, blank=True)
+    is_active = models.BooleanField("Is Active", default=True)
     # learners
     # mentors
     # managers

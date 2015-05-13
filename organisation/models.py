@@ -61,6 +61,7 @@ class Course(models.Model):
     # different courses.
     question_order = models.PositiveIntegerField("Question Order", choices=(
         (1, "Random"), (2, "Ordered"), (3, "Random Intelligent")), default=1)
+    is_active = models.BooleanField("Is Active", default=True)
 
     # modulees
     # pages
