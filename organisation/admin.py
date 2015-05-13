@@ -60,7 +60,7 @@ class CourseAdmin(admin.ModelAdmin):
             course_id = q['id']
             Class.objects.filter(course__id=course_id).update(is_active=False)
         queryset.update(is_active=False)
-    deactivate_course.short_description = "Deactivate Class"
+    deactivate_course.short_description = "Deactivate Course"
 
     actions = [deactivate_course]
 
