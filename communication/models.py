@@ -473,7 +473,8 @@ class Moderation(models.Model):
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        related_name="moderation_author"
+        related_name="moderation_author",
+        on_delete=models.SET_NULL
     )
     moderated = models.BooleanField(default=False, blank=True)
     publishdate = models.DateTimeField(null=True, blank=True)
@@ -483,7 +484,8 @@ class Moderation(models.Model):
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        related_name="moderation_unmoderator"
+        related_name="moderation_unmoderator",
+        on_delete=models.SET_NULL
     )
     original_content = models.TextField(blank=True, null=True)
 

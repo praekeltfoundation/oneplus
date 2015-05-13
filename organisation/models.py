@@ -88,7 +88,7 @@ class Module(models.Model):
         Course, related_name='modules', through='CourseModuleRel',)
     is_active = models.BooleanField("Is Active", default=True)
     order = models.IntegerField("Order Number", null=True, blank=True)
-    module_link = models.CharField(max_length=500, null=True, blank=False)
+    module_link = models.CharField(max_length=500, null=True, blank=True)
     # learning
     # testing
     # gamification
