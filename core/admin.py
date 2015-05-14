@@ -1,6 +1,6 @@
 from django.contrib import admin
 from core.models import *
-
+from core.forms import ParticipantCreationForm
 from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
     ParticipantFirstNameFilter, ParticipantLastNameFilter, \
     ParticipantMobileFilter, ParticipantFilter, LearnerFilter
@@ -100,6 +100,8 @@ class ParticipantAdmin(admin.ModelAdmin):
         ParticipantMobileFilter)
     search_fields = ("learner",)
     inlines = [ParticipantPointInline, ]
+    form = ParticipantCreationForm
+    add_form = ParticipantCreationForm
 
     def get_firstname(self, obj):
         return obj.learner.first_name
