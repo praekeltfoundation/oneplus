@@ -1,6 +1,5 @@
 from django import forms
 from core.models import Participant
-from auth.models import Learner
 
 
 class ParticipantCreationForm(forms.ModelForm):
