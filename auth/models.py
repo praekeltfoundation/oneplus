@@ -161,6 +161,7 @@ class Learner(CustomUser):
         blank=True,
         choices=ENROLLED_CHOICES,
         default=1)
+    completed = models.IntegerField("Completed Questions", null=True, blank=True)
 
     class Meta:
         verbose_name = "Learner"
