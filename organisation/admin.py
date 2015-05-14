@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import *
 from gamification.models import GamificationScenario
-from core.models import Class
+from core.models import Class, Participant
 
 
 class SchoolInline(admin.TabularInline):
@@ -57,8 +57,11 @@ class CourseAdmin(admin.ModelAdmin):
 
     def deactivate_course(modeladmin, request, queryset):
         for q in queryset:
-            course_id = q['id']
-            Class.objects.filter(course__id=course_id).update(is_active=False)
+            course_id = q.id
+            all_classes = Class.objects.filter(course__id=course_id)
+            for c in all_classes:
+                Participant.objects.filter(classs__id=c.id).update(is_active=False)
+            all_classes.update(is_active=False)
         queryset.update(is_active=False)
     deactivate_course.short_description = "Deactivate Course"
 

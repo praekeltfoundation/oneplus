@@ -42,6 +42,9 @@ class ClassAdmin(admin.ModelAdmin):
     inlines = (ParticipantInline,)
 
     def deactivate_class(modeladmin, request, queryset):
+        for q in queryset:
+            class_id = q.id
+            Participant.objects.filter(classs__id=class_id).update(is_active=False)
         queryset.update(is_active=False)
     deactivate_class.short_description = "Deactivate Class"
 
