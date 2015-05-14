@@ -365,8 +365,12 @@ def signup_form(request):
                     classs = form.cleaned_data["classs"]
 
                     learner = Learner.objects.get(id=user.first().id)
-                    #create participant
-                    create_participant(learner, classs)
+
+                    if learner.classs != classs:
+                        #create participant
+                        create_participant(learner, classs)
+                    else:
+                        return get()
 
                     return render(request, "auth/participant_signedup.html")
             else:
