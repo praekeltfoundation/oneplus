@@ -9,8 +9,7 @@ class ParticipantCreationForm(forms.ModelForm):
 
     def save(self, commit=True):
         participant = super(ParticipantCreationForm, self).save(commit=False)
-        learner_id = self.cleaned_data.get("learner")
-        learner = Learner.objects.get(id=learner_id)
+        learner = self.cleaned_data.get("learner")
         active_participant = Participant.objects.filter(learner=learner, is_active=True)
         if active_participant.exists():
             raise forms.ValidationError("This learner is currently an active participant in %s class. Learner cannot "
