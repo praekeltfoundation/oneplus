@@ -21,7 +21,6 @@ urlpatterns = [
     url(r'^signup$', views.signup, name="auth.signup"),
     url(r'signup/form', views.signup_form, name="auth.signup_form"),
     url(r'^changedetails$', views.change_details, name="auth.change_details"),
-    url(r'^signedup$', views.signedup, name="auth.signedup"),
 
     # Learn
     url(r"^home", views.home, name="learn.home"),

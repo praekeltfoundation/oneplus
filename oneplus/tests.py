@@ -2224,12 +2224,6 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Your number has been changes to +27721478529")
         self.assertContains(resp, "Your email has been changes to asdf@asdf.com.")
 
-    def test_signedup(self):
-        resp = self.client.get(reverse("auth.signedup"))
-        self.assertEquals(resp.status_code, 200)
-
-        resp = self.client.post(reverse("auth.signedup"))
-        self.assertEquals(resp.status_code, 200)
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):

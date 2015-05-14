@@ -39,7 +39,7 @@ class SignupForm(forms.Form):
     school = forms.ModelChoiceField(queryset=School.objects.all(),
                                     label="School",
                                     required=True)
-    classs = forms.ModelChoiceField(queryset=Class.objects.all(),
+    classs = forms.ModelChoiceField(queryset=Class.objects.filter(is_active=True),
                                     label="Class",
                                     required=True)
     area = forms.CharField(label="Area(Suburb)",
