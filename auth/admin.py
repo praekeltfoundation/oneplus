@@ -1,4 +1,3 @@
-
 from django.shortcuts import render_to_response
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
@@ -9,7 +8,7 @@ from auth.forms import SendSmsForm
 from communication.tasks import bulk_send_all
 from django import template
 from core.models import Class
-from auth.models import Learner, SystemAdministrator, SchoolManager,\
+from auth.models import LearnerView, SystemAdministrator, SchoolManager,\
     CourseManager, CourseMentor, Teacher
 from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
@@ -17,11 +16,11 @@ from .forms import SystemAdministratorChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm, \
     TeacherCreationForm, TeacherChangeForm
-
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
 from auth.filters import CourseFilter, AirtimeFilter
 from django.db import connection
+
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -154,7 +153,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "first_name", "last_name", "school",
-                    "area", "completed_questions", "percentage_correct",
+                    "area", "questions_completed", "questions_correct",
                     "welcome_message_sent")
     list_filter = ("first_name", "last_name", "mobile", 'school', "country",
                    "area", "welcome_message_sent", CourseFilter, AirtimeFilter)
@@ -230,42 +229,6 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         )
     send_sms.short_description = "Send sms to learners"
     actions = ['send_sms']
-
-    def completed_questions(self, learner):
-        return ParticipantQuestionAnswer.objects.filter(
-            participant__learner=learner
-        ).count()
-    completed_questions.short_description = "Completed Questions"
-    completed_questions.allow_tags = True
-    completed_questions.admin_order_field = 'participant__learner'
-
-    def percentage_correct(self, learner):
-        complete = self.completed_questions(learner)
-        if complete > 0:
-            return ParticipantQuestionAnswer.objects.filter(
-                participant__learner=learner,
-                correct=True
-            ).count() * 100 / complete
-        else:
-            return 0
-    percentage_correct.short_description = "Percentage correct"
-    percentage_correct.allow_tags = True
-    percentage_correct.admin_order_field = 'completed'
-
-    def queryset(self, request):
-        qs = super(LearnerAdmin, self).queryset(request)
-        cursor = connection.cursor()
-
-        cursor.execute("SELECT *, (cor / tot * 100) AS completed "
-                       "FROM auth_customuser "
-                       "LEFT JOIN core_participant "
-                       "ON auth_customuser.id = core_participant.learner_id "
-                       "LEFT JOIN (SELECT participant_id, COUNT(1) AS cor FROM core_participantquestionanswer WHERE correct = True GROUP BY participant_id) correct "
-                       "ON core_participantquestionanswer.participant_id = correct.participant_id "
-                       "LEFT JOIN (SELECT participant_id, COUNT(1) AS tot FROM core_participantquestionanswer GROUP BY participant_id) total "
-                       "ON core_participantquestionanswer.participant_id = total.participant_id "
-                       "ORDER BY completed DESC")
-        return cursor.fetchall()
 
 
 class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
@@ -351,5 +314,5 @@ admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
 admin.site.register(SchoolManager, SchoolManagerAdmin)
 admin.site.register(CourseManager, CourseManagerAdmin)
 admin.site.register(CourseMentor, CourseMentorAdmin)
-admin.site.register(Learner, LearnerAdmin)
+admin.site.register(LearnerView, LearnerAdmin)
 admin.site.register(Teacher, TeacherAdmin)
