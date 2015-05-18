@@ -21,7 +21,7 @@ from .forms import SystemAdministratorChangeForm, \
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
 from auth.filters import CourseFilter, AirtimeFilter
-
+from django.db import connection
 
 class SystemAdministratorAdmin(UserAdmin):
     # The forms to add and change user instances
@@ -250,7 +250,22 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
             return 0
     percentage_correct.short_description = "Percentage correct"
     percentage_correct.allow_tags = True
-    percentage_correct.admin_order_field = 'participant__learner'
+    percentage_correct.admin_order_field = 'completed'
+
+    def queryset(self, request):
+        qs = super(LearnerAdmin, self).queryset(request)
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT *, (cor / tot * 100) AS completed "
+                       "FROM auth_customuser "
+                       "LEFT JOIN core_participant "
+                       "ON auth_customuser.id = core_participant.learner_id "
+                       "LEFT JOIN (SELECT participant_id, COUNT(1) AS cor FROM core_participantquestionanswer WHERE correct = True GROUP BY participant_id) correct "
+                       "ON core_participantquestionanswer.participant_id = correct.participant_id "
+                       "LEFT JOIN (SELECT participant_id, COUNT(1) AS tot FROM core_participantquestionanswer GROUP BY participant_id) total "
+                       "ON core_participantquestionanswer.participant_id = total.participant_id "
+                       "ORDER BY completed DESC")
+        return cursor.fetchall()
 
 
 class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
