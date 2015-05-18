@@ -87,7 +87,8 @@ class Module(models.Model):
     courses = models.ManyToManyField(
         Course, related_name='modules', through='CourseModuleRel',)
     is_active = models.BooleanField("Is Active", default=True)
-    order = models.IntegerField("Order Number", null=True,blank=True)
+    order = models.IntegerField("Order Number", null=True, blank=True)
+    module_link = models.CharField(max_length=500, null=True, blank=True)
     # learning
     # testing
     # gamification
