@@ -1,6 +1,6 @@
 from django.contrib import admin
 from core.models import *
-
+from core.forms import ParticipantCreationForm
 from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
     ParticipantFirstNameFilter, ParticipantLastNameFilter, \
     ParticipantMobileFilter, ParticipantFilter, LearnerFilter
@@ -32,7 +32,7 @@ class ParticipantInline(admin.TabularInline):
 
 
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ("course", "name", "description")
+    list_display = ("course", "name", "description", "is_active")
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
@@ -40,6 +40,26 @@ class ClassAdmin(admin.ModelAdmin):
         ("Classification", {"fields": ["type", "startdate", "enddate"]})
     ]
     inlines = (ParticipantInline,)
+
+    def deactivate_class(self, request, queryset):
+        for q in queryset:
+            class_id = q.id
+            Participant.objects.filter(classs__id=class_id).update(is_active=False)
+        queryset.update(is_active=False)
+    deactivate_class.short_description = "Deactivate Class"
+
+    def activate_class(self, request, queryset):
+        for q in queryset:
+            class_id = q.id
+            class_participants = Participant.objects.filter(classs__id=class_id)
+            for cp in class_participants:
+                if not Participant.objects.filter(learner=cp.learner, is_active=True):
+                    cp.is_active = True
+                    cp.save()
+        queryset.update(is_active=True)
+    activate_class.short_description = "Activate Class"
+
+    actions = [activate_class, deactivate_class]
 
 
 class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
@@ -85,8 +105,7 @@ class ParticipantPointInline(admin.TabularInline):
 
 
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ("learner", "get_firstname",
-        "get_lastname", "classs" '')
+    list_display = ("learner", "get_firstname", "get_lastname", "classs", "is_active")
     list_filter = (
         LearnerFilter,
         "classs",
@@ -95,6 +114,8 @@ class ParticipantAdmin(admin.ModelAdmin):
         ParticipantMobileFilter)
     search_fields = ("learner",)
     inlines = [ParticipantPointInline, ]
+    form = ParticipantCreationForm
+    add_form = ParticipantCreationForm
 
     def get_firstname(self, obj):
         return obj.learner.first_name
