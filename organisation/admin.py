@@ -55,7 +55,7 @@ class CourseAdmin(admin.ModelAdmin):
     inlines = (CourseModuleInline, )
     ordering = ("name", )
 
-    def deactivate_course(modeladmin, request, queryset):
+    def deactivate_course(self, request, queryset):
         for q in queryset:
             course_id = q.id
             all_classes = Class.objects.filter(course__id=course_id)
@@ -65,7 +65,21 @@ class CourseAdmin(admin.ModelAdmin):
         queryset.update(is_active=False)
     deactivate_course.short_description = "Deactivate Course"
 
-    actions = [deactivate_course]
+    def activate_course(self, request, queryset):
+        for q in queryset:
+            course_id = q.id
+            all_classes = Class.objects.filter(course__id=course_id)
+            for c in all_classes:
+                class_participants = Participant.objects.filter(classs__id=c.class_id)
+                for cp in class_participants:
+                    if not Participant.objects.filter(learner=cp.learner, is_active=True):
+                        cp.is_active = True
+                        cp.save()
+            all_classes.update(is_active=True)
+        queryset.update(is_active=True)
+    activate_course.short_description = "Activate Course"
+
+    actions = [activate_course, deactivate_course]
 
 
 class ModuleAdmin(admin.ModelAdmin):
