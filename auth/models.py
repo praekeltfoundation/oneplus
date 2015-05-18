@@ -162,70 +162,35 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
+    questions_completed = models.IntegerField(
+        verbose_name="Completed Questions",
+        null=True,
+        blank=True,
+        default=0
+    )
+    questions_correct = models.IntegerField(
+        verbose_name="Percentage Correct",
+        null=True,
+        blank=True,
+        default=0,
+    )
+
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
 
 
 # A view of learner
-class LearnerView(CustomUser):
-    school = models.ForeignKey(
-        School,
-        null=True,
-        blank=False,
-        on_delete=models.SET_NULL
-    )
-    last_maths_result = models.FloatField(
-        verbose_name="Last Terms Mathematics Result",
-        blank=True,
-        null=True
-    )
-    grade = models.CharField(
-        verbose_name="User Grade",
-        max_length=50,
-        blank=True,
-        null=True
-    )
-    welcome_message_sent = models.BooleanField(
-        verbose_name="Welcome SMS Sent",
-        blank=True,
-        default=False
-    )
-    welcome_message = models.ForeignKey(
-        Sms,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL
-    )
-    last_active_date = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
-    ENROLLED_CHOICES = (
-        ("0", "Yes"),
-        ("1", "No"))
+class LearnerView(Learner):
 
-    enrolled = models.PositiveIntegerField(
-        verbose_name="Currently enrolled in ProMaths class?",
-        blank=True,
-        choices=ENROLLED_CHOICES,
-        default=1)
-
-    questions_completed = models.IntegerField(
-        verbose_name="Completed Questions",
-        null=True,
-        blank=True
-    )
-    questions_correct = models.IntegerField(
-        verbose_name="Percentage Correct",
-        null=True,
-        blank=True
-    )
+    def save(self, *args, **kwargs):
+        super(LearnerView, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
         managed = False
+        proxy = True
         db_table = "view_auth_learner"
 
 
