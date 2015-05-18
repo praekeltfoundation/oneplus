@@ -162,9 +162,36 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
+    questions_completed = models.IntegerField(
+        verbose_name="Completed Questions",
+        null=True,
+        blank=True,
+        default=0
+    )
+    questions_correct = models.IntegerField(
+        verbose_name="Percentage Correct",
+        null=True,
+        blank=True,
+        default=0,
+    )
+
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
+
+
+# A view of learner
+class LearnerView(Learner):
+
+    def save(self, *args, **kwargs):
+        super(LearnerView, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Learner"
+        verbose_name_plural = "Learners"
+        managed = False
+        proxy = True
+        db_table = "view_auth_learner"
 
 
 #A teacher
