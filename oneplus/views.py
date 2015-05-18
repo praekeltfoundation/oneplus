@@ -150,9 +150,7 @@ def login(request, state):
                         usr = Learner.objects.filter(username=form.cleaned_data["username"])
                         par = Participant.objects.filter(learner=usr, is_active=True)
 
-                        if not par:
-                            return get()
-                        elif len(par) > 1:
+                        if len(par) > 1:
                             subject = ' '.join([
                                 'Multiple participants active -',
                                 usr.first().first_name,

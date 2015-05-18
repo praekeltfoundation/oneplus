@@ -1259,6 +1259,14 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.login'))
         self.assertEquals(resp.status_code, 200)
 
+        c = Client()
+
+        resp = c.post(reverse('auth.login'), data={},
+            follow=True)
+
+        self.assertContains(resp, "SIGN IN")
+
+
         password = 'mypassword'
         my_admin = CustomUser.objects.create_superuser(
             username='asdf',
@@ -1266,7 +1274,6 @@ class GeneralTests(TestCase):
             password=password,
             mobile='+27111111111')
 
-        c = Client()
         c.login(username=my_admin.username, password=password)
 
         resp = c.post(reverse('auth.login'), data={
@@ -1289,6 +1296,18 @@ class GeneralTests(TestCase):
             follow=True)
         self.assertContains(resp, "You are not currently linked to a class")
 
+        learner.is_active = False
+        learner.save()
+
+        resp = c.post(reverse('auth.login'), data={
+            'username': "+27231231231",
+            'password': '1234'},
+            follow=True)
+        self.assertContains(resp, "GET CONNECTED")
+
+        learner.is_active = True
+        learner.save()
+
         self.create_participant(
             learner,
             self.classs,
@@ -1300,6 +1319,30 @@ class GeneralTests(TestCase):
             follow=True)
 
         self.assertContains(resp, "incorrect password")
+
+        resp = c.post(reverse('auth.login'), data={
+            'username': "+27231231231",
+            'password': '1234'},
+            follow=True)
+
+        self.assertContains(resp, "WELCOME")
+
+        question1 = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        option1 = self.create_test_question_option(
+            name="option1",
+            question=question1,
+            correct=True
+        )
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=question1,
+            active_result=True,
+        )
+        self.participant.answer(question1, option1)
 
         resp = c.post(reverse('auth.login'), data={
             'username': "+27231231231",
