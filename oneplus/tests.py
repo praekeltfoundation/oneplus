@@ -59,11 +59,8 @@ class GeneralTests(TestCase):
         return Learner.objects.create(school=school, **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):
-        try:
-            participant = Participant.objects.get(learner=learner)
-        except Participant.DoesNotExist:
-            participant = Participant.objects.create(
-                learner=learner, classs=classs, **kwargs)
+        participant = Participant.objects.create(
+            learner=learner, classs=classs, **kwargs)
 
         return participant
 
@@ -1310,6 +1307,17 @@ class GeneralTests(TestCase):
             follow=True)
 
         self.assertContains(resp, "WELCOME")
+
+        self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        resp = c.post(reverse('auth.login'), data={
+            'username': "+27231231231",
+            'password': '1234'},
+            follow=True)
+        self.assertContains(resp, "Account Issue")
 
     def test_points_screen(self):
         self.client.get(reverse(
