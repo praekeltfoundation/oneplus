@@ -5,8 +5,6 @@ from .models import (
 import csv
 from organisation.models import School, Course
 from core.models import Class
-
-
 # Note: why don't these forms inherit from UserCreationForm and UserChangeForm?
 
 
@@ -332,7 +330,7 @@ class TeacherChangeForm(forms.ModelForm):
     class Meta:
         model = Teacher
 
-    def __init__(self, *args,**kwargs):
+    def __init__(self, *args, **kwargs):
         super(TeacherChangeForm, self).__init__(*args, **kwargs)
         self.fields['classs'].queryset = Class.objects.filter(teacher=self.instance)
 
