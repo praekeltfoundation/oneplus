@@ -443,14 +443,14 @@ class SmsQueue(models.Model):
     msisdn = models.CharField(
         verbose_name="Mobile Phone Number",
         max_length=50,
-        blank=True,
+        blank=False,
         null=True,
         db_index=True
     )
     sent = models.BooleanField(default=False, db_index=True)
     sent_date = models.DateTimeField(
         verbose_name="Time Sms was sent",
-        blank=False,
+        blank=True,
         null=True,
         default=None
     )
