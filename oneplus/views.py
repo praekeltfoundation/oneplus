@@ -95,6 +95,10 @@ def is_registered(user):
     return Participant.objects.filter(learner=user.learner).latest('datejoined')
 
 
+def is_class_active(user):
+    return Participant.objects.filter(learner=user.learner, classs__is_active=True)
+
+
 def save_user_session(request, registered, user):
 
     request.session["user"] = {}
@@ -139,11 +143,34 @@ def login(request, state):
             if user is not None and user.is_active:
                 try:
                     registered = is_registered(user)
-                    if registered is not None:
+                    class_active = is_class_active(user)
+                    if registered is not None and class_active:
                         save_user_session(request, registered, user)
 
                         usr = Learner.objects.filter(username=form.cleaned_data["username"])
-                        par = Participant.objects.filter(learner=usr)
+                        par = Participant.objects.filter(learner=usr, is_active=True)
+
+                        if len(par) > 1:
+                            subject = ' '.join([
+                                'Multiple participants active -',
+                                usr.first().first_name,
+                                usr.first().last_name,
+                                '-',
+                                usr.first().username
+                            ])
+                            message = '\n'.join([
+                                'Student: ' + usr.first().first_name + ' ' + usr.first().last_name,
+                                'Msisdn: ' + usr.first().username,
+                                'is unable to login due to having multiple active participants.',
+                                'To fix this, some participants  will have to be deactivated.'
+                            ])
+
+                            mail_managers(
+                                subject=subject,
+                                message=message,
+                                fail_silently=False
+                            )
+                            return render(request, "misc/account_problem.html")
 
                         if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
                             return redirect("learn.first_time")
@@ -247,20 +274,6 @@ def signup(request):
     return resolve_http_method(request, [get, post])
 
 
-#Signed Up Screen
-def signedup(request):
-    def get():
-        return render(
-            request,
-            "auth/signedup.html",
-        )
-
-    def post():
-        return get()
-
-    return resolve_http_method(request, [get, post])
-
-
 #Validate mobile number and return international format if it's not
 def validate_mobile(mobile):
     pattern_both = "^(\+\d{1,2})?\d{10}$"
@@ -279,6 +292,13 @@ def validate_mobile(mobile):
         return None
 
 
+#create participant
+def create_participant(learner, classs):
+    Participant.objects.create(learner=learner,
+                               classs=classs,
+                               datejoined=datetime.now())
+
+
 #Sign up Form Screen
 @available_space_required
 def signup_form(request):
@@ -294,48 +314,63 @@ def signup_form(request):
             if cellphone is not None:
                 #check if user with this cellphone number exists
                 user = CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))
-                if user:
-                    return get()
 
-                first_name = form.cleaned_data["first_name"]
-                surname = form.cleaned_data["surname"]
-                school = form.cleaned_data["school"]
-                classs = form.cleaned_data["classs"]
-                area = form.cleaned_data["area"]
-                city = form.cleaned_data["city"]
-                country = form.cleaned_data["country"]
-                enrolled = form.cleaned_data["enrolled"]
-                grade = form.cleaned_data["grade"]
+                #if learner exists only create a participant
+                if not user:
+                    first_name = form.cleaned_data["first_name"]
+                    surname = form.cleaned_data["surname"]
+                    school = form.cleaned_data["school"]
+                    classs = form.cleaned_data["classs"]
+                    area = form.cleaned_data["area"]
+                    city = form.cleaned_data["city"]
+                    country = form.cleaned_data["country"]
+                    enrolled = form.cleaned_data["enrolled"]
+                    grade = form.cleaned_data["grade"]
 
-                #create learner
-                new_learner = Learner.objects.create(first_name=first_name,
-                                                     last_name=surname,
-                                                     mobile=cellphone,
-                                                     username=cellphone,
-                                                     area=area,
-                                                     city=city,
-                                                     country=country,
-                                                     school=school,
-                                                     grade=grade,
-                                                     enrolled=enrolled)
+                    #create learner
+                    new_learner = Learner.objects.create(first_name=first_name,
+                                                         last_name=surname,
+                                                         mobile=cellphone,
+                                                         username=cellphone,
+                                                         area=area,
+                                                         city=city,
+                                                         country=country,
+                                                         school=school,
+                                                         grade=grade,
+                                                         enrolled=enrolled)
 
-                #generate random password
-                password = CustomUser.objects.make_random_password(length=8)
-                new_learner.set_password(password)
-                new_learner.save()
+                    #generate random password
+                    password = CustomUser.objects.make_random_password(length=8)
+                    new_learner.set_password(password)
+                    new_learner.save()
 
-                #create participant
-                new_participant = Participant.objects.create(learner=new_learner,
-                                                             classs=classs,
-                                                             datejoined=datetime.now())
+                    #create participant
+                    create_participant(new_learner, classs)
 
-                #sms the learner their OnePlus password
-                SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to this "
-                                                "link: http://www.oneplus.co.za/login" % password,
-                                        send_date=datetime.now(),
-                                        msisdn=cellphone)
+                    #sms the learner their OnePlus password
+                    SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
+                                                    "this link: http://www.oneplus.co.za/login" % password,
+                                            send_date=datetime.now(),
+                                            msisdn=cellphone)
 
-                return redirect("auth.signedup")
+                    return render(request, "auth/signedup.html")
+
+                else:
+                    active_participant = Participant.objects.filter(learner=user.first(), is_active=True)
+                    if active_participant.exists():
+                        return get()
+
+                    classs = form.cleaned_data["classs"]
+
+                    learner = Learner.objects.get(id=user.first().id)
+
+                    if learner.classs != classs:
+                        #create participant
+                        create_participant(learner, classs)
+                    else:
+                        return get()
+
+                    return render(request, "auth/participant_signedup.html")
             else:
                 return get()
                 # raise forms.ValidationError(
