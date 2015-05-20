@@ -321,12 +321,14 @@ class ModerationAdmin(admin.ModelAdmin):
     def get_reply(self, obj):
         if obj.response is None or len(obj.response.strip()) == 0:
             if obj.type == 1:
-                retval = 'Add Reply'
+                url = "/blog_comment_response/%d" % obj.mod_id
+                retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             elif obj.type == 2:
                 url = '/discussion_response/%d' % obj.mod_id
                 retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             elif obj.type == 3:
-                retval = 'Add Reply'
+                url = "/chat_response/%d" % obj.mob_id
+                retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             else:
                 retval = 'Add Reply'
 
