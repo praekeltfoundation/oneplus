@@ -2045,7 +2045,7 @@ class GeneralTests(TestCase):
     def test_validate_mobile(self):
         v_mobile_1 = "0721234567"
         v_mobile_1 = validate_mobile(v_mobile_1)
-        self.assertEquals(v_mobile_1, "+27721234567")
+        self.assertEquals(v_mobile_1, "0721234567")
 
         v_mobile_2 = "+27721234569"
         v_mobile_2 = validate_mobile(v_mobile_2)
@@ -2272,7 +2272,7 @@ class GeneralTests(TestCase):
                                       'new_email': 'asdf@asdf.com'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Your number has been changes to +27721478529")
+        self.assertContains(resp, "Your number has been changes to 0721478529")
         self.assertContains(resp, "Your email has been changes to asdf@asdf.com.")
 
 

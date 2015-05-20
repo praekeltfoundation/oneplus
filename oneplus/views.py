@@ -279,15 +279,7 @@ def validate_mobile(mobile):
     pattern_both = "^(\+\d{1,2})?\d{10}$"
     match = re.match(pattern_both, mobile)
     if match:
-        pattern_non_int = "^\d{10}$"
-
-        match_non_int = re.match(pattern_non_int, mobile)
-
-        if match_non_int:
-            mobile = "+27" + mobile[1:]
-
         return mobile
-
     else:
         return None
 
