@@ -2865,35 +2865,36 @@ class SMSQueueTest(TestCase):
         c.login(username=admin.username, password=password)
 
         #create a participant in course 1 class 1
-        leaner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
-        self.create_participant(leaner_1, self.classs, datejoined=datetime.now())
+        learner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
+        self.create_participant(learner_1, self.classs, datejoined=datetime.now())
 
         #create another class in same course
         c1_class2 = self.create_class("c1_class2", self.course)
 
         #create a participant in course 1 class 2
-        leaner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
-        self.create_participant(leaner_2, c1_class2, datejoined=datetime.now())
+        learner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
+        self.create_participant(learner_2, c1_class2, datejoined=datetime.now())
 
         #create a new course and a class
         course2 = self.create_course("course2")
         c2_class1 = self.create_class("c2_class1", course2)
 
         #create a participant in course 2 class 1
-        leaner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
-        self.create_participant(leaner_3, c2_class1, datejoined=datetime.now())
+        learner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
+        self.create_participant(learner_3, c2_class1, datejoined=datetime.now())
 
         #create another class in course 2
         c2_class2 = self.create_class("c2_class2", course2)
 
         #create a participant in course 1 class 2
-        leaner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
-        self.create_participant(leaner_4, c2_class2, datejoined=datetime.now())
+        learner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
+        self.create_participant(learner_4, c2_class2, datejoined=datetime.now())
 
         #send sms to all course (4 sms, total 4)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': 'all',
                             'to_class': 'all',
+                            'users': 'all',
                             'date_sent_0': '2014-05-01',
                             'date_sent_1': '00:00:00',
                             'message': 'message'},
@@ -2907,6 +2908,7 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': 'all',
+                            'users': 'all',
                             'date_sent_0': '2014-06-01',
                             'date_sent_1': '01:00:00',
                             'message': 'message'},
@@ -2920,6 +2922,7 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
+                            'users': 'all',
                             'date_sent_0': '2014-07-01',
                             'date_sent_1': '02:00:00',
                             'message': 'message'},
@@ -2928,6 +2931,34 @@ class SMSQueueTest(TestCase):
         self.assertEquals(resp.status_code, 200)
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 7)
+
+        #send sms to course 1 class 1 (1 sms, total 8)
+        resp = c.post(reverse('com.add_sms'),
+                      data={'to_course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'users': learner_1.id,
+                            'date_sent_0': '2014-07-01',
+                            'date_sent_1': '02:00:00',
+                            'message': 'message'},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 8)
+
+        #send sms to course 1 class 1 (1 sms, total 9)
+        resp = c.post(reverse('com.add_sms'),
+                      data={'to_course': self.course.id,
+                            'to_class': c1_class2.id,
+                            'users': learner_1.id,
+                            'date_sent_0': '2014-07-01',
+                            'date_sent_1': '02:00:00',
+                            'message': 'message'},
+                      follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
+        self.assertEqual(count, 9)
 
         resp = c.get(reverse('com.add_sms'))
         self.assertEquals(resp.status_code, 200)
@@ -2966,6 +2997,7 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': self.classs.id,
+                            'users': self.learner.id,
                             'date_sent_0': datetime.now().time(),
                             'date_sent_1': datetime.now().date(),
                             'message': 'message'},
