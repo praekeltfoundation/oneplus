@@ -243,7 +243,7 @@ class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
     add_form = TeacherCreationForm
     resource_class = TeacherResource
     list_display = ("username", "first_name", "last_name", "school",
-                    "teacher_classes", "students_completed_questions", "students_percentage_correct",
+                    "students_completed_questions", "students_percentage_correct",
                     "welcome_message_sent")
     list_filter = ("first_name", "last_name", "mobile", 'school', "country",
                    "area", "welcome_message_sent")
@@ -275,7 +275,7 @@ class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
     add_fieldsets2 = (
         ("Personal info", {"fields": ("first_name", "last_name", "email", "mobile")}),
         ("Access", {"fields": ("username", "password", 'is_active', "unique_token")}),
-        ("Permissions", {"fields": ("classs", 'is_staff', 'is_superuser', 'groups')}),
+        ("Permissions", {"fields": ('is_staff', 'is_superuser', 'groups')}),
         ("Region", {"fields": ("country", "area", "city", "school")}),
         ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
@@ -288,29 +288,20 @@ class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
             return self.add_fieldsets
         return self.add_fieldsets2
 
-    def teacher_classes(self, teacher):
-        classes_queryset = Class.objects.filter(teacher=teacher)
-        classs = ""
-
-        for c in classes_queryset:
-            classs += c.name + "\n"
-
-        return classs
-    teacher_classes.short_description = "Classes"
-    teacher_classes.allow_tags = True
-
     def students_completed_questions(self, teacher):
+        classes = TeacherClass.objects.filter(teacher=teacher).values("classs")
         return ParticipantQuestionAnswer.objects.filter(
-            participant__classs__teacher=teacher
+            participant__classs__in=classes
         ).count()
     students_completed_questions.short_description = "Student Completed Questions"
     students_completed_questions.allow_tags = True
 
     def students_percentage_correct(self, teacher):
         complete = self.students_completed_questions(teacher)
+        classes = TeacherClass.objects.filter(teacher=teacher).values("classs")
         if complete > 0:
             return ParticipantQuestionAnswer.objects.filter(
-                participant__classs__teacher=teacher,
+                participant__classs__in=classes,
                 correct=True
             ).count() * 100 / complete
         else:

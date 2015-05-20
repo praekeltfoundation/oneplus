@@ -17,7 +17,6 @@ class Class(models.Model):
     """
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
-    teacher = models.ForeignKey(Teacher, null=True, blank=False)
     description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     type = models.PositiveIntegerField("Type", choices=(
