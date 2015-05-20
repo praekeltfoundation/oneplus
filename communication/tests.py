@@ -257,6 +257,17 @@ class TestBan(TestCase):
         self.assertEquals(qs.count(), 1)
         self.assertEquals(qs.first().get_duration(), 7)
 
+    def test_multi_ban(self):
+        chat = self.create_chat_message(author=self.user)
+        report_user_post(obj=chat, banning_user=self.user2, num_days=1)
+        report_user_post(obj=chat, banning_user=self.user2, num_days=1)
+        report_user_post(obj=chat, banning_user=self.user2, num_days=1)
+        cnt = Ban.objects.filter(banned_user=self.user).count()
+        self.assertEquals(cnt, 1)
+        report_user_post(obj=chat, banning_user=self.user2, num_days=3)
+        cnt = Ban.objects.filter(banned_user=self.user).count()
+        self.assertEquals(cnt, 2)
+
     def test_replacement_content_admin(self):
         exp_admin = 'This comment has been reported by a moderator and the user has ' \
                     'been banned from commenting for 5 days.'
@@ -298,7 +309,7 @@ class TestSms(TestCase):
         settings.__setattr__("VUMI_GO_FAKE", True)
 
         api = VumiSmsApi()
-        sms, sent = api.send("123","test", None, None)
+        sms, sent = api.send("123", "test", None, None)
 
         self.assertIsNotNone(sms)
         self.assertEquals(sent, True)

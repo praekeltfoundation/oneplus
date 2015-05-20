@@ -198,14 +198,16 @@ def ban_user(banned_user, banning_user, obj, num_days):
     duration = num_days - 1
     till_when = till_when + timedelta(days=duration)
 
-    Ban.objects.create(
-        banned_user=banned_user,
-        banning_user=banning_user,
-        till_when=till_when,
-        source_type=source_type,
-        source_pk=source_pk,
-        when=today
-    )
+    # don't create duplicate bans
+    if not Ban.objects.filter(banned_user=banned_user, till_when=till_when).exists():
+        Ban.objects.create(
+            banned_user=banned_user,
+            banning_user=banning_user,
+            till_when=till_when,
+            source_type=source_type,
+            source_pk=source_pk,
+            when=today
+        )
 
 
 def get_replacement_content(admin_ban=False, num_days=1):
