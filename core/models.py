@@ -6,7 +6,7 @@ from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption
-from django.db.models import Q
+from django.contrib import admin
 
 
 class Class(models.Model):
@@ -35,6 +35,11 @@ class Class(models.Model):
     class Meta:
         verbose_name = "Class"
         verbose_name_plural = "Classes"
+
+
+class TeacherClass(models.Model):
+    teacher = models.ForeignKey(Teacher)
+    classs = models.ForeignKey(Class)
 
 
 class Participant(models.Model):

@@ -19,7 +19,7 @@ from .forms import SystemAdministratorChangeForm, \
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
 from auth.filters import CourseFilter, AirtimeFilter
-from django.db import connection
+from core.models import TeacherClass
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -231,6 +231,13 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     actions = ['send_sms']
 
 
+class TeacherClassInline(admin.TabularInline):
+    model = TeacherClass
+    extra = 1
+    fields = ("classs", )
+    ordering = ("classs", )
+
+
 class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
     form = TeacherChangeForm
     add_form = TeacherCreationForm
@@ -273,6 +280,8 @@ class TeacherAdmin(UserAdmin, ImportExportModelAdmin):
         ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
     )
+
+    inlines = [TeacherClassInline, ]
 
     def get_fieldsets(self, request, obj=None):
         if not obj:
