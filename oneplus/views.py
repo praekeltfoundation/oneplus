@@ -1636,14 +1636,10 @@ def blog_list(request, state, user):
         # show more blogs
         if "page" in request.POST.keys():
             request.session["state"]["blog_page"] += 10
-            if request.session["state"]["blog_page"] \
-                    > request.session["state"]["blog_page_max"]:
-                request.session["state"]["blog_page"] \
-                    = request.session["state"]["blog_page_max"]
+            if request.session["state"]["blog_page"] > request.session["state"]["blog_page_max"]:
+                request.session["state"]["blog_page"] = request.session["state"]["blog_page_max"]
 
-        _posts = Post.objects.filter(
-            course=_course
-        ).order_by("-publishdate")[:request.session["state"]["blog_page"]]
+        _posts = Post.objects.filter(course=_course).order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(
             request,
@@ -1723,14 +1719,16 @@ def blog(request, state, user, blogid):
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _comment = request.POST["comment"]
 
-            _post_comment = PostComment(
-                post=_post,
-                author=_usr,
-                content=_comment,
-                publishdate=datetime.now()
-            )
-            _post_comment.save()
-            request.session["state"]["post_comment"] = True
+            # ensure the user is not banned before we allow them to comment
+            if not _usr.is_banned():
+                _post_comment = PostComment(
+                    post=_post,
+                    author=_usr,
+                    content=_comment,
+                    publishdate=datetime.now()
+                )
+                _post_comment.save()
+                request.session["state"]["post_comment"] = True
         elif "page" in request.POST.keys():
             request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
@@ -2307,8 +2305,7 @@ def change_details(request, state, user):
                           "state": state,
                           "user": user,
                           "changes": changes
-                      }
-        )
+                      })
 
     return resolve_http_method(request, [get, post])
 
