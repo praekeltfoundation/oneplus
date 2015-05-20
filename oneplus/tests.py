@@ -2272,8 +2272,8 @@ class GeneralTests(TestCase):
                                       'new_email': 'asdf@asdf.com'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Your number has been changes to 0721478529")
-        self.assertContains(resp, "Your email has been changes to asdf@asdf.com.")
+        self.assertContains(resp, "Your number has been changed to 0721478529")
+        self.assertContains(resp, "Your email has been changed to asdf@asdf.com.")
 
 
 @override_settings(VUMI_GO_FAKE=True)
