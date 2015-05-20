@@ -6,7 +6,9 @@ from communication.models import Message, MessageStatus, ChatMessage, Report, Re
 from organisation.models import Course, Module, CourseModuleRel
 from content.models import TestingQuestion
 from core.models import Class
-from communication.utils import contains_profanity, report_user_post, get_user_bans, get_replacement_content
+from communication.utils import contains_profanity, report_user_post, get_user_bans, get_replacement_content, \
+    VumiSmsApi
+from django.conf import settings
 
 from datetime import datetime, timedelta
 
@@ -277,6 +279,7 @@ class TestBan(TestCase):
         act = get_replacement_content(admin_ban=False, num_days=1)
         self.assertEquals(exp_com, act)
 
+
 class TestProfanity(TestCase):
     def test_profanity(self):
         Profanity.objects.create(
@@ -288,3 +291,15 @@ class TestProfanity(TestCase):
         self.assertEquals(contains_profanity('Test testees testing'), True)
         self.assertEquals(contains_profanity('TeSt testees TesTing'), True)
         self.assertEquals(contains_profanity('test TesTees testing'), True)
+
+
+class TestSms(TestCase):
+    def test_send_sms(self):
+        settings.__setattr__("VUMI_GO_FAKE", True)
+
+        api = VumiSmsApi()
+        sms, sent = api.send("123","test", None, None)
+
+        self.assertIsNotNone(sms)
+        self.assertEquals(sent, True)
+        self.assertEquals(sms.message, "test")

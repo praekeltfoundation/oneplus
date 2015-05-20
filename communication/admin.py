@@ -254,6 +254,13 @@ class SmsQueuedAdmin(admin.ModelAdmin):
     get_send_date.short_description = 'Time Sms will be send'
     get_send_date.allow_tags = True
 
+    actions = ['mark_as_sent']
+
+    def mark_as_sent(modeladmin, request, queryset):
+        queryset.update(sent=True, sent_date=datetime.now())
+
+    mark_as_sent.short_description = 'Mark as sent'
+
 
 class ModerationAdmin(admin.ModelAdmin):
     list_display = (
