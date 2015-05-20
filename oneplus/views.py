@@ -279,15 +279,7 @@ def validate_mobile(mobile):
     pattern_both = "^(\+\d{1,2})?\d{10}$"
     match = re.match(pattern_both, mobile)
     if match:
-        pattern_non_int = "^\d{10}$"
-
-        match_non_int = re.match(pattern_non_int, mobile)
-
-        if match_non_int:
-            mobile = "+27" + mobile[1:]
-
         return mobile
-
     else:
         return None
 
@@ -2296,13 +2288,13 @@ def change_details(request, state, user):
                 learner.mobile = new_mobile
                 learner.username = new_mobile
                 learner.save()
-                line = {"change_details":  "Your number has been changes to %s." % new_mobile}
+                line = {"change_details":  "Your number has been changed to %s." % new_mobile}
                 changes.append(line)
 
             if email_change:
                 learner.email = new_email
                 learner.save()
-                line = {"change_details":  "Your email has been changes to %s." % new_email}
+                line = {"change_details":  "Your email has been changed to %s." % new_email}
                 changes.append(line)
 
         else:
