@@ -2,7 +2,7 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from .forms import LoginForm, SmsPasswordForm, SignupForm
+from .forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from core.models import *
@@ -31,6 +31,8 @@ from django.db.models import Count
 from django.db.models import Q
 import re
 from communication.utils import report_user_post
+from organisation.models import School
+from core.models import Class
 
 
 COUNTRYWIDE = "Countrywide"
@@ -302,82 +304,116 @@ def create_participant(learner, classs):
 #Sign up Form Screen
 @available_space_required
 def signup_form(request):
+    schools = School.objects.all()
+    classes = Class.objects.all()
+
     def get():
-        return render(request, "auth/signup_form.html", {"form": SignupForm})
+        return render(request, "auth/signup_form.html", {"schools": schools,
+                                                         "classes": classes})
 
     def post():
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            #check if the cellphone number is valid
-            cellphone = form.cleaned_data["cellphone"]
-            cellphone = validate_mobile(cellphone)
-            if cellphone is not None:
-                #check if user with this cellphone number exists
-                user = CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))
+        data = {}
+        errors = {}
 
-                #if learner exists only create a participant
-                if not user:
-                    first_name = form.cleaned_data["first_name"]
-                    surname = form.cleaned_data["surname"]
-                    school = form.cleaned_data["school"]
-                    classs = form.cleaned_data["classs"]
-                    area = form.cleaned_data["area"]
-                    city = form.cleaned_data["city"]
-                    country = form.cleaned_data["country"]
-                    enrolled = form.cleaned_data["enrolled"]
-                    grade = form.cleaned_data["grade"]
-
-                    #create learner
-                    new_learner = Learner.objects.create(first_name=first_name,
-                                                         last_name=surname,
-                                                         mobile=cellphone,
-                                                         username=cellphone,
-                                                         area=area,
-                                                         city=city,
-                                                         country=country,
-                                                         school=school,
-                                                         grade=grade,
-                                                         enrolled=enrolled)
-
-                    #generate random password
-                    password = CustomUser.objects.make_random_password(length=8)
-                    new_learner.set_password(password)
-                    new_learner.save()
-
-                    #create participant
-                    create_participant(new_learner, classs)
-
-                    #sms the learner their OnePlus password
-                    SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
-                                                    "this link: http://www.oneplus.co.za/login" % password,
-                                            send_date=datetime.now(),
-                                            msisdn=cellphone)
-
-                    return render(request, "auth/signedup.html")
-
-                else:
-                    active_participant = Participant.objects.filter(learner=user.first(), is_active=True)
-                    if active_participant.exists():
-                        return get()
-
-                    classs = form.cleaned_data["classs"]
-
-                    learner = Learner.objects.get(id=user.first().id)
-
-                    if learner.classs != classs:
-                        #create participant
-                        create_participant(learner, classs)
-                    else:
-                        return get()
-
-                    return render(request, "auth/participant_signedup.html")
-            else:
-                return get()
-                # raise forms.ValidationError(
-                #     'Invalid cellphone number',
-                #     code='invalid')
+        if "first_name" in request.POST.keys() and request.POST["first_name"]:
+            data["first_name"] = request.POST["first_name"]
         else:
-            return redirect("auth.signup_form")
+            errors["first_name_error"] = "This must be completed"
+
+        if "surname" in request.POST.keys() and request.POST["surname"]:
+            data["surname"] = request.POST["surname"]
+        else:
+            errors["surname_error"] = "This must be completed"
+
+        if "cellphone" in request.POST.keys() and request.POST["cellphone"]:
+            cellphone = request.POST["cellphone"]
+            if validate_mobile(cellphone):
+                if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone)):
+                    errors["cellphone_error"] = "registered"
+                else:
+                    data["cellphone"] = cellphone
+            else:
+                errors["cellphone_error"] = "Enter a valid cellphone number"
+        else:
+            errors["cellphone_error"] = "This must be completed"
+
+        if "school" in request.POST.keys() and request.POST["school"]:
+            data["school"] = request.POST["school"]
+            try:
+                school = School.objects.get(id=data["school"])
+            except School.DoesNotExist:
+                errors["school_error"] = "Select a valid school"
+        else:
+            errors["school_error"] = "This must be completed"
+
+        if "classs" in request.POST.keys() and request.POST["classs"]:
+            data["classs"] = request.POST["class"]
+            try:
+                classs = Class.objects.get(id=data["classs"])
+            except Class.DoesNotExist:
+                errors["class_error"] = "Select a valid class"
+        else:
+            errors["class_error"] = "This must be completed"
+
+        if "area" in request.POST.keys() and request.POST["area"]:
+            data["area"] = request.POST["area"]
+        else:
+            errors["area_error"] = "This must be completed"
+
+        if "city" in request.POST.keys() and request.POST["city"]:
+            data["city"] = request.POST["city"]
+        else:
+            errors["city_error"] = "This must be completed"
+
+        if "country" in request.POST.keys() and request.POST["country"]:
+            data["country"] = request.POST["country"]
+        else:
+            errors["country_error"] = "This must be completed"
+
+        if "enrolled" in request.POST.keys() and request.POST["enrolled"]:
+            data["enrolled"] = request.POST["enrolled"]
+        else:
+            errors["enrolled_error"] = "This must be completed"
+
+        if "grade" in request.POST.keys() and request.POST["grade"]:
+            data["grade"] = request.POST["grade"]
+        else:
+            errors["grade_error"] = "This must be completed"
+            errors["grade_error"] = "This must be completed"
+
+        if not errors:
+            #create learner
+            new_learner = Learner.objects.create(first_name=data["first_name"],
+                                                 last_name=data["surname"],
+                                                 mobile=data["cellphone'"],
+                                                 username=data["cellphone"],
+                                                 area=data["area"],
+                                                 city=data["city"],
+                                                 country=data["country"],
+                                                 school=school,
+                                                 grade=data["grade"],
+                                                 enrolled=data["enrolled"])
+
+            #generate random password
+            password = CustomUser.objects.make_random_password(length=8)
+            new_learner.set_password(password)
+            new_learner.save()
+
+            #create participant
+            create_participant(new_learner, classs)
+
+            #sms the learner their OnePlus password
+            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
+                                            "this link: http://www.oneplus.co.za/login" % password,
+                                    send_date=datetime.now(),
+                                    msisdn=cellphone)
+
+            return render(request, "auth/signedup.html")
+        else:
+            return render(request, "auth/signup_form.html", {"schools": schools,
+                                                             "classes": classes,
+                                                             "data": data,
+                                                             "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
