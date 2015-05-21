@@ -2905,7 +2905,7 @@ def add_sms(request):
                                 all_users = Participant.objects.filter(classs=_classs)
 
                                 for usr in all_users:
-                                    create_sms(usr.learner.mobile, _course, dt, message)
+                                    create_sms(usr.learner.mobile, dt, message)
                     else:
                         #All users registered in this course
                         course_obj = Course.objects.get(id=course)

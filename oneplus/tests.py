@@ -2991,13 +2991,13 @@ class SMSQueueTest(TestCase):
         c = Client()
         c.login(username=admin.username, password=password)
 
-        leaner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
-        self.create_participant(leaner_1, self.classs, datejoined=datetime.now())
+        learner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
+        self.create_participant(learner_1, self.classs, datejoined=datetime.now())
 
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': self.classs.id,
-                            'users': self.learner.id,
+                            'users':  learner_1.id,
                             'date_sent_0': datetime.now().time(),
                             'date_sent_1': datetime.now().date(),
                             'message': 'message'},
