@@ -31,8 +31,9 @@ from django.db.models import Count
 from django.db.models import Q
 import re
 from communication.utils import report_user_post
-from organisation.models import School
+from organisation.models import School, Course
 from core.models import Class
+from oneplusmvp.settings import OPEN_SCHOOL_NAME, OPEN_CLASS_NAME, OPEN_COURSE_NAME
 
 
 COUNTRYWIDE = "Countrywide"
@@ -286,6 +287,19 @@ def validate_mobile(mobile):
         return None
 
 
+#create learner
+def create_learner(first_name, last_name, mobile, area, city, country, school, grade, enrolled):
+    return Learner.objects.create(first_name=first_name,
+                                  last_name=last_name,
+                                  mobile=mobile,
+                                  username=mobile,
+                                  area=area,
+                                  city=city,
+                                  country=country,
+                                  school=school,
+                                  grade=grade,
+                                  enrolled=enrolled)
+
 #create participant
 def create_participant(learner, classs):
     Participant.objects.create(learner=learner,
@@ -320,7 +334,7 @@ def signup_form(request):
         if "cellphone" in request.POST.keys() and request.POST["cellphone"]:
             cellphone = request.POST["cellphone"]
             if validate_mobile(cellphone):
-                if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone)):
+                if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone)).exists():
                     errors["cellphone_error"] = "registered"
                 else:
                     data["cellphone"] = cellphone
@@ -329,23 +343,32 @@ def signup_form(request):
         else:
             errors["cellphone_error"] = "This must be completed"
 
-        if "school" in request.POST.keys() and request.POST["school"]:
-            data["school"] = request.POST["school"]
-            try:
-                school = School.objects.get(id=data["school"])
-            except School.DoesNotExist:
-                errors["school_error"] = "Select a valid school"
+        enrolled = True
+        if "enrolled" in request.POST.keys() and request.POST["enrolled"]:
+            data["enrolled"] = request.POST["enrolled"]
+            if data["enrolled"] == '1':
+                enrolled = False
         else:
-            errors["school_error"] = "This must be completed"
+            errors["enrolled_error"] = "This must be completed"
 
-        if "classs" in request.POST.keys() and request.POST["classs"]:
-            data["classs"] = request.POST["class"]
-            try:
-                classs = Class.objects.get(id=data["classs"])
-            except Class.DoesNotExist:
-                errors["class_error"] = "Select a valid class"
-        else:
-            errors["class_error"] = "This must be completed"
+        if enrolled:
+            if "school" in request.POST.keys() and request.POST["school"]:
+                data["school"] = request.POST["school"]
+                try:
+                    School.objects.get(id=data["school"])
+                except School.DoesNotExist:
+                    errors["school_error"] = "Select a school"
+            else:
+                errors["school_error"] = "Select a school"
+
+            if "classs" in request.POST.keys() and request.POST["classs"]:
+                data["classs"] = request.POST["classs"]
+                try:
+                    Class.objects.get(id=data["classs"])
+                except Class.DoesNotExist:
+                    errors["class_error"] = "Select a class"
+            else:
+                errors["class_error"] = "Select a class"
 
         if "area" in request.POST.keys() and request.POST["area"]:
             data["area"] = request.POST["area"]
@@ -362,43 +385,75 @@ def signup_form(request):
         else:
             errors["country_error"] = "This must be completed"
 
-        if "enrolled" in request.POST.keys() and request.POST["enrolled"]:
-            data["enrolled"] = request.POST["enrolled"]
-        else:
-            errors["enrolled_error"] = "This must be completed"
-
         if "grade" in request.POST.keys() and request.POST["grade"]:
             data["grade"] = request.POST["grade"]
         else:
             errors["grade_error"] = "This must be completed"
-            errors["grade_error"] = "This must be completed"
 
         if not errors:
-            #create learner
-            new_learner = Learner.objects.create(first_name=data["first_name"],
-                                                 last_name=data["surname"],
-                                                 mobile=data["cellphone'"],
-                                                 username=data["cellphone"],
-                                                 area=data["area"],
-                                                 city=data["city"],
-                                                 country=data["country"],
-                                                 school=school,
-                                                 grade=data["grade"],
-                                                 enrolled=data["enrolled"])
+            if data["enrolled"] == '1':
+                try:
+                    school = School.objects.get(name=OPEN_SCHOOL_NAME)
+                except School.DoesNotExist:
+                    school = School.objects.create(name=OPEN_SCHOOL_NAME)
+                print school
+                #create learner
+                new_learner = create_learner(first_name=data["first_name"],
+                                             last_name=data["surname"],
+                                             mobile=data["cellphone"],
+                                             area=data["area"],
+                                             city=data["city"],
+                                             country=data["country"],
+                                             school=school,
+                                             grade=data["grade"],
+                                             enrolled=data["enrolled"])
+
+                try:
+                    classs = Class.objects.get(name=OPEN_CLASS_NAME)
+                except Class.DoesNotExist:
+                    try:
+                        course = Course.objects.get(name=OPEN_COURSE_NAME)
+                    except Course.DoesNotExist:
+                        course = Course.objects.create(name=OPEN_COURSE_NAME)
+                    classs = Class.objects.create(name=OPEN_CLASS_NAME, course=course)
+
+                create_participant(new_learner, classs)
+
+            else:
+                school = School.objects.get(id=data["school"])
+                #create learner
+                new_learner = create_learner(first_name=data["first_name"],
+                                             last_name=data["surname"],
+                                             mobile=data["cellphone"],
+                                             area=data["area"],
+                                             city=data["city"],
+                                             country=data["country"],
+                                             school=school,
+                                             grade=data["grade"],
+                                             enrolled=data["enrolled"])
+
+                classs = Class.objects.get(id=data["classs"])
+
+                #create participant
+                create_participant(new_learner, classs)
 
             #generate random password
             password = CustomUser.objects.make_random_password(length=8)
             new_learner.set_password(password)
             new_learner.save()
 
-            #create participant
-            create_participant(new_learner, classs)
-
             #sms the learner their OnePlus password
             SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
                                             "this link: http://www.oneplus.co.za/login" % password,
                                     send_date=datetime.now(),
                                     msisdn=cellphone)
+
+            #inform oneplus about the new learner
+            subject = "".join(['New student registered'])
+            message = "".join([
+                new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
+
+            #mail_managers(subject=subject, message=message, fail_silently=False)
 
             return render(request, "auth/signedup.html")
         else:
