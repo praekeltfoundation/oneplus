@@ -29,7 +29,7 @@
                                     <p class="white-front">{{ comment.content }}</p>
                                     <form name="report_comment" method="post" action="?">
                                         {% csrf_token %}
-                                        <button type="submit" name="report_button" class="bold link" value="">Report Comment</button>
+                                        <button type="submit" name="report_button" class="red-front bold link" value="">Report Comment</button>
                                         <input type="hidden" name="report" value="{{ comment.id }}" />
                                     </form>
                                 {% else %}
