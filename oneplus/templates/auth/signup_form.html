@@ -9,7 +9,115 @@
         <p class="center-font">To sign up please complete the following information:</p>
 		<form action="signup/form" method="post" class="signup">
 			{% csrf_token %}
-            {{ form.as_p }}
+
+            <p>
+                First Name:
+                <input type="text" name="first_name" id="id_first_name" value="{{ data.first_name }}" >
+                {% if errors.first_name_error %}
+                    <span class="red-front">{{ errors.first_name_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                Surname:
+                <input type="text" name="surname" id="id_surname" value="{{ data.surname }}" >
+                {% if errors.surname_error %}
+                    <span class="red-front">{{ errors.surname_error }}</span>
+                    <br>
+                {% endif %}
+           </p>
+
+            <p>
+                Cell Number (e.g. 0724391733):
+                <input type="text" name="cellphone" id="id_cellphone" value="{{ data.cellphone }}" >
+                {% if errors.cellphone_error %}
+                    {% if errors.cellphone_error == "registered" %}
+                        <span class="red-front">This number has already been registered. Sign in <a href="/login" class="blue-front bold-font">here</a></span>
+                    {% else %}
+                        <span class="red-front">{{ errors.cellphone_error }}</span>
+                    {% endif %}
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+            School:<br>
+                <select name="school" id="id_school">
+                    <option value="0">- - - - - - - -</option>
+                    {% for school in schools %}
+                        <option value="{{ school.id }}">{{ school.name }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                {% if errors.school_error %}
+                    <span class="red-front">{{ errors.school_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                Class:<br>
+                <select name="classs" id="id_class">
+                    <option value="0">- - - - - - - -</option>
+                    {% for class in classes %}
+                        <option value="{{ class.id }}">{{ class.name }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                {% if errors.class_error %}
+                    <span class="red-front">{{ errors.class_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                Area (Suburb):
+                <input type="text" name="area" id="id_area" value="{{ data.area }}" >
+                {% if errors.area_error %}
+                    <span class="red-front">{{ errors.area_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                City:
+                <input type="text" name="city" id="id_city" value="{{ data.city }}" >
+                {% if errors.city_error %}
+                    <span class="red-front">{{ errors.city_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                Country:
+                <input type="text" name="country" id="id_country" value="{{ data.country }}" >
+                {% if errors.country_error %}
+                    <span class="red-front">{{ errors.country_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                Are you currently enrolled in a ProMaths class?<br>
+                <input type="radio" name="enrolled" value="0"> Yes <br>
+                <input type="radio" name="enrolled" value="1"> No <br>
+                {% if errors.enrolled_error %}
+                    <span class="red-front">{{ errors.enrolled_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                What is your current grade?<br>
+                <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
+                <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
+                {% if errors.grade_error %}
+                    <span class="red-front">{{ errors.grade_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
 			<input type="submit" value="Submit" class="button green-back grey-front" />
         </form>
     </div>

@@ -2076,97 +2076,87 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.signup_form'))
         self.assertEqual(resp.status_code, 200)
 
-        first_name = "Bob"
-        surname = "Bobby"
-        cellphone = "+277123456789"
-        school = self.school.id
-        classs = self.classs.id
-        area = "Lynwood"
-        city = "Pretoria"
-        country = "South Africa"
-        enrolled = 0
-        grade = "Grade 10"
-
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={'first_name': first_name,
-                                      'surname': surname,
-                                      'cellphone': cellphone,
-                                      'school': school,
-                                      'classs': classs,
-                                      'area': area,
-                                      'city': city,
-                                      'country': country,
-                                      'enrolled': enrolled,
-                                      'grade': grade},
-                                follow=True)
-
-        self.assertEqual(resp.status_code, 200)
-
-        learner = Learner.objects.get(mobile=cellphone)
-        self.assertIsNotNone(learner, "Learner not created")
-        self.assertEqual(learner.first_name, first_name, "First name is not correct.")
-
-        participant = Participant.objects.get(learner=learner)
-        self.assertIsNotNone(participant, "Participant not created.")
-
-        #try register same user
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={'first_name': first_name,
-                                      'surname': surname,
-                                      'cellphone': cellphone,
-                                      'school': school,
-                                      'classs': classs,
-                                      'area': area,
-                                      'city': city,
-                                      'country': country,
-                                      'enrolled': enrolled,
-                                      'grade': grade},
-                                follow=True)
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
-
-        #pass invalid school id
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={'first_name': first_name,
-                                      'surname': surname,
-                                      'cellphone': cellphone,
-                                      'school': 100,
-                                      'classs': classs,
-                                      'area': area,
-                                      'city': city,
-                                      'country': country,
-                                      'enrolled': enrolled,
-                                      'grade': grade},
-                                follow=True)
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
-
-        #pass missing data
+        #no data given
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={},
                                 follow=True)
+        self.assertContains(resp, "This must be completed", count=8)
+        self.assertContains(resp, "Select a school")
+        self.assertContains(resp, "Select a class")
 
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
-
-        #pass invalid class id
+        #invalid cellphone, enrolled - school and class not needed
         resp = self.client.post(reverse('auth.signup_form'),
-                                data={'first_name': first_name,
-                                      'surname': surname,
-                                      'cellphone': cellphone,
-                                      'school': school,
-                                      'classs': 100,
-                                      'area': area,
-                                      'city': city,
-                                      'country': country,
-                                      'enrolled': enrolled,
-                                      'grade': grade},
+                                data={
+                                    'first_name': self.learner.first_name,
+                                    'surname': self.learner.last_name,
+                                    'cellphone': '12345',
+                                    'school': '0',
+                                    'classs': '0',
+                                    'enrolled': 1,
+                                    'area': 'Area',
+                                    'city': 'City',
+                                    'country': 'Country',
+                                    'grade': 'Grade 10'
+                                },
                                 follow=True)
+        self.assertContains(resp, "Enter a valid cellphone number")
+        self.assertNotContains(resp, "Select a school")
+        self.assertNotContains(resp, "Select a class")
 
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "<title>ONEPLUS | Sign Up</title>")
+        #registered cellphone
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': "Bob",
+                                    'surname': "Bobby",
+                                    'cellphone': self.learner.mobile,
+                                    'school': self.school.id,
+                                    'classs': self.classs.id,
+                                    'enrolled': 0,
+                                    'area': 'Area',
+                                    'city': 'City',
+                                    'country': 'Country',
+                                    'grade': 'Grade 10'
+                                },
+                                follow=True)
+        self.assertContains(resp, "This number has already been registered.")
+
+        #valid - enrolled
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': "Bob",
+                                    'surname': "Bobby",
+                                    'cellphone': '0729876543',
+                                    'school': self.school.id,
+                                    'classs': self.classs.id,
+                                    'enrolled': 0,
+                                    'area': 'Area',
+                                    'city': 'City',
+                                    'country': 'Country',
+                                    'grade': 'Grade 10'
+                                },
+                                follow=True)
+        self.assertContains(resp, "Thank you")
+        new_learner = Learner.objects.get(username='0729876543')
+        self.assertEquals('Bob', new_learner.first_name)
+
+        #valid - not enrolled
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': "Koos",
+                                    'surname': "Botha",
+                                    'cellphone': '0729876540',
+                                    'school': 0,
+                                    'classs': 0,
+                                    'enrolled': 1,
+                                    'area': 'Area',
+                                    'city': 'City',
+                                    'country': 'Country',
+                                    'grade': 'Grade 10'
+                                },
+                                follow=True)
+        self.assertContains(resp, "Thank you")
+        new_learner = Learner.objects.get(username='0729876540')
+        self.assertEquals('Koos', new_learner.first_name)
 
     def test_change_details(self):
         self.client.get(reverse(
