@@ -2950,63 +2950,75 @@ def add_sms(request):
         class_error = False
         dt_error = False
         message_error = False
+        users_error = False
 
         course = None
         classs = None
         date = None
         time = None
         message = None
+        users = False
 
         course_error, course = validate_to_course(request.POST)
         class_error, classs = validate_to_class(request.POST)
         dt_error, date, time, dt = validate_date_and_time(request.POST)
         message_error, message = validate_message(request.POST)
+        users_error, users = validate_users(request.POST)
 
-        if course_error or class_error or dt_error or message_error:
+        if course_error or class_error or dt_error or message_error or users_error:
             return render(
                 request=request,
                 template_name='misc/queued_sms.html',
                 dictionary={
                     'to_course_error': course_error,
                     'to_class_error': class_error,
+                    'users_error': users_error,
                     'dt_error': dt_error,
                     'message_error': message_error,
                     'v_date': date,
                     'v_time': time,
-                    'v_message': message
+                    'v_message': message,
                 }
             )
 
         else:
-            if course == "all":
-                all_courses = Course.objects.all()
-
-                for _course in all_courses:
-                    all_classes = Class.objects.filter(course=_course)
-
-                    for _classs in all_classes:
-                        all_users = Participant.objects.filter(classs=_classs)
-
-                        for u in all_users:
-                            create_sms(u.learner.mobile, dt, message)
-            else:
-                course_obj = Course.objects.get(id=course)
-
+            if "all" in users:
+                #means all users in certain class and course
                 if classs == "all":
-                    all_classes = Class.objects.filter(course=course_obj)
+                    if course == "all":
+                        #All registered learners
+                        all_courses = Course.objects.all()
 
-                    for c in all_classes:
-                        all_users = Participant.objects.filter(classs=c)
+                        for _course in all_courses:
+                            all_classes = Class.objects.filter(course=_course)
 
-                        for u in all_users:
-                            create_sms(u.learner.mobile, dt, message)
+                            for _classs in all_classes:
+                                all_users = Participant.objects.filter(classs=_classs)
+
+                                for usr in all_users:
+                                    create_sms(usr.learner.mobile, dt, message)
+                    else:
+                        #All users registered in this course
+                        course_obj = Course.objects.get(id=course)
+                        all_classes = Class.objects.filter(course=course_obj)
+
+                        for c in all_classes:
+                            all_users = Participant.objects.filter(classs=c)
+
+                            for u in all_users:
+                                create_sms(u.learner.mobile, dt, message)
                 else:
+                    #All learners in specific class
                     classs_obj = Class.objects.get(id=classs)
-
                     all_users = Participant.objects.filter(classs=classs_obj)
 
                     for u in all_users:
                         create_sms(u.learner.mobile, dt, message)
+            else:
+                #Specific learners
+                for u in users:
+                    usr = Learner.objects.get(id=u)
+                    create_sms(usr.learner.mobile, dt, message)
 
         return HttpResponseRedirect('/admin/communication/smsqueue/')
 
