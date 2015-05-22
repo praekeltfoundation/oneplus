@@ -3122,3 +3122,121 @@ def discussion_response_selected(request, disc):
             return HttpResponseRedirect('/admin/communication/discussion/')
 
     return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def blog_comment_response(request, pc):
+    db_pc = PostComment.objects.filter(id=pc).first()
+
+    if not db_pc:
+        return HttpResponse("PostComment %s not found" % pc)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/blog_comment_response.html',
+            dictionary={'pc': db_pc}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/blog_comment_response.html',
+                dictionary={
+                    'pc': db_pc,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            pc = PostComment.objects.create(
+                author=request.user,
+                content=content,
+                publishdate=dt,
+                moderated=True,
+                post=db_pc.post
+            )
+
+            db_pc.response = pc
+            db_pc.save()
+
+            return HttpResponseRedirect('/admin/communication/postcomment/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def blog_comment_response_selected(request, pc):
+    pcs = pc.split(',')
+    db_pcs = PostComment.objects.filter(id__in=pcs, response__isnull=True)
+
+    if db_pcs.count() == 0:
+        no_pcs = True
+    else:
+        no_pcs = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/blog_comment_response_selected.html',
+            dictionary={'pcs': db_pcs, 'no_pcs': no_pcs}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/blog_comment_response_selected.html',
+                dictionary={
+                    'pcs': db_pcs,
+                    'no_pcs': no_pcs,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            posts = {}
+            for db_pc in db_pcs:
+                # create one comment per post
+                if db_pc.post.id not in posts.keys():
+                    pc = PostComment.objects.create(
+                        author=request.user,
+                        content=content,
+                        publishdate=dt,
+                        moderated=True,
+                        post=db_pc.post
+                    )
+
+                    posts[db_pc.post.id] = pc
+
+                db_pc.response = posts[db_pc.post.id]
+                db_pc.save()
+
+            return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])

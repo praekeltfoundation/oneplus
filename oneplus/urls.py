@@ -72,6 +72,13 @@ urlpatterns = [
         views.discussion_response_selected,
         name="com.discrespsel"),
 
+    url(r"^blog_comment_response/(?P<pc>\d+)$",
+        views.blog_comment_response,
+        name="com.blogcomresp"),
+    url(r"^blog_comment_response_selected/(?P<pc>(\d+)(,\s*\d+)*)$",
+        views.blog_comment_response_selected,
+        name="com.blogcomrespsel"),
+
     url(r"^message/add/$", views.add_message, name="com.add_message"),
     url(r"^message/(?P<msg>\d+)/$", views.view_message, name="com.view_message"),
 

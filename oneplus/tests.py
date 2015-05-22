@@ -12,7 +12,7 @@ from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post, \
-    Report, ReportResponse, Sms, SmsQueue, Discussion
+    Report, ReportResponse, Sms, SmsQueue, Discussion, PostComment
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -29,7 +29,6 @@ from django.db.models import Count
 
 @override_settings(VUMI_GO_FAKE=True)
 class GeneralTests(TestCase):
-
     def create_test_question(self, name, module, **kwargs):
         return TestingQuestion.objects.create(name=name,
                                               module=module,
@@ -121,6 +120,24 @@ class GeneralTests(TestCase):
 
     def create_question_report(self, _user, _question, _issue, _fix):
         return Report.objects.create(user=_user, question=_question, issue=_issue, fix=_fix)
+
+    def create_post(self, name="Test Post", description="Test", content="Test content"):
+        return Post.objects.create(
+            name=name,
+            description=description,
+            course=self.course,
+            content=content,
+            publishdate=datetime.now(),
+            moderated=True
+        )
+
+    def create_post_comment(self, post, author, content="Test Content"):
+        return PostComment.objects.create(
+            author=author,
+            post=post,
+            content=content,
+            publishdate=datetime.now()
+        )
 
     def setUp(self):
 
@@ -345,19 +362,18 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'test question')
         self.assertContains(resp, 'questionanswer1')
 
-        resp = self.client.post(reverse(
-            'learn.next'),
+        resp = self.client.post(
+            reverse('learn.next'),
             data={'page': 1},
-
             follow=True
         )
 
         self.assertEquals(resp.status_code, 200)
 
     def test_answer_correct_nextchallenge(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': self.learner.unique_token})
         )
 
         # Create a question
@@ -458,12 +474,13 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(
             reverse('learn.right'),
-            data={'comment': 'test'}, follow=True)
+            data={'comment': 'test'}, follow=True
+        )
 
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse(
-            'learn.right'),
+        resp = self.client.post(
+            reverse('learn.right'),
             data={'page': 1},
             follow=True
         )
@@ -474,7 +491,9 @@ class GeneralTests(TestCase):
         self.client.get(
             reverse(
                 'auth.autologin',
-                kwargs={'token': self.learner.unique_token}))
+                kwargs={'token': self.learner.unique_token})
+        )
+
         question1 = self.create_test_question(
             'question1',
             self.module,
@@ -493,8 +512,8 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse(
-            'learn.wrong'),
+        resp = self.client.post(
+            reverse('learn.wrong'),
             data={'page': 1},
             follow=True
         )
@@ -609,43 +628,47 @@ class GeneralTests(TestCase):
             moderated=True
         )
 
-        resp = self.client.get(reverse(
-            'com.chat',
-            kwargs={'chatid': chatgroup.id})
+        resp = self.client.get(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id})
         )
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'chatmsg1content')
 
-        resp = self.client.post(reverse(
-            'com.chat',
-            kwargs={'chatid': chatgroup.id}),
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
             data={'comment': 'test'},
             follow=True
         )
 
         self.assertContains(resp, 'test')
 
-        resp = self.client.post(reverse(
-            'com.chat',
-            kwargs={'chatid': chatgroup.id}),
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
             data={'page': 1},
             follow=True
         )
 
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse('com.chat',
-                                        kwargs={'chatid': chatgroup.id}),
-                                data={'report': chatmsg1.id},
-                                follow=True
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
+            data={'report': chatmsg1.id},
+            follow=True
         )
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "This comment has been reported")
 
     def test_blog(self):
-        self.client.get(reverse('auth.autologin',
-                                kwargs={'token': self.learner.unique_token}))
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': self.learner.unique_token})
+        )
+
         blog = Post.objects.create(
             name='testblog',
             course=self.course,
@@ -653,35 +676,36 @@ class GeneralTests(TestCase):
         )
         blog.save()
 
-        resp = self.client.get(reverse(
-            'com.blog',
-            kwargs={'blogid': blog.id})
+        resp = self.client.get(
+            reverse('com.blog',
+                    kwargs={'blogid': blog.id})
         )
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse(
-            'com.blog',
-            kwargs={'blogid': blog.id})
+        resp = self.client.post(
+            reverse('com.blog',
+                    kwargs={'blogid': blog.id})
         )
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse('com.blog',
-                                        kwargs={'blogid': blog.id}),
-                                data={'comment': 'New comment'},
-                                follow=True
+        resp = self.client.post(
+            reverse('com.blog',
+                    kwargs={'blogid': blog.id}),
+            data={'comment': 'New comment'},
+            follow=True
         )
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Thank you for your contribution. Your message will display shortly!")
 
-        resp = self.client.post(reverse('com.blog',
-                                        kwargs={'blogid': blog.id}),
-                                data={'page': 1},
-                                follow=True
+        resp = self.client.post(
+            reverse('com.blog',
+                    kwargs={'blogid': blog.id}),
+            data={'page': 1},
+            follow=True
         )
 
         self.assertEquals(resp.status_code, 200)
-
 
     def test_smspassword_get(self):
         resp = self.client.get(reverse('auth.smspassword'), follow=True)
@@ -1261,11 +1285,13 @@ class GeneralTests(TestCase):
 
         c = Client()
 
-        resp = c.post(reverse('auth.login'), data={},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={},
+            follow=True
+        )
 
         self.assertContains(resp, "SIGN IN")
-
 
         password = 'mypassword'
         my_admin = CustomUser.objects.create_superuser(
@@ -1276,10 +1302,13 @@ class GeneralTests(TestCase):
 
         c.login(username=my_admin.username, password=password)
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27198765432",
-            'password': password},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27198765432",
+                'password': password},
+            follow=True
+        )
 
         self.assertContains(resp, "OnePlus is currently in test phase")
 
@@ -1290,19 +1319,26 @@ class GeneralTests(TestCase):
         )
         learner.save()
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27231231231",
-            'password': '1234'},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1234'},
+            follow=True
+        )
+
         self.assertContains(resp, "You are not currently linked to a class")
 
         learner.is_active = False
         learner.save()
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27231231231",
-            'password': '1234'},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1234'},
+            follow=True
+        )
         self.assertContains(resp, "GET CONNECTED")
 
         learner.is_active = True
@@ -1313,24 +1349,31 @@ class GeneralTests(TestCase):
             self.classs,
             datejoined=datetime.now())
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27231231231",
-            'password': '1235'},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1235'},
+            follow=True
+        )
 
         self.assertContains(resp, "incorrect password")
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27231231231",
-            'password': '1234'},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1234'},
+            follow=True
+        )
 
         self.assertContains(resp, "WELCOME")
 
         question1 = self.create_test_question(
             'question1',
             self.module,
-            question_content='test question')
+            question_content='test question'
+        )
         option1 = self.create_test_question_option(
             name="option1",
             question=question1,
@@ -1344,28 +1387,35 @@ class GeneralTests(TestCase):
         )
         self.participant.answer(question1, option1)
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27231231231",
-            'password': '1234'},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1234'},
+            follow=True
+        )
 
         self.assertContains(resp, "WELCOME")
 
         self.create_participant(
             learner,
             self.classs,
-            datejoined=datetime.now())
+            datejoined=datetime.now()
+        )
 
-        resp = c.post(reverse('auth.login'), data={
-            'username': "+27231231231",
-            'password': '1234'},
-            follow=True)
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1234'},
+            follow=True
+        )
         self.assertContains(resp, "Account Issue")
 
     def test_points_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': self.learner.unique_token})
         )
         resp = self.client.get(reverse('prog.points'))
         self.assertEquals(resp.status_code, 200)
@@ -1374,9 +1424,9 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_leaderboard_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': self.learner.unique_token})
         )
         resp = self.client.get(reverse('prog.leader'))
         self.assertEquals(resp.status_code, 200)
@@ -1385,9 +1435,9 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_ontrack_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': self.learner.unique_token})
         )
         resp = self.client.get(reverse('prog.ontrack'))
         self.assertEquals(resp.status_code, 200)
@@ -1406,8 +1456,8 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('com.bloglist'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse(
-            'com.bloglist'),
+        resp = self.client.post(
+            reverse('com.bloglist'),
             data={'page': 1},
             follow=True
         )
@@ -1615,19 +1665,21 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'Report Response')
 
         resp = c.post('/report_response/%s' % rep.id,
-                      data={'title': '',
-                            'publishdate_0': '',
-                            'publishdate_1': '',
-                            'content': ''
-                            })
+                      data={
+                          'title': '',
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
         self.assertContains(resp, 'This field is required.')
 
         resp = c.post('/report_response/%s' % rep.id,
-                      data={'title': '',
-                            'publishdate_0': '2015-33-33',
-                            'publishdate_1': '99:99:99',
-                            'content': ''
-                            })
+                      data={
+                          'title': '',
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
         self.assertContains(resp, 'Please enter a valid date and time.')
 
         resp = c.post('/report_response/%s' % rep.id)
@@ -1637,11 +1689,12 @@ class GeneralTests(TestCase):
         msg_cnt = Message.objects.all().count()
 
         resp = c.post('/report_response/%s' % rep.id,
-                      data={'title': 'test',
-                            'publishdate_0': '2014-01-01',
-                            'publishdate_1': '00:00:00',
-                            'content': '<p>Test</p>'
-                            })
+                      data={
+                          'title': 'test',
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': '<p>Test</p>'
+                      })
 
         self.assertEquals(ReportResponse.objects.all().count(), rr_cnt + 1)
         self.assertEquals(Message.objects.all().count(), msg_cnt + 1)
@@ -1686,19 +1739,21 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'Respond to Message')
 
         resp = c.post('/message_response/%s' % msg.id,
-                      data={'title': '',
-                            'publishdate_0': '',
-                            'publishdate_1': '',
-                            'content': ''
-                            })
+                      data={
+                          'title': '',
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
         self.assertContains(resp, 'This field is required.')
 
         resp = c.post('/message_response/%s' % msg.id,
-                      data={'title': '',
-                            'publishdate_0': '2015-33-33',
-                            'publishdate_1': '99:99:99',
-                            'content': ''
-                            })
+                      data={
+                          'title': '',
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
         self.assertContains(resp, 'Please enter a valid date and time.')
 
         resp = c.post('/message_response/%s' % msg.id)
@@ -1707,11 +1762,12 @@ class GeneralTests(TestCase):
         msg_cnt = Message.objects.all().count()
 
         resp = c.post('/message_response/%s' % msg.id,
-                      data={'title': 'test',
-                            'publishdate_0': '2014-01-01',
-                            'publishdate_1': '00:00:00',
-                            'content': '<p>Test</p>'
-                            })
+                      data={
+                          'title': 'test',
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': '<p>Test</p>'
+                      })
 
         self.assertEquals(Message.objects.all().count(), msg_cnt + 1)
         msg = Message.objects.get(pk=msg.id)
@@ -1753,28 +1809,31 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'Respond to SMS')
 
         resp = c.post('/sms_response/%s' % sms.id,
-                      data={'publishdate_0': '',
-                            'publishdate_1': '',
-                            'content': ''
-                            })
+                      data={
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
         self.assertContains(resp, 'This field is required.')
 
         resp = c.post('/sms_response/%s' % sms.id,
-                      data={'title': '',
-                            'publishdate_0': '2015-33-33',
-                            'publishdate_1': '99:99:99',
-                            'content': ''
-                            })
+                      data={
+                          'title': '',
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
         self.assertContains(resp, 'Please enter a valid date and time.')
 
         resp = c.post('/sms_response/%s' % sms.id)
         self.assertContains(resp, 'This field is required.')
 
         resp = c.post('/sms_response/%s' % sms.id,
-                      data={'publishdate_0': '2014-01-01',
-                            'publishdate_1': '00:00:00',
-                            'content': 'Test24'
-                            })
+                      data={
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': 'Test24'
+                      })
 
         sms = Sms.objects.get(pk=sms.id)
         self.assertEquals(sms.responded, True)
@@ -1787,10 +1846,11 @@ class GeneralTests(TestCase):
     def test_admin_discussion_response(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
+        burl = '/discussion_response/'
 
         question = self.create_test_question('q7', self.module)
 
-        resp = c.get('/discussion_response/1000')
+        resp = c.get('%s1000' % burl)
         self.assertContains(resp, 'Discussion 1000 not found')
 
         learner = self.create_learner(
@@ -1816,7 +1876,7 @@ class GeneralTests(TestCase):
             question=question
         )
 
-        resp = c.get('/discussion_response/%s' % disc.id)
+        resp = c.get('%s%s' % (burl, disc.id))
         self.assertContains(resp, 'Participant not found')
 
         participant = self.create_participant(
@@ -1825,34 +1885,37 @@ class GeneralTests(TestCase):
             datejoined=datetime(2014, 3, 18, 1, 1)
         )
 
-        resp = c.get('/discussion_response/%s' % disc.id)
+        resp = c.get('%s%s' % (burl, disc.id))
         self.assertContains(resp, 'Respond to Discussion')
 
-        resp = c.post('/discussion_response/%s' % disc.id,
-                      data={'title': '',
-                            'publishdate_0': '',
-                            'publishdate_1': '',
-                            'content': ''
-                            })
+        resp = c.post('%s%s' % (burl, disc.id),
+                      data={
+                          'title': '',
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
         self.assertContains(resp, 'This field is required.')
 
-        resp = c.post('/discussion_response/%s' % disc.id,
-                      data={'title': '',
-                            'publishdate_0': '2015-33-33',
-                            'publishdate_1': '99:99:99',
-                            'content': ''
-                            })
+        resp = c.post('%s%s' % (burl, disc.id),
+                      data={
+                          'title': '',
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
         self.assertContains(resp, 'Please enter a valid date and time.')
 
-        resp = c.post('/discussion_response/%s' % disc.id)
+        resp = c.post('%s%s' % (burl, disc.id))
         self.assertContains(resp, 'This field is required.')
 
-        resp = c.post('/discussion_response/%s' % disc.id,
-                      data={'title': 'test',
-                            'publishdate_0': '2014-01-01',
-                            'publishdate_1': '00:00:00',
-                            'content': '<p>Test</p>'
-                            })
+        resp = c.post('%s%s' % (burl, disc.id),
+                      data={
+                          'title': 'test',
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': '<p>Test</p>'
+                      })
 
         disc = Discussion.objects.get(pk=disc.id)
         self.assertIsNotNone(disc.response)
@@ -1863,9 +1926,11 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
+        burl = '/discussion_response_selected/'
+
         question = self.create_test_question('q9', self.module)
 
-        resp = c.get('/discussion_response_selected/1000')
+        resp = c.get('%s1000' % burl)
         self.assertContains(resp, 'All the selected Discussions have been responded too')
 
         learner = self.create_learner(
@@ -1908,34 +1973,37 @@ class GeneralTests(TestCase):
             datejoined=datetime(2014, 3, 18, 1, 1)
         )
 
-        resp = c.get('/discussion_response_selected/%s,%s' % (disc.id, disc2.id))
+        resp = c.get('%s%s,%s' % (burl, disc.id, disc2.id))
         self.assertContains(resp, 'Respond to Selected')
 
-        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id),
-                      data={'title': '',
-                            'publishdate_0': '',
-                            'publishdate_1': '',
-                            'content': ''
-                            })
+        resp = c.post('%s%s,%s' % (burl, disc.id, disc2.id),
+                      data={
+                          'title': '',
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
         self.assertContains(resp, 'This field is required.')
 
-        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id),
-                      data={'title': '',
-                            'publishdate_0': '2015-33-33',
-                            'publishdate_1': '99:99:99',
-                            'content': ''
-                            })
+        resp = c.post('%s%s,%s' % (burl, disc.id, disc2.id),
+                      data={
+                          'title': '',
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
         self.assertContains(resp, 'Please enter a valid date and time.')
 
-        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id))
+        resp = c.post('%s%s,%s' % (burl, disc.id, disc2.id))
         self.assertContains(resp, 'This field is required.')
 
-        resp = c.post('/discussion_response_selected/%s,%s' % (disc.id, disc2.id),
-                      data={'title': 'test',
-                            'publishdate_0': '2014-01-01',
-                            'publishdate_1': '00:00:00',
-                            'content': '<p>Test</p>'
-                            })
+        resp = c.post('%s%s,%s' % (burl, disc.id, disc2.id),
+                      data={
+                          'title': 'test',
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': '<p>Test</p>'
+                      })
 
         disc = Discussion.objects.get(pk=disc.id)
         disc2 = Discussion.objects.get(pk=disc2.id)
@@ -1945,6 +2013,130 @@ class GeneralTests(TestCase):
         self.assertIsNotNone(disc2.response)
         self.assertEquals(disc2.response.moderated, True)
         self.assertEquals(disc2.response.author, self.admin_user)
+
+    def test_admin_blog_comment_response(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        burl = '/blog_comment_response/'
+
+        resp = c.get('%s1000' % burl)
+        self.assertContains(resp, 'PostComment 1000 not found')
+
+        learner = self.create_learner(
+            self.school,
+            first_name="jan",
+            username="+27223456788",
+            mobile="+27223456788",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        post = self.create_post()
+        c1 = self.create_post_comment(post, learner)
+
+        resp = c.get('%s%s' % (burl, c1.id))
+        self.assertContains(resp, 'Respond to Blog Comment')
+
+        resp = c.post('%s%s' % (burl, c1.id),
+                      data={
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('%s%s' % (burl, c1.id),
+                      data={
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('%s%s' % (burl, c1.id))
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('%s%s' % (burl, c1.id),
+                      data={
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': '<p>Test</p>'
+                      })
+
+        pc = PostComment.objects.get(pk=c1.id)
+        self.assertIsNotNone(pc.response)
+        self.assertEquals(pc.response.moderated, True)
+        self.assertEquals(pc.response.author, self.admin_user)
+
+    def test_admin_blog_comment_response_selected(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        burl = '/blog_comment_response_selected/'
+
+        question = self.create_test_question('q9', self.module)
+
+        resp = c.get('%s1000' % burl)
+        self.assertContains(resp, 'All the selected Blog Comments have been responded too')
+
+        learner = self.create_learner(
+            self.school,
+            first_name="jan",
+            username="+27223456888",
+            mobile="+27223456888",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True
+        )
+
+        post = self.create_post()
+        pc1 = self.create_post_comment(post, learner)
+        pc2 = self.create_post_comment(post, learner)
+
+        resp = c.get('%s%s,%s' % (burl, pc1.id, pc2.id))
+        self.assertContains(resp, 'Respond to Selected')
+
+        resp = c.post('%s%s,%s' % (burl, pc1.id, pc2.id),
+                      data={
+                          'publishdate_0': '',
+                          'publishdate_1': '',
+                          'content': ''
+                      })
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('%s%s,%s' % (burl, pc1.id, pc2.id),
+                      data={
+                          'publishdate_0': '2015-33-33',
+                          'publishdate_1': '99:99:99',
+                          'content': ''
+                      })
+        self.assertContains(resp, 'Please enter a valid date and time.')
+
+        resp = c.post('%s%s,%s' % (burl, pc1.id, pc2.id))
+        self.assertContains(resp, 'This field is required.')
+
+        resp = c.post('%s%s,%s' % (burl, pc1.id, pc2.id),
+                      data={
+                          'publishdate_0': '2014-01-01',
+                          'publishdate_1': '00:00:00',
+                          'content': '<p>Test</p>'
+                      })
+
+        pc1 = PostComment.objects.get(pk=pc1.id)
+        pc2 = PostComment.objects.get(pk=pc2.id)
+        self.assertIsNotNone(pc1.response)
+        self.assertEquals(pc1.response.moderated, True)
+        self.assertEquals(pc1.response.author, self.admin_user)
+        self.assertIsNotNone(pc2.response)
+        self.assertEquals(pc2.response.moderated, True)
+        self.assertEquals(pc2.response.author, self.admin_user)
+        # because we are posting to the same blog only one reply is made
+        self.assertEquals(pc1.response.id, pc2.response.id)
 
     def test_get_courses(self):
         c = Client()
@@ -1990,10 +2182,10 @@ class GeneralTests(TestCase):
 
     #assuming MAX_SPACES is 300
     def test_space_available(self):
-        learner =  self.create_learner(
+        learner = self.create_learner(
             self.school,
             username="+27123456999",
-            mobile="+2712345699",)
+            mobile="+2712345699", )
 
         self.participant = self.create_participant(
             learner,
@@ -2025,7 +2217,7 @@ class GeneralTests(TestCase):
         learner = self.create_learner(
             self.school,
             username="+27123456999",
-            mobile="+2712345699",)
+            mobile="+2712345699", )
 
         self.participant = self.create_participant(
             learner,
@@ -2278,7 +2470,6 @@ class GeneralTests(TestCase):
 
 @override_settings(VUMI_GO_FAKE=True)
 class LearnerStateTest(TestCase):
-
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
@@ -2549,7 +2740,6 @@ class MockSuperUser(object):
 
 @override_settings(VUMI_GO_FAKE=True)
 class OneplusAdminMetricTest(TestCase):
-
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
