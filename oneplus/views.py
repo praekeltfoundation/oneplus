@@ -396,7 +396,7 @@ def signup_form(request):
                     school = School.objects.get(name=OPEN_SCHOOL_NAME)
                 except School.DoesNotExist:
                     school = School.objects.create(name=OPEN_SCHOOL_NAME)
-                print school
+
                 #create learner
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
@@ -2917,7 +2917,7 @@ def discussion_response(request, disc):
                 }
             )
         else:
-            disc = Discussion.objects.create(
+            Discussion.objects.create(
                 name=gen_username(request.user),
                 description=title,
                 content=content,
@@ -2926,10 +2926,11 @@ def discussion_response(request, disc):
                 moderated=True,
                 course=db_disc.course,
                 module=db_disc.module,
-                question=db_disc.question
+                question=db_disc.question,
+                response=db_disc
             )
-
-            db_disc.response = disc
+            db_disc.responded = True
+            db_disc.responded_date = datetime.now()
             db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
@@ -3156,7 +3157,6 @@ def discussion_response_selected(request, disc):
         no_discussions = False
 
     def get():
-
         return render(
             request=request,
             template_name='misc/discussion_response_selected.html',
@@ -3194,20 +3194,21 @@ def discussion_response_selected(request, disc):
                 }
             )
         else:
-            disc = Discussion.objects.create(
-                name=gen_username(request.user),
-                description=title,
-                content=content,
-                author=request.user,
-                publishdate=dt,
-                moderated=True,
-                course=db_discs[0].course,
-                module=db_discs[0].module,
-                question=db_discs[0].question
-            )
-
             for db_disc in db_discs:
-                db_disc.response = disc
+                Discussion.objects.create(
+                    name=gen_username(request.user),
+                    description=title,
+                    content=content,
+                    author=request.user,
+                    publishdate=dt,
+                    moderated=True,
+                    course=db_disc.course,
+                    module=db_disc.module,
+                    question=db_disc.question,
+                    response=db_disc
+                )
+                db_disc.responded = True
+                db_disc.responded_date = datetime.now()
                 db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
