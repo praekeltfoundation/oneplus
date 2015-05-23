@@ -1,6 +1,6 @@
 from auth.models import Learner
 from django.contrib import admin
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, HttpResponse
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
@@ -9,7 +9,6 @@ from .utils import VumiSmsApi, get_user_bans
 from organisation.models import CourseModuleRel
 from .filters import *
 from django.utils.http import urlquote
-from django.contrib import messages
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -414,11 +413,7 @@ class ModerationAdmin(admin.ModelAdmin):
         cnt3 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_CHAT).count()
 
         if (cnt1 > 0 and (cnt2 + cnt3) != 0) or (cnt2 > 0 and (cnt1 + cnt3) != 0) or (cnt3 > 0 and (cnt1 + cnt2) != 0):
-            modeladmin.message_user(
-                request,
-                "Plesse select only messages of the same type when doing a bulk reply",
-                level=messages.ERROR
-            )
+            return HttpResponse("Plesse select only messages of the same type when doing a bulk reply")
 
         if cnt1 > 0:
             atype = Moderation.MT_BLOG_COMMENT
