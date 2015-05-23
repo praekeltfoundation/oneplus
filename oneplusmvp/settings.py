@@ -251,6 +251,10 @@ ADMIN_REORDER = (
               "System Administrators")),
 )
 
+OPEN_SCHOOL_NAME = "Open School"
+OPEN_COURSE_NAME = "Open Course"
+OPEN_CLASS_NAME = "Open Class"
+
 try:
     from local_settings import *
 except ImportError as e:
