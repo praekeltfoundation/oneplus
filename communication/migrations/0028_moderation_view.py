@@ -8,10 +8,58 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        pass
+        query = """
+            drop view view_communication_moderation
+        """
+        db.execute(query)
+
+        query = """
+            create view view_communication_moderation as
+            select '1_' || pc.id as mod_pk, pc.id as mod_id, 1 as type, 'Blog: ' || p.description as description, pc.content, pc.author_id, pc.moderated, pc.publishdate, pc_resp.content as response, pc.unmoderated_date, pc.unmoderated_by_id, pc.original_content
+            from communication_postcomment pc
+            left join communication_post p
+                on p.id = pc.post_id
+            left join communication_postcomment pc_resp
+                on pc_resp.id = pc.response_id
+            union all
+            select '2_' || src.id, src.id, 2, 'Discussion: ' || src.description, src.content, src.author_id, src.moderated,  src.publishdate, resp.content, src.unmoderated_date, src.unmoderated_by_id, src.original_content
+            from communication_discussion src
+            left join communication_discussion resp
+                on resp.id = src.response_id
+            union all
+            select '3_' || cm.id, cm.id, 3, 'Chat Room: ' || cg.name, cm.content, cm.author_id, cm.moderated, cm.publishdate, cm_resp.content, cm.unmoderated_date, cm.unmoderated_by_id, cm.original_content
+            from communication_chatmessage cm
+            inner join communication_chatgroup cg
+                on cg.id = cm.chatgroup_id
+            left join communication_chatmessage cm_resp
+                on cm_resp.id = cm.response_id
+        """
+        db.execute(query)
 
     def backwards(self, orm):
-        pass
+        query = """
+            drop view view_communication_moderation
+        """
+        db.execute(query)
+
+        query = """
+            create view view_communication_moderation as
+            select '1_' || pc.id as mod_pk, pc.id as mod_id, 1 as type, 'Blog: ' || p.description as description, pc.content, pc.author_id, pc.moderated, pc.publishdate, NULL as response, pc.unmoderated_date, pc.unmoderated_by_id, pc.original_content
+            from communication_postcomment pc
+                left join communication_post p
+                    on p.id = pc.post_id
+            union all
+            select '2_' || src.id, src.id, 2, 'Discussion: ' || src.description, src.content, src.author_id, src.moderated,  src.publishdate, resp.content, src.unmoderated_date, src.unmoderated_by_id, src.original_content
+            from communication_discussion src
+                left join communication_discussion resp
+                    on resp.id = src.response_id
+            union all
+            select '3_' || cm.id, cm.id, 3, 'Chat Room: ' || cg.name, cm.content, cm.author_id, cm.moderated, cm.publishdate, NULL, cm.unmoderated_date, cm.unmoderated_by_id, cm.original_content
+            from communication_chatmessage cm
+                inner join communication_chatgroup cg
+                    on cg.id = cm.chatgroup_id
+        """
+        db.execute(query)
 
     models = {
         u'auth.customuser': {
