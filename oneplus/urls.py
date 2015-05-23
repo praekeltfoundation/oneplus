@@ -79,6 +79,13 @@ urlpatterns = [
         views.blog_comment_response_selected,
         name="com.blogcomrespsel"),
 
+    url(r"^chat_response/(?P<cm>\d+)$",
+        views.chat_response,
+        name="com.chatresp"),
+    url(r"^chat_response_selected/(?P<cm>(\d+)(,\s*\d+)*)$",
+        views.chat_response_selected,
+        name="com.chatrespsel"),
+
     url(r"^message/add/$", views.add_message, name="com.add_message"),
     url(r"^message/(?P<msg>\d+)/$", views.view_message, name="com.view_message"),
 

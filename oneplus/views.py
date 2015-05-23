@@ -3237,6 +3237,124 @@ def blog_comment_response_selected(request, pc):
                 db_pc.response = posts[db_pc.post.id]
                 db_pc.save()
 
-            return HttpResponseRedirect('/admin/communication/discussion/')
+            return HttpResponseRedirect('/admin/communication/postcomment/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def chat_response(request, cm):
+    db_cm = ChatMessage.objects.filter(id=cm).first()
+
+    if not db_cm:
+        return HttpResponse("ChatMessage %s not found" % cm)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/chat_response.html',
+            dictionary={'cm': db_cm}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/chat_response.html',
+                dictionary={
+                    'cm': db_cm,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            cm = ChatMessage.objects.create(
+                author=request.user,
+                content=content,
+                publishdate=dt,
+                moderated=True,
+                chatgroup=db_cm.chatgroup
+            )
+
+            db_cm.response = cm
+            db_cm.save()
+
+            return HttpResponseRedirect('/admin/communication/chatmessage/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def chat_response_selected(request, cm):
+    cms = cm.split(',')
+    db_cms = ChatMessage.objects.filter(id__in=cms, response__isnull=True)
+
+    if db_cms.count() == 0:
+        no_cms = True
+    else:
+        no_cms = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/chat_response_selected.html',
+            dictionary={'cms': db_cms, 'no_cms': no_cms}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/chat_response_selected.html',
+                dictionary={
+                    'cms': db_cms,
+                    'no_cms': no_cms,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            groups = {}
+            for db_cm in db_cms:
+                # create one chat message per group
+                if db_cm.chatgroup.id not in groups.keys():
+                    cm = ChatMessage.objects.create(
+                        author=request.user,
+                        content=content,
+                        publishdate=dt,
+                        moderated=True,
+                        chatgroup=db_cm.chatgroup
+                    )
+
+                    groups[db_cm.chatgroup.id] = cm
+
+                db_cm.response = groups[db_cm.chatgroup.id]
+                db_cm.save()
+
+            return HttpResponseRedirect('/admin/communication/chatmessage/')
 
     return resolve_http_method(request, [get, post])
