@@ -409,9 +409,9 @@ class ModerationAdmin(admin.ModelAdmin):
 
     def reply_to_selected(modeladmin, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        cnt1 = queryset.fitler(mod_pk__in=selected, type=1).count()
-        cnt2 = queryset.filter(mod_pk__in=selected, type=2).count()
-        cnt3 = queryset.filter(mod_pk__in=selected, type=3).count()
+        cnt1 = queryset.fitler(mod_pk__in=selected, type=Moderation.MT_BLOG_COMMENT).count()
+        cnt2 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_DISCUSSION).count()
+        cnt3 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_CHAT).count()
 
         if (cnt1 > 0 and (cnt2 + cnt3) != 0) or (cnt2 > 0 and (cnt1 + cnt3) != 0) or (cnt3 > 0 and (cnt1 + cnt2) != 0):
             modeladmin.message_user(
@@ -421,16 +421,16 @@ class ModerationAdmin(admin.ModelAdmin):
             )
 
         if cnt1 > 0:
-            type = 1
-            url = "discussion_response_selected"
+            atype = Moderation.MT_BLOG_COMMENT
+            url = "blog_comment_response_selected"
         elif cnt2 > 0:
-            type = 2
-            url = ""
+            atype = Moderation.MT_DISCUSSION
+            url = "discussion_response_selected"
         elif cnt3 > 0:
-            type = 3
-            url = ""
+            atype = Moderation.MT_CHAT
+            url = "chat_response_selected"
 
-        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=type).values('mod_id'))
+        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=atype).values('mod_id'))
         return HttpResponseRedirect('/%s/%s' % (url, ",".join(qs)))
 
     reply_to_selected.short_description = 'Add reply'
