@@ -321,13 +321,13 @@ class ModerationAdmin(admin.ModelAdmin):
 
     def get_reply(self, obj):
         if obj.response is None or len(obj.response.strip()) == 0:
-            if obj.type == 1:
+            if obj.type == Moderation.MT_BLOG_COMMENT:
                 url = "/blog_comment_response/%d" % obj.mod_id
                 retval = '<a href="%s" target="_blank">Add Reply</a>' % url
-            elif obj.type == 2:
+            elif obj.type == Moderation.MT_DISCUSSION:
                 url = '/discussion_response/%d' % obj.mod_id
                 retval = '<a href="%s" target="_blank">Add Reply</a>' % url
-            elif obj.type == 3:
+            elif obj.type == Moderation.MT_CHAT:
                 url = "/chat_response/%d" % obj.mod_id
                 retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             else:
@@ -351,11 +351,11 @@ class ModerationAdmin(admin.ModelAdmin):
 
     def get_published(self, obj):
         url_base = '/admin/communication/'
-        if obj.type == 1:
+        if obj.type == Moderation.MT_BLOG_COMMENT:
             url_part = 'postcomment'
-        elif obj.type == 2:
+        elif obj.type == Moderation.MT_DISCUSSION:
             url_part = 'discussion'
-        elif obj.type == 3:
+        elif obj.type == Moderation.MT_CHAT:
             url_part = 'chatmessage'
 
         if obj.moderated:

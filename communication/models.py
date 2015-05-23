@@ -472,11 +472,25 @@ class SmsQueue(models.Model):
 
 class Moderation(models.Model):
 
+    MT_BLOG_COMMENT = 1
+    MT_DISCUSSION = 2
+    MT_CHAT = 3
+
+    moderation_types = (
+        (MT_BLOG_COMMENT, 'Blog Comment'),
+        (MT_DISCUSSION, 'Discussion'),
+        (MT_CHAT, 'Chat')
+    )
+
     # pk for the view
     mod_pk = models.CharField(max_length=50, primary_key=True)
     # pk for the underlying model
     mod_id = models.PositiveIntegerField()
-    type = models.PositiveIntegerField(null=True, blank=True)
+    type = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        choices=moderation_types
+    )
     description = models.CharField(max_length=100, null=True, blank=True)
     content = models.TextField(null=True, blank=True)
     author = models.ForeignKey(

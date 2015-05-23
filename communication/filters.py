@@ -95,11 +95,11 @@ class ModerationStateFilter(admin.SimpleListFilter):
             elif self.value() == '3':
                 return queryset.filter(moderated=True)
             elif self.value() == '4':
-                return queryset.filter(moderated=False, unmoderated_date__isnull=False)
+                return queryset.filter(unmoderated_date__isnull=False)
             elif self.value() == '5':
-                return queryset.filter(moderated=False, unmoderated_date__isnull=False, unmoderated_by__is_staff=False)
+                return queryset.filter(unmoderated_date__isnull=False, unmoderated_by__is_staff=False)
             elif self.value() == '6':
-                return queryset.filter(moderated=False, unmoderated_date__isnull=False, unmoderated_by__is_staff=True)
+                return queryset.filter(unmoderated_date__isnull=False, unmoderated_by__is_staff=True)
             else:
                 return queryset
 
