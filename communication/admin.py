@@ -409,7 +409,7 @@ class ModerationAdmin(admin.ModelAdmin):
 
     def reply_to_selected(modeladmin, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        cnt1 = queryset.fitler(mod_pk__in=selected, type=Moderation.MT_BLOG_COMMENT).count()
+        cnt1 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_BLOG_COMMENT).count()
         cnt2 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_DISCUSSION).count()
         cnt3 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_CHAT).count()
 
