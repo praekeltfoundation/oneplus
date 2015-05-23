@@ -9,6 +9,7 @@ from .utils import VumiSmsApi, get_user_bans
 from organisation.models import CourseModuleRel
 from .filters import *
 from django.utils.http import urlquote
+from django.contrib import messages
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -408,11 +409,29 @@ class ModerationAdmin(admin.ModelAdmin):
 
     def reply_to_selected(modeladmin, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        # we only have a discussion respond to selected page so
-        # filter the results accordingly
-        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=2).values('mod_id'))
-        return HttpResponseRedirect('/discussion_response_selected/%s' %
-                                    ",".join(qs))
+        cnt1 = queryset.fitler(mod_pk__in=selected, type=1).count()
+        cnt2 = queryset.filter(mod_pk__in=selected, type=2).count()
+        cnt3 = queryset.filter(mod_pk__in=selected, type=3).count()
+
+        if (cnt1 > 0 and (cnt2 + cnt3) != 0) or (cnt2 > 0 and (cnt1 + cnt3) != 0) or (cnt3 > 0 and (cnt1 + cnt2) != 0):
+            modeladmin.message_user(
+                request,
+                "Plesse select only messages of the same type when doing a bulk reply",
+                level=messages.ERROR
+            )
+
+        if cnt1 > 0:
+            type = 1
+            url = "discussion_response_selected"
+        elif cnt2 > 0:
+            type = 2
+            url = ""
+        elif cnt3 > 0:
+            type = 3
+            url = ""
+
+        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=type).values('mod_id'))
+        return HttpResponseRedirect('/%s/%s' % (url, ",".join(qs)))
 
     reply_to_selected.short_description = 'Add reply'
 
