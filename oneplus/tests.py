@@ -1855,9 +1855,7 @@ class GeneralTests(TestCase):
                             })
 
         disc = Discussion.objects.get(pk=disc.id)
-        self.assertIsNotNone(disc.response)
-        self.assertEquals(disc.response.moderated, True)
-        self.assertEquals(disc.response.author, self.admin_user)
+        self.assertIsNotNone(disc.responded)
 
     def test_admin_discussion_response_selected(self):
         c = Client()
@@ -1939,12 +1937,7 @@ class GeneralTests(TestCase):
 
         disc = Discussion.objects.get(pk=disc.id)
         disc2 = Discussion.objects.get(pk=disc2.id)
-        self.assertIsNotNone(disc.response)
-        self.assertEquals(disc.response.moderated, True)
-        self.assertEquals(disc.response.author, self.admin_user)
-        self.assertIsNotNone(disc2.response)
-        self.assertEquals(disc2.response.moderated, True)
-        self.assertEquals(disc2.response.author, self.admin_user)
+        self.assertIsNotNone(disc.responded)
 
     def test_get_courses(self):
         c = Client()
