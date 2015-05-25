@@ -120,7 +120,7 @@ class Discussion(models.Model):
         "self",
         null=True,
         blank=True,
-        related_name="discussion"
+        related_name="related_discussions"
     )
     unmoderated_date = models.DateTimeField(null=True, blank=True)
     unmoderated_by = models.ForeignKey(
