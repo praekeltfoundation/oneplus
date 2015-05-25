@@ -9,7 +9,8 @@ class Migration(SchemaMigration):
 
     depends_on = (
         ("core", "0020_auto__del_field_class_teacher"),
-        ("auth", "0012_auto__del_field_learner_questions_correct__del_field_learner_questions")
+        ("auth", "0012_auto__del_field_learner_questions_correct__del_field_learner_questions"),
+        ("organisation", "0010_auto__add_field_course_is_active")
     )
 
     def forwards(self, orm):
