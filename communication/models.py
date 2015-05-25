@@ -76,6 +76,11 @@ class PostComment(models.Model):
         related_name="unmoderated_user"
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
+    response = models.ForeignKey(
+        "PostComment",
+        blank=True,
+        null=True
+    )
 
 
 class Discussion(models.Model):
@@ -339,6 +344,11 @@ class ChatMessage(models.Model):
         related_name="chatmessage_unmoderated_user"
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
+    response = models.ForeignKey(
+        "ChatMessage",
+        blank=True,
+        null=True
+    )
 
     def __unicode__(self):
         return self.content

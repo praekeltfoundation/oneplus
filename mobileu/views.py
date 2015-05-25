@@ -2,7 +2,8 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import user_passes_test
 from communication.models import PostComment, ChatMessage, Discussion
-from communication.utils import moderate, unmoderate
+from communication.utils import moderate, unmoderate, ban_user
+from auth.models import CustomUser
 
 
 def _publish(obj, name):
@@ -26,6 +27,13 @@ def _unpublish(obj, name, user):
     if obj:
         try:
             unmoderate(obj, user)
+
+            if user.is_staff:
+                num_ban_days = 3
+            else:
+                num_ban_days = 1
+
+            ban_user(obj.author, user, obj, num_ban_days)
             msg = '%s has been unpublished' % name
         except Exception as ex:
             msg = '%s%s' % (err_msg, ex.message)

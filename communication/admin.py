@@ -1,6 +1,6 @@
 from auth.models import Learner
 from django.contrib import admin
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, HttpResponse
 from django_summernote.admin import SummernoteModelAdmin
 from .models import *
 from core.models import Participant
@@ -321,12 +321,14 @@ class ModerationAdmin(admin.ModelAdmin):
     def get_reply(self, obj):
         if obj.response is None or len(obj.response.strip()) == 0:
             if obj.type == Moderation.MT_BLOG_COMMENT:
-                retval = 'Add Reply'
+                url = "/blog_comment_response/%d" % obj.mod_id
+                retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             elif obj.type == Moderation.MT_DISCUSSION:
                 url = '/discussion_response/%d' % obj.mod_id
                 retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             elif obj.type == Moderation.MT_CHAT:
-                retval = 'Add Reply'
+                url = "/chat_response/%d" % obj.mod_id
+                retval = '<a href="%s" target="_blank">Add Reply</a>' % url
             else:
                 retval = 'Add Reply'
 
@@ -406,11 +408,25 @@ class ModerationAdmin(admin.ModelAdmin):
 
     def reply_to_selected(modeladmin, request, queryset):
         selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        # we only have a discussion respond to selected page so
-        # filter the results accordingly
-        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=2).values('mod_id'))
-        return HttpResponseRedirect('/discussion_response_selected/%s' %
-                                    ",".join(qs))
+        cnt1 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_BLOG_COMMENT).count()
+        cnt2 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_DISCUSSION).count()
+        cnt3 = queryset.filter(mod_pk__in=selected, type=Moderation.MT_CHAT).count()
+
+        if (cnt1 > 0 and (cnt2 + cnt3) != 0) or (cnt2 > 0 and (cnt1 + cnt3) != 0) or (cnt3 > 0 and (cnt1 + cnt2) != 0):
+            return HttpResponse("Plesse select only messages of the same type when doing a bulk reply")
+
+        if cnt1 > 0:
+            atype = Moderation.MT_BLOG_COMMENT
+            url = "blog_comment_response_selected"
+        elif cnt2 > 0:
+            atype = Moderation.MT_DISCUSSION
+            url = "discussion_response_selected"
+        elif cnt3 > 0:
+            atype = Moderation.MT_CHAT
+            url = "chat_response_selected"
+
+        qs = list(str(row['mod_id']) for row in queryset.filter(mod_pk__in=selected, type=atype).values('mod_id'))
+        return HttpResponseRedirect('/%s/%s' % (url, ",".join(qs)))
 
     reply_to_selected.short_description = 'Add reply'
 
