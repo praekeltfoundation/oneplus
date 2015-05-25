@@ -431,12 +431,24 @@ class ModerationAdmin(admin.ModelAdmin):
     reply_to_selected.short_description = 'Add reply'
 
     def unpublish_selected(modeladmin, request, queryset):
-        queryset.update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
+        blogcomments = queryset.filter(type=Moderation.MT_BLOG_COMMENT).values("mod_id")
+        discusions = queryset.filter(type=Moderation.MT_DISCUSSION).values("mod_id")
+        chats = queryset.filter(type=Moderation.MT_CHAT).values("mod_id")
+
+        PostComment.objects.filter(id__in=blogcomments).update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
+        Discussion.objects.filter(id__in=discusions).update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
+        ChatMessage.objects.filter(id__in=chats).update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
 
     unpublish_selected.short_description = 'Unpublish'
 
     def publish_selected(modeladmin, request, queryset):
-        queryset.update(moderated=True)
+        blogcomments = queryset.filter(type=Moderation.MT_BLOG_COMMENT).values("mod_id")
+        discusions = queryset.filter(type=Moderation.MT_DISCUSSION).values("mod_id")
+        chats = queryset.filter(type=Moderation.MT_CHAT).values("mod_id")
+
+        PostComment.objects.filter(id__in=blogcomments).update(moderated=True)
+        Discussion.objects.filter(id__in=discusions).update(moderated=True)
+        ChatMessage.objects.filter(id__in=chats).update(moderated=True)
 
     publish_selected.short_description = 'Publish'
 
