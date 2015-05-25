@@ -58,7 +58,7 @@
                                         <button type="submit" name="comment_response_button" class="link green-front" value="{{ msg.id }}">Reply</button>
                                     </form>
                                 {% endifnotequal %}
-                        {% endif %}
+                            {% endif %}
                         </div>
                         <p class="white-front">{{ msg.content }}</p>
                         {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}

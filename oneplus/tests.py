@@ -3163,6 +3163,7 @@ class ExtraAdminBitTests(TestCase):
 
         disc = Discussion.objects.get(pk=disc.id)
         self.assertIsNotNone(disc.response)
+        self.assertIsNotNone(disc.responded, True)
         self.assertEquals(disc.response.moderated, True)
         self.assertEquals(disc.response.author, self.admin_user)
 
@@ -3252,6 +3253,7 @@ class ExtraAdminBitTests(TestCase):
         disc = Discussion.objects.get(pk=disc.id)
         disc2 = Discussion.objects.get(pk=disc2.id)
         self.assertIsNotNone(disc.response)
+        self.assertEquals(disc.responded, True)
         self.assertEquals(disc.response.moderated, True)
         self.assertEquals(disc.response.author, self.admin_user)
         self.assertIsNotNone(disc2.response)
