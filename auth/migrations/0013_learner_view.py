@@ -8,9 +8,8 @@ from django.db import models
 class Migration(SchemaMigration):
 
     depends_on = (
+        ("core", "0018_auto__chg_field_participant_learner__del_unique_participant_learner"),
         ("auth", "0012_auto__del_field_learner_questions_correct__del_field_learner_questions"),
-        ("core", "0020_auto__del_field_class_teacher"),
-        #("organisation", "0010_auto__add_field_course_is_active")
     )
 
     def forwards(self, orm):
