@@ -2817,7 +2817,7 @@ def add_message(request):
                 #Specific learners
                 for u in users:
                     usr = Learner.objects.get(id=u)
-                    _participant = Participant.objects.get(learner=usr)
+                    _participant = Participant.objects.filter(learner=usr).first()
                     create_message(name, _participant.classs.course, _participant.classs, usr, direction, dt, content)
 
         if "_save" in request.POST.keys():
