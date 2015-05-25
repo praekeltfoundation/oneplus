@@ -110,7 +110,18 @@ class Discussion(models.Model):
     course = models.ForeignKey(Course, null=True, blank=True)
     module = models.ForeignKey(Module, null=True, blank=True)
     question = models.ForeignKey(TestingQuestion, null=True, blank=True)
-    response = models.ForeignKey("self", null=True, blank=True)
+    response = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        related_name="discussion_admin_response"
+    )
+    reply = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        related_name="related_discussions"
+    )
     unmoderated_date = models.DateTimeField(null=True, blank=True)
     unmoderated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -119,8 +130,6 @@ class Discussion(models.Model):
         related_name="discussion_unmoderated_user"
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
-    responded = models.BooleanField(default=False)
-    responded_date = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
         return self.author.first_name + ": " + self.content
