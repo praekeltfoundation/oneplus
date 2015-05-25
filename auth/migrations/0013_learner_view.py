@@ -52,12 +52,15 @@ class Migration(SchemaMigration):
                 ON core_participant.id = total.participant_id
         """
 
-        query = "drop view view_auth_learner"
-        db.execute(query)
-
         if db.backend_name == "sqlite3":
+            query = "drop view view_auth_learner"
+            db.execute(query)
+
             query = query_sqlite
         else:
+            query = "drop view if exists view_auth_learner"
+            db.execute(query)
+
             query = query_postgres
 
         db.execute(query)
