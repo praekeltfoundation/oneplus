@@ -121,8 +121,8 @@
 
                                 {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                     <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                                        <button type="submit" name="reply_button" class="button green-back grey-front" value="{{ msg.id }}">Reply</button>
                                         <input type="text" name="reply" value="" />
+                                        <button type="submit" name="reply_button" class="button green-back grey-front" value="{{ msg.id }}">Reply</button>
                                     </form>
                                 {% endifequal %}
 
@@ -135,7 +135,7 @@
                             {% endif %}
                         </div>
 
-                        {% for rsp in msg.discussion_set.all reversed %}
+                        {% for rsp in msg.related_discussions.all reversed %}
                             {% if rsp.moderated %}
                                 <div class="item-large grey-back reply">
                                     <div><span class="white-front bold-font">{{ rsp.author.first_name }}</span> <span class="lightgrey-front">{{ rsp.publishdate | naturaltime }}</span></div>

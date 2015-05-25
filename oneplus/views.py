@@ -2,7 +2,7 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from .forms import LoginForm, SmsPasswordForm, SignupForm
+from .forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
 from core.models import *
@@ -31,6 +31,9 @@ from django.db.models import Count
 from django.db.models import Q
 import re
 from communication.utils import report_user_post
+from organisation.models import School, Course
+from core.models import Class
+from oneplusmvp.settings import OPEN_SCHOOL_NAME, OPEN_CLASS_NAME, OPEN_COURSE_NAME
 
 
 COUNTRYWIDE = "Countrywide"
@@ -279,17 +282,23 @@ def validate_mobile(mobile):
     pattern_both = "^(\+\d{1,2})?\d{10}$"
     match = re.match(pattern_both, mobile)
     if match:
-        pattern_non_int = "^\d{10}$"
-
-        match_non_int = re.match(pattern_non_int, mobile)
-
-        if match_non_int:
-            mobile = "+27" + mobile[1:]
-
         return mobile
-
     else:
         return None
+
+
+#create learner
+def create_learner(first_name, last_name, mobile, area, city, country, school, grade, enrolled):
+    return Learner.objects.create(first_name=first_name,
+                                  last_name=last_name,
+                                  mobile=mobile,
+                                  username=mobile,
+                                  area=area,
+                                  city=city,
+                                  country=country,
+                                  school=school,
+                                  grade=grade,
+                                  enrolled=enrolled)
 
 
 #create participant
@@ -302,82 +311,157 @@ def create_participant(learner, classs):
 #Sign up Form Screen
 @available_space_required
 def signup_form(request):
+    schools = School.objects.all()
+    classes = Class.objects.all()
+
     def get():
-        return render(request, "auth/signup_form.html", {"form": SignupForm})
+        return render(request, "auth/signup_form.html", {"schools": schools,
+                                                         "classes": classes})
 
     def post():
-        form = SignupForm(request.POST)
-        if form.is_valid():
-            #check if the cellphone number is valid
-            cellphone = form.cleaned_data["cellphone"]
-            cellphone = validate_mobile(cellphone)
-            if cellphone is not None:
-                #check if user with this cellphone number exists
-                user = CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))
+        data = {}
+        errors = {}
 
-                #if learner exists only create a participant
-                if not user:
-                    first_name = form.cleaned_data["first_name"]
-                    surname = form.cleaned_data["surname"]
-                    school = form.cleaned_data["school"]
-                    classs = form.cleaned_data["classs"]
-                    area = form.cleaned_data["area"]
-                    city = form.cleaned_data["city"]
-                    country = form.cleaned_data["country"]
-                    enrolled = form.cleaned_data["enrolled"]
-                    grade = form.cleaned_data["grade"]
-
-                    #create learner
-                    new_learner = Learner.objects.create(first_name=first_name,
-                                                         last_name=surname,
-                                                         mobile=cellphone,
-                                                         username=cellphone,
-                                                         area=area,
-                                                         city=city,
-                                                         country=country,
-                                                         school=school,
-                                                         grade=grade,
-                                                         enrolled=enrolled)
-
-                    #generate random password
-                    password = CustomUser.objects.make_random_password(length=8)
-                    new_learner.set_password(password)
-                    new_learner.save()
-
-                    #create participant
-                    create_participant(new_learner, classs)
-
-                    #sms the learner their OnePlus password
-                    SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
-                                                    "this link: http://www.oneplus.co.za/login" % password,
-                                            send_date=datetime.now(),
-                                            msisdn=cellphone)
-
-                    return render(request, "auth/signedup.html")
-
-                else:
-                    active_participant = Participant.objects.filter(learner=user.first(), is_active=True)
-                    if active_participant.exists():
-                        return get()
-
-                    classs = form.cleaned_data["classs"]
-
-                    learner = Learner.objects.get(id=user.first().id)
-
-                    if learner.classs != classs:
-                        #create participant
-                        create_participant(learner, classs)
-                    else:
-                        return get()
-
-                    return render(request, "auth/participant_signedup.html")
-            else:
-                return get()
-                # raise forms.ValidationError(
-                #     'Invalid cellphone number',
-                #     code='invalid')
+        if "first_name" in request.POST.keys() and request.POST["first_name"]:
+            data["first_name"] = request.POST["first_name"]
         else:
-            return redirect("auth.signup_form")
+            errors["first_name_error"] = "This must be completed"
+
+        if "surname" in request.POST.keys() and request.POST["surname"]:
+            data["surname"] = request.POST["surname"]
+        else:
+            errors["surname_error"] = "This must be completed"
+
+        if "cellphone" in request.POST.keys() and request.POST["cellphone"]:
+            cellphone = request.POST["cellphone"]
+            if validate_mobile(cellphone):
+                if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone)).exists():
+                    errors["cellphone_error"] = "registered"
+                else:
+                    data["cellphone"] = cellphone
+            else:
+                errors["cellphone_error"] = "Enter a valid cellphone number"
+        else:
+            errors["cellphone_error"] = "This must be completed"
+
+        enrolled = True
+        if "enrolled" in request.POST.keys() and request.POST["enrolled"]:
+            data["enrolled"] = request.POST["enrolled"]
+            if data["enrolled"] == '1':
+                enrolled = False
+        else:
+            errors["enrolled_error"] = "This must be completed"
+
+        if enrolled:
+            if "school" in request.POST.keys() and request.POST["school"]:
+                data["school"] = request.POST["school"]
+                try:
+                    School.objects.get(id=data["school"])
+                except School.DoesNotExist:
+                    errors["school_error"] = "Select a school"
+            else:
+                errors["school_error"] = "Select a school"
+
+            if "classs" in request.POST.keys() and request.POST["classs"]:
+                data["classs"] = request.POST["classs"]
+                try:
+                    Class.objects.get(id=data["classs"])
+                except Class.DoesNotExist:
+                    errors["class_error"] = "Select a class"
+            else:
+                errors["class_error"] = "Select a class"
+
+        if "area" in request.POST.keys() and request.POST["area"]:
+            data["area"] = request.POST["area"]
+        else:
+            errors["area_error"] = "This must be completed"
+
+        if "city" in request.POST.keys() and request.POST["city"]:
+            data["city"] = request.POST["city"]
+        else:
+            errors["city_error"] = "This must be completed"
+
+        if "country" in request.POST.keys() and request.POST["country"]:
+            data["country"] = request.POST["country"]
+        else:
+            errors["country_error"] = "This must be completed"
+
+        if "grade" in request.POST.keys() and request.POST["grade"]:
+            data["grade"] = request.POST["grade"]
+        else:
+            errors["grade_error"] = "This must be completed"
+
+        if not errors:
+            if data["enrolled"] == '1':
+                try:
+                    school = School.objects.get(name=OPEN_SCHOOL_NAME)
+                except School.DoesNotExist:
+                    school = School.objects.create(name=OPEN_SCHOOL_NAME)
+
+                #create learner
+                new_learner = create_learner(first_name=data["first_name"],
+                                             last_name=data["surname"],
+                                             mobile=data["cellphone"],
+                                             area=data["area"],
+                                             city=data["city"],
+                                             country=data["country"],
+                                             school=school,
+                                             grade=data["grade"],
+                                             enrolled=data["enrolled"])
+
+                try:
+                    classs = Class.objects.get(name=OPEN_CLASS_NAME)
+                except Class.DoesNotExist:
+                    try:
+                        course = Course.objects.get(name=OPEN_COURSE_NAME)
+                    except Course.DoesNotExist:
+                        course = Course.objects.create(name=OPEN_COURSE_NAME)
+                    classs = Class.objects.create(name=OPEN_CLASS_NAME, course=course)
+
+                create_participant(new_learner, classs)
+
+            else:
+                school = School.objects.get(id=data["school"])
+                #create learner
+                new_learner = create_learner(first_name=data["first_name"],
+                                             last_name=data["surname"],
+                                             mobile=data["cellphone"],
+                                             area=data["area"],
+                                             city=data["city"],
+                                             country=data["country"],
+                                             school=school,
+                                             grade=data["grade"],
+                                             enrolled=data["enrolled"])
+
+                classs = Class.objects.get(id=data["classs"])
+
+                #create participant
+                create_participant(new_learner, classs)
+
+            #generate random password
+            password = CustomUser.objects.make_random_password(length=8)
+            new_learner.set_password(password)
+            new_learner.save()
+
+            #sms the learner their OnePlus password
+            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
+                                            "this link: http://www.oneplus.co.za/login" % password,
+                                    send_date=datetime.now(),
+                                    msisdn=cellphone)
+
+            #inform oneplus about the new learner
+            subject = "".join(['New student registered'])
+            message = "".join([
+                new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
+
+            #mail_managers(subject=subject, message=message, fail_silently=False)
+
+            return render(request, "auth/signedup.html")
+        else:
+            return render(request, "auth/signup_form.html", {"schools": schools,
+                                                             "classes": classes,
+                                                             "data": data,
+                                                             "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
@@ -895,7 +979,7 @@ def adminpreview(request, questionid):
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
-            response=None
+            reply=None
         ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
@@ -919,7 +1003,7 @@ def adminpreview(request, questionid):
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
-            response=None
+            reply=None
         ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
@@ -941,7 +1025,7 @@ def adminpreview_right(request, questionid):
             Discussion.objects.filter(
                 question=question,
                 moderated=True,
-                response=None
+                reply=None
             ).order_by("-publishdate")
 
         return render(
@@ -968,7 +1052,7 @@ def adminpreview_wrong(request, questionid):
             Discussion.objects.filter(
                 question=question,
                 moderated=True,
-                response=None
+                reply=None
             ).order_by("-publishdate")
 
         return render(
@@ -1061,7 +1145,7 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).count()
 
             # Discussion page?
@@ -1074,7 +1158,7 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             # Get badge points
@@ -1109,7 +1193,7 @@ def right(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=None,
+                    reply=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
                 _message.save()
                 request.session["state"]["discussion_comment"] = True
@@ -1124,7 +1208,7 @@ def right(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=_parent,
+                    reply=_parent,
                     content=_comment, author=_usr,
                     publishdate=datetime.now()
                 )
@@ -1152,7 +1236,7 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
@@ -1208,7 +1292,7 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).count()
 
             request.session["state"]["discussion_page"] = \
@@ -1219,7 +1303,7 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
@@ -1247,7 +1331,7 @@ def wrong(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=None,
+                    reply=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
                 _message.save()
                 request.session["state"]["discussion_comment"] = True
@@ -1262,7 +1346,7 @@ def wrong(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=_parent,
+                    reply=_parent,
                     content=_comment, author=_usr, publishdate=datetime.now()
                 )
                 _message.save()
@@ -1289,7 +1373,7 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
@@ -2145,7 +2229,7 @@ def report_question(request, state, user, questionid, frm):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).count()
 
             # Discussion page?
@@ -2158,7 +2242,7 @@ def report_question(request, state, user, questionid, frm):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return HttpResponseRedirect('/' + frm,
@@ -2294,13 +2378,13 @@ def change_details(request, state, user):
                 learner.mobile = new_mobile
                 learner.username = new_mobile
                 learner.save()
-                line = {"change_details":  "Your number has been changes to %s." % new_mobile}
+                line = {"change_details":  "Your number has been changed to %s." % new_mobile}
                 changes.append(line)
 
             if email_change:
                 learner.email = new_email
                 learner.save()
-                line = {"change_details":  "Your email has been changes to %s." % new_email}
+                line = {"change_details":  "Your email has been changed to %s." % new_email}
                 changes.append(line)
 
         else:
@@ -2734,7 +2818,7 @@ def add_message(request):
                 #Specific learners
                 for u in users:
                     usr = Learner.objects.get(id=u)
-                    _participant = Participant.objects.get(learner=usr)
+                    _participant = Participant.objects.filter(learner=usr, is_active=True).first()
                     create_message(name, _participant.classs.course, _participant.classs, usr, direction, dt, content)
 
         if "_save" in request.POST.keys():
@@ -2843,7 +2927,8 @@ def discussion_response(request, disc):
                 moderated=True,
                 course=db_disc.course,
                 module=db_disc.module,
-                question=db_disc.question
+                question=db_disc.question,
+                reply=db_disc
             )
 
             db_disc.response = disc
@@ -2867,63 +2952,75 @@ def add_sms(request):
         class_error = False
         dt_error = False
         message_error = False
+        users_error = False
 
         course = None
         classs = None
         date = None
         time = None
         message = None
+        users = False
 
         course_error, course = validate_to_course(request.POST)
         class_error, classs = validate_to_class(request.POST)
         dt_error, date, time, dt = validate_date_and_time(request.POST)
         message_error, message = validate_message(request.POST)
+        users_error, users = validate_users(request.POST)
 
-        if course_error or class_error or dt_error or message_error:
+        if course_error or class_error or dt_error or message_error or users_error:
             return render(
                 request=request,
                 template_name='misc/queued_sms.html',
                 dictionary={
                     'to_course_error': course_error,
                     'to_class_error': class_error,
+                    'users_error': users_error,
                     'dt_error': dt_error,
                     'message_error': message_error,
                     'v_date': date,
                     'v_time': time,
-                    'v_message': message
+                    'v_message': message,
                 }
             )
 
         else:
-            if course == "all":
-                all_courses = Course.objects.all()
-
-                for _course in all_courses:
-                    all_classes = Class.objects.filter(course=_course)
-
-                    for _classs in all_classes:
-                        all_users = Participant.objects.filter(classs=_classs)
-
-                        for u in all_users:
-                            create_sms(u.learner.mobile, dt, message)
-            else:
-                course_obj = Course.objects.get(id=course)
-
+            if "all" in users:
+                #means all users in certain class and course
                 if classs == "all":
-                    all_classes = Class.objects.filter(course=course_obj)
+                    if course == "all":
+                        #All registered learners
+                        all_courses = Course.objects.all()
 
-                    for c in all_classes:
-                        all_users = Participant.objects.filter(classs=c)
+                        for _course in all_courses:
+                            all_classes = Class.objects.filter(course=_course)
 
-                        for u in all_users:
-                            create_sms(u.learner.mobile, dt, message)
+                            for _classs in all_classes:
+                                all_users = Participant.objects.filter(classs=_classs)
+
+                                for usr in all_users:
+                                    create_sms(usr.learner.mobile, dt, message)
+                    else:
+                        #All users registered in this course
+                        course_obj = Course.objects.get(id=course)
+                        all_classes = Class.objects.filter(course=course_obj)
+
+                        for c in all_classes:
+                            all_users = Participant.objects.filter(classs=c)
+
+                            for u in all_users:
+                                create_sms(u.learner.mobile, dt, message)
                 else:
+                    #All learners in specific class
                     classs_obj = Class.objects.get(id=classs)
-
                     all_users = Participant.objects.filter(classs=classs_obj)
 
                     for u in all_users:
                         create_sms(u.learner.mobile, dt, message)
+            else:
+                #Specific learners
+                for u in users:
+                    usr = Learner.objects.get(id=u)
+                    create_sms(usr.learner.mobile, dt, message)
 
         return HttpResponseRedirect('/admin/communication/smsqueue/')
 
@@ -3073,7 +3170,6 @@ def discussion_response_selected(request, disc):
         no_discussions = False
 
     def get():
-
         return render(
             request=request,
             template_name='misc/discussion_response_selected.html',
@@ -3111,22 +3207,259 @@ def discussion_response_selected(request, disc):
                 }
             )
         else:
-            disc = Discussion.objects.create(
-                name=gen_username(request.user),
-                description=title,
-                content=content,
-                author=request.user,
-                publishdate=dt,
-                moderated=True,
-                course=db_discs[0].course,
-                module=db_discs[0].module,
-                question=db_discs[0].question
-            )
-
             for db_disc in db_discs:
+                disc = Discussion.objects.create(
+                    name=gen_username(request.user),
+                    description=title,
+                    content=content,
+                    author=request.user,
+                    publishdate=dt,
+                    moderated=True,
+                    course=db_disc.course,
+                    module=db_disc.module,
+                    question=db_disc.question,
+                    reply=db_disc
+                )
+
                 db_disc.response = disc
                 db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def blog_comment_response(request, pc):
+    db_pc = PostComment.objects.filter(id=pc).first()
+
+    if not db_pc:
+        return HttpResponse("PostComment %s not found" % pc)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/blog_comment_response.html',
+            dictionary={'pc': db_pc}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/blog_comment_response.html',
+                dictionary={
+                    'pc': db_pc,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            pc = PostComment.objects.create(
+                author=request.user,
+                content=content,
+                publishdate=dt,
+                moderated=True,
+                post=db_pc.post
+            )
+
+            db_pc.response = pc
+            db_pc.save()
+
+            return HttpResponseRedirect('/admin/communication/postcomment/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def blog_comment_response_selected(request, pc):
+    pcs = pc.split(',')
+    db_pcs = PostComment.objects.filter(id__in=pcs, response__isnull=True)
+
+    if db_pcs.count() == 0:
+        no_pcs = True
+    else:
+        no_pcs = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/blog_comment_response_selected.html',
+            dictionary={'pcs': db_pcs, 'no_pcs': no_pcs}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/blog_comment_response_selected.html',
+                dictionary={
+                    'pcs': db_pcs,
+                    'no_pcs': no_pcs,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            posts = {}
+            for db_pc in db_pcs:
+                # create one comment per post
+                if db_pc.post.id not in posts.keys():
+                    pc = PostComment.objects.create(
+                        author=request.user,
+                        content=content,
+                        publishdate=dt,
+                        moderated=True,
+                        post=db_pc.post
+                    )
+
+                    posts[db_pc.post.id] = pc
+
+                db_pc.response = posts[db_pc.post.id]
+                db_pc.save()
+
+            return HttpResponseRedirect('/admin/communication/postcomment/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def chat_response(request, cm):
+    db_cm = ChatMessage.objects.filter(id=cm).first()
+
+    if not db_cm:
+        return HttpResponse("ChatMessage %s not found" % cm)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/chat_response.html',
+            dictionary={'cm': db_cm}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/chat_response.html',
+                dictionary={
+                    'cm': db_cm,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            cm = ChatMessage.objects.create(
+                author=request.user,
+                content=content,
+                publishdate=dt,
+                moderated=True,
+                chatgroup=db_cm.chatgroup
+            )
+
+            db_cm.response = cm
+            db_cm.save()
+
+            return HttpResponseRedirect('/admin/communication/chatmessage/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def chat_response_selected(request, cm):
+    cms = cm.split(',')
+    db_cms = ChatMessage.objects.filter(id__in=cms, response__isnull=True)
+
+    if db_cms.count() == 0:
+        no_cms = True
+    else:
+        no_cms = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/chat_response_selected.html',
+            dictionary={'cms': db_cms, 'no_cms': no_cms}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/chat_response_selected.html',
+                dictionary={
+                    'cms': db_cms,
+                    'no_cms': no_cms,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            groups = {}
+            for db_cm in db_cms:
+                # create one chat message per group
+                if db_cm.chatgroup.id not in groups.keys():
+                    cm = ChatMessage.objects.create(
+                        author=request.user,
+                        content=content,
+                        publishdate=dt,
+                        moderated=True,
+                        chatgroup=db_cm.chatgroup
+                    )
+
+                    groups[db_cm.chatgroup.id] = cm
+
+                db_cm.response = groups[db_cm.chatgroup.id]
+                db_cm.save()
+
+            return HttpResponseRedirect('/admin/communication/chatmessage/')
 
     return resolve_http_method(request, [get, post])
