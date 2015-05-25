@@ -10,7 +10,9 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         query_postgres = """
             create or replace view view_auth_learner as
-            SELECT l.customuser_ptr_id as learner_ptr_id, l.*, nvl(tot, 0) as questions_completed, nvl((cor * 100 / tot),0) AS questions_correct
+            SELECT l.customuser_ptr_id as learner_ptr_id, l.*,
+                case when tot is null 0 else tot end as questions_completed,
+                case when (cor * 100 / tot) is null 0 else (cor * 100 / tot) end AS questions_correct
             FROM auth_learner l
             LEFT JOIN core_participant
                 ON l.customuser_ptr_id = core_participant.learner_id
