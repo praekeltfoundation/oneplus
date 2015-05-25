@@ -10,9 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         query_postgres = """
             create or replace view view_auth_learner as
-            SELECT l.customuser_ptr_id, l.school_id, l.last_maths_result, l.grade, l.welcome_message_sent,
-                l.welcome_message_id, l.last_active_date, l.enrolled,
-                tot as questions_completed, (cor * 100 / tot) AS questions_correct
+            SELECT l.customuser_ptr_id as learner_ptr_id, l.*, nvl(tot, 0) as questions_completed, nvl((cor * 100 / tot),0) AS questions_correct
             FROM auth_learner l
             LEFT JOIN core_participant
                 ON l.customuser_ptr_id = core_participant.learner_id
@@ -33,9 +31,7 @@ class Migration(SchemaMigration):
 
         query_sqlite = """
             create view view_auth_learner as
-            SELECT l.customuser_ptr_id, l.school_id, l.last_maths_result, l.grade, l.welcome_message_sent,
-                l.welcome_message_id, l.last_active_date, l.enrolled,
-                tot as questions_completed, (cor * 100 / tot) AS questions_correct
+            SELECT l.customuser_ptr_id as learner_ptr_id, l.*, ifnull(tot, 0) as questions_completed, ifnull((cor * 100 / tot),0) AS questions_correct
             FROM auth_learner l
             LEFT JOIN core_participant
                 ON l.customuser_ptr_id = core_participant.learner_id
