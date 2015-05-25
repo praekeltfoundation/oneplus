@@ -119,6 +119,8 @@ class Discussion(models.Model):
         related_name="discussion_unmoderated_user"
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
+    responded = models.BooleanField(default=False)
+    responded_date = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
         return self.author.first_name + ": " + self.content
