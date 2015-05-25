@@ -435,9 +435,21 @@ class ModerationAdmin(admin.ModelAdmin):
         discusions = queryset.filter(type=Moderation.MT_DISCUSSION).values("mod_id")
         chats = queryset.filter(type=Moderation.MT_CHAT).values("mod_id")
 
-        PostComment.objects.filter(id__in=blogcomments).update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
-        Discussion.objects.filter(id__in=discusions).update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
-        ChatMessage.objects.filter(id__in=chats).update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
+        PostComment.objects.filter(id__in=blogcomments).update(
+            moderated=False,
+            unmoderated_date=datetime.now(),
+            unmoderated_by=request.user
+        )
+        Discussion.objects.filter(id__in=discusions).update(
+            moderated=False,
+            unmoderated_date=datetime.now(),
+            unmoderated_by=request.user
+        )
+        ChatMessage.objects.filter(id__in=chats).update(
+            moderated=False,
+            unmoderated_date=datetime.now(),
+            unmoderated_by=request.user
+        )
 
     unpublish_selected.short_description = 'Unpublish'
 
@@ -451,6 +463,15 @@ class ModerationAdmin(admin.ModelAdmin):
         ChatMessage.objects.filter(id__in=chats).update(moderated=True)
 
     publish_selected.short_description = 'Publish'
+
+    def get_actions(self, request):
+        #Disable delete
+        actions = super(ModerationAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class BanAdmin(admin.ModelAdmin):
