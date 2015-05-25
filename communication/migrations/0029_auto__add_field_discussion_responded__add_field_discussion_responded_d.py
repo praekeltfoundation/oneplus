@@ -13,10 +13,18 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
+        # Adding field 'Discussion.responded_date'
+        db.add_column(u'communication_discussion', 'responded_date',
+                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Deleting field 'Discussion.responded'
         db.delete_column(u'communication_discussion', 'responded')
+
+        # Deleting field 'Discussion.responded_date'
+        db.delete_column(u'communication_discussion', 'responded_date')
 
 
     models = {
@@ -57,14 +65,6 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
         },
-        u'auth.teacher': {
-            'Meta': {'object_name': 'Teacher', '_ormbases': [u'auth.CustomUser']},
-            u'customuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.CustomUser']", 'unique': 'True', 'primary_key': 'True'}),
-            'last_active_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'school': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.School']", 'null': 'True'}),
-            'welcome_message': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Sms']", 'null': 'True', 'blank': 'True'}),
-            'welcome_message_sent': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
         u'communication.ban': {
             'Meta': {'object_name': 'Ban'},
             'banned_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'ban_banned_user'", 'to': u"orm['auth.CustomUser']"}),
@@ -91,6 +91,7 @@ class Migration(SchemaMigration):
             'moderated': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'original_content': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'response': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.ChatMessage']", 'null': 'True', 'blank': 'True'}),
             'unmoderated_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'chatmessage_unmoderated_user'", 'null': 'True', 'to': u"orm['auth.CustomUser']"}),
             'unmoderated_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
         },
@@ -108,6 +109,7 @@ class Migration(SchemaMigration):
             'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True', 'blank': 'True'}),
             'responded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'responded_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'response': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Discussion']", 'null': 'True', 'blank': 'True'}),
             'unmoderated_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'discussion_unmoderated_user'", 'null': 'True', 'to': u"orm['auth.CustomUser']"}),
             'unmoderated_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
@@ -180,6 +182,7 @@ class Migration(SchemaMigration):
             'original_content': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'post': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Post']"}),
             'publishdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'response': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.PostComment']", 'null': 'True', 'blank': 'True'}),
             'unmoderated_by': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'unmoderated_user'", 'null': 'True', 'to': u"orm['auth.CustomUser']"}),
             'unmoderated_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
         },
@@ -256,7 +259,6 @@ class Migration(SchemaMigration):
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'startdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'teacher': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.Teacher']", 'null': 'True'}),
             'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
         },
         u'organisation.course': {
@@ -283,23 +285,6 @@ class Migration(SchemaMigration):
             'module_link': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
-        },
-        u'organisation.organisation': {
-            'Meta': {'object_name': 'Organisation'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
-        },
-        u'organisation.school': {
-            'Meta': {'object_name': 'School'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'organisation': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Organisation']", 'null': 'True'}),
-            'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
         }
     }
 
