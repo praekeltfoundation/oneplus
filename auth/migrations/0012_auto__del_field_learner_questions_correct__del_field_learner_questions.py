@@ -8,114 +8,24 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        query_postgres = """
-            create or replace view view_auth_learner as
-            SELECT l.customuser_ptr_id as learner_ptr_id, l.*,
-                case when tot is null then 0 else tot end as questions_completed,
-                case when (cor * 100 / tot) is null then 0 else (cor * 100 / tot) end AS questions_correct
-            FROM auth_learner l
-            LEFT JOIN core_participant
-                ON l.customuser_ptr_id = core_participant.learner_id
-            LEFT JOIN (
-                SELECT participant_id, COUNT(1) AS cor
-                FROM core_participantquestionanswer
-                WHERE correct = true
-                GROUP BY participant_id
-                ) correct
-                ON core_participant.id = correct.participant_id
-            LEFT JOIN (
-                SELECT participant_id, COUNT(1) AS tot
-                FROM core_participantquestionanswer
-                GROUP BY participant_id
-                ) total
-                ON core_participant.id = total.participant_id
-        """
+        # Deleting field 'Learner.questions_correct'
+        db.delete_column(u'auth_learner', 'questions_correct')
 
-        query_sqlite = """
-            create view view_auth_learner as
-            SELECT l.customuser_ptr_id as learner_ptr_id, l.*, ifnull(tot, 0) as questions_completed, ifnull((cor * 100 / tot),0) AS questions_correct
-            FROM auth_learner l
-            LEFT JOIN core_participant
-                ON l.customuser_ptr_id = core_participant.learner_id
-            LEFT JOIN (
-                SELECT participant_id, COUNT(1) AS cor
-                FROM core_participantquestionanswer
-                WHERE correct = 1
-                GROUP BY participant_id
-                ) correct
-                ON core_participant.id = correct.participant_id
-            LEFT JOIN (
-                SELECT participant_id, COUNT(1) AS tot
-                FROM core_participantquestionanswer
-                GROUP BY participant_id
-                ) total
-                ON core_participant.id = total.participant_id
-        """
+        # Deleting field 'Learner.questions_completed'
+        db.delete_column(u'auth_learner', 'questions_completed')
 
-        if db.backend_name == "sqlite3":
-            query = "drop view view_auth_learner"
-            db.execute(query)
-            
-            query = query_sqlite
-        else:
-            query = query_postgres
-
-        db.execute(query)
 
     def backwards(self, orm):
-        query_sqlite = """
-        create view view_auth_learner as
-        SELECT auth_learner.*, tot as questions_completed, (cor * 100 / tot) AS questions_correct
-        FROM auth_learner
-        LEFT JOIN core_participant
-            ON auth_learner.customuser_ptr_id = core_participant.learner_id
-        LEFT JOIN (
-            SELECT participant_id, COUNT(1) AS cor
-            FROM core_participantquestionanswer
-            WHERE correct = 1
-            GROUP BY participant_id
-            ) correct
-            ON core_participant.id = correct.participant_id
-        LEFT JOIN (
-            SELECT participant_id, COUNT(1) AS tot
-            FROM core_participantquestionanswer
-            GROUP BY participant_id
-            ) total
-            ON core_participant.id = total.participant_id
-        """
+        # Adding field 'Learner.questions_correct'
+        db.add_column(u'auth_learner', 'questions_correct',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, null=True, blank=True),
+                      keep_default=False)
 
-        query_postgres = """
-        create view view_auth_learner as
-        SELECT l.welcome_message_sent, l.welcome_message_id, l.customuser_ptr_id, l.last_maths_result, l.grade,
-            l.questions_correct, l.enrolled, l.last_active_date, l.questions_completed, l.school_id,
-            tot as questions_completed, (cor * 100 / tot) AS questions_correct
-        FROM auth_learner l
-        LEFT JOIN core_participant
-            ON l.customuser_ptr_id = core_participant.learner_id
-        LEFT JOIN (
-            SELECT participant_id, COUNT(1) AS cor
-            FROM core_participantquestionanswer
-            WHERE correct = true
-            GROUP BY participant_id
-            ) correct
-            ON core_participant.id = correct.participant_id
-        LEFT JOIN (
-            SELECT participant_id, COUNT(1) AS tot
-            FROM core_participantquestionanswer
-            GROUP BY participant_id
-            ) total
-            ON core_participant.id = total.participant_id
-        """
+        # Adding field 'Learner.questions_completed'
+        db.add_column(u'auth_learner', 'questions_completed',
+                      self.gf('django.db.models.fields.IntegerField')(default=0, null=True, blank=True),
+                      keep_default=False)
 
-        query = "drop view view_auth_learner"
-        db.execute(query)
-
-        if db.backend_name == "sqlite3":
-            query = query_sqlite
-        else:
-            query = query_postgres
-
-        db.execute(query)
 
     models = {
         u'auth.coursemanager': {
@@ -160,6 +70,17 @@ class Migration(SchemaMigration):
         },
         u'auth.learner': {
             'Meta': {'object_name': 'Learner', '_ormbases': [u'auth.CustomUser']},
+            u'customuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.CustomUser']", 'unique': 'True', 'primary_key': 'True'}),
+            'enrolled': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1', 'blank': 'True'}),
+            'grade': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'last_active_date': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'last_maths_result': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
+            'school': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.School']", 'null': 'True'}),
+            'welcome_message': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['communication.Sms']", 'null': 'True', 'blank': 'True'}),
+            'welcome_message_sent': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+        },
+        u'auth.learnerview': {
+            'Meta': {'managed': 'False', 'object_name': 'LearnerView', 'db_table': "'view_auth_learner'", '_ormbases': [u'auth.CustomUser']},
             u'customuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.CustomUser']", 'unique': 'True', 'primary_key': 'True'}),
             'enrolled': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1', 'blank': 'True'}),
             'grade': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
