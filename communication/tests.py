@@ -41,13 +41,15 @@ class TestMessage(TestCase):
     def test_get_messages(self):
         # unused
         dt1 = datetime.now()
-        dt2 = dt1 + timedelta(minutes=5)
-        dt3 = dt2 + timedelta(minutes=5)
-        self.create_message(
+        dt2 = dt1 - timedelta(minutes=5)
+        dt3 = dt2 - timedelta(minutes=5)
+        dt4 = dt1 + timedelta(minutes=5)
+
+        msg1 = self.create_message(
             self.user,
             self.course,
             name="msg1",
-            publishdate=dt1
+            publishdate=dt3
         )
         msg2 = self.create_message(
             self.user,
@@ -59,11 +61,20 @@ class TestMessage(TestCase):
             self.user,
             self.course,
             name="msg3",
-            publishdate=dt3
+            publishdate=dt1
+        )
+        msg4 = self.create_message(
+            self.user,
+            self.course,
+            name="msg4",
+            publishdate=dt4
         )
         # should return the most recent two in descending order of publishdate
         self.assertEqual(
             [msg3, msg2], Message.get_messages(self.user, self.course, 2))
+        #should return 3, 4th is not published yet
+        self.assertEqual(
+            [msg3, msg2, msg1], Message.get_messages(self.user, self.course, 4))
 
     def test_unread_msg_count(self):
         msg = self.create_message(

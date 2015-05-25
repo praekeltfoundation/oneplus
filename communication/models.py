@@ -119,6 +119,8 @@ class Discussion(models.Model):
         related_name="discussion_unmoderated_user"
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
+    responded = models.BooleanField(default=False)
+    responded_date = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
         return self.author.first_name + ": " + self.content
@@ -201,7 +203,8 @@ class Message(models.Model):
         _msgs_for_course = Q(
             course=course,
             direction=1,
-            to_class__isnull=True
+            to_class__isnull=True,
+            publishdate__lte=datetime.now()
         )
 
         _classes = Class.objects.filter(course=course).values('id')
@@ -210,14 +213,16 @@ class Message(models.Model):
             course=course,
             direction=1,
             to_class__in=_classes,
-            to_user__isnull=True
+            to_user__isnull=True,
+            publishdate__lte=datetime.now()
         )
 
         _msgs_for_user = Q(
             course=course,
             direction=1,
             to_class__in=_classes,
-            to_user=user
+            to_user=user,
+            publishdate__lte=datetime.now()
         )
 
         _msgs = Message.objects.filter(_msgs_for_course | _msgs_for_class | _msgs_for_user).order_by("-publishdate")
@@ -241,7 +246,8 @@ class Message(models.Model):
         _msgs_for_course = Q(
             course=course,
             direction=1,
-            to_class__isnull=True
+            to_class__isnull=True,
+            publishdate__lte=datetime.now()
         )
 
         _classes = Class.objects.filter(course=course).values('id')
@@ -250,14 +256,16 @@ class Message(models.Model):
             course=course,
             direction=1,
             to_class__in=_classes,
-            to_user__isnull=True
+            to_user__isnull=True,
+            publishdate__lte=datetime.now()
         )
 
         _msgs_for_user = Q(
             course=course,
             direction=1,
             to_class__in=_classes,
-            to_user=user
+            to_user=user,
+            publishdate__lte=datetime.now()
         )
 
         _msgs = Message.objects.filter(_msgs_for_course | _msgs_for_class | _msgs_for_user)

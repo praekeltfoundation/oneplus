@@ -116,8 +116,8 @@ class DiscussionAdmin(admin.ModelAdmin):
     get_content.allow_tags = True
 
     def get_response_posted(self, obj):
-        if obj.response:
-            return obj.response.publishdate
+        if obj.responded:
+            return obj.responded_date
         else:
             return u'%s&nbsp&nbsp<a href="/discussion_response/%s" target="_blank">Respond</a>' % (None, obj.id)
 
