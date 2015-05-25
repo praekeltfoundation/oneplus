@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         query_postgres = """
-            create or replace view view_auth_learner as
+            create view view_auth_learner as
             SELECT l.customuser_ptr_id as learner_ptr_id, l.*,
                 case when tot is null then 0 else tot end as questions_completed,
                 case when (cor * 100 / tot) is null then 0 else (cor * 100 / tot) end AS questions_correct
@@ -52,10 +52,10 @@ class Migration(SchemaMigration):
                 ON core_participant.id = total.participant_id
         """
 
-        if db.backend_name == "sqlite3":
-            query = "drop view view_auth_learner"
-            db.execute(query)
+        query = "drop view view_auth_learner"
+        db.execute(query)
 
+        if db.backend_name == "sqlite3":
             query = query_sqlite
         else:
             query = query_postgres
