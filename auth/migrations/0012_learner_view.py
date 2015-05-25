@@ -86,10 +86,12 @@ class Migration(SchemaMigration):
 
         query_postgres = """
         create view view_auth_learner as
-        SELECT auth_learner.*, tot as questions_completed, (cor * 100 / tot) AS questions_correct
-        FROM auth_learner
+        SELECT l.welcome_message_sent, l.welcome_message_id, l.customuser_ptr_id, l.last_maths_result, l.grade,
+            l.questions_correct, l.enrolled, l.last_active_date, l.questions_completed, l.school_id,
+            tot as questions_completed, (cor * 100 / tot) AS questions_correct
+        FROM auth_learner l
         LEFT JOIN core_participant
-            ON auth_learner.customuser_ptr_id = core_participant.learner_id
+            ON l.customuser_ptr_id = core_participant.learner_id
         LEFT JOIN (
             SELECT participant_id, COUNT(1) AS cor
             FROM core_participantquestionanswer
