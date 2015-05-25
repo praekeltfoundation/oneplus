@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("core", "0020_auto__del_field_class_teacher"),
+    )
+
     def forwards(self, orm):
         query_postgres = """
             create view view_auth_learner as
