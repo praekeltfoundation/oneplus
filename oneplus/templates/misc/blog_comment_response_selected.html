@@ -1,0 +1,157 @@
+{% extends "admin/change_list.html" %}
+
+<!-- BREADCRUMBS -->
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        <ul>
+            <li><a href="/admin/">Home</a></li>
+            <li><a href="/admin/communication/">Communication</a></li>
+            <li><a href="/admin/communication/postcomment/">Post comments</a></li>
+            <li>Respond to Selected</li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" charset="utf-8">
+        (function($) {
+            $(document).ready(function() {
+                grappelli.initDateAndTimePicker();
+            });
+        })(grp.jQuery);
+    </script>
+{% endblock %}
+
+{% block content_title %}
+    <h1>Respond to Selected</h1>
+{% endblock %}
+
+{% block content %}
+    {% if no_pcs %}
+        <h2>All the selected Blog Comments have been responded too</h2>
+    {% else %}
+        <form enctype="multipart/form-data" action="" method="post" id="blog_comment_response_form">
+            {% csrf_token %}
+            <div id="grp-content-container">
+                <fieldset class="grp-module ">
+                    <div class="l-2c-fluid l-d-4">
+                        <h2>Selected Blog Comments</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col" class="column-id">
+                                    <div class="grp-text">Id</div>
+                                </th>
+                                <th scope="col" class="column-id">
+                                    <div class="grp-text">Author</div>
+                                </th>
+                                <th scope="col" class="column-get_question">
+                                    <div class="grp-text">Post</div>
+                                </th>
+                                <th scope="col" class="column-module">
+                                    <div class="grp-text">Content</div>
+                                </th>
+                                <th scope="col" class="column-course">
+                                    <div class="grp-text">Publish Date</div>
+                                </th>
+                                <th scope="col" class="column-get_content">
+                                    <div class="grp-text">Moderated</div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pc in pcs %}
+                                <tr class="grp-row grp-row-even">
+                                    <td class="nowrap">
+                                        <a href="/admin/communication/postcomment/{{ pc.id }}" target="_blank">{{ pc.id }}</a>
+                                    </td>
+                                    <td class="nowrap">
+                                        {{ pc.author }}
+                                    </td>
+                                    <td class="nowrap">
+                                        {{ pc.post }}
+                                    </td>
+                                    <td>
+                                        {{ pc.content|safe }}
+                                    </td>
+                                    <td class="nowrap">
+                                        {{ pc.publishdate }}
+                                    </td>
+                                    <td>
+                                        {% if pc.moderated %}
+                                            <img src="/static/admin/img/icon-yes.gif" alt="True">
+                                        {% else %}
+                                            <img src="/static/admin/img/icon-no.gif" alt="True">
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </fieldset>
+            </div>
+            <div id="grp-content-container">
+                <fieldset class="grp-module ">
+                    <h2 class="grp-collapse-handler">Response</h2>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required" >Publish Date</label>
+                            </div>
+                            <div class="c-2">
+                                <p class="datetime">
+                                    <input class="vDateField" id="id_publishdate_0" name="publishdate_0" size="10" type="text" value="{{ v_date }}">
+                                    <br>
+                                    <input class="vTimeField" id="id_publishdate_1" name="publishdate_1" size="8" type="text" value="{{ v_time }}">
+                                </p>
+
+                                {% if dt_error %}
+                                    <ul class="errorlist">
+                                        <li>Please enter a valid date and time.</li>
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grp-row grp-cells-1">
+                        <div class="l-2c-fluid l-d-4">
+                            <div class="c-1">
+                                <label class="required" for="id_content">Response Content</label>
+                            </div>
+                            <div class="c-2">
+                                <textarea cols="40" hidden="true" id="id_content" name="content" rows="10">{{ v_content }}</textarea>
+                                <script>
+                                    var settings_id_content = {
+                                        "lang": "en-US",
+                                        "url": {
+                                            "upload_attachment": "/summernote/upload_attachment/"
+                                        },
+                                        "airMode": false,
+                                        "height": "400",
+                                        "styleWithSpan": true,
+                                        "toolbar": [["style", ["style"]], ["style", ["bold", "italic", "underline", "clear"]], ["para", ["ul", "ol", "paragraph"]], ["table", ["table"]]]
+                                    };
+                                </script>
+
+                                <iframe id="id_content_iframe" src="/summernote/editor/id_content/" frameborder="0" cols="40" rows="10" width="100%" height="400"></iframe>
+
+                                {% if content_error %}
+                                    <ul class="errorlist">
+                                        <li>This field is required.</li>
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <footer class="grp-module grp-submit-row grp-fixed-footer">
+                    <header style="display:none"><h1>Submit Options</h1></header>
+                    <ul>
+                        <li><input type="submit" value="Save" class="grp-button grp-default" name="_save"></li>
+                    </ul>
+                </footer>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

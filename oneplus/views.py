@@ -300,6 +300,7 @@ def create_learner(first_name, last_name, mobile, area, city, country, school, g
                                   grade=grade,
                                   enrolled=enrolled)
 
+
 #create participant
 def create_participant(learner, classs):
     Participant.objects.create(learner=learner,
@@ -978,7 +979,7 @@ def adminpreview(request, questionid):
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
-            response=None
+            reply=None
         ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
@@ -1002,7 +1003,7 @@ def adminpreview(request, questionid):
         messages = Discussion.objects.filter(
             question=question,
             moderated=True,
-            response=None
+            reply=None
         ).order_by("-publishdate")
 
         return render(request, "learn/next.html", {
@@ -1024,7 +1025,7 @@ def adminpreview_right(request, questionid):
             Discussion.objects.filter(
                 question=question,
                 moderated=True,
-                response=None
+                reply=None
             ).order_by("-publishdate")
 
         return render(
@@ -1051,7 +1052,7 @@ def adminpreview_wrong(request, questionid):
             Discussion.objects.filter(
                 question=question,
                 moderated=True,
-                response=None
+                reply=None
             ).order_by("-publishdate")
 
         return render(
@@ -1144,7 +1145,7 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).count()
 
             # Discussion page?
@@ -1157,7 +1158,7 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             # Get badge points
@@ -1192,7 +1193,7 @@ def right(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=None,
+                    reply=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
                 _message.save()
                 request.session["state"]["discussion_comment"] = True
@@ -1207,7 +1208,7 @@ def right(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=_parent,
+                    reply=_parent,
                     content=_comment, author=_usr,
                     publishdate=datetime.now()
                 )
@@ -1235,7 +1236,7 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
@@ -1291,7 +1292,7 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).count()
 
             request.session["state"]["discussion_page"] = \
@@ -1302,7 +1303,7 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
@@ -1330,7 +1331,7 @@ def wrong(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=None,
+                    reply=None,
                     content=_comment, author=_usr, publishdate=datetime.now())
                 _message.save()
                 request.session["state"]["discussion_comment"] = True
@@ -1345,7 +1346,7 @@ def wrong(request, state, user):
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
-                    response=_parent,
+                    reply=_parent,
                     content=_comment, author=_usr, publishdate=datetime.now()
                 )
                 _message.save()
@@ -1372,7 +1373,7 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
@@ -2228,7 +2229,7 @@ def report_question(request, state, user, questionid, frm):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).count()
 
             # Discussion page?
@@ -2241,7 +2242,7 @@ def report_question(request, state, user, questionid, frm):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
-                    response=None
+                    reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return HttpResponseRedirect('/' + frm,
@@ -2917,7 +2918,7 @@ def discussion_response(request, disc):
                 }
             )
         else:
-            Discussion.objects.create(
+            disc = Discussion.objects.create(
                 name=gen_username(request.user),
                 description=title,
                 content=content,
@@ -2927,10 +2928,10 @@ def discussion_response(request, disc):
                 course=db_disc.course,
                 module=db_disc.module,
                 question=db_disc.question,
-                response=db_disc
+                reply=db_disc
             )
-            db_disc.responded = True
-            db_disc.responded_date = datetime.now()
+
+            db_disc.response = disc
             db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
@@ -3207,7 +3208,7 @@ def discussion_response_selected(request, disc):
             )
         else:
             for db_disc in db_discs:
-                Discussion.objects.create(
+                disc = Discussion.objects.create(
                     name=gen_username(request.user),
                     description=title,
                     content=content,
@@ -3217,12 +3218,248 @@ def discussion_response_selected(request, disc):
                     course=db_disc.course,
                     module=db_disc.module,
                     question=db_disc.question,
-                    response=db_disc
+                    reply=db_disc
                 )
-                db_disc.responded = True
-                db_disc.responded_date = datetime.now()
+
+                db_disc.response = disc
                 db_disc.save()
 
             return HttpResponseRedirect('/admin/communication/discussion/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def blog_comment_response(request, pc):
+    db_pc = PostComment.objects.filter(id=pc).first()
+
+    if not db_pc:
+        return HttpResponse("PostComment %s not found" % pc)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/blog_comment_response.html',
+            dictionary={'pc': db_pc}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/blog_comment_response.html',
+                dictionary={
+                    'pc': db_pc,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            pc = PostComment.objects.create(
+                author=request.user,
+                content=content,
+                publishdate=dt,
+                moderated=True,
+                post=db_pc.post
+            )
+
+            db_pc.response = pc
+            db_pc.save()
+
+            return HttpResponseRedirect('/admin/communication/postcomment/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def blog_comment_response_selected(request, pc):
+    pcs = pc.split(',')
+    db_pcs = PostComment.objects.filter(id__in=pcs, response__isnull=True)
+
+    if db_pcs.count() == 0:
+        no_pcs = True
+    else:
+        no_pcs = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/blog_comment_response_selected.html',
+            dictionary={'pcs': db_pcs, 'no_pcs': no_pcs}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/blog_comment_response_selected.html',
+                dictionary={
+                    'pcs': db_pcs,
+                    'no_pcs': no_pcs,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            posts = {}
+            for db_pc in db_pcs:
+                # create one comment per post
+                if db_pc.post.id not in posts.keys():
+                    pc = PostComment.objects.create(
+                        author=request.user,
+                        content=content,
+                        publishdate=dt,
+                        moderated=True,
+                        post=db_pc.post
+                    )
+
+                    posts[db_pc.post.id] = pc
+
+                db_pc.response = posts[db_pc.post.id]
+                db_pc.save()
+
+            return HttpResponseRedirect('/admin/communication/postcomment/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def chat_response(request, cm):
+    db_cm = ChatMessage.objects.filter(id=cm).first()
+
+    if not db_cm:
+        return HttpResponse("ChatMessage %s not found" % cm)
+
+    def get():
+        return render(
+            request=request,
+            template_name='misc/chat_response.html',
+            dictionary={'cm': db_cm}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/chat_response.html',
+                dictionary={
+                    'cm': db_cm,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            cm = ChatMessage.objects.create(
+                author=request.user,
+                content=content,
+                publishdate=dt,
+                moderated=True,
+                chatgroup=db_cm.chatgroup
+            )
+
+            db_cm.response = cm
+            db_cm.save()
+
+            return HttpResponseRedirect('/admin/communication/chatmessage/')
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def chat_response_selected(request, cm):
+    cms = cm.split(',')
+    db_cms = ChatMessage.objects.filter(id__in=cms, response__isnull=True)
+
+    if db_cms.count() == 0:
+        no_cms = True
+    else:
+        no_cms = False
+
+    def get():
+
+        return render(
+            request=request,
+            template_name='misc/chat_response_selected.html',
+            dictionary={'cms': db_cms, 'no_cms': no_cms}
+        )
+
+    def post():
+
+        dt_error = False
+        content_error = False
+        date = None
+        time = None
+        content = None
+
+        dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
+        content_error, content = validate_content(request.POST)
+
+        if dt_error or content_error:
+            return render(
+                request=request,
+                template_name='misc/chat_response_selected.html',
+                dictionary={
+                    'cms': db_cms,
+                    'no_cms': no_cms,
+                    'dt_error': dt_error,
+                    'content_error': content_error,
+                    'v_date': date,
+                    'v_time': time,
+                    'v_content': content
+                }
+            )
+        else:
+            groups = {}
+            for db_cm in db_cms:
+                # create one chat message per group
+                if db_cm.chatgroup.id not in groups.keys():
+                    cm = ChatMessage.objects.create(
+                        author=request.user,
+                        content=content,
+                        publishdate=dt,
+                        moderated=True,
+                        chatgroup=db_cm.chatgroup
+                    )
+
+                    groups[db_cm.chatgroup.id] = cm
+
+                db_cm.response = groups[db_cm.chatgroup.id]
+                db_cm.save()
+
+            return HttpResponseRedirect('/admin/communication/chatmessage/')
 
     return resolve_http_method(request, [get, post])
