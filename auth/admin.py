@@ -9,7 +9,7 @@ from communication.tasks import bulk_send_all
 from django import template
 from core.models import Class
 from auth.models import LearnerView, SystemAdministrator, SchoolManager,\
-    CourseManager, CourseMentor, Teacher
+    CourseManager, CourseMentor, Teacher, Learner
 from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
@@ -18,7 +18,7 @@ from .forms import SystemAdministratorChangeForm, \
     TeacherCreationForm, TeacherChangeForm
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
-from auth.filters import CourseFilter, AirtimeFilter
+from auth.filters import AirtimeFilter, LearnerViewClassFilter, LearnerViewCourseFilter, ClassFilter, CourseFilter
 from core.models import TeacherClass
 
 
@@ -143,7 +143,55 @@ class CourseMentorAdmin(UserAdmin):
     )
 
 
-class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
+def send_sms(request, queryset):
+    form = None
+    if 'apply' in request.POST:
+        form = SendSmsForm(request.POST)
+
+        if form.is_valid():
+            vumi = VumiSmsApi()
+            message = form.cleaned_data["message"]
+
+            if queryset.count() <= settings.MIN_VUMI_CELERY_SEND:
+                successful, fail = vumi.send_all(queryset, message)
+                async = False
+            else:
+                #Use celery task
+                bulk_send_all.delay(queryset, message)
+                successful = 0
+                fail = []
+                async = True
+
+            return render_to_response(
+                'admin/auth/sms_result.html',
+                {
+                    'redirect': request.get_full_path(),
+                    'success_num': successful,
+                    'fail': fail,
+                    'async': async
+                },
+            )
+
+    if not form:
+        form = SendSmsForm(
+            initial={
+                '_selected_action': request.POST.getlist(
+                    admin.ACTION_CHECKBOX_NAME,
+                ),
+            }
+        )
+    return render_to_response(
+        'admin/auth/send_sms.html',
+        {
+            'sms_form': form,
+            'learners': queryset
+        },
+        context_instance=template.RequestContext(request)
+    )
+send_sms.short_description = "Send sms to learners"
+
+
+class LearnerViewAdmin(UserAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
     add_form = LearnerCreationForm
@@ -155,8 +203,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     list_display = ("username", "first_name", "last_name", "school",
                     "area", "questions_completed", "questions_correct",
                     "welcome_message_sent")
-    list_filter = ("first_name", "last_name", "mobile", 'school', "country",
-                   "area", "welcome_message_sent", CourseFilter, AirtimeFilter)
+    list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
+                   "welcome_message_sent", LearnerViewClassFilter, LearnerViewCourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name", "first_name", "last_login")
     filter_horizontal = ()
@@ -182,53 +230,57 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Region", {"fields": ("country", "area", "school")})
     )
 
-    def send_sms(self, request, queryset):
-        form = None
-        if 'apply' in request.POST:
-            form = SendSmsForm(request.POST)
+    actions = [send_sms]
 
-            if form.is_valid():
-                vumi = VumiSmsApi()
-                message = form.cleaned_data["message"]
+    def get_actions(self, request):
+        #Disable delete
+        actions = super(LearnerViewAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
 
-                if queryset.count() <= settings.MIN_VUMI_CELERY_SEND:
-                    successful, fail = vumi.send_all(queryset, message)
-                    async = False
-                else:
-                    #Use celery task
-                    bulk_send_all.delay(queryset, message)
-                    successful = 0
-                    fail = []
-                    async = True
+    def has_delete_permission(self, request, obj=None):
+        return False
 
-                return render_to_response(
-                    'admin/auth/sms_result.html',
-                    {
-                        'redirect': request.get_full_path(),
-                        'success_num': successful,
-                        'fail': fail,
-                        'async': async
-                    },
-                )
 
-        if not form:
-            form = SendSmsForm(
-                initial={
-                    '_selected_action': request.POST.getlist(
-                        admin.ACTION_CHECKBOX_NAME,
-                    ),
-                }
-            )
-        return render_to_response(
-            'admin/auth/send_sms.html',
-            {
-                'sms_form': form,
-                'learners': queryset
-            },
-            context_instance=template.RequestContext(request)
-        )
-    send_sms.short_description = "Send sms to learners"
-    actions = ['send_sms']
+class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
+    # The forms to add and change user instances
+    form = LearnerChangeForm
+    add_form = LearnerCreationForm
+    resource_class = LearnerResource
+    list_max_show_all = 1000
+    # The fields to be used in displaying the User model.
+    # These override the definitions on the base UserAdmin
+    # that reference specific fields on auth.User.
+    list_display = ("username", "first_name", "last_name", "school",
+                    "area", "welcome_message_sent")
+    list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
+                   "welcome_message_sent", ClassFilter, CourseFilter, AirtimeFilter)
+    search_fields = ("last_name", "first_name", "username")
+    ordering = ("country", "area", "last_name", "first_name", "last_login")
+    filter_horizontal = ()
+    readonly_fields = ("mobile",)
+
+    fieldsets = (
+        ("Personal info", {"fields": ("first_name", "last_name",
+                                      "email", "mobile")}),
+        ("Access", {"fields": ("username", "password",
+                               "is_active", "unique_token")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
+        ("Region", {"fields": ("country", "area", "city",
+                               "school")}),
+        ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
+        ("Important dates", {"fields": ("last_login", "date_joined")})
+    )
+    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
+    # overrides get_fieldsets to use this attribute when creating a user.
+    add_fieldsets = (
+        ("Personal info", {"fields": ("first_name", "last_name")}),
+        ("Access", {"fields": ("username", "password1",
+                               "password2")}),
+        ("Region", {"fields": ("country", "area", "school")})
+    )
+
+    actions = [send_sms]
 
 
 class TeacherClassInline(admin.TabularInline):
@@ -314,5 +366,6 @@ admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
 admin.site.register(SchoolManager, SchoolManagerAdmin)
 admin.site.register(CourseManager, CourseManagerAdmin)
 admin.site.register(CourseMentor, CourseMentorAdmin)
-admin.site.register(LearnerView, LearnerAdmin)
+admin.site.register(LearnerView, LearnerViewAdmin)
+admin.site.register(Learner, LearnerAdmin)
 admin.site.register(Teacher, TeacherAdmin)

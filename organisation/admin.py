@@ -70,7 +70,7 @@ class CourseAdmin(admin.ModelAdmin):
             course_id = q.id
             all_classes = Class.objects.filter(course__id=course_id)
             for c in all_classes:
-                class_participants = Participant.objects.filter(classs__id=c.class_id)
+                class_participants = Participant.objects.filter(classs__id=c.id)
                 for cp in class_participants:
                     if not Participant.objects.filter(learner=cp.learner, is_active=True):
                         cp.is_active = True
