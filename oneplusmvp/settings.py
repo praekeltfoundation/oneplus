@@ -251,9 +251,10 @@ ADMIN_REORDER = (
               "System Administrators")),
 )
 
-OPEN_SCHOOL_NAME = "Open School"
-OPEN_COURSE_NAME = "Open Course"
-OPEN_CLASS_NAME = "Open Class"
+GRADE_10_COURSE_NAME = "One Plus Grade 10"
+GRADE_11_COURSE_NAME = "One Plus Grade 11"
+GRADE_10_OPEN_CLASS_NAME = "Grade 10 - Open Class"
+GRADE_11_OPEN_CLASS_NAME = "Grade 11 - Open Class"
 
 try:
     from local_settings import *

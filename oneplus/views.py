@@ -33,7 +33,7 @@ import re
 from communication.utils import report_user_post
 from organisation.models import School, Course
 from core.models import Class
-from oneplusmvp.settings import OPEN_SCHOOL_NAME, OPEN_CLASS_NAME, OPEN_COURSE_NAME
+from oneplusmvp.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_10_OPEN_CLASS_NAME, GRADE_11_OPEN_CLASS_NAME
 
 
 COUNTRYWIDE = "Countrywide"
@@ -352,16 +352,16 @@ def signup_form(request):
         else:
             errors["enrolled_error"] = "This must be completed"
 
-        if enrolled:
-            if "school" in request.POST.keys() and request.POST["school"]:
-                data["school"] = request.POST["school"]
-                try:
-                    School.objects.get(id=data["school"])
-                except School.DoesNotExist:
-                    errors["school_error"] = "Select a school"
-            else:
+        if "school" in request.POST.keys() and request.POST["school"]:
+            data["school"] = request.POST["school"]
+            try:
+                School.objects.get(id=data["school"])
+            except School.DoesNotExist:
                 errors["school_error"] = "Select a school"
+        else:
+            errors["school_error"] = "Select a school"
 
+        if enrolled:
             if "classs" in request.POST.keys() and request.POST["classs"]:
                 data["classs"] = request.POST["classs"]
                 try:
@@ -387,16 +387,16 @@ def signup_form(request):
             errors["country_error"] = "This must be completed"
 
         if "grade" in request.POST.keys() and request.POST["grade"]:
-            data["grade"] = request.POST["grade"]
+            if request.POST["grade"] not in ("Grade 10", "Grade 11"):
+                errors["grade_error"] = "Select a valid grade"
+            else:
+                data["grade"] = request.POST["grade"]
         else:
             errors["grade_error"] = "This must be completed"
 
         if not errors:
             if data["enrolled"] == '1':
-                try:
-                    school = School.objects.get(name=OPEN_SCHOOL_NAME)
-                except School.DoesNotExist:
-                    school = School.objects.create(name=OPEN_SCHOOL_NAME)
+                school = School.objects.get(id=data["school"])
 
                 #create learner
                 new_learner = create_learner(first_name=data["first_name"],
@@ -409,14 +409,24 @@ def signup_form(request):
                                              grade=data["grade"],
                                              enrolled=data["enrolled"])
 
-                try:
-                    classs = Class.objects.get(name=OPEN_CLASS_NAME)
-                except Class.DoesNotExist:
+                if data["grade"] == "Grade 10":
                     try:
-                        course = Course.objects.get(name=OPEN_COURSE_NAME)
-                    except Course.DoesNotExist:
-                        course = Course.objects.create(name=OPEN_COURSE_NAME)
-                    classs = Class.objects.create(name=OPEN_CLASS_NAME, course=course)
+                        classs = Class.objects.get(name=GRADE_10_OPEN_CLASS_NAME)
+                    except Class.DoesNotExist:
+                        try:
+                            course = Course.objects.get(name=GRADE_10_COURSE_NAME)
+                        except Course.DoesNotExist:
+                            course = Course.objects.create(name=GRADE_10_COURSE_NAME)
+                        classs = Class.objects.create(name=GRADE_10_OPEN_CLASS_NAME, course=course)
+                else:
+                    try:
+                        classs = Class.objects.get(name=GRADE_11_OPEN_CLASS_NAME)
+                    except Class.DoesNotExist:
+                        try:
+                            course = Course.objects.get(name=GRADE_11_COURSE_NAME)
+                        except Course.DoesNotExist:
+                            course = Course.objects.create(name=GRADE_11_COURSE_NAME)
+                        classs = Class.objects.create(name=GRADE_11_OPEN_CLASS_NAME, course=course)
 
                 create_participant(new_learner, classs)
 
@@ -454,7 +464,7 @@ def signup_form(request):
             message = "".join([
                 new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
 
-            #mail_managers(subject=subject, message=message, fail_silently=False)
+            mail_managers(subject=subject, message=message, fail_silently=False)
 
             return render(request, "auth/signedup.html")
         else:

@@ -1780,7 +1780,7 @@ class GeneralTests(TestCase):
                                     'first_name': self.learner.first_name,
                                     'surname': self.learner.last_name,
                                     'cellphone': '12345',
-                                    'school': '0',
+                                    'school': self.school.id,
                                     'classs': '0',
                                     'enrolled': 1,
                                     'area': 'Area',
