@@ -2144,16 +2144,14 @@ def contact(request, state, user):
             state['valid'] = False
             state['valid_message'].append("Last Name")
 
-        if "contact" in request.POST.keys() and len(
-                request.POST["contact"]) >= 3:
+        if "contact" in request.POST.keys() and len(request.POST["contact"]) >= 3:
             _contact = request.POST["contact"]
             state['contact'] = _contact
         else:
             state['valid'] = False
             state['valid_message'].append("Mobile number or Email")
 
-        if "comment" in request.POST.keys() and len(
-                request.POST["comment"]) >= 3:
+        if "comment" in request.POST.keys() and len(request.POST["comment"]) >= 3:
             _comment = request.POST["comment"]
             state['comment'] = _comment
         else:
@@ -3032,7 +3030,10 @@ def add_sms(request):
                     usr = Learner.objects.get(id=u)
                     create_sms(usr.learner.mobile, dt, message)
 
-        return HttpResponseRedirect('/admin/communication/smsqueue/')
+        if "_save" in request.POST.keys():
+            return HttpResponseRedirect('/admin/communication/smsqueue/')
+        else:
+            return HttpResponseRedirect('/smsqueue/add/')
 
     def create_sms(identifier, send_date, message):
         SmsQueue.objects.create(
@@ -3153,10 +3154,7 @@ def get_classes(request, course):
         try:
             course = int(course)
             current_course = Course.objects.get(id=course)
-            if current_course:
-                classes = Class.objects.all().filter(course=current_course)
-            else:
-                classes = None
+            classes = Class.objects.all().filter(course=current_course)
         except (ValueError, Course.DoesNotExist):
             classes = None
 
