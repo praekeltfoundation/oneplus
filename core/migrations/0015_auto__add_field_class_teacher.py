@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(SchemaMigration):
 
+    depends_on = (
+        ("auth", "0006_auto__add_teacher"),
+    )
+
     def forwards(self, orm):
         # Adding field 'Class.teacher'
         db.add_column(u'core_class', 'teacher',

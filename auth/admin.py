@@ -230,6 +230,15 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     send_sms.short_description = "Send sms to learners"
     actions = ['send_sms']
 
+    def get_actions(self, request):
+        #Disable delete
+        actions = super(LearnerAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 class TeacherClassInline(admin.TabularInline):
     model = TeacherClass

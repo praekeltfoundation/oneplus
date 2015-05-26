@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from communication.models import Sms
 from django.utils import timezone
 from communication.utils import get_user_bans
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 
 # Base class for custom MobileU user model
@@ -162,6 +164,49 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
+    class Meta:
+        verbose_name = "Learner"
+        verbose_name_plural = "Learners"
+
+
+# A view of learner
+class LearnerView(CustomUser):
+    school = models.ForeignKey(School, null=True, blank=False)
+    last_maths_result = models.FloatField(
+        verbose_name="Last Terms Mathematics Result",
+        blank=True,
+        null=True
+    )
+    grade = models.CharField(
+        verbose_name="User Grade",
+        max_length=50,
+        blank=True,
+        null=True
+    )
+    welcome_message_sent = models.BooleanField(
+        verbose_name="Welcome SMS Sent",
+        blank=True,
+        default=False
+    )
+    welcome_message = models.ForeignKey(
+        Sms,
+        null=True,
+        blank=True
+    )
+    last_active_date = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    ENROLLED_CHOICES = (
+        ("0", "Yes"),
+        ("1", "No"))
+
+    enrolled = models.PositiveIntegerField(
+        verbose_name="Currently enrolled in ProMaths class?",
+        blank=True,
+        choices=ENROLLED_CHOICES,
+        default=1)
+
     questions_completed = models.IntegerField(
         verbose_name="Completed Questions",
         null=True,
@@ -175,22 +220,47 @@ class Learner(CustomUser):
         default=0,
     )
 
-    class Meta:
-        verbose_name = "Learner"
-        verbose_name_plural = "Learners"
-
-
-# A view of learner
-class LearnerView(Learner):
-
     def save(self, *args, **kwargs):
-        super(LearnerView, self).save(*args, **kwargs)
+        if self.pk:
+            lnr = Learner.objects.get(id=self.id)
+        else:
+            lnr = Learner()
+
+        # abstract user fields
+        lnr.username = self.username
+        lnr.first_name = self.first_name
+        lnr.last_name = self.last_name
+        lnr.email = self.email
+        lnr.is_staff = self.is_staff
+        lnr.is_active = self.is_active
+
+        # customer user fields
+        lnr.mobile = self.mobile
+        lnr.country = self.country
+        lnr.area = self.area
+        lnr.city = self.city
+        lnr.optin_sms = self.optin_sms
+        lnr.optin_email = self.optin_email
+        lnr.unique_token = self.unique_token
+        lnr.unique_token_expiry = self.unique_token_expiry
+
+        # learner fields
+        lnr.school = self.school
+        lnr.last_maths_result = self.last_maths_result
+        lnr.grade = self.grade
+        lnr.welcome_message_sent = self.welcome_message_sent
+        lnr.welcome_message = self.welcome_message
+        lnr.last_active_date = self.last_active_date
+        lnr.enrolled = self.enrolled
+        lnr.save()
+
+        self.id = lnr.id
+        self.pk = lnr.pk
 
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
         managed = False
-        proxy = True
         db_table = "view_auth_learner"
 
 
