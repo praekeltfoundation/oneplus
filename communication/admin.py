@@ -358,13 +358,13 @@ class ModerationAdmin(admin.ModelAdmin):
             url_part = 'chatmessage'
 
         if obj.moderated:
-            return '<p>Published</p><a href="%s%s/unpublish/%d" target="_blank">Unpublish</a>' % \
+            return '<p>Published</p><a href="%s%s/unpublish/%d" target="_blank" onclick="window.location = window.location.href;">Unpublish</a>' % \
                    (url_base, url_part, obj.mod_id)
         elif obj.moderated is False and obj.unmoderated_date is not None:
-            return '<p>Unpublished</p><a href="%s%s/publish/%d" target="_blank">Publish</a>' % \
+            return '<p>Unpublished</p><a href="%s%s/publish/%d" target="_blank" onclick="window.location = window.location.href;">Publish</a>' % \
                    (url_base, url_part, obj.mod_id)
         else:
-            return '<a href="%s%s/publish/%d" target="_blank">Publish</a>' % (url_base, url_part, obj.mod_id)
+            return '<a href="%s%s/publish/%d" target="_blank" onclick="window.location = window.location.href;">Publish</a>' % (url_base, url_part, obj.mod_id)
 
     get_published.short_description = 'Published'
     get_published.allow_tags = True
