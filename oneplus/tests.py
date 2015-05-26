@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from amqp.basic_message import Message
+from celery.app.registry import TaskRegistry
 from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta, date
 from django.contrib.admin.sites import AdminSite
@@ -113,42 +114,6 @@ class GeneralTests(TestCase):
 
         return answers
 
-    def create_question_report(self, _user, _question, _issue, _fix):
-        return Report.objects.create(user=_user, question=_question, issue=_issue, fix=_fix)
-
-    def create_post(self, name="Test Post", description="Test", content="Test content"):
-        return Post.objects.create(
-            name=name,
-            description=description,
-            course=self.course,
-            content=content,
-            publishdate=datetime.now(),
-            moderated=True
-        )
-
-    def create_post_comment(self, post, author, content="Test Content"):
-        return PostComment.objects.create(
-            author=author,
-            post=post,
-            content=content,
-            publishdate=datetime.now()
-        )
-
-    def create_chat_group(self, course, name="Test Chat Group", description="Test"):
-        return ChatGroup.objects.create(
-            name=name,
-            description=description,
-            course=course
-        )
-
-    def create_chat_message(self, chat_group, author, content="Test"):
-        return ChatMessage.objects.create(
-            chatgroup=chat_group,
-            author=author,
-            content=content,
-            publishdate=datetime.now()
-        )
-
     def setUp(self):
 
         self.course = self.create_course()
@@ -189,8 +154,6 @@ class GeneralTests(TestCase):
             email='asdf33@example.com',
             password=self.admin_user_password,
             mobile='+27111111133')
-
-        self.chat_group = self.create_chat_group(self.course)
 
     def test_get_next_question(self):
         self.create_test_question('question1', self.module)
@@ -254,11 +217,6 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('misc.terms'), follow=True)
         self.assertEquals(resp.status_code, 200)
-
-    def check_logs(self, msg):
-        logs = self.handler.logs
-        contains = [True for s in logs if msg == s.msg]
-        return contains
 
     def assert_in_metric_logs(self, metric, aggr, value):
         msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
@@ -722,9 +680,6 @@ class GeneralTests(TestCase):
     def test_smspassword_get(self):
         resp = self.client.get(reverse('auth.smspassword'), follow=True)
         self.assertEquals(resp.status_code, 200)
-
-    def save_send_text_values(self, to_addr, content):
-        self.outgoing_vumi_text.append((to_addr, content))
 
     def test_smspassword_post(self):
         #invalid form
@@ -1268,12 +1223,29 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('misc.about'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
+    def fake_mail_managers(subject, message, fail_silently):
+        pass
+
+    @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_contact_screen(self):
         resp = self.client.get(reverse('misc.contact'))
         self.assertEquals(resp.status_code, 200)
 
         resp = self.client.post(reverse('misc.contact'), follow=True)
         self.assertContains(resp, "Please complete the following fields:")
+
+        resp = self.client.post(
+            reverse("misc.contact"),
+            follow=True,
+            data={
+                "fname": "Test",
+                "sname": "test",
+                "contact": "0123456789",
+                "comment": "test",
+                "school": "Test School",
+            }
+        )
+        self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
 
     def test_get_week_day(self):
         day = get_week_day()
@@ -1480,9 +1452,6 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.smspassword'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    def save_send_text_values2(self, to_addr, content):
-        self.outgoing_vumi_text.append((to_addr, content))
-
     def test_bloghero_screen(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -1623,6 +1592,12 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area44'))
         self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
         self.assertNotContains(resp, '+27123456789')
+
+        # wrong mode
+        resp = c.get(reverse("reports.learner", kwargs={"mode": 3, "region": ""}))
+        self.assertEquals(resp.get("Content-Type"), "text/html; charset=utf-8")
+        self.assertEquals(resp.get("location"), "http://testserver/reports")
+        self.assertEquals(resp.status_code, 302)
 
     def test_report_learner_unique_area(self):
         c = Client()
@@ -2217,56 +2192,6 @@ class LearnerStateTest(TestCase):
             self.learner_state.QUESTIONS_PER_DAY + 1))
 
 
-class MockRequest(object):
-    pass
-
-
-class MockSuperUser(object):
-    def has_perm(self, perm):
-        return True
-
-
-@override_settings(VUMI_GO_FAKE=True)
-class OneplusAdminMetricTest(TestCase):
-    def create_course(self, name="course name", **kwargs):
-        return Course.objects.create(name=name, **kwargs)
-
-    def create_module(self, name, course, **kwargs):
-        module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        module.save()
-        rel.save()
-        return module
-
-    def create_class(self, name, course, **kwargs):
-        return Class.objects.create(name=name, course=course, **kwargs)
-
-    def create_organisation(self, name='organisation name', **kwargs):
-        return Organisation.objects.create(name=name, **kwargs)
-
-    def create_school(self, name, organisation, **kwargs):
-        return School.objects.create(
-            name=name, organisation=organisation, **kwargs)
-
-    def create_learner(self, school, **kwargs):
-        return Learner.objects.create(school=school, **kwargs)
-
-    def setUp(self):
-        self.site = AdminSite()
-        self.request = MockRequest()
-        self.course = self.create_course()
-        self.classs = self.create_class('class name', self.course)
-        self.organisation = self.create_organisation()
-        self.school = self.create_school('school name', self.organisation)
-        self.learner = self.create_learner(
-            self.school,
-            username="+27123456789",
-            mobile="+27123456789",
-            country="country",
-            unique_token='abc123',
-            unique_token_expiry=datetime.now() + timedelta(days=30))
-
-
 class MessageTest(TestCase):
     def create_organisation(self, name='organisation name', **kwargs):
         return Organisation.objects.create(name=name, **kwargs)
@@ -2292,9 +2217,6 @@ class MessageTest(TestCase):
 
     def create_participant(self, learner, classs, **kwargs):
         return Participant.objects.create(learner=learner, classs=classs, **kwargs)
-
-    def create_message(self, author, course, **kwargs):
-        return Message.objects.create(author=author, course=course, **kwargs)
 
     def setUp(self):
         self.organisation = self.create_organisation()
@@ -2703,11 +2625,6 @@ class SMSQueueTest(TestCase):
 
 
 class ExtraAdminBitTests(TestCase):
-    def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name,
-                                              module=module,
-                                              **kwargs)
-
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)
 
@@ -2750,50 +2667,6 @@ class ExtraAdminBitTests(TestCase):
 
     def create_message(self, author, course, **kwargs):
         return Message.objects.create(author=author, course=course, **kwargs)
-
-    def create_test_question_option(self, name, question, correct=True):
-        return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=correct)
-
-    def create_test_answer(
-            self,
-            participant,
-            question,
-            option_selected,
-            answerdate):
-        return ParticipantQuestionAnswer.objects.create(
-            participant=participant,
-            question=question,
-            option_selected=option_selected,
-            answerdate=answerdate,
-            correct=False
-        )
-
-    def create_and_answer_questions(self, num_questions, prefix, date):
-        answers = []
-        for x in range(0, num_questions):
-            # Create a question
-            question = self.create_test_question(
-                'q' + prefix + str(x), self.module)
-
-            question.save()
-            option = self.create_test_question_option(
-                'option_' + prefix + str(x),
-                question)
-            option.save()
-            answer = self.create_test_answer(
-                participant=self.participant,
-                question=question,
-                option_selected=option,
-                answerdate=date
-            )
-            answer.save()
-            answers.append(answer)
-
-        return answers
-
-    def create_question_report(self, _user, _question, _issue, _fix):
-        return Report.objects.create(user=_user, question=_question, issue=_issue, fix=_fix)
 
     def create_post(self, name="Test Post", description="Test", content="Test content"):
         return Post.objects.create(
