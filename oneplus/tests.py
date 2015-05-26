@@ -2631,12 +2631,14 @@ class SMSQueueTest(TestCase):
                             'users': learner_1.id,
                             'date_sent_0': '2014-07-01',
                             'date_sent_1': '02:00:00',
-                            'message': 'message'},
+                            'message': 'message',
+                            '_save': '_save'},
                       follow=True)
 
         self.assertEquals(resp.status_code, 200)
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 9)
+        self.assertContains(resp, "<title>Select Queued Sms to change | OnePlus site admin</title>")
 
         resp = c.get(reverse('com.add_sms'))
         self.assertEquals(resp.status_code, 200)
@@ -2651,6 +2653,7 @@ class SMSQueueTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'This field is required')
 
+        #testing _save button
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,

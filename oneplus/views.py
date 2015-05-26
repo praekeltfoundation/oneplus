@@ -3022,7 +3022,10 @@ def add_sms(request):
                     usr = Learner.objects.get(id=u)
                     create_sms(usr.learner.mobile, dt, message)
 
-        return HttpResponseRedirect('/admin/communication/smsqueue/')
+        if "_save" in request.POST.keys():
+            return HttpResponseRedirect('/admin/communication/smsqueue/')
+        else:
+            return HttpResponseRedirect('/smsqueue/add/')
 
     def create_sms(identifier, send_date, message):
         SmsQueue.objects.create(
