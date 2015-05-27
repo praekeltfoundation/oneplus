@@ -443,10 +443,13 @@ def signup_form(request):
             new_learner.save()
 
             #sms the learner their OnePlus password
-            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
+            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is |%s|. Log in by going to "
                                             "this link: http://www.oneplus.co.za/login" % password,
                                     send_date=datetime.now(),
                                     msisdn=cellphone)
+
+            new_learner.welcome_message_sent = True
+            new_learner.save()
 
             #inform oneplus about the new learner
             subject = "".join(['New student registered'])
