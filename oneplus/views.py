@@ -33,8 +33,7 @@ import re
 from communication.utils import report_user_post
 from organisation.models import School, Course
 from core.models import Class
-from oneplusmvp.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_10_OPEN_CLASS_NAME, GRADE_11_OPEN_CLASS_NAME
-
+from oneplusmvp import settings
 
 COUNTRYWIDE = "Countrywide"
 
@@ -403,22 +402,22 @@ def signup_form(request):
 
                 if data["grade"] == "Grade 10":
                     try:
-                        classs = Class.objects.get(name=GRADE_10_OPEN_CLASS_NAME)
+                        classs = Class.objects.get(name=settings.GRADE_10_OPEN_CLASS_NAME)
                     except Class.DoesNotExist:
                         try:
-                            course = Course.objects.get(name=GRADE_10_COURSE_NAME)
+                            course = Course.objects.get(name=settings.GRADE_10_COURSE_NAME)
                         except Course.DoesNotExist:
-                            course = Course.objects.create(name=GRADE_10_COURSE_NAME)
-                        classs = Class.objects.create(name=GRADE_10_OPEN_CLASS_NAME, course=course)
+                            course = Course.objects.create(name=settings.GRADE_10_COURSE_NAME)
+                        classs = Class.objects.create(name=settings.GRADE_10_OPEN_CLASS_NAME, course=course)
                 else:
                     try:
-                        classs = Class.objects.get(name=GRADE_11_OPEN_CLASS_NAME)
+                        classs = Class.objects.get(name=settings.GRADE_11_OPEN_CLASS_NAME)
                     except Class.DoesNotExist:
                         try:
-                            course = Course.objects.get(name=GRADE_11_COURSE_NAME)
+                            course = Course.objects.get(name=settings.GRADE_11_COURSE_NAME)
                         except Course.DoesNotExist:
-                            course = Course.objects.create(name=GRADE_11_COURSE_NAME)
-                        classs = Class.objects.create(name=GRADE_11_OPEN_CLASS_NAME, course=course)
+                            course = Course.objects.create(name=settings.GRADE_11_COURSE_NAME)
+                        classs = Class.objects.create(name=settings.GRADE_11_OPEN_CLASS_NAME, course=course)
 
                 create_participant(new_learner, classs)
 
