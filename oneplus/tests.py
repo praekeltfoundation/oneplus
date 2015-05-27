@@ -3424,6 +3424,7 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/communication/moderation/")
         self.admin_page_test_helper(c, "/admin/communication/postcomment/")
         self.admin_page_test_helper(c, "/admin/communication/post/")
+        self.admin_page_test_helper(c, "/admin/communication/profanity/")
         self.admin_page_test_helper(c, "/admin/communication/smsqueue/")
         self.admin_page_test_helper(c, "/admin/communication/reportresponse/")
         self.admin_page_test_helper(c, "/admin/communication/report/")
