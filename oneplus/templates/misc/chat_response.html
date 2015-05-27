@@ -1,5 +1,7 @@
 {% extends "admin/change_list.html" %}
 
+{% block title %}Respond to Chat Message | OnePlus site admin{% endblock %}
+
 <!-- BREADCRUMBS -->
 {% block breadcrumbs %}
     {% if not is_popup %}
@@ -89,7 +91,7 @@
                         </div>
                         <div class="c-2">
                             {% if ro %}
-                                <label>{{ cm.publish_date }}</label>
+                                <label>{{ response.publishdate }}</label>
                             {% else %}
                                 <p class="datetime">
                                     <input class="vDateField" id="id_publishdate_0" name="publishdate_0" size="10" type="text" value="{{ v_date }}">
@@ -113,7 +115,7 @@
                         </div>
                         <div class="c-2">
                             {% if ro %}
-                                <label>{{ cm.content }}</label>
+                                <label>{{ response.content }}</label>
                             {% else %}
                                 <textarea cols="40" hidden="true" id="id_content" name="content" rows="10">{{ v_content }}</textarea>
                                 <script>
@@ -144,7 +146,9 @@
             <footer class="grp-module grp-submit-row grp-fixed-footer">
                 <header style="display:none"><h1>Submit Options</h1></header>
                 <ul>
-                    <li><input type="submit" value="Save" class="grp-button grp-default" name="_save"></li>
+                    {% if not ro %}
+                        <li><input type="submit" value="Save" class="grp-button grp-default" name="_save"></li>
+                    {% endif %}
                 </ul>
             </footer>
         </div>
