@@ -171,7 +171,12 @@ class Learner(CustomUser):
 
 # A view of learner
 class LearnerView(CustomUser):
-    school = models.ForeignKey(School, null=True, blank=False)
+    school = models.ForeignKey(
+        School,
+        null=True,
+        blank=False,
+        on_delete=models.SET_NULL
+    )
     last_maths_result = models.FloatField(
         verbose_name="Last Terms Mathematics Result",
         blank=True,
@@ -191,7 +196,8 @@ class LearnerView(CustomUser):
     welcome_message = models.ForeignKey(
         Sms,
         null=True,
-        blank=True
+        blank=True,
+        on_delete=models.SET_NULL
     )
     last_active_date = models.DateTimeField(
         null=True,
