@@ -92,5 +92,5 @@ class OnePlusLearnerAdmin(LearnerAdmin):
                 "SUM",
             )
 
-admin.site.unregister(LearnerView)
-admin.site.register(LearnerView, OnePlusLearnerAdmin)
+admin.site.unregister(Learner)
+admin.site.register(Learner, OnePlusLearnerAdmin)
