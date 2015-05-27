@@ -165,6 +165,8 @@ def unmoderate(comm, user):
     comm.moderated = False
     comm.unmoderated_by = user
     comm.unmoderated_date = datetime.now()
+    comm.original_content = comm.content
+    comm.content = get_replacement_content(admin_ban=True, num_days=3)
     comm.save()
 
 

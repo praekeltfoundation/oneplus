@@ -507,6 +507,20 @@ class PostCommentAdmin(admin.ModelAdmin):
     ]
 
 
+class ProfanityAdmin(admin.ModelAdmin):
+    list_display = (
+        "word",
+        "translation"
+    )
+
+    search_fields = (
+        "word",
+        "translation"
+    )
+
+    ordering = ("word",)
+
+
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
@@ -520,3 +534,4 @@ admin.site.register(ReportResponse, ReportResponseAdmin)
 admin.site.register(SmsQueue, SmsQueuedAdmin)
 admin.site.register(Moderation, ModerationAdmin)
 admin.site.register(Ban, BanAdmin)
+admin.site.register(Profanity, ProfanityAdmin)
