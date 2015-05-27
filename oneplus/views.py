@@ -313,10 +313,14 @@ def create_participant(learner, classs):
 def signup_form(request):
     schools = School.objects.all()
     classes = Class.objects.all()
+    provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
+                 "Northern Cape", "Western Cape")
+    province_schools = School.objects.filter(name__in=provinces)
 
     def get():
         return render(request, "auth/signup_form.html", {"schools": schools,
-                                                         "classes": classes})
+                                                         "classes": classes,
+                                                         "provinces": province_schools})
 
     def post():
         data = {}
@@ -352,16 +356,16 @@ def signup_form(request):
         else:
             errors["enrolled_error"] = "This must be completed"
 
-        if "school" in request.POST.keys() and request.POST["school"]:
-            data["school"] = request.POST["school"]
-            try:
-                School.objects.get(id=data["school"])
-            except School.DoesNotExist:
-                errors["school_error"] = "Select a school"
-        else:
-            errors["school_error"] = "Select a school"
-
         if enrolled:
+            if "school" in request.POST.keys() and request.POST["school"]:
+                data["school"] = request.POST["school"]
+                try:
+                    School.objects.get(id=data["school"])
+                except School.DoesNotExist:
+                    errors["school_error"] = "Select a school"
+            else:
+                errors["school_error"] = "Select a school"
+
             if "classs" in request.POST.keys() and request.POST["classs"]:
                 data["classs"] = request.POST["classs"]
                 try:
@@ -371,20 +375,14 @@ def signup_form(request):
             else:
                 errors["class_error"] = "Select a class"
 
-        if "area" in request.POST.keys() and request.POST["area"]:
-            data["area"] = request.POST["area"]
         else:
-            errors["area_error"] = "This must be completed"
-
-        if "city" in request.POST.keys() and request.POST["city"]:
-            data["city"] = request.POST["city"]
-        else:
-            errors["city_error"] = "This must be completed"
-
-        if "country" in request.POST.keys() and request.POST["country"]:
-            data["country"] = request.POST["country"]
-        else:
-            errors["country_error"] = "This must be completed"
+            if "province" in request.POST.keys() and request.POST["province"]:
+                data["province"] = request.POST["province"]
+                try:
+                    if School.objects.get(id=data["province"]).name in provinces:
+                        errors["province_error"] = "Select a province"
+                except School.DoesNotExist:
+                    errors["province_error"] = "Select a province"
 
         if "grade" in request.POST.keys() and request.POST["grade"]:
             if request.POST["grade"] not in ("Grade 10", "Grade 11"):
@@ -402,12 +400,9 @@ def signup_form(request):
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
                                              mobile=data["cellphone"],
-                                             area=data["area"],
-                                             city=data["city"],
-                                             country=data["country"],
+                                             country="South Africa",
                                              school=school,
-                                             grade=data["grade"],
-                                             enrolled=data["enrolled"])
+                                             grade=data["grade"])
 
                 if data["grade"] == "Grade 10":
                     try:
@@ -436,12 +431,9 @@ def signup_form(request):
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
                                              mobile=data["cellphone"],
-                                             area=data["area"],
-                                             city=data["city"],
-                                             country=data["country"],
+                                             country="South Africa",
                                              school=school,
-                                             grade=data["grade"],
-                                             enrolled=data["enrolled"])
+                                             grade=data["grade"])
 
                 classs = Class.objects.get(id=data["classs"])
 

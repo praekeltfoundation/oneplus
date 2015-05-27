@@ -1736,6 +1736,7 @@ class GeneralTests(TestCase):
         i_mobile_4 = validate_mobile(i_mobile_4)
         self.assertEquals(i_mobile_4, None)
 
+    @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_signup_form(self):
 
         resp = self.client.get(reverse('auth.signup_form'))
@@ -1810,7 +1811,7 @@ class GeneralTests(TestCase):
                                     'first_name': "Koos",
                                     'surname': "Botha",
                                     'cellphone': '0729876540',
-                                    'school': 0,
+                                    'school': self.school.id,
                                     'classs': 0,
                                     'enrolled': 1,
                                     'area': 'Area',
