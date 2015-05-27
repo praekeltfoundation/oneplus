@@ -242,3 +242,90 @@ class TestPublishViews(TestCase):
         self.assertEquals(pc.moderated, False)
         self.assertEquals(pc.unmoderated_by.username, self.admin_user.username)
         self.assertIsNotNone(pc.unmoderated_date)
+
+
+class AdminSiteTests(TestCase):
+
+    def setUp(self):
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
+
+    def admin_page_test_helper(self, c, page):
+        resp = c.get(page)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_auth_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.admin_page_test_helper(c, "/admin/")
+
+        self.admin_page_test_helper(c, "/admin/auth/")
+        self.admin_page_test_helper(c, "/admin/auth/coursemanager/")
+        self.admin_page_test_helper(c, "/admin/auth/coursementor/")
+        self.admin_page_test_helper(c, "/admin/auth/group/")
+        self.admin_page_test_helper(c, "/admin/auth/learnerview/")
+        self.admin_page_test_helper(c, "/admin/auth/learner/")
+        self.admin_page_test_helper(c, "/admin/auth/teacher/")
+        self.admin_page_test_helper(c, "/admin/auth/schoolmanager/")
+        self.admin_page_test_helper(c, "/admin/auth/systemadministrator/")
+
+    def test_communication_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.admin_page_test_helper(c, "/admin/communication/")
+        self.admin_page_test_helper(c, "/admin/communication/ban/")
+        self.admin_page_test_helper(c, "/admin/communication/chatgroup/")
+        self.admin_page_test_helper(c, "/admin/communication/chatmessage/")
+        self.admin_page_test_helper(c, "/admin/communication/discussion/")
+        self.admin_page_test_helper(c, "/admin/communication/message/")
+        self.admin_page_test_helper(c, "/admin/communication/moderation/")
+        self.admin_page_test_helper(c, "/admin/communication/postcomment/")
+        self.admin_page_test_helper(c, "/admin/communication/post/")
+        self.admin_page_test_helper(c, "/admin/communication/smsqueue/")
+        self.admin_page_test_helper(c, "/admin/communication/reportresponse/")
+        self.admin_page_test_helper(c, "/admin/communication/report/")
+        self.admin_page_test_helper(c, "/admin/communication/sms/")
+
+    def test_content_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.admin_page_test_helper(c, "/admin/content/")
+        self.admin_page_test_helper(c, "/admin/content/learningchapter/")
+        self.admin_page_test_helper(c, "/admin/content/mathml/")
+        self.admin_page_test_helper(c, "/admin/content/testingquestionoption/")
+        self.admin_page_test_helper(c, "/admin/content/testingquestion/")
+
+    def test_core_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.admin_page_test_helper(c, "/admin/core/")
+        self.admin_page_test_helper(c, "/admin/core/class/")
+        self.admin_page_test_helper(c, "/admin/core/participantquestionanswer/")
+        self.admin_page_test_helper(c, "/admin/core/participant/")
+
+    def test_gamification_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.admin_page_test_helper(c, "/admin/gamification/")
+        self.admin_page_test_helper(c, "/admin/gamification/gamificationbadgetemplate/")
+        self.admin_page_test_helper(c, "/admin/gamification/gamificationpointbonus/")
+        self.admin_page_test_helper(c, "/admin/gamification/gamificationscenario/")
+
+    def test_organisation_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.admin_page_test_helper(c, "/admin/organisation/")
+        self.admin_page_test_helper(c, "/admin/organisation/course/")
+        self.admin_page_test_helper(c, "/admin/organisation/module/")
+        self.admin_page_test_helper(c, "/admin/organisation/organisation/")
+        self.admin_page_test_helper(c, "/admin/organisation/school/")

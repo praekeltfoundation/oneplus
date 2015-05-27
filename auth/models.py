@@ -166,7 +166,7 @@ class Learner(CustomUser):
 
     class Meta:
         verbose_name = "Learner"
-        verbose_name_plural = "Learners"
+        verbose_name_plural = "Learners - Import/Export"
 
 
 # A view of learner

@@ -358,13 +358,13 @@ class ModerationAdmin(admin.ModelAdmin):
             url_part = 'chatmessage'
 
         if obj.moderated:
-            return '<p>Published</p><a href="%s%s/unpublish/%d" target="_blank">Unpublish</a>' % \
+            return '<p>Published</p><a href="%s%s/unpublish/%d" target="_blank" onclick="window.location = window.location.href;">Unpublish</a>' % \
                    (url_base, url_part, obj.mod_id)
         elif obj.moderated is False and obj.unmoderated_date is not None:
-            return '<p>Unpublished</p><a href="%s%s/publish/%d" target="_blank">Publish</a>' % \
+            return '<p>Unpublished</p><a href="%s%s/publish/%d" target="_blank" onclick="window.location = window.location.href;">Publish</a>' % \
                    (url_base, url_part, obj.mod_id)
         else:
-            return '<a href="%s%s/publish/%d" target="_blank">Publish</a>' % (url_base, url_part, obj.mod_id)
+            return '<a href="%s%s/publish/%d" target="_blank" onclick="window.location = window.location.href;">Publish</a>' % (url_base, url_part, obj.mod_id)
 
     get_published.short_description = 'Published'
     get_published.allow_tags = True
@@ -431,14 +431,47 @@ class ModerationAdmin(admin.ModelAdmin):
     reply_to_selected.short_description = 'Add reply'
 
     def unpublish_selected(modeladmin, request, queryset):
-        queryset.update(moderated=False, unmoderated_date=datetime.now(), unmoderated_by=request.user)
+        blogcomments = queryset.filter(type=Moderation.MT_BLOG_COMMENT).values("mod_id")
+        discusions = queryset.filter(type=Moderation.MT_DISCUSSION).values("mod_id")
+        chats = queryset.filter(type=Moderation.MT_CHAT).values("mod_id")
+
+        PostComment.objects.filter(id__in=blogcomments).update(
+            moderated=False,
+            unmoderated_date=datetime.now(),
+            unmoderated_by=request.user
+        )
+        Discussion.objects.filter(id__in=discusions).update(
+            moderated=False,
+            unmoderated_date=datetime.now(),
+            unmoderated_by=request.user
+        )
+        ChatMessage.objects.filter(id__in=chats).update(
+            moderated=False,
+            unmoderated_date=datetime.now(),
+            unmoderated_by=request.user
+        )
 
     unpublish_selected.short_description = 'Unpublish'
 
     def publish_selected(modeladmin, request, queryset):
-        queryset.update(moderated=True)
+        blogcomments = queryset.filter(type=Moderation.MT_BLOG_COMMENT).values("mod_id")
+        discusions = queryset.filter(type=Moderation.MT_DISCUSSION).values("mod_id")
+        chats = queryset.filter(type=Moderation.MT_CHAT).values("mod_id")
+
+        PostComment.objects.filter(id__in=blogcomments).update(moderated=True)
+        Discussion.objects.filter(id__in=discusions).update(moderated=True)
+        ChatMessage.objects.filter(id__in=chats).update(moderated=True)
 
     publish_selected.short_description = 'Publish'
+
+    def get_actions(self, request):
+        #Disable delete
+        actions = super(ModerationAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class BanAdmin(admin.ModelAdmin):
