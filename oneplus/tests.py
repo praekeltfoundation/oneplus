@@ -2820,6 +2820,9 @@ class ExtraAdminBitTests(TestCase):
         self.assertEquals(ReportResponse.objects.all().count(), rr_cnt + 1)
         self.assertEquals(Message.objects.all().count(), msg_cnt + 1)
 
+        resp = c.get('/report_response/%s' % rep.id)
+        self.assertContains(resp, 'Report Response')
+
     def test_admin_msg_response(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
@@ -2964,6 +2967,9 @@ class ExtraAdminBitTests(TestCase):
         qsms = SmsQueue.objects.get(msisdn=learner.mobile)
         self.assertEquals(qsms.message, 'Test24')
 
+        resp = c.get('/sms_response/%s' % sms.id)
+        self.assertContains(resp, 'Respond to SMS')
+
     def test_admin_discussion_response(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
@@ -3042,6 +3048,9 @@ class ExtraAdminBitTests(TestCase):
         self.assertIsNotNone(disc.response)
         self.assertEquals(disc.response.moderated, True)
         self.assertEquals(disc.response.author, self.admin_user)
+
+        resp = c.get('%s%s' % (burl, disc.id))
+        self.assertContains(resp, 'Respond to Discussion')
 
     def test_admin_discussion_response_selected(self):
         c = Client()
@@ -3192,6 +3201,9 @@ class ExtraAdminBitTests(TestCase):
         self.assertEquals(pc.response.moderated, True)
         self.assertEquals(pc.response.author, self.admin_user)
 
+        resp = c.get('%s%s' % (burl, c1.id))
+        self.assertContains(resp, 'Respond to Blog Comment')
+
     def test_admin_blog_comment_response_selected(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
@@ -3313,6 +3325,9 @@ class ExtraAdminBitTests(TestCase):
         self.assertEquals(cm.response.moderated, True)
         self.assertEquals(cm.response.author, self.admin_user)
 
+        resp = c.get('%s%s' % (burl, c1.id))
+        self.assertContains(resp, 'Respond to Chat Message')
+
     def test_admin_chat_response_selected(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
@@ -3392,6 +3407,7 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/auth/coursementor/")
         self.admin_page_test_helper(c, "/admin/auth/group/")
         self.admin_page_test_helper(c, "/admin/auth/learnerview/")
+        self.admin_page_test_helper(c, "/admin/auth/learner/")
         self.admin_page_test_helper(c, "/admin/auth/teacher/")
         self.admin_page_test_helper(c, "/admin/auth/schoolmanager/")
         self.admin_page_test_helper(c, "/admin/auth/systemadministrator/")

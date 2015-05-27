@@ -2883,11 +2883,18 @@ def discussion_response(request, disc):
     else:
         return HttpResponse("Discussion %s not found" % disc)
 
+    ro = None
+    response = None
+
+    if db_disc.response:
+        ro = 1
+        response = db_disc.response
+
     def get():
         return render(
             request=request,
-            template_name='misc/discussion_response.html',
-            dictionary={'disc': db_disc, 'participant': db_participant}
+            template_name="misc/discussion_response.html",
+            dictionary={"disc": db_disc, "participant": db_participant, "ro": ro, "response": response}
         )
 
     def post():
@@ -2904,17 +2911,19 @@ def discussion_response(request, disc):
         if title_error or dt_error or content_error:
             return render(
                 request=request,
-                template_name='misc/discussion_response.html',
+                template_name="misc/discussion_response.html",
                 dictionary={
-                    'disc': db_disc,
-                    'participant': db_participant,
-                    'title_error': title_error,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_title': title,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
+                    "disc": db_disc,
+                    "participant": db_participant,
+                    "ro": ro,
+                    "response": response,
+                    "title_error": title_error,
+                    "dt_error": dt_error,
+                    "content_error": content_error,
+                    "v_title": title,
+                    "v_date": date,
+                    "v_time": time,
+                    "v_content": content
                 }
             )
         else:
@@ -2934,7 +2943,7 @@ def discussion_response(request, disc):
             db_disc.response = disc
             db_disc.save()
 
-            return HttpResponseRedirect('/admin/communication/discussion/')
+            return HttpResponseRedirect("/admin/communication/discussion/")
 
     return resolve_http_method(request, [get, post])
 
@@ -3077,12 +3086,19 @@ def sms_response(request, sms):
     else:
         return HttpResponse("Sms %s not found" % sms)
 
+    ro = None
+    resp = None
+
+    if db_sms.response:
+        ro = 1
+        resp = db_sms.response
+
     def get():
 
         return render(
             request=request,
-            template_name='misc/sms_response.html',
-            dictionary={'sms': db_sms, 'participant': db_participant}
+            template_name="misc/sms_response.html",
+            dictionary={"sms": db_sms, "participant": db_participant, "ro": ro, "response": resp}
         )
 
     def post():
@@ -3100,15 +3116,17 @@ def sms_response(request, sms):
         if dt_error or content_error:
             return render(
                 request=request,
-                template_name='misc/sms_response.html',
+                template_name="misc/sms_response.html",
                 dictionary={
-                    'sms': db_sms,
-                    'participant': db_participant,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
+                    "sms": db_sms,
+                    "participant": db_participant,
+                    "ro": ro,
+                    "response": resp,
+                    "dt_error": dt_error,
+                    "content_error": content_error,
+                    "v_date": date,
+                    "v_time": time,
+                    "v_content": content
                 }
             )
         else:
@@ -3123,7 +3141,7 @@ def sms_response(request, sms):
             db_sms.response = qsms
             db_sms.save()
 
-            return HttpResponseRedirect('/admin/communication/sms/')
+            return HttpResponseRedirect("/admin/communication/sms/")
 
     return resolve_http_method(request, [get, post])
 
@@ -3236,11 +3254,22 @@ def blog_comment_response(request, pc):
     if not db_pc:
         return HttpResponse("PostComment %s not found" % pc)
 
+    ro = None
+    response = None
+
+    if db_pc.response:
+        ro = 1
+        response = db_pc.response
+
     def get():
         return render(
             request=request,
-            template_name='misc/blog_comment_response.html',
-            dictionary={'pc': db_pc}
+            template_name="misc/blog_comment_response.html",
+            dictionary={
+                "pc": db_pc,
+                "ro": ro,
+                "response": response
+            }
         )
 
     def post():
@@ -3254,14 +3283,16 @@ def blog_comment_response(request, pc):
         if dt_error or content_error:
             return render(
                 request=request,
-                template_name='misc/blog_comment_response.html',
+                template_name="misc/blog_comment_response.html",
                 dictionary={
-                    'pc': db_pc,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
+                    "pc": db_pc,
+                    "ro": ro,
+                    "response": response,
+                    "dt_error": dt_error,
+                    "content_error": content_error,
+                    "v_date": date,
+                    "v_time": time,
+                    "v_content": content
                 }
             )
         else:
@@ -3276,7 +3307,7 @@ def blog_comment_response(request, pc):
             db_pc.response = pc
             db_pc.save()
 
-            return HttpResponseRedirect('/admin/communication/postcomment/')
+            return HttpResponseRedirect("/admin/communication/postcomment/")
 
     return resolve_http_method(request, [get, post])
 
@@ -3354,11 +3385,22 @@ def chat_response(request, cm):
     if not db_cm:
         return HttpResponse("ChatMessage %s not found" % cm)
 
+    ro = None
+    response = None
+
+    if db_cm.response:
+        ro = 1
+        response = db_cm.response
+
     def get():
         return render(
             request=request,
-            template_name='misc/chat_response.html',
-            dictionary={'cm': db_cm}
+            template_name="misc/chat_response.html",
+            dictionary={
+                "cm": db_cm,
+                "ro": ro,
+                "response": response,
+            }
         )
 
     def post():
@@ -3372,14 +3414,16 @@ def chat_response(request, cm):
         if dt_error or content_error:
             return render(
                 request=request,
-                template_name='misc/chat_response.html',
+                template_name="misc/chat_response.html",
                 dictionary={
-                    'cm': db_cm,
-                    'dt_error': dt_error,
-                    'content_error': content_error,
-                    'v_date': date,
-                    'v_time': time,
-                    'v_content': content
+                    "cm": db_cm,
+                    "ro": ro,
+                    "response": response,
+                    "dt_error": dt_error,
+                    "content_error": content_error,
+                    "v_date": date,
+                    "v_time": time,
+                    "v_content": content
                 }
             )
         else:
@@ -3394,7 +3438,7 @@ def chat_response(request, cm):
             db_cm.response = cm
             db_cm.save()
 
-            return HttpResponseRedirect('/admin/communication/chatmessage/')
+            return HttpResponseRedirect("/admin/communication/chatmessage/")
 
     return resolve_http_method(request, [get, post])
 

@@ -29,7 +29,7 @@
                                     <p class="white-front">{{ comment.content }}</p>
                                     <form name="report_comment" method="post" action="?">
                                         {% csrf_token %}
-                                        <button type="submit" name="report_button" class="red-front bold link" value="">Report Comment</button>
+                                        <button type="submit" name="report_button" class="red-front bold link" value="">Report</button>
                                         <input type="hidden" name="report" value="{{ comment.id }}" />
                                     </form>
                                 {% else %}
@@ -43,7 +43,7 @@
                     <div class="item grey-back">
                         <span>{{ request.session.state.post_page }} of {{ request.session.state.post_page_max }}</span>
                         {% if request.session.state.post_page < request.session.state.post_page_max %}
-                            <button type="submit" name="more_button" class="green-front link" value="">See more comments ></button>
+                            <button type="submit" name="more_button" class="green-front link" value="">See more comments &gt;</button>
                             <input type="hidden" name="page" value="" />
                         {% endif %}
                     </div>
@@ -67,11 +67,11 @@
 
     <div class="content narrow white-back">
         {% if state.blog_previous %}
-            <a class="purple-front bold-font pull-left" href="/blog/{{ state.blog_previous }}">< Previous</a>
+            <a class="purple-front bold-font pull-left" href="/blog/{{ state.blog_previous }}">&lt; Previous</a>
         {% endif %}
 
         {% if state.blog_next %}
-            <a class="purple-front bold-font pull-right" href="/blog/{{ state.blog_next }}">Next ></a>
+            <a class="purple-front bold-font pull-right" href="/blog/{{ state.blog_next }}">Next &gt;</a>
         {% endif %}
         <div>&nbsp;</div>
     </div>
