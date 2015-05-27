@@ -143,7 +143,7 @@ class CourseMentorAdmin(UserAdmin):
     )
 
 
-def send_sms(request, queryset):
+def send_sms(modeladmin, request, queryset):
     form = None
     if 'apply' in request.POST:
         form = SendSmsForm(request.POST)
