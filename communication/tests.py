@@ -301,6 +301,11 @@ class TestBan(TestCase):
         act = get_replacement_content(admin_ban=False, num_days=1)
         self.assertEquals(exp_com, act)
 
+    def test_replacement_content_profanity(self):
+        exp_com = "This comment includes a banned word so has been removed."
+        act = get_replacement_content(profanity=True)
+        self.assertEquals(exp_com, act)
+
 
 class TestProfanity(TestCase):
     def test_profanity(self):
