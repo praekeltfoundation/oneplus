@@ -154,15 +154,6 @@ class Learner(CustomUser):
         null=True,
         blank=True,
     )
-    ENROLLED_CHOICES = (
-        ("0", "Yes"),
-        ("1", "No"))
-
-    enrolled = models.PositiveIntegerField(
-        verbose_name="Currently enrolled in ProMaths class?",
-        blank=True,
-        choices=ENROLLED_CHOICES,
-        default=1)
 
     class Meta:
         verbose_name = "Learner"
@@ -197,15 +188,6 @@ class LearnerView(CustomUser):
         null=True,
         blank=True,
     )
-    ENROLLED_CHOICES = (
-        ("0", "Yes"),
-        ("1", "No"))
-
-    enrolled = models.PositiveIntegerField(
-        verbose_name="Currently enrolled in ProMaths class?",
-        blank=True,
-        choices=ENROLLED_CHOICES,
-        default=1)
 
     questions_completed = models.IntegerField(
         verbose_name="Completed Questions",
@@ -251,7 +233,6 @@ class LearnerView(CustomUser):
         lnr.welcome_message_sent = self.welcome_message_sent
         lnr.welcome_message = self.welcome_message
         lnr.last_active_date = self.last_active_date
-        lnr.enrolled = self.enrolled
         lnr.save()
 
         self.id = lnr.id
