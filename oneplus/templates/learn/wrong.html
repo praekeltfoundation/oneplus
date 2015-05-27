@@ -102,7 +102,7 @@
                                     {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                         <form name="comment_response" method="post" action="?" class="inline">
                                             {% csrf_token %}
-                                            <button type="submit" name="comment_response_button" class="link green-front" value="{{ msg.id }}">Reply</button>
+                                            <button type="submit" name="reply_button" class="link green-front" value="{{ msg.id }}">Reply</button>
                                         </form>
                                     {% endifnotequal %}
                                 {% endif %}

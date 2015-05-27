@@ -1129,13 +1129,7 @@ def right(request, state, user):
                                                   + str(question_id) + "-->"
 
     _usr = Learner.objects.get(pk=user["id"])
-
-    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
-
-    if not banned:
-        request.session["state"]["banned"] = False
-    else:
-        request.session["state"]["banned"] = True
+    request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
         if _learnerstate.active_result:
@@ -1187,8 +1181,7 @@ def right(request, state, user):
             request.session["state"]["report_sent"] = False
 
             # new comment created
-            if "comment" in request.POST.keys()\
-                    and request.POST["comment"] != "":
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
@@ -1204,8 +1197,7 @@ def right(request, state, user):
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
 
-            elif "reply" in request.POST.keys() \
-                    and request.POST["reply"] != "":
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]

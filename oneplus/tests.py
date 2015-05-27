@@ -13,7 +13,7 @@ from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post, \
-    Report, ReportResponse, Sms, SmsQueue, Discussion, PostComment
+    Report, ReportResponse, Sms, SmsQueue, Discussion, PostComment, Profanity
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -449,6 +449,20 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
+        disc = Discussion.objects.all().first()
+
+        resp = self.client.post(
+            reverse('learn.right'),
+            data={
+                'reply': 'test',
+                "reply_button": disc.id
+            },
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(Discussion.objects.all().count(), 2)
+
         resp = self.client.post(
             reverse('learn.right'),
             data={'page': 1},
@@ -467,12 +481,15 @@ class GeneralTests(TestCase):
         question1 = self.create_test_question(
             'question1',
             self.module,
-            question_content='test question')
+            question_content='test question'
+        )
+
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
             active_result=False,
         )
+
         resp = self.client.get(reverse('learn.wrong'))
         self.assertEquals(resp.status_code, 200)
 
@@ -481,6 +498,20 @@ class GeneralTests(TestCase):
             data={'comment': 'test'}, follow=True)
 
         self.assertEquals(resp.status_code, 200)
+
+        disc = Discussion.objects.all().first()
+
+        resp = self.client.post(
+            reverse('learn.wrong'),
+            data={
+                'reply': 'test',
+                "reply_button": disc.id
+            },
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(Discussion.objects.all().count(), 2)
 
         resp = self.client.post(
             reverse('learn.wrong'),
@@ -633,6 +664,21 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "This comment has been reported")
 
+        Profanity.objects.create(
+            word="crap"
+        )
+
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
+            data={'comment': 'crap'},
+            follow=True
+        )
+
+        cm = ChatMessage.objects.all().last()
+        self.assertEquals(cm.content, "This comment includes a banned word so has been removed.")
+        self.assertEquals(cm.original_content, "crap")
+
     def test_blog(self):
         self.client.get(
             reverse('auth.autologin',
@@ -737,6 +783,19 @@ class GeneralTests(TestCase):
     def test_chatgroups(self):
         self.client.get(reverse('auth.autologin',
                                 kwargs={'token': self.learner.unique_token}))
+
+        group = ChatGroup.objects.create(
+            name="Test",
+            description="Test",
+            course=self.course
+        )
+
+        ChatMessage.objects.create(
+            chatgroup=group,
+            author=self.learner,
+            content="test",
+            publishdate=datetime.now()
+        )
 
         resp = self.client.get(reverse('com.chatgroups'))
         self.assertEquals(resp.status_code, 200)
