@@ -288,17 +288,14 @@ def validate_mobile(mobile):
 
 
 #create learner
-def create_learner(first_name, last_name, mobile, area, city, country, school, grade, enrolled):
+def create_learner(first_name, last_name, mobile, country, school, grade):
     return Learner.objects.create(first_name=first_name,
                                   last_name=last_name,
                                   mobile=mobile,
                                   username=mobile,
-                                  area=area,
-                                  city=city,
                                   country=country,
                                   school=school,
-                                  grade=grade,
-                                  enrolled=enrolled)
+                                  grade=grade)
 
 
 #create participant
@@ -311,10 +308,10 @@ def create_participant(learner, classs):
 #Sign up Form Screen
 @available_space_required
 def signup_form(request):
-    schools = School.objects.all()
-    classes = Class.objects.all()
     provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
                  "Northern Cape", "Western Cape")
+    schools = School.objects.exclude(name__in=provinces)
+    classes = Class.objects.all()
     province_schools = School.objects.filter(name__in=provinces)
 
     def get():
@@ -379,29 +376,29 @@ def signup_form(request):
             if "province" in request.POST.keys() and request.POST["province"]:
                 data["province"] = request.POST["province"]
                 try:
-                    if School.objects.get(id=data["province"]).name in provinces:
+                    if School.objects.get(id=data["province"]).name not in provinces:
                         errors["province_error"] = "Select a province"
                 except School.DoesNotExist:
                     errors["province_error"] = "Select a province"
 
         if "grade" in request.POST.keys() and request.POST["grade"]:
             if request.POST["grade"] not in ("Grade 10", "Grade 11"):
-                errors["grade_error"] = "Select a valid grade"
+                errors["grade_error"] = "Select a grade"
             else:
                 data["grade"] = request.POST["grade"]
         else:
             errors["grade_error"] = "This must be completed"
 
         if not errors:
-            if data["enrolled"] == '1':
-                school = School.objects.get(id=data["school"])
+            if not enrolled:
+                province = School.objects.get(id=data["province"])
 
                 #create learner
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
                                              mobile=data["cellphone"],
                                              country="South Africa",
-                                             school=school,
+                                             school=province,
                                              grade=data["grade"])
 
                 if data["grade"] == "Grade 10":
@@ -462,6 +459,7 @@ def signup_form(request):
         else:
             return render(request, "auth/signup_form.html", {"schools": schools,
                                                              "classes": classes,
+                                                             "provinces": province_schools,
                                                              "data": data,
                                                              "errors": errors})
 
