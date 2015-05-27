@@ -668,6 +668,9 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Thank you for your contribution. Your message will display shortly!")
 
+        pc = PostComment.objects.get(post=blog)
+        self.assertEquals(pc.moderated, True)
+
         resp = self.client.post(
             reverse('com.blog',
                     kwargs={'blogid': blog.id}),
