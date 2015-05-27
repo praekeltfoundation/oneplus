@@ -3063,17 +3063,12 @@ def view_sms(request, sms):
 
     def post():
         if "_update" in request.POST.keys() and \
-            "message" in request.POST.keys() and request.POST["message"] and \
-            "sms_id" in request.POST.keys() and request.POST["sms_id"]:
-            try:
-                u_sms = SmsQueue.objects.get(id=request.POST["sms_id"])
-            except SmsQueue.DoesNotExist:
-                return HttpResponseRedirect('/admin/communication/smsqueue/')
+                "message" in request.POST.keys() and request.POST["message"]:
 
             new_message = request.POST["message"]
-            u_sms.message = new_message
-            u_sms.save()
-            return HttpResponseRedirect('/smsqueue/%s' % u_sms.id)
+            db_sms.message = new_message
+            db_sms.save()
+            return HttpResponseRedirect('/smsqueue/%s' % db_sms.id)
 
         return HttpResponseRedirect('/admin/communication/smsqueue/')
 
