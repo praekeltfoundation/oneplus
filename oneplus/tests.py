@@ -1798,8 +1798,9 @@ class GeneralTests(TestCase):
         i_mobile_4 = validate_mobile(i_mobile_4)
         self.assertEquals(i_mobile_4, None)
 
+    @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_signup_form(self):
-
+        province_school = School.objects.get(name="Gauteng")
         resp = self.client.get(reverse('auth.signup_form'))
         self.assertEqual(resp.status_code, 200)
 
@@ -1807,26 +1808,43 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={},
                                 follow=True)
-        self.assertContains(resp, "This must be completed", count=8)
+        self.assertContains(resp, "This must be completed", count=5)
         self.assertContains(resp, "Select a school")
         self.assertContains(resp, "Select a class")
 
-        #invalid cellphone, enrolled - school and class not needed
+        #invalid cellphone, enrolled - invalid school and class, invalid grade
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': self.learner.first_name,
                                     'surname': self.learner.last_name,
                                     'cellphone': '12345',
-                                    'school': '0',
-                                    'classs': '0',
+                                    'enrolled': 0,
+                                    'school': 0,
+                                    'classs': 0,
+                                    'country': "South Africa",
+                                    'grade': 'Grade 12'
+                                },
+                                follow=True)
+        self.assertContains(resp, "Enter a valid cellphone number")
+        self.assertNotContains(resp, "Select a province ")
+        self.assertContains(resp, "Select a school")
+        self.assertContains(resp, "Select a class")
+        self.assertContains(resp, "Select a grade")
+
+        #invalid cellphone, not enrolled - invalid province
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': self.learner.first_name,
+                                    'surname': self.learner.last_name,
+                                    'cellphone': '12345',
                                     'enrolled': 1,
-                                    'area': 'Area',
-                                    'city': 'City',
-                                    'country': 'Country',
+                                    'province': 9999,
+                                    'country': "South Africa",
                                     'grade': 'Grade 10'
                                 },
                                 follow=True)
         self.assertContains(resp, "Enter a valid cellphone number")
+        self.assertContains(resp, "Select a province")
         self.assertNotContains(resp, "Select a school")
         self.assertNotContains(resp, "Select a class")
 
@@ -1836,12 +1854,10 @@ class GeneralTests(TestCase):
                                     'first_name': "Bob",
                                     'surname': "Bobby",
                                     'cellphone': self.learner.mobile,
+                                    'enrolled': 0,
                                     'school': self.school.id,
                                     'classs': self.classs.id,
-                                    'enrolled': 0,
-                                    'area': 'Area',
-                                    'city': 'City',
-                                    'country': 'Country',
+                                    'country': "South Africa",
                                     'grade': 'Grade 10'
                                 },
                                 follow=True)
@@ -1853,12 +1869,10 @@ class GeneralTests(TestCase):
                                     'first_name': "Bob",
                                     'surname': "Bobby",
                                     'cellphone': '0729876543',
+                                    'enrolled': 0,
                                     'school': self.school.id,
                                     'classs': self.classs.id,
-                                    'enrolled': 0,
-                                    'area': 'Area',
-                                    'city': 'City',
-                                    'country': 'Country',
+                                    'country': "South Africa",
                                     'grade': 'Grade 10'
                                 },
                                 follow=True)
@@ -1866,24 +1880,69 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876543')
         self.assertEquals('Bob', new_learner.first_name)
 
-        #valid - not enrolled
+        #valid - not enrolled - grade 10 - no open class created
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Koos",
                                     'surname': "Botha",
                                     'cellphone': '0729876540',
-                                    'school': 0,
-                                    'classs': 0,
                                     'enrolled': 1,
-                                    'area': 'Area',
-                                    'city': 'City',
-                                    'country': 'Country',
+                                    'province': province_school.id,
+                                    'country': "South Africa",
                                     'grade': 'Grade 10'
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
         new_learner = Learner.objects.get(username='0729876540')
         self.assertEquals('Koos', new_learner.first_name)
+
+        #valid - not enrolled - grade 10
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': "Willy",
+                                    'surname': "Wolly",
+                                    'cellphone': '0729878963',
+                                    'enrolled': 1,
+                                    'province': province_school.id,
+                                    'country': "South Africa",
+                                    'grade': 'Grade 10'
+                                },
+                                follow=True)
+        self.assertContains(resp, "Thank you")
+        new_learner = Learner.objects.get(username='0729878963')
+        self.assertEquals('Willy', new_learner.first_name)
+
+        #valid - not enrolled - grade 11 - creaing open class
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': "Tom",
+                                    'surname': "Tom",
+                                    'cellphone': '0729876576',
+                                    'enrolled': 1,
+                                    'province': province_school.id,
+                                    'country': "South Africa",
+                                    'grade': 'Grade 11'
+                                },
+                                follow=True)
+        self.assertContains(resp, "Thank you")
+        new_learner = Learner.objects.get(username='0729876576')
+        self.assertEquals('Tom', new_learner.first_name)
+
+        #valid - not enrolled - grade 11
+        resp = self.client.post(reverse('auth.signup_form'),
+                                data={
+                                    'first_name': "Henky",
+                                    'surname': "Tanky",
+                                    'cellphone': '0729876486',
+                                    'enrolled': 1,
+                                    'province': province_school.id,
+                                    'country': "South Africa",
+                                    'grade': 'Grade 11'
+                                },
+                                follow=True)
+        self.assertContains(resp, "Thank you")
+        new_learner = Learner.objects.get(username='0729876486')
+        self.assertEquals('Henky', new_learner.first_name)
 
     def test_change_details(self):
         self.client.get(reverse(
