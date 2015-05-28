@@ -2080,6 +2080,12 @@ def badges(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def menu(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    request.session["state"]["inbox_unread"] = Message.unread_message_count(
+        _participant.learner,
+        _participant.classs.course
+    )
+
     def get():
         return render(
             request, "core/menu.html", {"state": state, "user": user})
