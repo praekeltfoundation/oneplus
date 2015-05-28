@@ -2739,27 +2739,10 @@ class SMSQueueTest(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>SMS</title>")
 
-        resp = c.post(reverse('com.view_sms', kwargs={'sms': 9999}),
-                      data={},
-                      follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Queued SMS not found")
+        resp = c.post(reverse('com.view_sms', kwargs={'sms': db_sms.id}), follow=True)
 
-        resp = c.post(reverse('com.view_sms', kwargs={'sms': db_sms.id}),
-                      data={},
-                      follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Queued Smses")
-
-        resp = c.post(reverse('com.view_sms', kwargs={'sms': db_sms.id}),
-                      data={"_update": "Save",
-                            "message": "Updated message",
-                            "sms_id": db_sms.id},
-                      follow=True)
-        self.assertEquals(resp.status_code, 200)
-        db_sms = SmsQueue.objects.get(id=db_sms.id)
-        self.assertEquals("Updated message", db_sms.message)
-        self.assertContains(resp, "SMS")
+        self.assertContains(resp, "<title>SMS</title>")
 
 
 class ExtraAdminBitTests(TestCase):

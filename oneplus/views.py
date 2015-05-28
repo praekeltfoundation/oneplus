@@ -442,8 +442,10 @@ def signup_form(request):
             new_learner.save()
 
             #sms the learner their OnePlus password
-            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is |%s|. Log in by going to "
-                                            "this link: http://www.oneplus.co.za/login" % password,
+            sms_message = Setting.objects.get(key="WELCOME_SMS")
+            new_learner.generate_unique_token()
+            token = new_learner.unique_token
+            SmsQueue.objects.create(message=sms_message.value % (password, token),
                                     send_date=datetime.now(),
                                     msisdn=cellphone)
 
@@ -455,7 +457,7 @@ def signup_form(request):
             message = "".join([
                 new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
 
-            mail_managers(subject=subject, message=message, fail_silently=False)
+            #mail_managers(subject=subject, message=message, fail_silently=False)
 
             return render(request, "auth/signedup.html")
         else:
@@ -3069,15 +3071,14 @@ def view_sms(request, sms):
         )
 
     def post():
-        if "_update" in request.POST.keys() and \
-                "message" in request.POST.keys() and request.POST["message"]:
-
-            new_message = request.POST["message"]
-            db_sms.message = new_message
-            db_sms.save()
-            return HttpResponseRedirect('/smsqueue/%s' % db_sms.id)
-
-        return HttpResponseRedirect('/admin/communication/smsqueue/')
+        return render(
+            request=request,
+            template_name='misc/queued_sms.html',
+            dictionary={
+                'sms': db_sms,
+                'ro': True
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
