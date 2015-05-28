@@ -8,18 +8,18 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'Settings'
-        db.create_table(u'core_settings', (
+        # Adding model 'Setting'
+        db.create_table(u'core_setting', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('key', self.gf('django.db.models.fields.CharField')(unique=True, max_length=50)),
             ('value', self.gf('django.db.models.fields.TextField')(max_length=100)),
         ))
-        db.send_create_signal(u'core', ['Settings'])
+        db.send_create_signal(u'core', ['Setting'])
 
 
     def backwards(self, orm):
-        # Deleting model 'Settings'
-        db.delete_table(u'core_settings')
+        # Deleting model 'Setting'
+        db.delete_table(u'core_setting')
 
 
     models = {
@@ -176,8 +176,8 @@ class Migration(SchemaMigration):
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']"})
         },
-        u'core.settings': {
-            'Meta': {'object_name': 'Settings'},
+        u'core.setting': {
+            'Meta': {'object_name': 'Setting'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
             'value': ('django.db.models.fields.TextField', [], {'max_length': '100'})

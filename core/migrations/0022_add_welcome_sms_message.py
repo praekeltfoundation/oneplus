@@ -13,7 +13,7 @@ class Migration(DataMigration):
         # and orm['appname.ModelName'] for models in other applications.
         message = "Welcome to OnePlus! Your password is: %s. " \
                   "Log in by going to this link: http://www.oneplus.co.za/login/a/%s"
-        orm.Settings.objects.create(key="WELCOME_SMS", value=message)
+        orm.Setting.objects.create(key="WELCOME_SMS", value=message)
 
     def backwards(self, orm):
         "Write your backwards methods here."
@@ -172,8 +172,8 @@ class Migration(DataMigration):
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']"})
         },
-        u'core.settings': {
-            'Meta': {'object_name': 'Settings'},
+        u'core.setting': {
+            'Meta': {'object_name': 'Setting'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
             'value': ('django.db.models.fields.TextField', [], {'max_length': '100'})
