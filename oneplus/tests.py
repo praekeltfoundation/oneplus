@@ -1809,7 +1809,7 @@ class GeneralTests(TestCase):
                                 data={},
                                 follow=True)
         self.assertContains(resp, "This must be completed", count=5)
-        self.assertContains(resp, "Select a school")
+        self.assertContains(resp, "Select a Centre/Province")
         self.assertContains(resp, "Select a class")
 
         #invalid cellphone, enrolled - invalid school and class, invalid grade
@@ -1827,7 +1827,7 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertContains(resp, "Enter a valid cellphone number")
         self.assertNotContains(resp, "Select a province ")
-        self.assertContains(resp, "Select a school")
+        self.assertContains(resp, "Select a Centre/Province")
         self.assertContains(resp, "Select a class")
         self.assertContains(resp, "Select a grade")
 
@@ -1845,7 +1845,7 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertContains(resp, "Enter a valid cellphone number")
         self.assertContains(resp, "Select a province")
-        self.assertNotContains(resp, "Select a school")
+        self.assertNotContains(resp, "Select a Centre/Province")
         self.assertNotContains(resp, "Select a class")
 
         #registered cellphone
