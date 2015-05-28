@@ -12,7 +12,7 @@ from datetime import timedelta
 from auth.models import CustomUser
 from functools import wraps
 from django.contrib.auth.decorators import user_passes_test
-from communication.utils import VumiSmsApi
+from communication.utils import VumiSmsApi, contains_profanity, get_replacement_content
 from random import randint
 from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
@@ -1129,13 +1129,7 @@ def right(request, state, user):
                                                   + str(question_id) + "-->"
 
     _usr = Learner.objects.get(pk=user["id"])
-
-    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
-
-    if not banned:
-        request.session["state"]["banned"] = False
-    else:
-        request.session["state"]["banned"] = True
+    request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
         if _learnerstate.active_result:
@@ -1187,20 +1181,23 @@ def right(request, state, user):
             request.session["state"]["report_sent"] = False
 
             # new comment created
-            if "comment" in request.POST.keys()\
-                    and request.POST["comment"] != "":
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     reply=None,
-                    content=_comment, author=_usr, publishdate=datetime.now())
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
                 _message.save()
+                _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
 
-            elif "reply" in request.POST.keys() \
-                    and request.POST["reply"] != "":
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]
@@ -1209,10 +1206,13 @@ def right(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     reply=_parent,
-                    content=_comment, author=_usr,
-                    publishdate=datetime.now()
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
                 )
                 _message.save()
+                _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
@@ -1278,12 +1278,7 @@ def wrong(request, state, user):
 
     _usr = Learner.objects.get(pk=user["id"])
 
-    banned = Ban.objects.filter(banned_user=_usr, till_when__gt=datetime.now())
-
-    if not banned:
-        request.session["state"]["banned"] = False
-    else:
-        request.session["state"]["banned"] = True
+    request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
         if not _learnerstate.active_result:
@@ -1325,20 +1320,23 @@ def wrong(request, state, user):
             request.session["state"]["report_sent"] = False
 
             # new comment created
-            if "comment" in request.POST.keys() \
-                    and request.POST["comment"] != "":
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     reply=None,
-                    content=_comment, author=_usr, publishdate=datetime.now())
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
                 _message.save()
+                _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
 
-            elif "reply" in request.POST.keys() \
-                    and request.POST["reply"] != "":
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
                     pk=request.POST["reply_button"]
@@ -1347,9 +1345,13 @@ def wrong(request, state, user):
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     reply=_parent,
-                    content=_comment, author=_usr, publishdate=datetime.now()
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
                 )
                 _message.save()
+                _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
@@ -1634,6 +1636,7 @@ def chat(request, state, user, chatid):
                 moderated=True
             )
             _message.save()
+            _content_profanity_check(_message)
             request.session["state"]["chat_page_max"] += 1
 
         # show more comments
@@ -1817,9 +1820,11 @@ def blog(request, state, user, blogid):
                     post=_post,
                     author=_usr,
                     content=_comment,
-                    publishdate=datetime.now()
+                    publishdate=datetime.now(),
+                    moderated=True
                 )
                 _post_comment.save()
+                _content_profanity_check(_post_comment)
                 request.session["state"]["post_comment"] = True
         elif "page" in request.POST.keys():
             request.session["state"]["post_page"] += 5
@@ -3505,3 +3510,10 @@ def chat_response_selected(request, cm):
             return HttpResponseRedirect('/admin/communication/chatmessage/')
 
     return resolve_http_method(request, [get, post])
+
+
+def _content_profanity_check(obj):
+    if contains_profanity(obj.content):
+        obj.original_content = obj.content
+        obj.content = get_replacement_content(profanity=True)
+        obj.save()
