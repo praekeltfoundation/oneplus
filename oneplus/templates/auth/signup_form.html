@@ -42,80 +42,64 @@
             </p>
 
             <p>
-            School:<br>
-                <select name="school" id="id_school">
-                    <option value="0">- - - - - - - -</option>
-                    {% for school in schools %}
-                        <option value="{{ school.id }}">{{ school.name }}</option>
-                    {% endfor %}
-                </select>
-                <br>
-                {% if errors.school_error %}
-                    <span class="red-front">{{ errors.school_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
-                Class:<br>
-                <select name="classs" id="id_class">
-                    <option value="0">- - - - - - - -</option>
-                    {% for class in classes %}
-                        <option value="{{ class.id }}">{{ class.name }}</option>
-                    {% endfor %}
-                </select>
-                <br>
-                {% if errors.class_error %}
-                    <span class="red-front">{{ errors.class_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
-                Area (Suburb):
-                <input type="text" name="area" id="id_area" value="{{ data.area }}" >
-                {% if errors.area_error %}
-                    <span class="red-front">{{ errors.area_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
-                City:
-                <input type="text" name="city" id="id_city" value="{{ data.city }}" >
-                {% if errors.city_error %}
-                    <span class="red-front">{{ errors.city_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
-                Country:
-                <input type="text" name="country" id="id_country" value="{{ data.country }}" >
-                {% if errors.country_error %}
-                    <span class="red-front">{{ errors.country_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
-                Are you currently enrolled in a ProMaths class?<br>
-                <input type="radio" name="enrolled" value="0"> Yes <br>
-                <input type="radio" name="enrolled" value="1"> No <br>
                 {% if errors.enrolled_error %}
                     <span class="red-front">{{ errors.enrolled_error }}</span>
                     <br>
                 {% endif %}
-            </p>
-
-            <p>
-                What is your current grade?<br>
-                <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
-                <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
-                {% if errors.grade_error %}
-                    <span class="red-front">{{ errors.grade_error }}</span>
+                Are you currently enrolled in a ProMaths class?<br>
+                <input type="radio" name="enrolled" value="0"> Yes
+                <p class="enrolled-option">
+                    Select your school:<br>
+                    <select name="school" id="id_school">
+                        <option value="0">- - - - - - - -</option>
+                        {% for school in schools %}
+                            <option value="{{ school.id }}">{{ school.name }}</option>
+                        {% endfor %}
+                    </select>
                     <br>
-                {% endif %}
+                    {% if errors.school_error %}
+                        <span class="red-front">{{ errors.school_error }}</span>
+                        <br>
+                    {% endif %}
+                    <br><br>
+                    Class:<br>
+                    <select name="classs" id="id_class">
+                        <option value="0">- - - - - - - -</option>
+                        {% for class in classes %}
+                            <option value="{{ class.id }}">{{ class.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    {% if errors.class_error %}
+                        <span class="red-front">{{ errors.class_error }}</span>
+                        <br>
+                    {% endif %}
+                </p>
+                <!--not enrolled -->
+                <input type="radio" name="enrolled" value="1"> No
+                <p class="enrolled-option">
+                    Select your province:<br>
+                    <select name="province" id="id_province">
+                        <option value="0">- - - - - - - -</option>
+                        {% for province in provinces %}
+                            <option value="{{ province.id }}">{{ province.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    {% if errors.province_error %}
+                        <span class="red-front">{{ errors.province_error }}</span>
+                        <br>
+                    {% endif %}
+                </p>
+                <p>
+                    What is your current grade?<br>
+                    <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
+                    <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
+                    {% if errors.grade_error %}
+                        <span class="red-front">{{ errors.grade_error }}</span>
+                        <br>
+                    {% endif %}
+                </p>
             </p>
 
 			<input type="submit" value="Submit" class="button green-back grey-front" />

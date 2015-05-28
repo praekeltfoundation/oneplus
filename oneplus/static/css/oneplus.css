@@ -561,3 +561,8 @@ ul.bullets{
     list-style-type: disc;
     padding-left: 10px;
 }
+
+
+.enrolled-option {
+    padding-left: 25px;
+}

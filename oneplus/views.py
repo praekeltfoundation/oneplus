@@ -33,8 +33,7 @@ import re
 from communication.utils import report_user_post
 from organisation.models import School, Course
 from core.models import Class
-from oneplusmvp.settings import OPEN_SCHOOL_NAME, OPEN_CLASS_NAME, OPEN_COURSE_NAME
-
+from oneplusmvp import settings
 
 COUNTRYWIDE = "Countrywide"
 
@@ -288,17 +287,14 @@ def validate_mobile(mobile):
 
 
 #create learner
-def create_learner(first_name, last_name, mobile, area, city, country, school, grade, enrolled):
+def create_learner(first_name, last_name, mobile, country, school, grade):
     return Learner.objects.create(first_name=first_name,
                                   last_name=last_name,
                                   mobile=mobile,
                                   username=mobile,
-                                  area=area,
-                                  city=city,
                                   country=country,
                                   school=school,
-                                  grade=grade,
-                                  enrolled=enrolled)
+                                  grade=grade)
 
 
 #create participant
@@ -311,12 +307,16 @@ def create_participant(learner, classs):
 #Sign up Form Screen
 @available_space_required
 def signup_form(request):
-    schools = School.objects.all()
+    provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
+                 "Northern Cape", "Western Cape")
+    schools = School.objects.exclude(name__in=provinces)
     classes = Class.objects.all()
+    province_schools = School.objects.filter(name__in=provinces)
 
     def get():
         return render(request, "auth/signup_form.html", {"schools": schools,
-                                                         "classes": classes})
+                                                         "classes": classes,
+                                                         "provinces": province_schools})
 
     def post():
         data = {}
@@ -371,52 +371,53 @@ def signup_form(request):
             else:
                 errors["class_error"] = "Select a class"
 
-        if "area" in request.POST.keys() and request.POST["area"]:
-            data["area"] = request.POST["area"]
         else:
-            errors["area_error"] = "This must be completed"
-
-        if "city" in request.POST.keys() and request.POST["city"]:
-            data["city"] = request.POST["city"]
-        else:
-            errors["city_error"] = "This must be completed"
-
-        if "country" in request.POST.keys() and request.POST["country"]:
-            data["country"] = request.POST["country"]
-        else:
-            errors["country_error"] = "This must be completed"
+            if "province" in request.POST.keys() and request.POST["province"]:
+                data["province"] = request.POST["province"]
+                try:
+                    if School.objects.get(id=data["province"]).name not in provinces:
+                        errors["province_error"] = "Select a province"
+                except School.DoesNotExist:
+                    errors["province_error"] = "Select a province"
 
         if "grade" in request.POST.keys() and request.POST["grade"]:
-            data["grade"] = request.POST["grade"]
+            if request.POST["grade"] not in ("Grade 10", "Grade 11"):
+                errors["grade_error"] = "Select a grade"
+            else:
+                data["grade"] = request.POST["grade"]
         else:
             errors["grade_error"] = "This must be completed"
 
         if not errors:
-            if data["enrolled"] == '1':
-                try:
-                    school = School.objects.get(name=OPEN_SCHOOL_NAME)
-                except School.DoesNotExist:
-                    school = School.objects.create(name=OPEN_SCHOOL_NAME)
+            if not enrolled:
+                province = School.objects.get(id=data["province"])
 
                 #create learner
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
                                              mobile=data["cellphone"],
-                                             area=data["area"],
-                                             city=data["city"],
-                                             country=data["country"],
-                                             school=school,
-                                             grade=data["grade"],
-                                             enrolled=data["enrolled"])
+                                             country="South Africa",
+                                             school=province,
+                                             grade=data["grade"])
 
-                try:
-                    classs = Class.objects.get(name=OPEN_CLASS_NAME)
-                except Class.DoesNotExist:
+                if data["grade"] == "Grade 10":
                     try:
-                        course = Course.objects.get(name=OPEN_COURSE_NAME)
-                    except Course.DoesNotExist:
-                        course = Course.objects.create(name=OPEN_COURSE_NAME)
-                    classs = Class.objects.create(name=OPEN_CLASS_NAME, course=course)
+                        classs = Class.objects.get(name=settings.GRADE_10_OPEN_CLASS_NAME)
+                    except Class.DoesNotExist:
+                        try:
+                            course = Course.objects.get(name=settings.GRADE_10_COURSE_NAME)
+                        except Course.DoesNotExist:
+                            course = Course.objects.create(name=settings.GRADE_10_COURSE_NAME)
+                        classs = Class.objects.create(name=settings.GRADE_10_OPEN_CLASS_NAME, course=course)
+                else:
+                    try:
+                        classs = Class.objects.get(name=settings.GRADE_11_OPEN_CLASS_NAME)
+                    except Class.DoesNotExist:
+                        try:
+                            course = Course.objects.get(name=settings.GRADE_11_COURSE_NAME)
+                        except Course.DoesNotExist:
+                            course = Course.objects.create(name=settings.GRADE_11_COURSE_NAME)
+                        classs = Class.objects.create(name=settings.GRADE_11_OPEN_CLASS_NAME, course=course)
 
                 create_participant(new_learner, classs)
 
@@ -426,12 +427,9 @@ def signup_form(request):
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
                                              mobile=data["cellphone"],
-                                             area=data["area"],
-                                             city=data["city"],
-                                             country=data["country"],
+                                             country="South Africa",
                                              school=school,
-                                             grade=data["grade"],
-                                             enrolled=data["enrolled"])
+                                             grade=data["grade"])
 
                 classs = Class.objects.get(id=data["classs"])
 
@@ -444,22 +442,26 @@ def signup_form(request):
             new_learner.save()
 
             #sms the learner their OnePlus password
-            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is : %s. Log in by going to "
+            SmsQueue.objects.create(message="Welcome to OnePlus! Your password is |%s|. Log in by going to "
                                             "this link: http://www.oneplus.co.za/login" % password,
                                     send_date=datetime.now(),
                                     msisdn=cellphone)
+
+            new_learner.welcome_message_sent = True
+            new_learner.save()
 
             #inform oneplus about the new learner
             subject = "".join(['New student registered'])
             message = "".join([
                 new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
 
-            #mail_managers(subject=subject, message=message, fail_silently=False)
+            mail_managers(subject=subject, message=message, fail_silently=False)
 
             return render(request, "auth/signedup.html")
         else:
             return render(request, "auth/signup_form.html", {"schools": schools,
                                                              "classes": classes,
+                                                             "provinces": province_schools,
                                                              "data": data,
                                                              "errors": errors})
 
