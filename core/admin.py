@@ -128,7 +128,11 @@ class ParticipantAdmin(admin.ModelAdmin):
     get_lastname.admin_order_field = 'learner__last_name'
 
 
+class SettingsAdmin(admin.ModelAdmin):
+    list_display = ("key", "value")
+
 # Organisation
 admin.site.register(Class, ClassAdmin)
 admin.site.register(ParticipantQuestionAnswer, ParticipantQuestionAnswerAdmin)
 admin.site.register(Participant, ParticipantAdmin)
+admin.site.register(Settings, SettingsAdmin)

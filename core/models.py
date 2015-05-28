@@ -171,3 +171,8 @@ class ParticipantQuestionAnswer(models.Model):
     class Meta:
         verbose_name = "Participant Question Response"
         verbose_name_plural = "Participant Question Responses"
+
+
+class Settings(models.Model):
+    key = models.CharField("Key", max_length=50, blank=False)
+    value = models.TextField("Value", max_length=100, blank=False)
