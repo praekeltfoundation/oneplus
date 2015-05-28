@@ -443,7 +443,8 @@ def signup_form(request):
 
             #sms the learner their OnePlus password
             sms_message = Setting.objects.get(key="WELCOME_SMS")
-            token = new_learner.generate_unique_token()
+            new_learner.generate_unique_token()
+            token = new_learner.unique_token
             SmsQueue.objects.create(message=sms_message.value % (password, token),
                                     send_date=datetime.now(),
                                     msisdn=cellphone)
@@ -456,7 +457,7 @@ def signup_form(request):
             message = "".join([
                 new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
 
-            mail_managers(subject=subject, message=message, fail_silently=False)
+            #mail_managers(subject=subject, message=message, fail_silently=False)
 
             return render(request, "auth/signedup.html")
         else:
