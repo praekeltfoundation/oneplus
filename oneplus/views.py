@@ -3067,14 +3067,15 @@ def view_sms(request, sms):
         )
 
     def post():
-        return render(
-            request=request,
-            template_name='misc/queued_sms.html',
-            dictionary={
-                'sms': db_sms,
-                'ro': True
-            }
-        )
+        if "_update" in request.POST.keys() and \
+                "message" in request.POST.keys() and request.POST["message"]:
+
+            new_message = request.POST["message"]
+            db_sms.message = new_message
+            db_sms.save()
+            return HttpResponseRedirect('/smsqueue/%s' % db_sms.id)
+
+        return HttpResponseRedirect('/admin/communication/smsqueue/')
 
     return resolve_http_method(request, [get, post])
 
