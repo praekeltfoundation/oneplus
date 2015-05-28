@@ -358,9 +358,9 @@ def signup_form(request):
                 try:
                     School.objects.get(id=data["school"])
                 except School.DoesNotExist:
-                    errors["school_error"] = "Select a school"
+                    errors["school_error"] = "Select a Centre/Province"
             else:
-                errors["school_error"] = "Select a school"
+                errors["school_error"] = "Select a Centre/Province"
 
             if "classs" in request.POST.keys() and request.POST["classs"]:
                 data["classs"] = request.POST["classs"]

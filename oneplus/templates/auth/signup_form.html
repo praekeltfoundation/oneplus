@@ -48,8 +48,10 @@
                 {% endif %}
                 Are you currently enrolled in a ProMaths class?<br>
                 <input type="radio" name="enrolled" value="0"> Yes
-                <p class="enrolled-option">
-                    Select your school:<br>
+                <br>
+                <input type="radio" name="enrolled" value="1"> No
+                <p>
+                    Select your Centre/Province:<br>
                     <select name="school" id="id_school">
                         <option value="0">- - - - - - - -</option>
                         {% for school in schools %}
@@ -61,7 +63,7 @@
                         <span class="red-front">{{ errors.school_error }}</span>
                         <br>
                     {% endif %}
-                    <br><br>
+                    <br>
                     Class:<br>
                     <select name="classs" id="id_class">
                         <option value="0">- - - - - - - -</option>
@@ -76,8 +78,7 @@
                     {% endif %}
                 </p>
                 <!--not enrolled -->
-                <input type="radio" name="enrolled" value="1"> No
-                <p class="enrolled-option">
+                <p>
                     Select your province:<br>
                     <select name="province" id="id_province">
                         <option value="0">- - - - - - - -</option>
