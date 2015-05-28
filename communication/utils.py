@@ -212,18 +212,21 @@ def ban_user(banned_user, banning_user, obj, num_days):
         )
 
 
-def get_replacement_content(admin_ban=False, num_days=1):
-    plural = ''
+def get_replacement_content(admin_ban=False, num_days=1, profanity=False):
+    plural = ""
 
-    if num_days > 1:
-        plural = 's'
-
-    if admin_ban:
-        msg = 'This comment has been reported by a moderator and the user has ' \
-              'been banned from commenting for %d day%s.' % (num_days, plural)
+    if profanity:
+        msg = "This comment includes a banned word so has been removed."
     else:
-        msg = 'This comment has been reported by the community and the user has ' \
-              'been banned from commenting for %d day%s.' % (num_days, plural)
+        if num_days > 1:
+            plural = "s"
+
+        if admin_ban:
+            msg = "This comment has been reported by a moderator and the user has " \
+                  "been banned from commenting for %d day%s." % (num_days, plural)
+        else:
+            msg = "This comment has been reported by the community and the user has " \
+                  "been banned from commenting for %d day%s." % (num_days, plural)
 
     return msg
 
