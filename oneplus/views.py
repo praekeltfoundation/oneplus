@@ -37,9 +37,6 @@ from oneplusmvp import settings
 
 COUNTRYWIDE = "Countrywide"
 
-MAX_SPACES = 300
-
-
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
     @wraps(f)
@@ -233,7 +230,8 @@ def autologin(request, token):
 
 def space_available():
     total_reg = Participant.objects.aggregate(registered=Count('id'))
-    num = MAX_SPACES - total_reg.get('registered')
+    maximum = int(Setting.objects.get(key="MAX_NUMBER_OF_LEARNERS").value)
+    num = maximum - total_reg.get('registered')
     if num > 0:
         return True, num
     else:
