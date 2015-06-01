@@ -909,6 +909,7 @@ def nextchallenge(request, state, user):
                     participant=_participant,
                     correct=True
                 ).count()
+
                 if _total_correct == 1:
                     _participant.award_scenario(
                         "1_CORRECT",
@@ -920,7 +921,6 @@ def nextchallenge(request, state, user):
                         "15_CORRECT",
                         _learnerstate.active_question.module
                     )
-                    print "in 15"
 
                 if _total_correct >= 30:
                     _participant.award_scenario(

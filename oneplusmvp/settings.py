@@ -230,8 +230,8 @@ BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 MIN_VUMI_CELERY_SEND = 1
 
 FIXTURE_DIRS = (
-    "/fixtures/",
     abspath('fixtures'),
+    abspath('../oneplus/fixtures')
 )
 
 USE_TZ = False
