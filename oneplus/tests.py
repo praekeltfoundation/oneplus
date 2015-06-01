@@ -1156,7 +1156,7 @@ class GeneralTests(TestCase):
         self.assertEqual(point, 1)
         self.assertEqual(badge, self.badge_template)
 
-    def test_badges(self):
+    def test_badge_awarding(self):
         new_learner = self.create_learner(
             self.school,
             username="+27123456999",
@@ -1190,6 +1190,11 @@ class GeneralTests(TestCase):
             description="30 Correct"
         )
 
+        bt4 = self.create_badgetemplate(
+            name="100 Correct",
+            description="100 Correct"
+        )
+
         sc1 = self.create_gamification_scenario(
             name="1st correct",
             course=self.course,
@@ -1214,6 +1219,14 @@ class GeneralTests(TestCase):
             event="30_CORRECT",
         )
 
+        sc4 = self.create_gamification_scenario(
+            name="100 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt4,
+            event="100_CORRECT",
+        )
+
         fifteen = 15
         for i in range(0, fifteen):
             question = self.create_test_question('q_15_%s' % i,
@@ -1234,7 +1247,7 @@ class GeneralTests(TestCase):
         self.assertEquals(fifteen, _total_correct)
 
         thirty = 30
-        for i in range(0, fifteen):
+        for i in range(fifteen, thirty):
             question = self.create_test_question('q_30_%s' % i,
                                                  self.module,
                                                  question_content='test question',
@@ -1251,6 +1264,25 @@ class GeneralTests(TestCase):
         ).count()
 
         self.assertEquals(thirty, _total_correct)
+
+        hundred = 100
+        for i in range(thirty, hundred):
+            question = self.create_test_question('q_100_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_100_%s_O_1' % i, question)
+
+            self.client.get(reverse('learn.next'))
+            self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        _total_correct = ParticipantQuestionAnswer.objects.filter(
+            participant=new_participant,
+            correct=True
+        ).count()
+
+        self.assertEquals(hundred, _total_correct)
 
         cnt = ParticipantBadgeTemplateRel.objects.filter(
             participant=new_participant,
@@ -1270,6 +1302,13 @@ class GeneralTests(TestCase):
             participant=new_participant,
             badgetemplate=bt3,
             scenario=sc3
+        ).count()
+        self.assertEquals(cnt, 1)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt4,
+            scenario=sc4
         ).count()
         self.assertEquals(cnt, 1)
 
