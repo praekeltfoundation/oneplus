@@ -915,19 +915,20 @@ def nextchallenge(request, state, user):
                         _learnerstate.active_question.module
                     )
 
-                elif _total_correct == 15:
+                if _total_correct >= 15:
                     _participant.award_scenario(
                         "15_CORRECT",
                         _learnerstate.active_question.module
                     )
+                    print "in 15"
 
-                elif _total_correct == 30:
+                if _total_correct >= 30:
                     _participant.award_scenario(
                         "30_CORRECT",
                         _learnerstate.active_question.module
                     )
 
-                elif _total_correct == 100:
+                if _total_correct >= 100:
                     _participant.award_scenario(
                         "100_CORRECT",
                         _learnerstate.active_question.module

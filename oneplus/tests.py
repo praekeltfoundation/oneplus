@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, date
 from django.contrib.admin.sites import AdminSite
 from django.test import TestCase
 from datetime import datetime, timedelta
-from core.models import Participant, Class, Course, ParticipantQuestionAnswer
+from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
@@ -1152,6 +1152,72 @@ class GeneralTests(TestCase):
         badge, badge_points = get_badge_awarded(self.participant)
         self.assertEqual(point, 1)
         self.assertEqual(badge, self.badge_template)
+
+    def test_badges(self):
+        new_learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",
+            unique_token='xyz',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+        new_participant = self.create_participant(
+            new_learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': new_learner.unique_token})
+        )
+
+        fifteen = 15
+        for i in range(0, fifteen):
+            question = self.create_test_question('question%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('questionoption%s' % i, question)
+
+            LearnerState.objects.create(
+                participant=new_participant,
+                active_question=question
+            )
+
+            self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        _total_correct = ParticipantQuestionAnswer.objects.filter(
+            participant=new_participant,
+            correct=True
+        ).count()
+        self.assertEquals(fifteen, _total_correct)
+
+        fifteen_badge = ParticipantBadgeTemplateRel.objects.all()
+        for b in fifteen_badge:
+            print b.scenario.event
+
+        thirty = 30
+        for i in range(0, fifteen):
+            question = self.create_test_question('question%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('questionoption%s' % i, question)
+
+            LearnerState.objects.create(
+                participant=new_participant,
+                active_question=question
+            )
+
+            self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        _total_correct = ParticipantQuestionAnswer.objects.filter(
+            participant=new_participant,
+            correct=True
+        ).count()
+        self.assertEquals(thirty, _total_correct)
 
     def test_view_adminpreview(self):
 
