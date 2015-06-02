@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, date
 from django.contrib.admin.sites import AdminSite
 from django.test import TestCase
 from datetime import datetime, timedelta
-from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
+from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
@@ -1874,8 +1874,11 @@ class GeneralTests(TestCase):
         resp = c.get('/users/%s' % 99)
         self.assertEquals(resp.status_code, 200)
 
-    #assuming MAX_SPACES is 300
     def test_space_available(self):
+        maximum = int(Setting.objects.get(key="MAX_NUMBER_OF_LEARNERS").value)
+        total_reg = Participant.objects.aggregate(registered=Count('id'))
+        available = maximum - total_reg.get('registered')
+
         learner = self.create_learner(
             self.school,
             username="+27123456999",
@@ -1885,11 +1888,11 @@ class GeneralTests(TestCase):
             learner,
             self.classs,
             datejoined=datetime.now())
+        available -= 1
 
         space, number_spaces = space_available()
-
         self.assertEquals(space, True)
-        self.assertEquals(number_spaces, 298)
+        self.assertEquals(number_spaces, available)
 
         learner2 = self.learner = self.create_learner(
             self.school,
@@ -1900,13 +1903,13 @@ class GeneralTests(TestCase):
             learner2,
             self.classs,
             datejoined=datetime.now())
+        available -= 1
 
         space, number_spaces = space_available()
 
         self.assertEquals(space, True)
-        self.assertEquals(number_spaces, 297)
+        self.assertEquals(number_spaces, available)
 
-    #assuming MAX_SPACES is 300
     def test_signup(self):
         learner = self.create_learner(
             self.school,
@@ -1968,7 +1971,7 @@ class GeneralTests(TestCase):
                                 data={},
                                 follow=True)
         self.assertContains(resp, "This must be completed", count=5)
-        self.assertContains(resp, "Select a school")
+        self.assertContains(resp, "Select a Centre/Province")
         self.assertContains(resp, "Select a class")
 
         #invalid cellphone, enrolled - invalid school and class, invalid grade
@@ -1986,7 +1989,7 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertContains(resp, "Enter a valid cellphone number")
         self.assertNotContains(resp, "Select a province ")
-        self.assertContains(resp, "Select a school")
+        self.assertContains(resp, "Select a Centre/Province")
         self.assertContains(resp, "Select a class")
         self.assertContains(resp, "Select a grade")
 
@@ -2004,7 +2007,7 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertContains(resp, "Enter a valid cellphone number")
         self.assertContains(resp, "Select a province")
-        self.assertNotContains(resp, "Select a school")
+        self.assertNotContains(resp, "Select a Centre/Province")
         self.assertNotContains(resp, "Select a class")
 
         #registered cellphone
