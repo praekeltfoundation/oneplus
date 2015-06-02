@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, date
 from django.contrib.admin.sites import AdminSite
 from django.test import TestCase
 from datetime import datetime, timedelta
-from core.models import Participant, Class, Course, ParticipantQuestionAnswer, Setting
+from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
@@ -69,6 +69,9 @@ class GeneralTests(TestCase):
             name=name,
             image="none",
             **kwargs)
+
+    def create_gamification_scenario(self, **kwargs):
+        return GamificationScenario.objects.create(**kwargs)
 
     def create_message(self, author, course, **kwargs):
         return Message.objects.create(author=author, course=course, **kwargs)
@@ -1152,6 +1155,325 @@ class GeneralTests(TestCase):
         badge, badge_points = get_badge_awarded(self.participant)
         self.assertEqual(point, 1)
         self.assertEqual(badge, self.badge_template)
+
+    def test_badge_awarding(self):
+        new_learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",
+            unique_token='xyz',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+        new_participant = self.create_participant(
+            new_learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': new_learner.unique_token})
+        )
+
+        # create the badges we want to win
+        bt1 = self.create_badgetemplate(
+            name="1st Correct",
+            description="1st Correct"
+        )
+
+        bt2 = self.create_badgetemplate(
+            name="15 Correct",
+            description="15 Correct"
+        )
+
+        bt3 = self.create_badgetemplate(
+            name="30 Correct",
+            description="30 Correct"
+        )
+
+        bt4 = self.create_badgetemplate(
+            name="100 Correct",
+            description="100 Correct"
+        )
+
+        sc1 = self.create_gamification_scenario(
+            name="1st correct",
+            course=self.course,
+            module=self.module,
+            badge=bt1,
+            event="1_CORRECT",
+        )
+
+        sc2 = self.create_gamification_scenario(
+            name="15 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt2,
+            event="15_CORRECT",
+        )
+
+        sc3 = self.create_gamification_scenario(
+            name="30 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt3,
+            event="30_CORRECT",
+        )
+
+        sc4 = self.create_gamification_scenario(
+            name="100 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt4,
+            event="100_CORRECT",
+        )
+
+        fifteen = 15
+        for i in range(0, fifteen):
+            question = self.create_test_question('q_15_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_15_%s_O_1' % i, question)
+
+            self.client.get(reverse('learn.next'))
+            self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        _total_correct = ParticipantQuestionAnswer.objects.filter(
+            participant=new_participant,
+            correct=True
+        ).count()
+
+        self.assertEquals(fifteen, _total_correct)
+
+        thirty = 30
+        for i in range(fifteen, thirty):
+            question = self.create_test_question('q_30_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_30_%s_O_1' % i, question)
+
+            self.client.get(reverse('learn.next'))
+            self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        _total_correct = ParticipantQuestionAnswer.objects.filter(
+            participant=new_participant,
+            correct=True
+        ).count()
+
+        self.assertEquals(thirty, _total_correct)
+
+        hundred = 100
+        for i in range(thirty, hundred):
+            question = self.create_test_question('q_100_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_100_%s_O_1' % i, question)
+
+            self.client.get(reverse('learn.next'))
+            self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        _total_correct = ParticipantQuestionAnswer.objects.filter(
+            participant=new_participant,
+            correct=True
+        ).count()
+
+        self.assertEquals(hundred, _total_correct)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt1,
+            scenario=sc1
+        ).count()
+        self.assertEquals(cnt, 1)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt2,
+            scenario=sc2
+        ).count()
+        self.assertEquals(cnt, 1)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt3,
+            scenario=sc3
+        ).count()
+        self.assertEquals(cnt, 1)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt4,
+            scenario=sc4
+        ).count()
+        self.assertEquals(cnt, 1)
+
+    def test_badge_awarding_2(self):
+        new_learner = self.create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",
+            unique_token='xyz',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+        new_participant = self.create_participant(
+            new_learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': new_learner.unique_token})
+        )
+
+        # create the badges we want to win
+        bt1 = self.create_badgetemplate(
+            name="15 Correct",
+            description="15 Correct"
+        )
+
+        bt2 = self.create_badgetemplate(
+            name="30 Correct",
+            description="30 Correct"
+        )
+
+        bt3 = self.create_badgetemplate(
+            name="100 Correct",
+            description="100 Correct"
+        )
+
+        sc1 = self.create_gamification_scenario(
+            name="15 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt1,
+            event="15_CORRECT",
+        )
+
+        sc2 = self.create_gamification_scenario(
+            name="30 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt2,
+            event="30_CORRECT",
+        )
+
+        sc3 = self.create_gamification_scenario(
+            name="100 correct",
+            course=self.course,
+            module=self.module,
+            badge=bt3,
+            event="100_CORRECT",
+        )
+
+        fifteen = 15
+        for i in range(0, fifteen):
+            question = self.create_test_question('q_15_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_15_%s_O_1' % i, question)
+
+            new_participant.answer(question, question_option)
+
+        question = self.create_test_question('q_15_16',
+                                             self.module,
+                                             question_content='test question',
+                                             state=3)
+
+        question_option = self.create_test_question_option('q_15_16_O_1', question)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt1,
+            scenario=sc1
+        ).count()
+        self.assertEquals(cnt, 0)
+
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt1,
+            scenario=sc1
+        ).count()
+        self.assertEquals(cnt, 1)
+
+        thirty = 30
+        for i in range(fifteen + 1, thirty):
+            question = self.create_test_question('q_30_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_30_%s_O_1' % i, question)
+
+            new_participant.answer(question, question_option)
+
+        question = self.create_test_question('q_30_31',
+                                             self.module,
+                                             question_content='test question',
+                                             state=3)
+
+        question_option = self.create_test_question_option('q_30_31_O_1', question)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt2,
+            scenario=sc2
+        ).count()
+        self.assertEquals(cnt, 0)
+
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt2,
+            scenario=sc2
+        ).count()
+        self.assertEquals(cnt, 1)
+
+        hundred = 100
+        for i in range(thirty + 1, hundred):
+            question = self.create_test_question('q_100_%s' % i,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+
+            question_option = self.create_test_question_option('q_100_%s_O_1' % i, question)
+
+            new_participant.answer(question, question_option)
+
+        question = self.create_test_question('q_100_101',
+                                             self.module,
+                                             question_content='test question',
+                                             state=3)
+
+        question_option = self.create_test_question_option('q_100_101_O_1', question)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt3,
+            scenario=sc3
+        ).count()
+        self.assertEquals(cnt, 0)
+
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt3,
+            scenario=sc3
+        ).count()
+        self.assertEquals(cnt, 1)
 
     def test_view_adminpreview(self):
 
