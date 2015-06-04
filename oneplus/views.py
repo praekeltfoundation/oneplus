@@ -2080,6 +2080,11 @@ def leader(request, state, user):
         )
 
     def post():
+        buttons = get_buttons("overall")
+        _learners, position = get_overall_leaderboard()
+        header_1 = "Leaderboard"
+        header_2 = "Well done you're in "
+
         # show region menu?
         if "leader_menu" in request.POST:
             request.session["state"]["leader_menu"] \
@@ -2118,24 +2123,19 @@ def leader(request, state, user):
             = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
 
-        # Tag the user
-        try:
-            index = _learners.index(_participant.id)
-            _learners[index].me = True
-        finally:
-            return render(
-                request,
-                "prog/leader.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "learners": _learners,
-                    "position": position,
-                    "buttons": buttons,
-                    "header_1": header_1,
-                    "header_2": header_2
-                }
-            )
+        return render(
+            request,
+            "prog/leader.html",
+            {
+                "state": state,
+                "user": user,
+                "learners": _learners,
+                "position": position,
+                "buttons": buttons,
+                "header_1": header_1,
+                "header_2": header_2
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
