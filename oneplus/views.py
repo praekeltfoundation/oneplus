@@ -1914,20 +1914,29 @@ def leader(request, state, user):
 
     def get_overall_leaderboard():
         leaderboard = Participant.objects.filter(classs=_participant.classs,) \
-            .order_by("-points", 'learner__first_name')[:10]
+            .order_by("-points", 'learner__first_name')
 
         learners = []
         position = None
         i = 0
         for a in leaderboard:
             i += 1
-            learner = {"id": a.id, "name": a.learner.first_name, "points": a.points}
+            learner = {"id": a.id, "name": a.learner.first_name, "points": a.points, "position": i}
             if a.id == _participant.id:
                 learner['me'] = True
                 position = i
             learners.append(learner)
 
-        return learners[:10], position
+            if position is not None and i >= 10:
+                break
+
+        if position > 10 or position is None:
+            learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": _participant.points,
+                       "me": True, "position": position}
+            learners.insert(11, learner)
+            return learners[:11], position
+        else:
+            return learners[:10], position
 
     def get_weeks_leaderboard(weeks):
         leaderboard = ParticipantQuestionAnswer.objects.values('participant__id', 'participant__learner__first_name') \
@@ -1935,7 +1944,7 @@ def leader(request, state, user):
             .filter(answerdate__range=[datetime.now() - timedelta(weeks=weeks), datetime.now()],
                     correct=True,
                     participant__classs=_participant.classs) \
-            .order_by('-points', 'participant__learner__first_name')[:10]
+            .order_by('-points', 'participant__learner__first_name')
 
         learners = []
         position = None
@@ -1943,11 +1952,11 @@ def leader(request, state, user):
         id_list = []
 
         for _l in leaderboard:
+            position_counter += 1
             _learner = {"id": _l['participant__id'], "name": _l['participant__learner__first_name'],
-                        "points": _l['points']}
+                        "points": _l['points'], "position": position_counter}
 
             if _participant.id == _l['participant__id']:
-                position_counter += 1
                 position = position_counter
                 _learner['me'] = True
 
@@ -1957,27 +1966,35 @@ def leader(request, state, user):
         if len(leaderboard) < 10:
             no_points_list = Participant.objects.filter(classs=_participant.classs) \
                 .exclude(id__in=id_list) \
-                .order_by('learner__first_name')[:10 - len(leaderboard)]
+                .order_by('learner__first_name')
 
             if not position:
-                position_counter += 1
+                temp_counter = position_counter
                 for _l in no_points_list:
+                    temp_counter += 1
                     if _participant.id == _l.id:
-                        position = position_counter
+                        position = temp_counter
+                        break
 
             no_points_list = no_points_list[:10 - len(leaderboard)]
 
             for _l in no_points_list:
-                _learner = {"id": _l.id, "name": _l.learner.first_name, "points": 0}
+                position_counter += 1
+                _learner = {"id": _l.id, "name": _l.learner.first_name, "points": 0, "position": position_counter}
                 if _participant.id == _l.id:
                     _learner['me'] = True
                 learners.append(_learner)
 
-        if position > 10:
-            _learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": 0, 'me': True}
-            learners.append(_learner)
+                if len(learners) >= 10:
+                    break
 
-        return learners, position
+        if position > 10:
+            _learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": 0, 'me': True,
+                        "position": position}
+            learners.insert(11, _learner)
+            return learners[:11], position
+        else:
+            return learners[:10], position
 
     def get_correct(answered_list, class_name):
         for l in answered_list:
@@ -1996,11 +2013,12 @@ def leader(request, state, user):
             .order_by('participant__classs')
 
         classes = []
-        name_list = []
         position = None
         position_counter = 0
+        name_list = []
 
         for tl in total_list:
+            position_counter += 1
             cl = get_correct(correct_list, tl['participant__classs__name'])
             percent = '-'
             if cl:
@@ -2009,37 +2027,47 @@ def leader(request, state, user):
 
             classs = {"name": tl['participant__classs__name'], "points": percent}
             if _participant.classs.name == tl['participant__classs__name']:
-                position_counter += 1
                 position = position_counter
                 classs['me'] = True
             classes.append(classs)
 
         classes = sorted(classes, key=lambda k: k['points'])
 
+        a = 0
+        temp = []
+        for classs in classes:
+            a += 1
+            classs['position'] = a
+            temp.append(classs)
+
+        classes = temp
+
         if len(classes) < 10:
             no_points_list = Class.objects.exclude(name__in=name_list).order_by('name')[:10 - len(classes)]
 
             if not position:
-                position_counter += 1
-
+                temp_counter = position_counter
                 for _l in no_points_list:
-                    position_counter += 1
+                    temp_counter += 1
                     if _participant.classs.name == _l.name:
-                        position = position_counter
+                        position = temp_counter
+                        break
 
             no_points_list = no_points_list[:10 - len(classes)]
 
             for _l in no_points_list:
-                classs = {"id": _l.id, "name": _l.name, "points": '-'}
+                position_counter += 1
+                classs = {"id": _l.id, "name": _l.name, "points": '-', "position": position_counter}
                 if _participant.classs.name == _l.name:
                     classs['me'] = True
                 classes.append(classs)
 
         if position > 10:
-            classs = {"me": True, "name": tl['participant__classs__name'], "points": '-'}
-            classes.append(classs)
-
-        return classes, position
+            classs = {"me": True, "name": tl['participant__classs__name'], "points": '-', "position": position}
+            classes.insert(11, classs)
+            return classes[:11], position
+        else:
+            return classes[:10], position
 
     def get_buttons(button_name):
         buttons = []

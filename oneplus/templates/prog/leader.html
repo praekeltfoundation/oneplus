@@ -25,7 +25,7 @@
         <table width="100%">
         {% for participant in learners %}
         <tr class="item grey-back {% if participant.me %}red-front{% endif %}">
-                <td class="large-font pull-left" style="width:20%">#{{ forloop.counter }}</td>
+                <td class="large-font pull-left" style="width:20%">#{{ participant.position }}</td>
                 <td class="large-font pull-left" >{{ participant.name }}</td>
                 <td class="large-font pull-right">{{ participant.points }}</td>
                 <td class="clear"></td>
