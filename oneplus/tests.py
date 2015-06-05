@@ -1804,15 +1804,27 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
 
         resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
 
-        resp = self.client.post(reverse('prog.leader'), data={'three_months': '3 Month Leaderboard'}, follow=True)
+        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
 
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
 
     def test_ontrack_screen(self):
         self.client.get(
