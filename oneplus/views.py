@@ -1933,7 +1933,7 @@ def leader(request, state, user):
         if position > 10 or position is None:
             learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": _participant.points,
                        "me": True, "position": position}
-            learners.insert(11, learner)
+            learners.insert(10, learner)
             return learners[:11], position
         else:
             return learners[:10], position
@@ -2043,7 +2043,7 @@ def leader(request, state, user):
         classes = temp
 
         if len(classes) < 10:
-            no_points_list = Class.objects.exclude(name__in=name_list).order_by('name')[:10 - len(classes)]
+            no_points_list = Class.objects.exclude(name__in=name_list).order_by('name')
 
             if not position:
                 temp_counter = position_counter
@@ -2063,7 +2063,7 @@ def leader(request, state, user):
                 classes.append(classs)
 
         if position > 10:
-            classs = {"me": True, "name": tl['participant__classs__name'], "points": '-', "position": position}
+            classs = {"me": True, "name": _participant.classs.name, "points": '-', "position": position}
             classes.insert(11, classs)
             return classes[:11], position
         else:
