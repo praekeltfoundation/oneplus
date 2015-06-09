@@ -171,3 +171,10 @@ class GoldenEgg(models.Model):
     class Meta:
         verbose_name = "Golden Egg"
         verbose_name_plural = "Golden Eggs"
+
+class GoldenEggRewardLog(models.Model):
+    participant = models.ForeignKey("core.Participant", null=False, blank=False)
+    award_date = models.DateTimeField(auto_now_add=True)
+    points = models.PositiveIntegerField(null=True, blank=True, default=0)
+    airtime = models.PositiveIntegerField(null=True, blank=True, default=0)
+    badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
