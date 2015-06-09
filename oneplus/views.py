@@ -35,6 +35,7 @@ from communication.utils import report_user_post
 from organisation.models import School, Course
 from core.models import Class
 from oneplusmvp import settings
+from content.models import GoldenEggRewardLog
 
 COUNTRYWIDE = "Countrywide"
 
@@ -1140,7 +1141,6 @@ def right(request, state, user):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
     golden_egg = {}
-    # TODO record audit log
     if _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
             _learnerstate.get_num_questions_answered_today():
         _golden_egg = get_golden_egg(_participant)
@@ -1162,6 +1162,11 @@ def right(request, state, user):
                                         scenario=_golden_egg.badge, awarddate=datetime.now()).save()
             _participant.points += _golden_egg.badge.point.value
         golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+        GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
+                           badge=_golden_egg.badge).save()
+
+    print GoldenEggRewardLog.objects.filter(participant=_participant)
+
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     if _learnerstate.active_question:
