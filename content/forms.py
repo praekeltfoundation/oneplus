@@ -212,14 +212,10 @@ class GoldenEggCreateForm(forms.ModelForm):
 
     def clean_classs(self):
         course = self.data.get("course")
-        print course
         classs = self.cleaned_data.get("classs")
-        print classs
         active = self.data.get("active") == "on"
         active_golden_eggs_class = GoldenEgg.objects.filter(classs=classs, active=True)
-        print active_golden_eggs_class
         active_golden_eggs_course = GoldenEgg.objects.filter(course=course, classs=None, active=True)
-        print active_golden_eggs_course
         if (active_golden_eggs_class.exists() or active_golden_eggs_course.exists()) and active:
             raise forms.ValidationError("There can only be one active Golden Egg per class")
         if active_golden_eggs_course.exists() and active:
@@ -227,6 +223,21 @@ class GoldenEggCreateForm(forms.ModelForm):
         if active_golden_eggs_class.exists() and active:
             raise forms.ValidationError("There can only be one active Golden Egg per class")
         return classs
+
+    def clean_course(self):
+        classs = self.cleaned_data.get("classs")
+        course = self.cleaned_data.get("course")
+        active = self.data.get("active") == "on"
+        classes = Class.objects.filter(course=course)
+        if not classs:
+            active_golden_eggs = GoldenEgg.objects.filter(classs__in=classes, active=True)
+            if active_golden_eggs.exists() and active:
+                raise forms.ValidationError("There can only be one active Golden Egg per class")
+        active_golden_eggs = GoldenEgg.objects.values_list("classs").filter(classs__in=classes, active=True)
+        classes = Class.objects.filter(id__in=active_golden_eggs)
+        if active and classs in classes:
+            raise forms.ValidationError("There can only be one active Golden Egg per class")
+        return course
 
     def clean_point_value(self):
         points = self.data["point_value"]
