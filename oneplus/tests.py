@@ -8,7 +8,7 @@ from django.test import TestCase
 from datetime import datetime, timedelta
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
-from content.models import TestingQuestion, TestingQuestionOption
+from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from auth.models import Learner, CustomUser
 from django.test.client import Client
@@ -2375,6 +2375,99 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Your number has been changed to 0721478529")
         self.assertContains(resp, "Your email has been changed to asdf@asdf.com.")
+
+    def test_golden_egg(self):
+        new_learner = self.create_learner(
+            self.school,
+            username="+27761234567",
+            mobile="+27761234567",
+            unique_token='123456789',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+        new_participant = self.create_participant(new_learner, self.classs, datejoined=datetime.now())
+
+        q = self.create_test_question('question_1', module=self.module, state=3)
+        q_o = self.create_test_question_option('question_option_1', q)
+
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': new_learner.unique_token})
+        )
+
+        #GOLDEN EGG INACTIVE
+        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5)
+
+        #set the golden egg number to 1
+        self.client.get(reverse('learn.next'))
+        resp = self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        print resp
+        self.assertEquals(1, new_participant.points)
+        #check log
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+
+        new_participant.points = 0
+        new_participant.save()
+
+        #GOLDEN EGG ACTIVE - TEST POINTS
+        golden_egg.active = True
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+
+        self.assertEquals(6, new_participant.points)
+        #check log
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+
+        #TEST AIRTIME
+        golden_egg.point_value = None
+        golden_egg.airtime = 5
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+
+        #check log
+        #self.assertEquals()
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+
+        #TEST BADGE
+        bt1 = self.create_badgetemplate(
+            name="Golden Egg",
+            description="Weekly Golden Egg"
+        )
+
+        sc1 = self.create_gamification_scenario(
+            name="Golden Egg",
+            course=self.course,
+            module=self.module,
+            badge=bt1,
+            event="Golden Egg",
+        )
+
+        golden_egg.airtime = None
+        golden_egg.point_value = sc1
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt1,
+            scenario=sc1
+        ).count()
+        self.assertEquals(cnt, 1)
+        #check log
 
 
 @override_settings(VUMI_GO_FAKE=True)
