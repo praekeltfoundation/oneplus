@@ -8,8 +8,8 @@ from django.test import TestCase
 from datetime import datetime, timedelta
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
-from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg
-from gamification.models import GamificationScenario, GamificationBadgeTemplate
+from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog
+from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post, \
@@ -68,6 +68,12 @@ class GeneralTests(TestCase):
         return GamificationBadgeTemplate.objects.create(
             name=name,
             image="none",
+            **kwargs)
+
+    def create_gamification_point_bonus(self, name, value, **kwargs):
+        return GamificationPointBonus.objects.create(
+            name=name,
+            value=value,
             **kwargs)
 
     def create_gamification_scenario(self, **kwargs):
@@ -2394,20 +2400,39 @@ class GeneralTests(TestCase):
             kwargs={'token': new_learner.unique_token})
         )
 
+        #GOLDEN EGG DOESN'T EXIST
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
+
+        self.assertEquals(1, new_participant.points)
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant).count()
+        self.assertEquals(0, log)
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+        new_participant.points = 0
+        new_participant.save()
+
         #GOLDEN EGG INACTIVE
         golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5)
 
         #set the golden egg number to 1
         self.client.get(reverse('learn.next'))
-        resp = self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
-        print resp
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
+
         self.assertEquals(1, new_participant.points)
-        #check log
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant).count()
+        self.assertEquals(0, log)
 
         ParticipantQuestionAnswer.objects.filter(participant=new_participant,
                                                  question=q,
                                                  option_selected=q_o).delete()
-
         new_participant.points = 0
         new_participant.save()
 
@@ -2416,10 +2441,15 @@ class GeneralTests(TestCase):
         golden_egg.save()
 
         self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
         self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
 
         self.assertEquals(6, new_participant.points)
-        #check log
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant, points=5).count()
+        self.assertEquals(1, log)
 
         ParticipantQuestionAnswer.objects.filter(participant=new_participant,
                                                  question=q,
@@ -2431,14 +2461,19 @@ class GeneralTests(TestCase):
         golden_egg.save()
 
         self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
         self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
 
-        #check log
-        #self.assertEquals()
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant, airtime=5).count()
+        self.assertEquals(1, log)
 
         ParticipantQuestionAnswer.objects.filter(participant=new_participant,
                                                  question=q,
                                                  option_selected=q_o).delete()
+        new_participant.points = 0
+        new_participant.save()
 
         #TEST BADGE
         bt1 = self.create_badgetemplate(
@@ -2446,20 +2481,27 @@ class GeneralTests(TestCase):
             description="Weekly Golden Egg"
         )
 
+        pt1 = self.create_gamification_point_bonus("point", 5)
+
         sc1 = self.create_gamification_scenario(
             name="Golden Egg",
             course=self.course,
             module=self.module,
             badge=bt1,
             event="Golden Egg",
+            point=pt1
         )
 
         golden_egg.airtime = None
-        golden_egg.point_value = sc1
+        golden_egg.badge = sc1
         golden_egg.save()
 
         self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
         self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
 
         cnt = ParticipantBadgeTemplateRel.objects.filter(
             participant=new_participant,
@@ -2467,6 +2509,9 @@ class GeneralTests(TestCase):
             scenario=sc1
         ).count()
         self.assertEquals(cnt, 1)
+        self.assertEquals(6, new_participant.points)
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
+        self.assertEquals(1, log)
         #check log
 
 
