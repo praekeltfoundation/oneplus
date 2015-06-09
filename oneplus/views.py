@@ -1161,6 +1161,7 @@ def right(request, state, user):
             ParticipantBadgeTemplateRel(participant=_participant, badgetemplate=_golden_egg.badge.badge,
                                         scenario=_golden_egg.badge, awarddate=datetime.now()).save()
             _participant.points += _golden_egg.badge.point.value
+            _participant.save()
         golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
         GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
                            badge=_golden_egg.badge).save()
