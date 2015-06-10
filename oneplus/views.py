@@ -35,6 +35,7 @@ from communication.utils import report_user_post
 from organisation.models import School, Course
 from core.models import Class
 from oneplusmvp import settings
+from content.models import GoldenEggRewardLog
 
 COUNTRYWIDE = "Countrywide"
 
@@ -1111,6 +1112,20 @@ def get_points_awarded(participant):
     return question.points
 
 
+def get_golden_egg(participant):
+    golden_egg = GoldenEgg.objects.filter(
+        classs=participant.classs,
+        active=True
+    ).first()
+    if not golden_egg:
+        golden_egg = GoldenEgg.objects.filter(
+            course=participant.classs.course,
+            classs=None,
+            active=True
+        ).first()
+    return golden_egg
+
+
 # Right Answer Screen
 @oneplus_state_required
 @oneplus_login_required
@@ -1125,6 +1140,38 @@ def right(request, state, user):
             participant=_participant,
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count()
+    golden_egg = {}
+
+    _golden_egg = get_golden_egg(_participant)
+    if _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
+            _learnerstate.get_num_questions_answered_today() and _golden_egg is not None:
+
+        if _golden_egg.point_value:
+            golden_egg["message"] = "You've won this week's Golden Egg and %d points." % _golden_egg.point_value
+            _participant.points += _golden_egg.point_value
+            _participant.save()
+            GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value).save()
+
+        if _golden_egg.airtime:
+            golden_egg["message"] = "You've won this week's Golden Egg and your share of R %d airtime. You will be " \
+                                    "awarded your airtime next Monday." % _golden_egg.airtime
+            mail_managers(subject="Golden Egg Airtime Award", message="%s %s %s won R %d airtime from a Golden Egg" %
+                                                                      (_participant.learner.first_name,
+                                                                      _participant.learner.last_name,
+                                                                      _participant.learner.mobile,
+                                                                      _golden_egg.airtime), fail_silently=False)
+            GoldenEggRewardLog(participant=_participant, airtime=_golden_egg.airtime).save()
+
+        if _golden_egg.badge:
+            golden_egg["message"] = "You've won this week's Golden Egg and a badge"
+            ParticipantBadgeTemplateRel(participant=_participant, badgetemplate=_golden_egg.badge.badge,
+                                        scenario=_golden_egg.badge, awarddate=datetime.now()).save()
+            _participant.points += _golden_egg.badge.point.value
+            _participant.save()
+            GoldenEggRewardLog(participant=_participant, badge=_golden_egg.badge).save()
+
+        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
     if _learnerstate.active_question:
@@ -1173,6 +1220,7 @@ def right(request, state, user):
                     "messages": _messages,
                     "badge": badge,
                     "points": points,
+                    "golden_egg": golden_egg,
                 }
             )
         else:

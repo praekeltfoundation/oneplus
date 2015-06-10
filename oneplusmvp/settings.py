@@ -251,6 +251,8 @@ ADMIN_REORDER = (
               "Teachers", "School Managers", "System Administrators")),
 )
 
+GOLDEN_EGG_IMG_URL = "media/img/GoldenEgg.png"
+
 GRADE_10_COURSE_NAME = "One Plus Grade 10"
 GRADE_11_COURSE_NAME = "One Plus Grade 11"
 GRADE_10_OPEN_CLASS_NAME = "Grade 10 - Open Class"
