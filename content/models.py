@@ -172,9 +172,80 @@ class GoldenEgg(models.Model):
         verbose_name = "Golden Egg"
         verbose_name_plural = "Golden Eggs"
 
+
 class GoldenEggRewardLog(models.Model):
     participant = models.ForeignKey("core.Participant", null=False, blank=False)
     award_date = models.DateTimeField(auto_now_add=True)
     points = models.PositiveIntegerField(null=True, blank=True)
     airtime = models.PositiveIntegerField(null=True, blank=True)
     badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
+
+
+class EventPage(models.Model):
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
+
+    class Meta:
+        abstract = True
+
+
+class EventStartPage(EventPage):
+    pass
+
+
+class EventEndPage(EventPage):
+    pass
+
+
+class EventSplashPage(EventPage):
+    pass
+
+
+class Event(models.Model):
+    ONE = 1
+    MULTIPLE = 2
+    SITTINGS_CHOICES = (
+        (ONE, "One"),
+        (MULTIPLE, "Multiple")
+    )
+
+    name = models.CharField(max_length=50, unique=True)
+    course = models.ForeignKey("organisation.Course", null=False, blank=False)
+    activation_date = models.DateTimeField("Activate On", null=False, blank=False)
+    deactivation_date = models.DateTimeField("Deactivate On", null=False, blank=False)
+    number_sittings = models.PositiveIntegerField("Number of Sittings", choices=SITTINGS_CHOICES, default=ONE)
+    event_points = models.PositiveIntegerField("Event Points", null=True, blank=True)
+    airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
+    event_badge = models.ForeignKey("gamification.GamificationScenario",
+                                    related_name="event_badge", null=True, blank=True)
+    start_page = models.ForeignKey(EventStartPage, null=True, blank=False)
+    end_page = models.ForeignKey(EventEndPage, null=True, blank=False)
+
+    def __str__(self):
+        return self.name
+
+
+class EventSplashPageRel(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    splash_page = models.ForeignKey(EventSplashPage, null=True, blank=False)
+    order_number = models.PositiveIntegerField("Order", null=True, blank=False)
+
+
+class EventQuestionRel(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+
+
+class EventQuestionAnswer(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    participant = models.ForeignKey("core.Participant", null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    question_option = models.ForeignKey(TestingQuestionOption, null=True, blank=False)
+    correct = models.BooleanField()
+    answer_date = models.DateTimeField("Answer Date", null=True, blank=False, auto_now_add=True)
+
+
+class EventParticipantRel(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    participant = models.ForeignKey("core.Participant", null=True, blank=False)
+    sitting_number = models.PositiveIntegerField(null=True, blank=False)
