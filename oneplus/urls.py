@@ -39,6 +39,9 @@ urlpatterns = [
         name="learn.preview.wrong"),
     url(r"^welcome$", views.first_time, name="learn.first_time"),
     url(r"^report_question/(?P<questionid>\d+)/(?P<frm>\w{0,5})$", views.report_question, name="learn.report_question"),
+    url(r"^event_splash_page", views.event_splash_page, name="learn.event_splash_page"),
+    url(r"^event_start_page", views.event_start_page, name="learn.event_start_page"),
+    url(r"^event_end_page", views.event_end_page, name="learn.event_end_page"),
 
     # Communicate
     url(r"^inbox$", views.inbox, name="com.inbox"),

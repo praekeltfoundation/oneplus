@@ -35,7 +35,8 @@ from communication.utils import report_user_post
 from organisation.models import School, Course
 from core.models import Class
 from oneplusmvp import settings
-from content.models import GoldenEggRewardLog
+from content.models import GoldenEggRewardLog, Event, EventParticipantRel, EventQuestionRel, EventQuestionAnswer,\
+    EventPageRel, EventStartPage, EventEndPage, EventSplashPage
 
 COUNTRYWIDE = "Countrywide"
 
@@ -175,6 +176,11 @@ def login(request, state):
 
                         if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
                             return redirect("learn.first_time")
+                        elif Event.objects.filter(course=par.classs.course,
+                                                  activation_date__gte=datetime.now(),
+                                                  deactivation_date__lt=datetime.now()
+                                                  ).count() > 0:
+                            return redirect("learn.event_splash_page")
                         else:
                             return redirect("learn.home")
                     else:
@@ -813,7 +819,7 @@ def nextchallenge(request, state, user):
         participant=_learnerstate.participant
     ).distinct().values_list('question')
     questions = TestingQuestion.objects.filter(
-        module__in=_learnerstate.participant.classs.course.modules.all(),
+        module__in=_learnerstate.participant.classs.course.modules.filter(type=1),
         module__is_active=True,
         state=3
     ).exclude(id__in=answered)
@@ -3755,3 +3761,129 @@ def _content_profanity_check(obj):
         obj.original_content = obj.content
         obj.content = get_replacement_content(profanity=True)
         obj.save()
+
+
+# Event Splash Page Screen
+@oneplus_state_required
+@oneplus_login_required
+def event_splash_page(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__gte=datetime.now(),
+                                  deactivation_date__lt=datetime.now()
+                                  ).first()
+    _event_participant_rel = EventParticipantRel.objects.filter(participant=_participant, event=_event)
+
+    page = {}
+    splash_pages = []
+
+    if not _event_participant_rel and _event:
+        pages = EventPageRel.objects.select_related('StartPage','EndPage', 'SplashPage').filter(event=_event)
+        for page in pages:
+            try:
+                splash_pages.append(page.page.eventsplashpage)
+            except EventSplashPage.DoesNotExist:
+                continue
+        random_splash_page = randint(1, splash_pages.count())
+        _splash_page = splash_pages[random_splash_page]
+        page["header"] = _splash_page.header
+        page["message"] = _splash_page.message
+
+    def get():
+        return render(
+            request,
+            "learn/event_splash_page.html",
+            {
+                "state": state,
+                "user": user,
+                "page": page
+            }
+        )
+
+    return resolve_http_method(request, [get])
+
+
+# Event Start Page Screen
+@oneplus_state_required
+@oneplus_login_required
+def event_start_page(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__gte=datetime.now(),
+                                  deactivation_date__lt=datetime.now()
+                                  ).first()
+    _event_participant_rel = EventParticipantRel.objects.filter(participant=_participant, event=_event)
+
+    page = {}
+
+    if not _event_participant_rel and _event:
+        start_page = None
+        pages = EventPageRel.objects.select_related('StartPage','EndPage', 'SplashPage').filter(event=_event)
+        for page in pages:
+            try:
+                start_page = page.page.eventstartpage
+                break
+            except EventStartPage.DoesNotExist:
+                continue
+        page["header"] = start_page.header
+        page["message"] = start_page.message
+
+    def get():
+        return render(
+            request,
+            "learn/event_start_page.html",
+            {
+                "state": state,
+                "user": user,
+                "page": page
+            }
+        )
+
+    return resolve_http_method(request, [get])
+
+
+# Event Start Page Screen
+@oneplus_state_required
+@oneplus_login_required
+def event_end_page(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__gte=datetime.now(),
+                                  deactivation_date__lt=datetime.now()
+                                  ).first()
+
+    page = {}
+
+    _num_event_questions = EventQuestionRel.objects.filter(event=_event).count();
+    _num_questions_answered = EventQuestionAnswer.objects.filter(event=_event, participant=_participant).count()
+
+    if _num_event_questions == _num_questions_answered:
+        _num_questions_correct = EventQuestionAnswer.objects.filter(event=_event, participant=_participant,
+                                                                    correct=True).count()
+        percentage = _num_questions_correct / _num_event_questions * 100
+
+        end_page = None
+        pages = EventPageRel.objects.select_related('StartPage','EndPage', 'SplashPage').filter(event=_event)
+        for page in pages:
+            try:
+                end_page = page.page.eventstartpage
+                break
+            except EventEndPage.DoesNotExist:
+                continue
+
+        page["header"] = end_page.header
+        page["message"] = end_page.message
+        page["percentage"] = percentage
+
+    def get():
+        return render(
+            request,
+            "learn/event_end_page.html",
+            {
+                "state": state,
+                "user": user,
+                "page": page
+            }
+        )
+
+    return resolve_http_method(request, [get])
