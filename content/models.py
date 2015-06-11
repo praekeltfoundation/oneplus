@@ -182,11 +182,10 @@ class GoldenEggRewardLog(models.Model):
 
 
 class EventPage(models.Model):
+    # see eventrel
+    # event = models.ForeignKey(Event, null=True, blank=False)
     header = models.CharField("Header Text", max_length=50)
     paragraph = models.TextField("Paragraph Text", max_length=500)
-
-    class Meta:
-        abstract = True
 
 
 class EventStartPage(EventPage):
@@ -198,6 +197,8 @@ class EventEndPage(EventPage):
 
 
 class EventSplashPage(EventPage):
+    # see eventrel
+    # order_number = models.PositiveIntegerField("Order", null=True, blank=False)
     pass
 
 
@@ -218,17 +219,15 @@ class Event(models.Model):
     airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
     event_badge = models.ForeignKey("gamification.GamificationScenario",
                                     related_name="event_badge", null=True, blank=True)
-    start_page = models.ForeignKey(EventStartPage, null=True, blank=False)
-    end_page = models.ForeignKey(EventEndPage, null=True, blank=False)
 
     def __str__(self):
         return self.name
 
 
-class EventSplashPageRel(models.Model):
-    event = models.ForeignKey(Event, null=True, blank=False)
-    splash_page = models.ForeignKey(EventSplashPage, null=True, blank=False)
-    order_number = models.PositiveIntegerField("Order", null=True, blank=False)
+class EventPageRel(models.Model):
+    event = models.ForeignKey("content.Event", null=False, blank=False)
+    page = models.ForeignKey(EventPage, null=False, blank=False)
+    order_number = models.PositiveIntegerField("Order", null=False, blank=False)
 
 
 class EventQuestionRel(models.Model):
