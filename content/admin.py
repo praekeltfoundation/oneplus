@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
-    EventStartPage, EventEndPage, EventQuestionAnswer, Event
+    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventPageRel
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -219,9 +219,9 @@ class GoldenEggAdmin(SummernoteModelAdmin):
 
 
 class EventSplashPageInline(admin.TabularInline):
-    model = EventSplashPage
+    model = EventPageRel
     extra = 2
-    fields = ("order_number", "page__header", "page__paragraph")
+    fields = ("order_number", "event", "page")
     ordering = ("order_number", )
 
 
@@ -247,7 +247,7 @@ class EventAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {"course", "activation_date", "deactivation_date", "number_sittings", "event_points", "airtime",
                 "event_badge"})]
-    inlines = ()
+    inlines = ("EventSplashPageInline")
 
     def get_total_users(self):
         return Participant.objects.filter(classs__course=self.course).aggregate(Count('id'))['id__count']
