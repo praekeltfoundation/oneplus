@@ -219,6 +219,7 @@ class Event(models.Model):
     airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
     event_badge = models.ForeignKey("gamification.GamificationScenario",
                                     related_name="event_badge", null=True, blank=True)
+    end_processed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

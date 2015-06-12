@@ -68,6 +68,7 @@ class Migration(SchemaMigration):
             ('event_points', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
             ('airtime', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
             ('event_badge', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='event_badge', null=True, to=orm['gamification.GamificationScenario'])),
+            ('end_processed', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal(u'content', ['Event'])
 
@@ -191,6 +192,7 @@ class Migration(SchemaMigration):
             'airtime': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']"}),
             'deactivation_date': ('django.db.models.fields.DateTimeField', [], {}),
+            'end_processed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'event_badge': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'event_badge'", 'null': 'True', 'to': u"orm['gamification.GamificationScenario']"}),
             'event_points': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -337,7 +339,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantbadgetemplaterel': {
             'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 11, 0, 0)', 'null': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 12, 0, 0)', 'null': 'True'}),
             'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
@@ -345,7 +347,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantpointbonusrel': {
             'Meta': {'object_name': 'ParticipantPointBonusRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 11, 0, 0)', 'null': 'True', 'blank': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 12, 0, 0)', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),
@@ -401,7 +403,8 @@ class Migration(SchemaMigration):
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'module_link': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
+            'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
         },
         u'organisation.organisation': {
             'Meta': {'object_name': 'Organisation'},
