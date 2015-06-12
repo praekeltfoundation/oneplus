@@ -8,55 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'EventStartPage'
-        db.create_table(u'content_eventstartpage', (
-            (u'eventpage_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['content.EventPage'], unique=True, primary_key=True)),
-        ))
-        db.send_create_signal(u'content', ['EventStartPage'])
-
-        # Adding model 'EventPageRel'
-        db.create_table(u'content_eventpagerel', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.Event'])),
-            ('page', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.EventPage'])),
-            ('order_number', self.gf('django.db.models.fields.PositiveIntegerField')()),
-        ))
-        db.send_create_signal(u'content', ['EventPageRel'])
-
-        # Adding model 'EventQuestionAnswer'
-        db.create_table(u'content_eventquestionanswer', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.Event'], null=True)),
-            ('participant', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Participant'], null=True)),
-            ('question', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.TestingQuestion'], null=True)),
-            ('question_option', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.TestingQuestionOption'], null=True)),
-            ('correct', self.gf('django.db.models.fields.BooleanField')()),
-            ('answer_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, null=True, blank=True)),
-        ))
-        db.send_create_signal(u'content', ['EventQuestionAnswer'])
-
-        # Adding model 'EventSplashPage'
-        db.create_table(u'content_eventsplashpage', (
-            (u'eventpage_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['content.EventPage'], unique=True, primary_key=True)),
-        ))
-        db.send_create_signal(u'content', ['EventSplashPage'])
-
-        # Adding model 'EventPage'
-        db.create_table(u'content_eventpage', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('header', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('paragraph', self.gf('django.db.models.fields.TextField')(max_length=500)),
-        ))
-        db.send_create_signal(u'content', ['EventPage'])
-
-        # Adding model 'EventQuestionRel'
-        db.create_table(u'content_eventquestionrel', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.Event'], null=True)),
-            ('question', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.TestingQuestion'], null=True)),
-        ))
-        db.send_create_signal(u'content', ['EventQuestionRel'])
-
         # Adding model 'Event'
         db.create_table(u'content_event', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -72,49 +23,10 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal(u'content', ['Event'])
 
-        # Adding model 'EventEndPage'
-        db.create_table(u'content_eventendpage', (
-            (u'eventpage_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['content.EventPage'], unique=True, primary_key=True)),
-        ))
-        db.send_create_signal(u'content', ['EventEndPage'])
-
-        # Adding model 'EventParticipantRel'
-        db.create_table(u'content_eventparticipantrel', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.Event'], null=True)),
-            ('participant', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Participant'], null=True)),
-            ('sitting_number', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-        ))
-        db.send_create_signal(u'content', ['EventParticipantRel'])
-
 
     def backwards(self, orm):
-        # Deleting model 'EventStartPage'
-        db.delete_table(u'content_eventstartpage')
-
-        # Deleting model 'EventPageRel'
-        db.delete_table(u'content_eventpagerel')
-
-        # Deleting model 'EventQuestionAnswer'
-        db.delete_table(u'content_eventquestionanswer')
-
-        # Deleting model 'EventSplashPage'
-        db.delete_table(u'content_eventsplashpage')
-
-        # Deleting model 'EventPage'
-        db.delete_table(u'content_eventpage')
-
-        # Deleting model 'EventQuestionRel'
-        db.delete_table(u'content_eventquestionrel')
-
         # Deleting model 'Event'
         db.delete_table(u'content_event')
-
-        # Deleting model 'EventEndPage'
-        db.delete_table(u'content_eventendpage')
-
-        # Deleting model 'EventParticipantRel'
-        db.delete_table(u'content_eventparticipantrel')
 
 
     models = {
@@ -208,36 +120,6 @@ class Migration(SchemaMigration):
             'header': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'paragraph': ('django.db.models.fields.TextField', [], {'max_length': '500'})
-        },
-        u'content.eventpagerel': {
-            'Meta': {'object_name': 'EventPageRel'},
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'order_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'page': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.EventPage']"})
-        },
-        u'content.eventparticipantrel': {
-            'Meta': {'object_name': 'EventParticipantRel'},
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']", 'null': 'True'}),
-            'sitting_number': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'})
-        },
-        u'content.eventquestionanswer': {
-            'Meta': {'object_name': 'EventQuestionAnswer'},
-            'answer_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'null': 'True', 'blank': 'True'}),
-            'correct': ('django.db.models.fields.BooleanField', [], {}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']", 'null': 'True'}),
-            'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True'}),
-            'question_option': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestionOption']", 'null': 'True'})
-        },
-        u'content.eventquestionrel': {
-            'Meta': {'object_name': 'EventQuestionRel'},
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True'})
         },
         u'content.eventsplashpage': {
             'Meta': {'object_name': 'EventSplashPage', '_ormbases': [u'content.EventPage']},

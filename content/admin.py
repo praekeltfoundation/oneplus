@@ -1,12 +1,16 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg
+from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
+    EventStartPage, EventEndPage, EventQuestionAnswer, Event
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
-from core.models import ParticipantQuestionAnswer, Class
+from core.models import ParticipantQuestionAnswer, Participant
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, GoldenEggCreateForm
 from organisation.models import Course, CourseModuleRel
+from django.db.models import Count
+from datetime import datetime
+
 
 class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
@@ -185,6 +189,7 @@ class MathmlAdmin(SummernoteModelAdmin):
     list_display = ("filename", "rendered")
     list_filter = ("rendered", "source", "source_id")
 
+
 class GoldenEggAdmin(SummernoteModelAdmin):
     list_display = ("classs", "course", "get_reward", "get_reward_value", "active")
     list_filter = ("course", "classs", "active", "badge")
@@ -212,9 +217,77 @@ class GoldenEggAdmin(SummernoteModelAdmin):
             return golden_egg.badge.name
     get_reward_value.short_description = "Reward Value"
 
+
+class EventSplashPageInline(admin.TabularInline):
+    model = EventSplashPage
+    extra = 2
+    fields = ("order_number", "page__header", "page__paragraph")
+    ordering = ("order_number", )
+
+
+class EventStartPageInline(admin.TabularInline):
+    model = EventStartPage
+    extra = 0
+    max_num = 1
+    fields = ("page__header", "page__paragraph")
+
+
+class EventEndPageInline(admin.TabularInline):
+    model = EventEndPage
+    extra = 0
+    max_num = 1
+    fields = ("order_number", "page__header", "page__paragraph")
+
+
+class EventAdmin(admin.ModelAdmin):
+    list_display = ("name", "course", "activation_date", "deactivation_date", "get_total_users",
+                    "get_total_questions_answered", "get_percent_complete_all",
+                    "get_percent_correct", "get_participants", "get_is_active")
+    list_filter = ()
+    fieldsets = [
+        (None, {"course", "activation_date", "deactivation_date", "number_sittings", "event_points", "airtime",
+                "event_badge"})]
+    inlines = ()
+
+    def get_total_users(self):
+        return Participant.objects.filter(classs__course=self.course).aggregate(Count('id'))['id__count']
+    get_total_users.short_description = "Total Users"
+
+    def get_total_questions_answered(self):
+        return EventQuestionAnswer.objects.filter(event=self).aggregate(Count('id'))['id__count']
+    get_total_questions_answered.short_description = "Total Questions Answered"
+
+    def get_percent_complete_all(self):
+        total_participants = Participant.objects.filter(classs__course=self.course).aggregate(Count('id'))['id__count']
+        completed = EventQuestionAnswer.objects.filter(event=self).values('participant') \
+            .annotate(answered=Count('participant')).filter(answered=15).aggregate(Count('answered'))
+        return (completed / total_participants) * 100
+    get_percent_complete_all.short_description = "% Complete All Questions"
+
+    def get_percent_correct(self):
+        answered = self.get_total_questions_answered()
+        correct = EventQuestionAnswer.objects.filter(event=self, correct=True) \
+            .aggregate(Count('correct'))['correct__count']
+        return (correct / answered) * 100
+    get_percent_correct.short_description = "% Correct"
+
+    def get_participant(self):
+        participant_string = ""
+        all_participants = Participant.objects.filter(classs__course=self.course)
+        for p in all_participants:
+            participant_string += "%s %s, " % (p.learner.first_name, p.learner.last_name)
+        return participant_string[:-2]
+    get_participant.short_description = "Participants"
+
+    def get_is_active(self):
+        return self.activation_date < datetime.now() < self.deactivation_date
+    get_is_active.short_description = "Active"
+
+
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
+admin.site.register(Event, EventAdmin)
