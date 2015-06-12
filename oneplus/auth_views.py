@@ -95,13 +95,13 @@ def login(request, state):
                             )
                             return render(request, "misc/account_problem.html")
 
-                        if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
-                            return redirect("learn.first_time")
-                        elif Event.objects.filter(course=par.classs.course,
-                                                  activation_date__gte=datetime.now(),
-                                                  deactivation_date__lt=datetime.now()
-                                                  ).count() > 0:
+                        if Event.objects.filter(course=par.classs.course,
+                                                activation_date__gte=datetime.now(),
+                                                deactivation_date__lt=datetime.now()
+                                                ).count() > 0:
                             return redirect("learn.event_splash_page")
+                        elif ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
+                            return redirect("learn.first_time")
                         else:
                             return redirect("learn.home")
                     else:
