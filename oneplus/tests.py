@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-from amqp.basic_message import Message
-from celery.app.registry import TaskRegistry
-from django.core.urlresolvers import reverse
-from datetime import datetime, timedelta, date
-from django.contrib.admin.sites import AdminSite
-from django.test import TestCase
 from datetime import datetime, timedelta
+import logging
+
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption
@@ -17,14 +15,12 @@ from communication.models import Message, ChatGroup, ChatMessage, Post, \
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
-from .views import get_points_awarded, get_badge_awarded, get_week_day, space_available, validate_mobile
+from .views import get_week_day
+from oneplus.learn_views import get_badge_awarded, get_points_awarded
+from oneplus.auth_views import space_available, validate_mobile
 from .utils import get_today
-from oneplus.admin import OnePlusLearnerAdmin, OnePlusLearnerResource
 from go_http.tests.test_send import RecordingHandler
-from django.conf import settings
-from auth.admin import LearnerCreationForm
 from django.test.utils import override_settings
-import logging
 from django.db.models import Count
 
 
@@ -734,7 +730,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_smspassword_post(self):
-        #invalid form
+        # invalid form
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
@@ -746,7 +742,7 @@ class GeneralTests(TestCase):
 
         self.assertEqual(resp.status_code, 200)
 
-        #incorrect msisdn
+        # incorrect msisdn
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
@@ -758,7 +754,7 @@ class GeneralTests(TestCase):
 
         self.assertEqual(resp.status_code, 200)
 
-        #correct msisdn
+        # correct msisdn
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
@@ -1957,21 +1953,21 @@ class GeneralTests(TestCase):
 
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
-        #csv no region
+        # csv no region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': ''}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv'))
 
-        #xls no region
+        # xls no region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 2, 'region': ''}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('xls'))
 
-        #csv + region
+        # csv + region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area'}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area'))
         self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
         self.assertContains(resp, '+27123456789,,,school name,Test_Area,1,100')
 
-        #csv + region that doesn't exist
+        # csv + region that doesn't exist
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area44'}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area44'))
         self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
@@ -2129,7 +2125,7 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.signup_form'))
         self.assertEqual(resp.status_code, 200)
 
-        #no data given
+        # no data given
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={},
                                 follow=True)
@@ -2137,7 +2133,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Select a Centre/Province")
         self.assertContains(resp, "Select a class")
 
-        #invalid cellphone, enrolled - invalid school and class, invalid grade
+        # invalid cellphone, enrolled - invalid school and class, invalid grade
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': self.learner.first_name,
@@ -2156,7 +2152,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Select a class")
         self.assertContains(resp, "Select a grade")
 
-        #invalid cellphone, not enrolled - invalid province
+        # invalid cellphone, not enrolled - invalid province
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': self.learner.first_name,
@@ -2173,7 +2169,7 @@ class GeneralTests(TestCase):
         self.assertNotContains(resp, "Select a Centre/Province")
         self.assertNotContains(resp, "Select a class")
 
-        #registered cellphone
+        # registered cellphone
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Bob",
@@ -2188,7 +2184,7 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertContains(resp, "This number has already been registered.")
 
-        #valid - enrolled
+        # valid - enrolled
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Bob",
@@ -2205,7 +2201,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876543')
         self.assertEquals('Bob', new_learner.first_name)
 
-        #valid - not enrolled - grade 10 - no open class created
+        # valid - not enrolled - grade 10 - no open class created
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Koos",
@@ -2221,7 +2217,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876540')
         self.assertEquals('Koos', new_learner.first_name)
 
-        #valid - not enrolled - grade 10
+        # valid - not enrolled - grade 10
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Willy",
@@ -2237,7 +2233,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729878963')
         self.assertEquals('Willy', new_learner.first_name)
 
-        #valid - not enrolled - grade 11 - creaing open class
+        # valid - not enrolled - grade 11 - creaing open class
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Tom",
@@ -2253,7 +2249,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876576')
         self.assertEquals('Tom', new_learner.first_name)
 
-        #valid - not enrolled - grade 11
+        # valid - not enrolled - grade 11
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Henky",
@@ -2278,26 +2274,26 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.change_details'))
         self.assertEqual(resp.status_code, 200)
 
-        #no change
+        # no change
         resp = self.client.post(reverse("auth.change_details"), follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "No changes made.")
 
-        #invalid old_number
+        # invalid old_number
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '012'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Please enter a valid mobile number.")
 
-        #incorrect old_number
+        # incorrect old_number
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27721234567'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "This number is not associated with this account.")
 
-        #invalid new_mobile
+        # invalid new_mobile
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27123456789',
                                       'new_number': '012'},
@@ -2305,7 +2301,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Please enter a valid mobile number.")
 
-        #invalid new_mobile
+        # invalid new_mobile
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27123456789',
                                       'new_number': '+27123456789'},
@@ -2313,7 +2309,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "You cannot change your number to your current number.")
 
-        #new number same as an existing user
+        # new number same as an existing user
         learner = self.create_learner(
             self.school,
             username="+271234569999",
@@ -2334,14 +2330,14 @@ class GeneralTests(TestCase):
 
         self.learner.email = "qwer@qwer.com"
         self.learner.save()
-        #incorrect old_email
+        # incorrect old_email
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'xyz@xyz.com'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "This email is not associated with this account.")
 
-        #changing to current email
+        # changing to current email
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'qwer@qwer.com',
                                       'new_email': 'qwer@qwer.com'},
@@ -2349,7 +2345,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "This is your current email.")
 
-        #invalid new_email
+        # invalid new_email
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'qwer@qwer.com',
                                       'new_email': 'abc'},
@@ -2357,7 +2353,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Please enter a valid email.")
 
-        #email exists
+        # email exists
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'qwer@qwer.com',
                                       'new_email': 'abcd@abcd.com'},
@@ -2365,7 +2361,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "A user with this email (abcd@abcd.com) already exists.")
 
-        #valid
+        # valid
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27123456789',
                                       'new_number': '0721478529',
@@ -2489,10 +2485,10 @@ class LearnerStateTest(TestCase):
         mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
         week_range = self.learner_state.get_week_range()
 
-        #Begin: Monday the 18th of August
+        # Begin: Monday the 18th of August
         self.assertEquals(week_range[0], datetime(2014, 8, 18, 0, 0))
 
-        #End: Friday the 22nd of August
+        # End: Friday the 22nd of August
         self.assertEquals(week_range[1], datetime(2014, 8, 23, 0, 0))
 
     def test_get_number_questions(self):
@@ -2676,33 +2672,33 @@ class MessageTest(TestCase):
         c = Client()
         c.login(username=admin.username, password=password)
 
-        #create a participant in course 1 class 1
+        # create a participant in course 1 class 1
         leaner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
         self.create_participant(leaner_1, self.classs, datejoined=datetime.now())
 
-        #create another class in same course
+        # create another class in same course
         c1_class2 = self.create_class("c1_class2", self.course)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         leaner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
         self.create_participant(leaner_2, c1_class2, datejoined=datetime.now())
 
-        #create a new course and a class
+        # create a new course and a class
         course2 = self.create_course("course2")
         c2_class1 = self.create_class("c2_class1", course2)
 
-        #create a participant in course 2 class 1
+        # create a participant in course 2 class 1
         leaner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
         self.create_participant(leaner_3, c2_class1, datejoined=datetime.now())
 
-        #create another class in course 2
+        # create another class in course 2
         c2_class2 = self.create_class("c2_class2", course2)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         leaner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
         self.create_participant(leaner_4, c2_class2, datejoined=datetime.now())
 
-        #test date and content validation errors
+        # test date and content validation errors
         resp = c.post(reverse('com.add_message'),
                       data={'name': '',
                             'course': 'all',
@@ -2715,7 +2711,7 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'This field is required')
 
-        #test invalid date
+        # test invalid date
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': 'all',
@@ -2728,7 +2724,7 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'Please enter a valid date and time.')
 
-        #test users list, all + user
+        # test users list, all + user
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2741,13 +2737,13 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'Please make a valid learner selection')
 
-        #test no data posted
+        # test no data posted
         resp = c.post(reverse('com.add_message'), follow=True)
         self.assertContains(resp, 'This field is required')
 
         self.assertEquals(resp.status_code, 200)
 
-        #send message to all course (4 messages, total 4)
+        # send message to all course (4 messages, total 4)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': 'all',
@@ -2763,7 +2759,7 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 4)
 
-        #send message to course 1 (2 messages, total 6)
+        # send message to course 1 (2 messages, total 6)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2779,7 +2775,7 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 6)
 
-        #send message to course 1 class 1 (1 messages, total 7)
+        # send message to course 1 class 1 (1 messages, total 7)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2795,7 +2791,7 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 7)
 
-        #send message to course 1 class 1  learner 1(1 messages, total 8)
+        # send message to course 1 class 1  learner 1(1 messages, total 8)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2811,8 +2807,8 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 8)
 
-        #send message to course 1 class 1  learner 1(1 messages, total 9)
-        #testing _save button
+        # send message to course 1 class 1  learner 1(1 messages, total 9)
+        # testing _save button
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2910,33 +2906,33 @@ class SMSQueueTest(TestCase):
         c = Client()
         c.login(username=admin.username, password=password)
 
-        #create a participant in course 1 class 1
+        # create a participant in course 1 class 1
         learner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
         self.create_participant(learner_1, self.classs, datejoined=datetime.now())
 
-        #create another class in same course
+        # create another class in same course
         c1_class2 = self.create_class("c1_class2", self.course)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         learner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
         self.create_participant(learner_2, c1_class2, datejoined=datetime.now())
 
-        #create a new course and a class
+        # create a new course and a class
         course2 = self.create_course("course2")
         c2_class1 = self.create_class("c2_class1", course2)
 
-        #create a participant in course 2 class 1
+        # create a participant in course 2 class 1
         learner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
         self.create_participant(learner_3, c2_class1, datejoined=datetime.now())
 
-        #create another class in course 2
+        # create another class in course 2
         c2_class2 = self.create_class("c2_class2", course2)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         learner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
         self.create_participant(learner_4, c2_class2, datejoined=datetime.now())
 
-        #send sms to all course (4 sms, total 4)
+        # send sms to all course (4 sms, total 4)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': 'all',
                             'to_class': 'all',
@@ -2950,7 +2946,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 4)
 
-        #send sms to course 1 (2 sms, total 6)
+        # send sms to course 1 (2 sms, total 6)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': 'all',
@@ -2964,7 +2960,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 6)
 
-        #send sms to course 1 class 1 (1 sms, total 7)
+        # send sms to course 1 class 1 (1 sms, total 7)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -2978,7 +2974,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 7)
 
-        #send sms to course 1 class 1 (1 sms, total 8)
+        # send sms to course 1 class 1 (1 sms, total 8)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -2992,7 +2988,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 8)
 
-        #send sms to course 1 class 1 (1 sms, total 9)
+        # send sms to course 1 class 1 (1 sms, total 9)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -3021,7 +3017,7 @@ class SMSQueueTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'This field is required')
 
-        #testing _save button
+        # testing _save button
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -3046,7 +3042,7 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': self.classs.id,
-                            'users':  learner_1.id,
+                            'users': learner_1.id,
                             'date_sent_0': datetime.now().time(),
                             'date_sent_1': datetime.now().date(),
                             'message': 'message'},
@@ -3148,7 +3144,6 @@ class ExtraAdminBitTests(TestCase):
         )
 
     def setUp(self):
-
         self.course = self.create_course()
         self.classs = self.create_class('class name', self.course)
         self.organisation = self.create_organisation()
