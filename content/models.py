@@ -186,6 +186,10 @@ class EventPage(models.Model):
     # event = models.ForeignKey(Event, null=True, blank=False)
     header = models.CharField("Header Text", max_length=50)
     paragraph = models.TextField("Paragraph Text", max_length=500)
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 
 class EventStartPage(EventPage):
@@ -230,6 +234,21 @@ class EventPageRel(models.Model):
     page = models.ForeignKey(EventPage, null=False, blank=False)
     order_number = models.PositiveIntegerField("Order", null=False, blank=False)
 
+    def get_page_header(self):
+        if self.page:
+            return "<span>%s</span>" % self.page.header
+        else:
+            return "<span></span>"
+    get_page_header.short_description = "Header"
+    get_page_header.allow_tags = True
+
+    def get_page_paragraph(self):
+        if self.page:
+            return "<span>%s</span>" % self.page.paragraph
+        else:
+            return "<span></span>"
+    get_page_paragraph.short_description = "Paragraph"
+    get_page_paragraph.allow_tags = True
 
 class EventQuestionRel(models.Model):
     event = models.ForeignKey(Event, null=True, blank=False)

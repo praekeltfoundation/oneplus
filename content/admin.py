@@ -6,7 +6,8 @@ from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer, Participant
-from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, GoldenEggCreateForm
+from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
+    GoldenEggCreateForm
 from organisation.models import Course, CourseModuleRel
 from django.db.models import Count
 from datetime import datetime
@@ -221,8 +222,16 @@ class GoldenEggAdmin(SummernoteModelAdmin):
 class EventSplashPageInline(admin.TabularInline):
     model = EventPageRel
     extra = 2
-    fields = ("order_number", "event", "page")
+    fields = ("order_number", "page", "get_page_header", "get_page_paragraph")
+    readonly_fields = ("get_page_header", "get_page_paragraph")
     ordering = ("order_number", )
+    verbose_name = "Splash Page"
+    verbose_name_plural = "Splash Pages"
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == "page":
+            kwargs["queryset"] = EventSplashPage.objects.all()
+        return super(EventSplashPageInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class EventStartPageInline(admin.TabularInline):
@@ -242,46 +251,55 @@ class EventEndPageInline(admin.TabularInline):
 class EventAdmin(admin.ModelAdmin):
     list_display = ("name", "course", "activation_date", "deactivation_date", "get_total_users",
                     "get_total_questions_answered", "get_percent_complete_all",
-                    "get_percent_correct", "get_participants", "get_is_active")
+                    "get_percent_correct", "get_participant", "get_is_active")
     list_filter = ()
     fieldsets = [
-        (None, {"course", "activation_date", "deactivation_date", "number_sittings", "event_points", "airtime",
-                "event_badge"})]
-    inlines = ("EventSplashPageInline")
+        (None, {"fields": ["course", "activation_date", "deactivation_date", "number_sittings", "event_points",
+                           "airtime", "event_badge"]})]
+    inlines = (EventSplashPageInline, )
 
-    def get_total_users(self):
-        return Participant.objects.filter(classs__course=self.course).aggregate(Count('id'))['id__count']
+    def get_total_users(self, obj):
+        return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
     get_total_users.short_description = "Total Users"
 
-    def get_total_questions_answered(self):
-        return EventQuestionAnswer.objects.filter(event=self).aggregate(Count('id'))['id__count']
+    def get_total_questions_answered(self, obj):
+        return EventQuestionAnswer.objects.filter(event=obj).aggregate(Count('id'))['id__count']
     get_total_questions_answered.short_description = "Total Questions Answered"
 
-    def get_percent_complete_all(self):
-        total_participants = Participant.objects.filter(classs__course=self.course).aggregate(Count('id'))['id__count']
-        completed = EventQuestionAnswer.objects.filter(event=self).values('participant') \
-            .annotate(answered=Count('participant')).filter(answered=15).aggregate(Count('answered'))
-        return (completed / total_participants) * 100
+    def get_percent_complete_all(self, obj):
+        #total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
+        #completed = EventQuestionAnswer.objects.filter(event=obj).values('participant') \
+        #    .annotate(answered=Count('participant')).filter(answered=15).aggregate(Count('answered'))
+        #return (completed / total_participants) * 100
+        return "I'm borken fix me"
     get_percent_complete_all.short_description = "% Complete All Questions"
 
-    def get_percent_correct(self):
-        answered = self.get_total_questions_answered()
-        correct = EventQuestionAnswer.objects.filter(event=self, correct=True) \
+    def get_percent_correct(self, obj):
+        answered = self.get_total_questions_answered(obj)
+        correct = EventQuestionAnswer.objects.filter(event=obj, correct=True) \
             .aggregate(Count('correct'))['correct__count']
-        return (correct / answered) * 100
+        if answered > 0:
+            return (correct / answered) * 100
+        else:
+            return 0
     get_percent_correct.short_description = "% Correct"
 
-    def get_participant(self):
+    def get_participant(self, obj):
         participant_string = ""
-        all_participants = Participant.objects.filter(classs__course=self.course)
+        all_participants = Participant.objects.filter(classs__course=obj.course)
         for p in all_participants:
             participant_string += "%s %s, " % (p.learner.first_name, p.learner.last_name)
         return participant_string[:-2]
     get_participant.short_description = "Participants"
 
-    def get_is_active(self):
-        return self.activation_date < datetime.now() < self.deactivation_date
+    def get_is_active(self, obj):
+        #return obj.activation_date < datetime.now() < obj.deactivation_date
+        return "Fix me I'm broken"
     get_is_active.short_description = "Active"
+
+
+class EventPageAdmin(admin.ModelAdmin):
+    list_display = ("name", "header", "paragraph")
 
 
 # Content
@@ -291,3 +309,6 @@ admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
 admin.site.register(Event, EventAdmin)
+admin.site.register(EventStartPage, EventPageAdmin)
+admin.site.register(EventEndPage, EventPageAdmin)
+admin.site.register(EventSplashPage, EventPageAdmin)
