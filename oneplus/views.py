@@ -2,7 +2,6 @@ from __future__ import division
 from datetime import *
 from functools import wraps
 import json
-
 from django.shortcuts import HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from oneplus.models import *

@@ -164,7 +164,7 @@ class LearnerState(models.Model):
                                                     active=True)
         golden_egg_list2 = GoldenEgg.objects.filter(classs=None, course=self.participant.classs.course, active=True)
         if self.golden_egg_question == 0 and (golden_egg_list1.exists() or golden_egg_list2.exists()):
-            self.golden_egg_question = 1#randint(1, 15)
+            self.golden_egg_question = randint(1, 15)
 
         if self.active_question is None or self.active_result is not None:
             questions = self.get_unanswered()
