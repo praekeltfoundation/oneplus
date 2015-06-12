@@ -15,6 +15,7 @@ from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, Go
     EventEndPage
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
+from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
 from oneplus.utils import update_metric
 from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
@@ -920,6 +921,30 @@ def event_end_page(request, state, user):
             except EventEndPage.DoesNotExist:
                 continue
 
+        if "spot test" in _event.name.lowercase():
+            module = CourseModuleRel.objects.filter(course=_event.course).first()
+            _participant.award_scenario(
+                "SPOT_TEST",
+                module
+            )
+            _num_spot_tests = EventParticipantRel.objects.filter(event__name_atribute__icontains="spot test",
+                                                                 participant=_participant).count()
+            if _num_spot_tests > 0 and _num_spot_tests % 5 == 0:
+                module = CourseModuleRel.objects.filter(course=_event.course).first()
+                _participant.award_scenario(
+                    "5_SPOT_TEST",
+                    module
+                )
+
+        if "exam" in _event.name.lowercase():
+            module = CourseModuleRel.objects.filter(course=_event.course).first()
+            _participant.award_scenario(
+                "EXAM",
+                module
+            )
+
+        badge, badge_points = get_badge_awarded(_participant)
+
         page["header"] = end_page.header
         page["message"] = end_page.message
         page["percentage"] = percentage
@@ -931,7 +956,8 @@ def event_end_page(request, state, user):
             {
                 "state": state,
                 "user": user,
-                "page": page
+                "page": page,
+                "badge": badge
             }
         )
 

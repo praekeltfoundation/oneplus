@@ -14,6 +14,13 @@
         <div class="xlarge-font center-font pad-bottom">{{ page.percentage }}%</div>
         <div class="large-font center-font">page.message</div>
 
+        {% if badge %}
+            <div class="badge-layout">
+                <span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>
+                <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
+            </div>
+        {% endif %}
+
         <a class="button green-back grey-front drop" href="home">Done</a>
     </div>
 </div>
