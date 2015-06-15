@@ -1,14 +1,14 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
-    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventPageRel
+    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer, Participant
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm
-from organisation.models import Course, CourseModuleRel
+from organisation.models import Course
 from django.db.models import Count
 from datetime import datetime
 
@@ -220,32 +220,40 @@ class GoldenEggAdmin(SummernoteModelAdmin):
 
 
 class EventSplashPageInline(admin.TabularInline):
-    model = EventPageRel
-    extra = 2
-    fields = ("order_number", "page", "get_page_header", "get_page_paragraph")
-    readonly_fields = ("get_page_header", "get_page_paragraph")
+    model = EventSplashPage
+    extra = 1
+    max_num = 3
+    fields = ("order_number", "header", "paragraph")
     ordering = ("order_number", )
     verbose_name = "Splash Page"
-    verbose_name_plural = "Splash Pages"
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        if db_field.name == "page":
-            kwargs["queryset"] = EventSplashPage.objects.all()
-        return super(EventSplashPageInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    verbose_name_plural = "Splash Page"
 
 
 class EventStartPageInline(admin.TabularInline):
     model = EventStartPage
-    extra = 0
+    extra = 1
     max_num = 1
-    fields = ("page__header", "page__paragraph")
+    fields = ("header", "paragraph")
+    verbose_name = "Start Page"
+    verbose_name_plural = "Start Page"
 
 
 class EventEndPageInline(admin.TabularInline):
     model = EventEndPage
-    extra = 0
+    extra = 1
     max_num = 1
-    fields = ("order_number", "page__header", "page__paragraph")
+    fields = ("header", "paragraph")
+    verbose_name = "End Page"
+    verbose_name_plural = "End Page"
+
+
+class EventQuestionRelInline(admin.TabularInline):
+    model = EventQuestionRel
+    extra = 1
+    fields = ("order", "question", )
+    verbose_name = "Event Questions"
+    verbose_name_plural = "Event Questions"
+    ordering = ("order", )
 
 
 class EventAdmin(admin.ModelAdmin):
@@ -254,9 +262,9 @@ class EventAdmin(admin.ModelAdmin):
                     "get_percent_correct", "get_participant", "get_is_active")
     list_filter = ()
     fieldsets = [
-        (None, {"fields": ["course", "activation_date", "deactivation_date", "number_sittings", "event_points",
+        (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "number_sittings", "event_points",
                            "airtime", "event_badge"]})]
-    inlines = (EventSplashPageInline, )
+    inlines = (EventSplashPageInline, EventStartPageInline, EventEndPageInline, EventQuestionRelInline)
 
     def get_total_users(self, obj):
         return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
@@ -293,13 +301,12 @@ class EventAdmin(admin.ModelAdmin):
     get_participant.short_description = "Participants"
 
     def get_is_active(self, obj):
-        #return obj.activation_date < datetime.now() < obj.deactivation_date
-        return "Fix me I'm broken"
+        if obj.activation_date < datetime.now() < obj.deactivation_date:
+            return "<img alt='True' src='/static/admin/img/icon-yes.gif'>"
+        else:
+            return "<img alt='True' src='/static/admin/img/icon-no.gif'>"
     get_is_active.short_description = "Active"
-
-
-class EventPageAdmin(admin.ModelAdmin):
-    list_display = ("name", "header", "paragraph")
+    get_is_active.allow_tags = True
 
 
 # Content
@@ -309,6 +316,3 @@ admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
 admin.site.register(Event, EventAdmin)
-admin.site.register(EventStartPage, EventPageAdmin)
-admin.site.register(EventEndPage, EventPageAdmin)
-admin.site.register(EventSplashPage, EventPageAdmin)

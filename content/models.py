@@ -181,31 +181,6 @@ class GoldenEggRewardLog(models.Model):
     badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
 
 
-class EventPage(models.Model):
-    # see eventrel
-    # event = models.ForeignKey(Event, null=True, blank=False)
-    header = models.CharField("Header Text", max_length=50)
-    paragraph = models.TextField("Paragraph Text", max_length=500)
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
-
-
-class EventStartPage(EventPage):
-    pass
-
-
-class EventEndPage(EventPage):
-    pass
-
-
-class EventSplashPage(EventPage):
-    # see eventrel
-    # order_number = models.PositiveIntegerField("Order", null=True, blank=False)
-    pass
-
-
 class Event(models.Model):
     ONE = 1
     MULTIPLE = 2
@@ -229,30 +204,29 @@ class Event(models.Model):
         return self.name
 
 
-class EventPageRel(models.Model):
-    event = models.ForeignKey("content.Event", null=False, blank=False)
-    page = models.ForeignKey(EventPage, null=False, blank=False)
-    order_number = models.PositiveIntegerField("Order", null=False, blank=False)
+class EventStartPage(models.Model):
+    events = models.ForeignKey(Event, null=True, blank=False)
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
 
-    def get_page_header(self):
-        if self.page:
-            return "<span>%s</span>" % self.page.header
-        else:
-            return "<span></span>"
-    get_page_header.short_description = "Header"
-    get_page_header.allow_tags = True
 
-    def get_page_paragraph(self):
-        if self.page:
-            return "<span>%s</span>" % self.page.paragraph
-        else:
-            return "<span></span>"
-    get_page_paragraph.short_description = "Paragraph"
-    get_page_paragraph.allow_tags = True
+class EventEndPage(models.Model):
+    events = models.ForeignKey(Event, null=True, blank=False)
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
+
+
+class EventSplashPage(models.Model):
+    events = models.ForeignKey(Event, null=True, blank=False)
+    order_number = models.PositiveIntegerField("Order", null=True, blank=False)
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
+
 
 class EventQuestionRel(models.Model):
+    order = models.PositiveIntegerField("Order", null=True, blank=False)
     event = models.ForeignKey(Event, null=True, blank=False)
-    question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, limit_choices_to=dict(module__type=2), null=True, blank=False)
 
 
 class EventQuestionAnswer(models.Model):
