@@ -301,7 +301,7 @@ class EventForm(forms.ModelForm):
             self._errors["activation_date"] = self.error_class([msg])
 
         if data.get('deactivation_date') < datetime.now() or \
-                data.get('deativvation_date') < data.get('activation_date'):
+                data.get('deactivation_date') < data.get('activation_date'):
             msg = u"Invalid date selected."
             self._errors["deactivation_date"] = self.error_class([msg])
 
