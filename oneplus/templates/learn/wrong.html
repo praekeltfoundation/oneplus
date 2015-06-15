@@ -12,8 +12,13 @@
             </div>
         {% endif %}
 
-        <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
-        <div class="text heading darkgrey-back"><p>Q {{ state.wrong_tasks_today }}/{{ state.total_tasks_today }}</p></div>
+        {% if state.in_event%}
+            <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Event Question</p></div>
+            <div class="text heading darkgrey-back"><p>Q {{ state.event_questions_answered }}/{{ state.total_event_questions }}</p></div>
+        {% else %}
+            <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
+            <div class="text heading darkgrey-back"><p>Q {{ state.wrong_tasks_today }}/{{ state.total_tasks_today }}</p></div>
+        {% endif %}
 
         {% autoescape off %}
             {{ state.question_id }}
@@ -30,10 +35,18 @@
                         </a>
                     {% endif %}
                     {% if not preview %}
-                        {% if state.wrong_tasks_today >= state.total_tasks_today %}
-                            <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        {% if state.in_event %}
+                            {% if state.event_questions_answered >= state.total_event_questions %}
+                                <a class="button green-back grey-front drop" href="event_end_page">Finish</a>
+                            {% else %}
+                                <a class="button green-back grey-front drop" href="next">Next Question</a>
+                            {% endif %}
                         {% else %}
-                            <a class="button green-back grey-front drop" href="next">Next Question</a>
+                            {% if state.wrong_tasks_today >= state.total_tasks_today %}
+                                <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                            {% else %}
+                                <a class="button green-back grey-front drop" href="next">Next Question</a>
+                            {% endif %}
                         {% endif %}
                     {% endif %}
                 </div>

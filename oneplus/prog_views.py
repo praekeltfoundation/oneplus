@@ -18,7 +18,7 @@ def ontrack(request, state, user):
     # get on track state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _modules = Participant.objects.get(
-        pk=user["participant_id"]).classs.course.modules.all().order_by('order')
+        pk=user["participant_id"]).classs.course.modules.filter(type=1).order_by('order')
 
     # Calculate achieved score
     for m in _modules:
@@ -322,7 +322,7 @@ def leader(request, state, user):
 @oneplus_login_required
 def points(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _modules = _participant.classs.course.modules.all().order_by('order')
+    _modules = _participant.classs.course.modules.filter(type=1).order_by('order')
     request.session["state"]["points_points"] = _participant.points
 
     def get_points_per_module():
