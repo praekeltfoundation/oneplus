@@ -9,10 +9,10 @@
 <div class="content narrow white-back darkgrey-front">
     <div class="pad-bottom">
 
-        <div class="xlarge-font center-font pad-bottom">page.header</div>
-        <div class="large-font center-font">page.message</div>
+        <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
+        <div class="large-font center-font">You got:</div>
         <div class="xlarge-font center-font pad-bottom">{{ page.percentage }}%</div>
-        <div class="large-font center-font">page.message</div>
+        <div class="large-font center-font">{{ page.message }}</div>
 
         {% if badge %}
             <div class="badge-layout">

@@ -3,7 +3,8 @@ from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta, time
 from random import randint
-from content.models import GoldenEgg
+from content.models import GoldenEgg, EventQuestionAnswer
+from organisation.models import CourseModuleRel
 
 
 # Participant(Learner) State
@@ -32,7 +33,7 @@ class LearnerState(models.Model):
         return [start, end]
 
     def get_number_questions(self, answered_count, week_day):
-        required_count = (week_day+1)*self.QUESTIONS_PER_DAY
+        required_count = (week_day + 1) * self.QUESTIONS_PER_DAY
         return required_count - answered_count
 
     def is_weekend(self, week_day):
@@ -51,7 +52,7 @@ class LearnerState(models.Model):
         return ParticipantQuestionAnswer.objects.filter(
             participant=self.participant,
             answerdate__gte=self.today(),
-            answerdate__lte=self.today()+timedelta(days=1)).count()
+            answerdate__lte=self.today() + timedelta(days=1)).count()
 
     def get_answers_this_week(self):
         # Get list of answered questions for this week, excluding today
@@ -68,7 +69,7 @@ class LearnerState(models.Model):
 
         # Get list of unanswered questions
         questions = TestingQuestion.objects.filter(
-            module__in=self.participant.classs.course.modules.all(),
+            module__in=self.participant.classs.course.modules.filter(type=1),
             module__is_active=True,
         ).exclude(id__in=answered)
         return questions
@@ -80,7 +81,7 @@ class LearnerState(models.Model):
 
     def get_questions_answered_week(self):
         answer = len(self.get_answers_this_week()) \
-            + self.get_num_questions_answered_today()
+                 + self.get_num_questions_answered_today()
 
         if self.is_training_week():
             answer += len(self.get_training_questions())
@@ -90,7 +91,7 @@ class LearnerState(models.Model):
     def check_monday_after_training(self, total_answered):
         week_day = self.today().weekday()
         return week_day == self.MONDAY \
-            and total_answered <= self.QUESTIONS_PER_DAY
+               and total_answered <= self.QUESTIONS_PER_DAY
 
     def get_training_questions(self):
         answered = ParticipantQuestionAnswer.objects.filter(
@@ -112,7 +113,7 @@ class LearnerState(models.Model):
 
         # Get monday after training week
         two_weeks = 14
-        days = 0-weekday+two_weeks
+        days = 0 - weekday + two_weeks
         next_monday = self.participant.datejoined + timedelta(days=days)
 
         # If it is before the monday after training week
@@ -125,7 +126,7 @@ class LearnerState(models.Model):
         # Get week day
         weekday = self.participant.datejoined.weekday()
         one_week = 7
-        days = 0-weekday + one_week
+        days = 0 - weekday + one_week
 
         # Get monday after training week
         return self.participant.datejoined + timedelta(days=days)
@@ -174,5 +175,26 @@ class LearnerState(models.Model):
                 self.active_question = questions.order_by('?')[0]
                 self.active_result = None
                 self.save()
+
+        return self.active_question
+
+    def getnexteventquestion(self, event):
+        answered = EventQuestionAnswer.objects.filter(
+            participant=self.participant,
+            event=event
+        ).distinct().values('question')
+
+        module = CourseModuleRel.objects.filter(course=event.course)
+
+        # Get list of unanswered questions
+        questions = TestingQuestion.objects.filter(
+            module=module,
+            module__is_active=True,
+        ).exclude(id__in=answered)
+        # If a question exists
+        if questions.count() > 0:
+            self.active_question = questions.first()
+            self.active_result = None
+            self.save()
 
         return self.active_question

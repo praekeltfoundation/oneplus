@@ -95,9 +95,9 @@ def login(request, state):
                             )
                             return render(request, "misc/account_problem.html")
 
-                        if Event.objects.filter(course=par.classs.course,
-                                                activation_date__gte=datetime.now(),
-                                                deactivation_date__lt=datetime.now()
+                        if Event.objects.filter(course=par.first().classs.course,
+                                                activation_date__lte=datetime.now(),
+                                                deactivation_date__gt=datetime.now()
                                                 ).count() > 0:
                             return redirect("learn.event_splash_page")
                         elif ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:

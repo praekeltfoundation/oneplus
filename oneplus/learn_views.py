@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
-    EventParticipantRel, EventPageRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
+    EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
@@ -72,44 +72,44 @@ def home(request, state, user):
 
     request.session["state"]["home_points"] = _participant.points
     request.session["state"]["home_badges"] \
-        = ParticipantBadgeTemplateRel.objects\
-        .filter(participant=_participant)\
+        = ParticipantBadgeTemplateRel.objects \
+        .filter(participant=_participant) \
         .count()
-    request.session["state"]["home_position"]\
+    request.session["state"]["home_position"] \
         = Participant.objects.filter(
-            classs=_participant.classs,
-            points__gt=_participant.points
-        ).count() + 1
+        classs=_participant.classs,
+        points__gt=_participant.points
+    ).count() + 1
 
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day()
 
-    request.session["state"]["home_tasks_today"]\
+    request.session["state"]["home_tasks_today"] \
         = ParticipantQuestionAnswer.objects.filter(
-            participant=_participant,
-            answerdate__gte=date.today()
-        ).count()
+        participant=_participant,
+        answerdate__gte=date.today()
+    ).count()
 
-    request.session["state"]["home_tasks_week"]\
+    request.session["state"]["home_tasks_week"] \
         = learnerstate.get_questions_answered_week()
 
-    request.session["state"]["home_required_tasks"]\
+    request.session["state"]["home_required_tasks"] \
         = learnerstate.get_total_questions()
 
-    request.session["state"]["home_tasks"]\
+    request.session["state"]["home_tasks"] \
         = ParticipantQuestionAnswer.objects.filter(
-            participant=_participant,
-            answerdate__gte=_start_of_week
-        ).count()
-    request.session["state"]["home_correct"]\
+        participant=_participant,
+        answerdate__gte=_start_of_week
+    ).count()
+    request.session["state"]["home_correct"] \
         = ParticipantQuestionAnswer.objects.filter(
-            participant=_participant,
-            correct=True,
-            answerdate__gte=_start_of_week
-        ).count()
-    request.session["state"]["home_goal"]\
-        = settings.ONEPLUS_WIN_REQUIRED\
-        - request.session["state"]["home_correct"]
+        participant=_participant,
+        correct=True,
+        answerdate__gte=_start_of_week
+    ).count()
+    request.session["state"]["home_goal"] \
+        = settings.ONEPLUS_WIN_REQUIRED \
+          - request.session["state"]["home_correct"]
 
     def get():
         _learner = Learner.objects.get(id=user['id'])
@@ -129,7 +129,7 @@ def home(request, state, user):
         if days_ago >= timedelta(days=7):
             update_metric("running.active.participants7", 1, "SUM")
         if days_ago >= timedelta(days=2):
-                update_metric("running.active.participants48", 1, "SUM")
+            update_metric("running.active.participants48", 1, "SUM")
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user})
@@ -152,26 +152,36 @@ def nextchallenge(request, state, user):
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
-    # check if new question required then show question
-    _learnerstate.getnextquestion()
+    in_event = False
+    if "in_event" in state:
+        in_event = state["in_event"]
+    if in_event:
+        _event = Event.objects.filter(course=_participant.classs.course,
+                                      activation_date__lte=datetime.now(),
+                                      deactivation_date__gt=datetime.now()
+                                      ).first()
+        _learnerstate.getnexteventquestion(_event)
+    else:
+        # check if new question required then show question
+        _learnerstate.getnextquestion()
 
-    answered = ParticipantQuestionAnswer.objects.filter(
-        participant=_learnerstate.participant
-    ).distinct().values_list('question')
-    questions = TestingQuestion.objects.filter(
-        module__in=_learnerstate.participant.classs.course.modules.filter(type=1),
-        module__is_active=True,
-        state=3
-    ).exclude(id__in=answered)
+        answered = ParticipantQuestionAnswer.objects.filter(
+            participant=_learnerstate.participant
+        ).distinct().values_list('question')
+        questions = TestingQuestion.objects.filter(
+            module__in=_learnerstate.participant.classs.course.modules.filter(type=1),
+            module__is_active=True,
+            state=3
+        ).exclude(id__in=answered)
 
-    if not questions:
-        return redirect("learn.home")
+        if not questions:
+            return redirect("learn.home")
 
-    request.session["state"]["next_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(
-            participant=_participant,
-            answerdate__gte=date.today()
-        ).distinct('participant', 'question').count() + 1
+        request.session["state"]["next_tasks_today"] = \
+            ParticipantQuestionAnswer.objects.filter(
+                participant=_participant,
+                answerdate__gte=date.today()
+            ).distinct('participant', 'question').count() + 1
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -180,8 +190,13 @@ def nextchallenge(request, state, user):
 
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
-        if state['next_tasks_today'] > state["total_tasks_today"]:
-            return redirect("learn.home")
+        if not in_event:
+            if state['next_tasks_today'] > state["total_tasks_today"]:
+                return redirect("learn.home")
+        else:
+            if 'event_questions_answered' in state \
+                    and state['event_questions_answered'] >= state['total_event_questions']:
+                return redirect("learn.event_end_page")
 
         return render(request, "learn/next.html", {
             "state": state,
@@ -240,84 +255,121 @@ def nextchallenge(request, state, user):
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
 
-            # Answer question
-            _participant.answer(_option.question, _option)
+            in_event = False
+            if "in_event" in state:
+                in_event = state["in_event"]
 
-            # Update metrics
-            update_num_question_metric()
-            update_all_perc_correct_answers()
+            if in_event:
+                _event = Event.objects.filter(course=_participant.classs.course,
+                                      activation_date__lte=datetime.now(),
+                                      deactivation_date__gt=datetime.now()
+                                      ).first()
 
-            # Check for awards
-            if _option.correct:
-
-                # Important
-                _total_correct = ParticipantQuestionAnswer.objects.filter(
+                answer = EventQuestionAnswer(
+                    event = _event,
                     participant=_participant,
-                    correct=True
-                ).count()
+                    question=_option.question,
+                    question_option=_option,
+                    correct=_option.correct,
+                    answer_date=datetime.now()
+                )
+                answer.save()
 
-                if _total_correct == 1:
-                    _participant.award_scenario(
-                        "1_CORRECT",
-                        _learnerstate.active_question.module
-                    )
+                if _option.correct:
+                    return redirect("learn.right")
+                else:
+                    return redirect("learn.wrong")
 
-                if _total_correct >= 15:
-                    _participant.award_scenario(
-                        "15_CORRECT",
-                        _learnerstate.active_question.module
-                    )
+                state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
 
-                if _total_correct >= 30:
-                    _participant.award_scenario(
-                        "30_CORRECT",
-                        _learnerstate.active_question.module
-                    )
-
-                if _total_correct >= 100:
-                    _participant.award_scenario(
-                        "100_CORRECT",
-                        _learnerstate.active_question.module
-                    )
-
-                last_3 = ParticipantQuestionAnswer.objects.filter(
-                    participant=_participant
-                ).order_by("answerdate").reverse()[:3]
-
-                if last_3.count() == 3 \
-                        and len([i for i in last_3 if i.correct]) == 3:
-                    _participant.award_scenario(
-                        "3_CORRECT_RUNNING",
-                        _learnerstate.active_question.module
-                    )
-
-                last_5 = ParticipantQuestionAnswer.objects.filter(
-                    participant=_participant
-                ).order_by("answerdate").reverse()[:5]
-
-                if last_5.count() == 5 \
-                        and len([i for i in last_5 if i.correct]) == 5:
-                    _participant.award_scenario(
-                        "5_CORRECT_RUNNING",
-                        _learnerstate.active_question.module
-                    )
-
-                return redirect("learn.right")
-
+                return render(
+                    request,
+                    "learn/next.html",
+                    {
+                        "state": state,
+                        "user": user,
+                        "question": _learnerstate.active_question,
+                    }
+                )
             else:
-                return redirect("learn.wrong")
+                # Answer question
+                _participant.answer(_option.question, _option)
 
-        state["total_tasks_today"] = _learnerstate.get_total_questions()
+                # Update metrics
+                update_num_question_metric()
+                update_all_perc_correct_answers()
 
-        return render(
-            request,
-            "learn/next.html",
-            {
-                "state": state,
-                "user": user,
-                "question": _learnerstate.active_question,
-            }
-        )
+                # Check for awards
+                if _option.correct:
+
+                    # Important
+                    _total_correct = ParticipantQuestionAnswer.objects.filter(
+                        participant=_participant,
+                        correct=True
+                    ).count()
+
+                    if _total_correct == 1:
+                        _participant.award_scenario(
+                            "1_CORRECT",
+                            _learnerstate.active_question.module
+                        )
+
+                    if _total_correct >= 15:
+                        _participant.award_scenario(
+                            "15_CORRECT",
+                            _learnerstate.active_question.module
+                        )
+
+                    if _total_correct >= 30:
+                        _participant.award_scenario(
+                            "30_CORRECT",
+                            _learnerstate.active_question.module
+                        )
+
+                    if _total_correct >= 100:
+                        _participant.award_scenario(
+                            "100_CORRECT",
+                            _learnerstate.active_question.module
+                        )
+
+                    last_3 = ParticipantQuestionAnswer.objects.filter(
+                        participant=_participant
+                    ).order_by("answerdate").reverse()[:3]
+
+                    if last_3.count() == 3 \
+                            and len([i for i in last_3 if i.correct]) == 3:
+                        _participant.award_scenario(
+                            "3_CORRECT_RUNNING",
+                            _learnerstate.active_question.module
+                        )
+
+                    last_5 = ParticipantQuestionAnswer.objects.filter(
+                        participant=_participant
+                    ).order_by("answerdate").reverse()[:5]
+
+                    if last_5.count() == 5 \
+                            and len([i for i in last_5 if i.correct]) == 5:
+                        _participant.award_scenario(
+                            "5_CORRECT_RUNNING",
+                            _learnerstate.active_question.module
+                        )
+
+                    return redirect("learn.right")
+
+                else:
+                    return redirect("learn.wrong")
+
+                state["total_tasks_today"] = _learnerstate.get_total_questions()
+
+                return render(
+                    request,
+                    "learn/next.html",
+                    {
+                        "state": state,
+                        "user": user,
+                        "question": _learnerstate.active_question,
+                    }
+                )
 
     return resolve_http_method(request, [get, post])
 
@@ -435,6 +487,21 @@ def get_points_awarded(participant):
 
     return question.points
 
+def get_event_points_awarded(participant):
+    # Get current participant question answer
+    answer = EventQuestionAnswer.objects.filter(
+        participant=participant,
+    ).latest('answer_date')
+
+    # Get question
+    question = answer.question
+
+    # Get points
+    if question.points is 0:
+        question.points = 1
+        question.save()
+
+    return question.points
 
 def get_badge_awarded(participant):
     # Get relevant badge related to scenario
@@ -442,7 +509,7 @@ def get_badge_awarded(participant):
     badge = ParticipantBadgeTemplateRel.objects.filter(
         participant=participant,
         awarddate__range=[
-            datetime.today()-timedelta(seconds=2),
+            datetime.today() - timedelta(seconds=2),
             datetime.today()
         ]
     ).order_by('-awarddate').first()
@@ -497,38 +564,53 @@ def right(request, state, user):
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
-    request.session["state"]["right_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(
-            participant=_participant,
-            answerdate__gte=date.today()
-        ).distinct('participant', 'question').count()
+    in_event = False
+    if "in_event" in state:
+        in_event = state["in_event"]
+    if not in_event:
+        request.session["state"]["right_tasks_today"] = \
+            ParticipantQuestionAnswer.objects.filter(
+                participant=_participant,
+                answerdate__gte=date.today()
+            ).distinct('participant', 'question').count()
+    else:
+        _event = Event.objects.filter(course=_participant.classs.course,
+                                      activation_date__lte=datetime.now(),
+                                      deactivation_date__gt=datetime.now()
+                                      ).first()
+        request.session["state"]["event_questions_answered"] = \
+            EventQuestionAnswer.objects.filter(
+                participant=_participant,
+                event=_event,
+                answer_date__gte=date.today()
+            ).distinct('participant', 'question', 'event').count()
+        request.session["state"]["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
     golden_egg = {}
     if _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
-            _learnerstate.get_num_questions_answered_today():
+        _learnerstate.get_num_questions_answered_today():
         _golden_egg = get_golden_egg(_participant)
-        if _golden_egg.point_value:
-            golden_egg["message"] = "You've won this week's Golden Egg and %d points." % _golden_egg.point_value
-            _participant.points += _golden_egg.point_value
-            _participant.save()
-        if _golden_egg.airtime:
-            golden_egg["message"] = "You've won this week's Golden Egg and your share of R %d airtime. You will be " \
-                                    "awarded your airtime next Monday." % _golden_egg.airtime
-            mail_managers(subject="Golden Egg Airtime Award", message="%s %s %s won R %d airtime from a Golden Egg"
-                                                                      % (_participant.learner.first_name,
-                                                                         _participant.learner.last_name,
-                                                                         _participant.learner.mobile,
-                                                                         _golden_egg.airtime), fail_silently=False)
-        if _golden_egg.badge:
-            golden_egg["message"] = "You've won this week's Golden Egg and a badge"
-            ParticipantBadgeTemplateRel(participant=_participant, badgetemplate=_golden_egg.badge.badge,
-                                        scenario=_golden_egg.badge, awarddate=datetime.now()).save()
-            _participant.points += _golden_egg.badge.point.value
-            _participant.save()
-        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
-        GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
-                           badge=_golden_egg.badge).save()
-
-    print GoldenEggRewardLog.objects.filter(participant=_participant)
+        if _golden_egg:
+            if _golden_egg.point_value:
+                golden_egg["message"] = "You've won this week's Golden Egg and %d points." % _golden_egg.point_value
+                _participant.points += _golden_egg.point_value
+                _participant.save()
+            if _golden_egg.airtime:
+                golden_egg["message"] = "You've won this week's Golden Egg and your share of R %d airtime. You will be " \
+                                        "awarded your airtime next Monday." % _golden_egg.airtime
+                mail_managers(subject="Golden Egg Airtime Award", message="%s %s %s won R %d airtime from a Golden Egg"
+                                                                          % (_participant.learner.first_name,
+                                                                             _participant.learner.last_name,
+                                                                             _participant.learner.mobile,
+                                                                             _golden_egg.airtime), fail_silently=False)
+            if _golden_egg.badge:
+                golden_egg["message"] = "You've won this week's Golden Egg and a badge"
+                ParticipantBadgeTemplateRel(participant=_participant, badgetemplate=_golden_egg.badge.badge,
+                                            scenario=_golden_egg.badge, awarddate=datetime.now()).save()
+                _participant.points += _golden_egg.badge.point.value
+                _participant.save()
+            golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+            GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
+                               badge=_golden_egg.badge).save()
 
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
@@ -566,7 +648,10 @@ def right(request, state, user):
 
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
-            points = get_points_awarded(_participant)
+            if not in_event:
+                points = get_points_awarded(_participant)
+            else:
+                points = get_event_points_awarded(_participant)
 
             return render(
                 request,
@@ -630,15 +715,15 @@ def right(request, state, user):
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
-                if request.session["state"]["discussion_page"]\
+                if request.session["state"]["discussion_page"] \
                         > request.session["state"]["discussion_page_max"]:
-                    request.session["state"]["discussion_page"]\
+                    request.session["state"]["discussion_page"] \
                         = request.session["state"]["discussion_page_max"]
                 request.session["state"]["discussion_response_id"] = None
 
             # show reply to comment comment
             elif "comment_response_button" in request.POST.keys():
-                request.session["state"]["discussion_response_id"]\
+                request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
 
             _messages = \
@@ -776,7 +861,7 @@ def wrong(request, state, user):
 
             # show reply to comment comment
             elif "comment_response_button" in request.POST.keys():
-                request.session["state"]["discussion_response_id"]\
+                request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
 
             _messages = \
@@ -820,26 +905,20 @@ def discuss(request, state, user):
 def event_splash_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,
-                                  activation_date__gte=datetime.now(),
-                                  deactivation_date__lt=datetime.now()
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
                                   ).first()
     _event_participant_rel = EventParticipantRel.objects.filter(participant=_participant, event=_event)
 
     page = {}
-    splash_pages = []
 
     if not _event_participant_rel and _event:
-        pages = EventPageRel.objects.select_related('StartPage', 'EndPage', 'SplashPage').filter(event=_event)
-        for page in pages:
-            try:
-                splash_pages.append(page.page.eventsplashpage)
-            except EventSplashPage.DoesNotExist:
-                continue
+        splash_pages = EventSplashPage.objects.filter(events=_event)
         num_splash_pages = len(splash_pages)
-        random_splash_page = randint(1, num_splash_pages)
+        random_splash_page = randint(1, num_splash_pages) - 1
         _splash_page = splash_pages[random_splash_page]
         page["header"] = _splash_page.header
-        page["message"] = _splash_page.message
+        page["message"] = _splash_page.paragraph
 
     def get():
         return render(
@@ -860,24 +939,20 @@ def event_splash_page(request, state, user):
 def event_start_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,
-                                  activation_date__gte=datetime.now(),
-                                  deactivation_date__lt=datetime.now()
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
                                   ).first()
+    _learnerstate = LearnerState.objects.filter(participant=_participant).first()
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
     _event_participant_rel = EventParticipantRel.objects.filter(participant=_participant, event=_event)
 
     page = {}
 
     if not _event_participant_rel and _event:
-        start_page = None
-        pages = EventPageRel.objects.select_related('StartPage', 'EndPage', 'SplashPage').filter(event=_event)
-        for page in pages:
-            try:
-                start_page = page.page.eventstartpage
-                break
-            except EventStartPage.DoesNotExist:
-                continue
+        start_page = EventStartPage.objects.filter(events=_event).first()
         page["header"] = start_page.header
-        page["message"] = start_page.message
+        page["message"] = start_page.paragraph
 
     def get():
         return render(
@@ -890,7 +965,39 @@ def event_start_page(request, state, user):
             }
         )
 
-    return resolve_http_method(request, [get])
+    def post():
+        if "event_start_button" in request.POST.keys():
+            state["in_event"] = True
+            state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
+                participant=_participant,
+                event=_event,
+                answer_date__gte=date.today()
+            ).distinct('participant', 'question', 'event').count()
+            state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
+            if not _learnerstate.active_question:
+                _learnerstate.getnexteventquestion(_event)
+            return render(
+                request,
+                "learn/next.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question,
+                    "question_type": "event"
+                }
+            )
+        else:
+            return render(
+                request,
+                "learn/event_start_page.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "page": page
+                }
+            )
+
+    return resolve_http_method(request, [get, post])
 
 
 @oneplus_state_required
@@ -898,8 +1005,8 @@ def event_start_page(request, state, user):
 def event_end_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,
-                                  activation_date__gte=datetime.now(),
-                                  deactivation_date__lt=datetime.now()
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
                                   ).first()
 
     page = {}
@@ -912,16 +1019,14 @@ def event_end_page(request, state, user):
                                                                     correct=True).count()
         percentage = _num_questions_correct / _num_event_questions * 100
 
-        end_page = None
-        pages = EventPageRel.objects.select_related('StartPage', 'EndPage', 'SplashPage').filter(event=_event)
-        for page in pages:
-            try:
-                end_page = page.page.eventstartpage
-                break
-            except EventEndPage.DoesNotExist:
-                continue
+        end_page = EventEndPage.objects.filter(events=_event).first()
+        page["header"] = end_page.header
+        page["message"] = end_page.paragraph
+        page["percentage"] = round(percentage)
 
-        if "spot test" in _event.name.lowercase():
+        print page
+
+        if "spot test" in _event.name.lower():
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "SPOT_TEST",
@@ -936,7 +1041,7 @@ def event_end_page(request, state, user):
                     module
                 )
 
-        if "exam" in _event.name.lowercase():
+        if "exam" in _event.name.lower():
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "EXAM",
@@ -945,11 +1050,8 @@ def event_end_page(request, state, user):
 
         badge, badge_points = get_badge_awarded(_participant)
 
-        page["header"] = end_page.header
-        page["message"] = end_page.message
-        page["percentage"] = percentage
-
     def get():
+        state["in_event"] = False
         return render(
             request,
             "learn/event_end_page.html",
@@ -957,7 +1059,7 @@ def event_end_page(request, state, user):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge
+                "badge": badge,
             }
         )
 
@@ -992,7 +1094,7 @@ def report_question(request, state, user, questionid, frm):
 
     def post():
         if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                "fix" in request.POST.keys() and request.POST["fix"] != "":
+                        "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]
