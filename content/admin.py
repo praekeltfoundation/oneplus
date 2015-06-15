@@ -7,7 +7,8 @@ from import_export.admin import ImportExportModelAdmin
 from import_export import fields
 from core.models import ParticipantQuestionAnswer, Participant
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
-    GoldenEggCreateForm
+    GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
+    EventQuestionRelInline, EventForm
 from organisation.models import Course
 from django.db.models import Count
 from datetime import datetime
@@ -227,6 +228,7 @@ class EventSplashPageInline(admin.TabularInline):
     ordering = ("order_number", )
     verbose_name = "Splash Page"
     verbose_name_plural = "Splash Page"
+    formset = EventSplashPageInlineFormSet
 
 
 class EventStartPageInline(admin.TabularInline):
@@ -236,6 +238,7 @@ class EventStartPageInline(admin.TabularInline):
     fields = ("header", "paragraph")
     verbose_name = "Start Page"
     verbose_name_plural = "Start Page"
+    formset = EventStartPageInlineFormSet
 
 
 class EventEndPageInline(admin.TabularInline):
@@ -245,6 +248,7 @@ class EventEndPageInline(admin.TabularInline):
     fields = ("header", "paragraph")
     verbose_name = "End Page"
     verbose_name_plural = "End Page"
+    formset = EventEndPageInlineFormSet
 
 
 class EventQuestionRelInline(admin.TabularInline):
@@ -254,6 +258,7 @@ class EventQuestionRelInline(admin.TabularInline):
     verbose_name = "Event Questions"
     verbose_name_plural = "Event Questions"
     ordering = ("order", )
+    formset = EventQuestionRelInline
 
 
 class EventAdmin(admin.ModelAdmin):
@@ -265,6 +270,8 @@ class EventAdmin(admin.ModelAdmin):
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "number_sittings", "event_points",
                            "airtime", "event_badge"]})]
     inlines = (EventSplashPageInline, EventStartPageInline, EventEndPageInline, EventQuestionRelInline)
+    form = EventForm
+    add_form = EventForm
 
     def get_total_users(self, obj):
         return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
