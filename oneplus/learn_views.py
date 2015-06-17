@@ -1033,7 +1033,21 @@ def event_end_page(request, state, user):
         page["message"] = end_page.paragraph
         page["percentage"] = round(percentage)
 
-        print page
+        if _event.event_points:
+            _participant.points += _event.event_points;
+            _participant.save()
+        if _event.airtime:
+            mail_managers(subject="Event Airtime Award", message="%s %s %s won R %d airtime from an event"
+                                                                          % (_participant.learner.first_name,
+                                                                             _participant.learner.last_name,
+                                                                             _participant.learner.mobile,
+                                                                             _event.airtime), fail_silently=False)
+        if _event.event_badge:
+            module = CourseModuleRel.objects.filter(course=_event.course).first()
+            _participant.award_scenario(
+                _event.event_badge.event,
+                module
+            )
 
         if "spot test" in _event.name.lower():
             module = CourseModuleRel.objects.filter(course=_event.course).first()
