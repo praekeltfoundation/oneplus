@@ -1,10 +1,7 @@
 from __future__ import division
 from datetime import datetime, timedelta
-
 from django.shortcuts import render
-from django.db.models import Count
-from django.shortcuts import render
-from django.db.models import Count
+from django.db.models import Count, Sum
 from auth.models import Learner
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
@@ -83,7 +80,7 @@ def leader(request, state, user):
         if position > 10 or position is None:
             learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": _participant.points,
                        "me": True, "position": position}
-            learners.insert(11, learner)
+            learners.insert(10, learner)
             return learners[:11], position
         else:
             return learners[:10], position
@@ -141,80 +138,51 @@ def leader(request, state, user):
         if position > 10:
             _learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": 0, 'me': True,
                         "position": position}
-            learners.insert(11, _learner)
+            learners.insert(10, _learner)
             return learners[:11], position
         else:
             return learners[:10], position
 
-    def get_correct(answered_list, class_name):
-        for l in answered_list:
-            if l['participant__classs__name'] == class_name:
-                return l
-        return None
-
     def get_class_leaderboard():
-        total_list = ParticipantQuestionAnswer.objects.values('participant__classs__name', ) \
-            .annotate(answered=Count('question')) \
-            .order_by('participant__classs')
-
-        correct_list = ParticipantQuestionAnswer.objects.values('participant__classs__name') \
-            .annotate(cor=Count('question')) \
-            .filter(correct=True) \
-            .order_by('participant__classs')
+        total_list = Class.objects.annotate(answered=Count("participant__participantquestionanswer"))
+        correct_list = Class.objects.filter(participant__participantquestionanswer__correct=True)\
+            .annotate(correct=Count("participant__participantquestionanswer"))
 
         classes = []
         position = None
+
+        for classs in Class.objects.all():
+            tl = total_list.filter(id=classs.id).first()
+            cl = correct_list.filter(id=classs.id).first()
+            percent = 0
+
+            if tl and cl and tl.answered != 0:
+                percent = int(cl.correct * 100 / tl.answered)
+
+            temp_class = {"name": classs.name, "points": percent}
+
+            if _participant.classs.id == classs.id:
+                temp_class["me"] = True
+
+            classes.append(temp_class)
+
+        classes = sorted(classes, key=lambda k: k['points'], reverse=True)
+
         position_counter = 0
-        name_list = []
+        me_in_classes = None
 
-        for tl in total_list:
-            position_counter += 1
-            cl = get_correct(correct_list, tl['participant__classs__name'])
-            percent = '-'
-            if cl:
-                name_list.append(cl['participant__classs__name'])
-                percent = str(int((cl['cor']) / int(tl['answered']) * 100)) + '%'
-
-            classs = {"name": tl['participant__classs__name'], "points": percent}
-            if _participant.classs.name == tl['participant__classs__name']:
-                position = position_counter
-                classs['me'] = True
-            classes.append(classs)
-
-        classes = sorted(classes, key=lambda k: k['points'])
-
-        a = 0
-        temp = []
         for classs in classes:
-            a += 1
-            classs['position'] = a
-            temp.append(classs)
+            position_counter += 1
+            classs["position"] = position_counter
+            classs["points"] = str(classs["points"]) + "%"
 
-        classes = temp
-
-        if len(classes) < 10:
-            no_points_list = Class.objects.exclude(name__in=name_list).order_by('name')[:10 - len(classes)]
-
-            if not position:
-                temp_counter = position_counter
-                for _l in no_points_list:
-                    temp_counter += 1
-                    if _participant.classs.name == _l.name:
-                        position = temp_counter
-                        break
-
-            no_points_list = no_points_list[:10 - len(classes)]
-
-            for _l in no_points_list:
-                position_counter += 1
-                classs = {"id": _l.id, "name": _l.name, "points": '-', "position": position_counter}
-                if _participant.classs.name == _l.name:
-                    classs['me'] = True
-                classes.append(classs)
+            if "me" in classs and classs["me"]:
+                position = position_counter
+                me_in_classes = classs
 
         if position > 10:
-            classs = {"me": True, "name": tl['participant__classs__name'], "points": '-', "position": position}
-            classes.insert(11, classs)
+            if me_in_classes:
+                classes.insert(10, me_in_classes)
             return classes[:11], position
         else:
             return classes[:10], position
@@ -300,6 +268,7 @@ def leader(request, state, user):
         request.session["state"]["leader_regions"] \
             = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
+
 
         return render(
             request,

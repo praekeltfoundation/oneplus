@@ -412,6 +412,8 @@ def nextchallenge(request, state, user):
                         "question": _learnerstate.active_question,
                     }
                 )
+        else:
+            return redirect("learn.wrong")
 
     return resolve_http_method(request, [get, post])
 
