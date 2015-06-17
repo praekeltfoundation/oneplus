@@ -16,7 +16,9 @@
 
         {% if badge %}
             <div class="badge-layout">
-                <span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>
+                {% if badge.image %}
+                    <span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>
+                {% endif %}
                 <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
             </div>
         {% endif %}

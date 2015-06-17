@@ -8,7 +8,7 @@ from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
-    EventQuestionRel, EventSplashPage
+    EventQuestionRel, EventSplashPage, EventStartPage, EventEndPage, EventQuestionAnswer, EventParticipantRel
 from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
@@ -24,6 +24,7 @@ from .utils import get_today
 from go_http.tests.test_send import RecordingHandler
 from django.test.utils import override_settings
 from django.db.models import Count
+from oneplusmvp import settings
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -566,6 +567,24 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_event_splash_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 302)
+
+        event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
+                                     deactivation_date=datetime.now() + timedelta(days=1))
+        EventSplashPage.objects.create(events=event, header="Test Splash Page", paragraph="Test")
+
+        resp = self.client.get(reverse('learn.event_splash_page'))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test Splash Page")
+
         learner = Learner.objects.create_user(
             username="+27231231231",
             mobile="+27231231231",
@@ -580,10 +599,6 @@ class GeneralTests(TestCase):
             self.classs,
             datejoined=datetime.now())
 
-        event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
-                                     deactivation_date=datetime.now() + timedelta(days=1))
-        EventSplashPage.objects.create(events=event, header="Test Splash Page", paragraph="Test")
-
         c = Client()
 
         resp = c.post(
@@ -596,6 +611,84 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Test Splash Page")
+
+    def test_event_start_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('learn.event_start_page'))
+        self.assertEquals(resp.status_code, 302)
+
+        event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
+                                     deactivation_date=datetime.now() + timedelta(days=1))
+        EventStartPage.objects.create(events=event, header="Test Start Page", paragraph="Test")
+
+        resp = self.client.get(reverse('learn.event_start_page'))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test Start Page")
+
+        resp = self.client.get(reverse('learn.event_start_page'))
+
+        self.assertEquals(resp.status_code, 302)
+
+        event.number_sittings = 2
+        event.save()
+
+        resp = self.client.get(reverse('learn.event_start_page'))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test Start Page")
+
+        resp = self.client.post(reverse("learn.event_start_page"), data={}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test Start Page")
+
+        resp = self.client.post(reverse("learn.event_start_page"), data={"event_start_button":"a"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "NEXT")
+
+    def test_event_end_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+        self.assertEquals(resp.status_code, 302)
+
+        spot_test = GamificationBadgeTemplate.objects.create(name="Spot Test 1")
+        badge = GamificationScenario.objects.create(name="Spot Test 1", badge=spot_test, event="SPOT_TEST_1",
+                                                    module=self.module, course=self.course)
+
+        event = Event.objects.create(name="Spot Test event", course=self.course, activation_date=datetime.now(),
+                                     deactivation_date=datetime.now() + timedelta(days=1), event_points=5, airtime=5,
+                                     event_badge=badge)
+        for i in range (1, 6):
+            EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+        question = self.create_test_question("Event question", self.module)
+        question_option = self.create_test_question_option("Option 1", question, True)
+        EventQuestionRel.objects.create(event=event, question=question, order=1)
+        EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
+                                           question_option=question_option, correct=True, answer_date=datetime.now())
+        EventEndPage.objects.create(events=event, header="Test End Page", paragraph="Test")
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test End Page")
+
+        event.name = "Exam"
+        event.save()
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test End Page")
 
     def test_report_question(self):
         self.client.get(

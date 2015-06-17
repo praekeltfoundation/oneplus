@@ -1004,8 +1004,8 @@ def event_start_page(request, state, user):
         start_page = EventStartPage.objects.filter(events=_event).first()
         page["header"] = start_page.header
         page["message"] = start_page.paragraph
-        _event_participant_rel.sitting_number += 1
-        _event_participant_rel.save()
+        _event_participant_rel.first().sitting_number += 1
+        _event_participant_rel.first().save()
     else:
         return redirect("learn.home")
 
@@ -1070,7 +1070,8 @@ def event_end_page(request, state, user):
     _num_event_questions = EventQuestionRel.objects.filter(event=_event).count()
     _num_questions_answered = EventQuestionAnswer.objects.filter(event=_event, participant=_participant).count()
 
-    if _num_event_questions == _num_questions_answered:
+    if _num_event_questions == _num_questions_answered and not _num_questions_answered == 0 and \
+            not _num_event_questions == 0:
         event_participant = EventParticipantRel.objects.filter(event=_event, participant=_participant).first()
         event_participant.results_received = True
         event_participant.save()
@@ -1106,7 +1107,7 @@ def event_end_page(request, state, user):
                 "SPOT_TEST",
                 module
             )
-            _num_spot_tests = EventParticipantRel.objects.filter(event__name_atribute__icontains="spot test",
+            _num_spot_tests = EventParticipantRel.objects.filter(event__name__icontains="spot test",
                                                                  participant=_participant).count()
             if _num_spot_tests > 0 and _num_spot_tests % 5 == 0:
                 module = CourseModuleRel.objects.filter(course=_event.course).first()
