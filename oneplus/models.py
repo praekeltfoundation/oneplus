@@ -3,7 +3,7 @@ from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta, time
 from random import randint
-from content.models import GoldenEgg, EventQuestionAnswer
+from content.models import GoldenEgg, EventQuestionAnswer, EventQuestionRel
 from organisation.models import CourseModuleRel
 
 
