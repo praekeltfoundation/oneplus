@@ -242,3 +242,4 @@ class EventParticipantRel(models.Model):
     event = models.ForeignKey(Event, null=True, blank=False)
     participant = models.ForeignKey("core.Participant", null=True, blank=False)
     sitting_number = models.PositiveIntegerField(null=True, blank=False)
+    results_received = models.BooleanField(default=False)

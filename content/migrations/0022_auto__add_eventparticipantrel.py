@@ -14,6 +14,7 @@ class Migration(SchemaMigration):
             ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['content.Event'], null=True)),
             ('participant', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Participant'], null=True)),
             ('sitting_number', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
+            ('results_received', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal(u'content', ['EventParticipantRel'])
 
@@ -117,6 +118,7 @@ class Migration(SchemaMigration):
             'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']", 'null': 'True'}),
+            'results_received': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'sitting_number': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'})
         },
         u'content.eventquestionanswer': {
@@ -243,7 +245,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantbadgetemplaterel': {
             'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 15, 0, 0)', 'null': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 17, 0, 0)', 'null': 'True'}),
             'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
@@ -251,7 +253,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantpointbonusrel': {
             'Meta': {'object_name': 'ParticipantPointBonusRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 15, 0, 0)', 'null': 'True', 'blank': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 17, 0, 0)', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),
