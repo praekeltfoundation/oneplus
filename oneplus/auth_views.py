@@ -101,11 +101,8 @@ def login(request, state):
                                                      ).first()
 
                         if event:
-                            event_participant = EventParticipantRel.objects.filter(event=event, participant=par)
-                            if event_participant:
-                                if not event_participant.results_received:
-                                    return redirect("learn.event_splash_page")
-                            else:
+                            allowed, event_participant_rel = par.can_take_event(event)
+                            if allowed:
                                 return redirect("learn.event_splash_page")
 
                         if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:

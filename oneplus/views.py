@@ -15,6 +15,7 @@ from core.models import Class
 
 COUNTRYWIDE = "Countrywide"
 
+
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
     @wraps(f)

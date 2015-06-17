@@ -11,7 +11,7 @@
             </div>
         {% endif %}
 
-        {% if state.in_event %}
+        {% if question_type == "answer_event" %}
             <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Event Question</p></div>
             <div class="text heading darkgrey-back"><p>Q {{ state.event_questions_answered }}/{{ state.total_event_questions }}</p></div>
         {% else %}
@@ -34,7 +34,7 @@
             {% endif %}
                         <p>{{ question.question_content | format_content }}</p>
                         {% for opt in question.testingquestionoption_set.all %}
-                            <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                            <input type="radio" name="{{ question_type }}" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
                             <label class="label-question" for="answer_{{ opt.id }}">
                             {% if opt.content %}
                                 <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>

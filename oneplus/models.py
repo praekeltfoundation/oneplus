@@ -177,24 +177,3 @@ class LearnerState(models.Model):
                 self.save()
 
         return self.active_question
-
-    def getnexteventquestion(self, event):
-        answered = EventQuestionAnswer.objects.filter(
-            participant=self.participant,
-            event=event
-        ).distinct().values('question')
-
-        module = CourseModuleRel.objects.filter(course=event.course)
-
-        # Get list of unanswered questions
-        questions = TestingQuestion.objects.filter(
-            module=module,
-            module__is_active=True,
-        ).exclude(id__in=answered)
-        # If a question exists
-        if questions.count() > 0:
-            self.active_question = questions.first()
-            self.active_result = None
-            self.save()
-
-        return self.active_question
