@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 import logging
+from billiard.synchronize import Event
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
-from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog
+from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
+    EventQuestionRel
 from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
@@ -119,6 +121,16 @@ class GeneralTests(TestCase):
 
         return answers
 
+    def create_event(self, name, course, activation_date, deactivation_date, **kwargs):
+        return Event.objects.create(name=name, course=course, activation_date=activation_date,
+                                    deactivation_date=deactivation_date, **kwargs)
+
+    def create_event_question(self, event, question, order):
+        return EventQuestionRel.objects.create(event=event, question=question, order=order)
+
+    def fake_mail_managers(subject, message, fail_silently):
+        pass
+
     def setUp(self):
 
         self.course = self.create_course()
@@ -174,7 +186,15 @@ class GeneralTests(TestCase):
         # check active question
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
+    @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_home(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+
         self.create_test_question('question1', self.module)
         LearnerState.objects.create(
             participant=self.participant,
@@ -186,6 +206,25 @@ class GeneralTests(TestCase):
         )
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
+
+        event_module = self.create_module("event_module", self.course, type=2)
+
+        event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
+                                  datetime.now() + timedelta(days=1))
+        question = self.create_test_question("question_1", event_module)
+        question_option = self.create_test_question_option("question_1_option", question)
+        event_question = self.create_event_question(event, question, 1)
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Take the %s" % event.name)
+
+        resp = self.client.post(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"})
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "NEXT")
 
     def test_first_time(self):
         self.client.get(reverse(
@@ -1608,9 +1647,6 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('misc.about'), follow=True)
         self.assertEquals(resp.status_code, 200)
-
-    def fake_mail_managers(subject, message, fail_silently):
-        pass
 
     @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_contact_screen(self):

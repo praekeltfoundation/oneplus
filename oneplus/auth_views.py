@@ -99,10 +99,16 @@ def login(request, state):
                                                      activation_date__lte=datetime.now(),
                                                      deactivation_date__gt=datetime.now()
                                                      ).first()
-                        if event and not EventParticipantRel.objects.filter(event=event, participant=par,
-                                                                            results_seen=True):
-                            return redirect("learn.event_splash_page")
-                        elif ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
+
+                        if event:
+                            event_participant = EventParticipantRel.objects.filter(event=event, participant=par)
+                            if event_participant:
+                                if not event_participant.results_received:
+                                    return redirect("learn.event_splash_page")
+                            else:
+                                return redirect("learn.event_splash_page")
+
+                        if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
                             return redirect("learn.first_time")
                         else:
                             return redirect("learn.home")

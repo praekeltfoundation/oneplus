@@ -27,6 +27,20 @@ from oneplusmvp import settings
 @oneplus_login_required
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
+                                  ).first()
+    event_name = None
+    if _event:
+        event_participant = EventParticipantRel.objects.filter(event=_event, participant=_participant)
+
+        if event_participant:
+            if not event_participant.results_received:
+                event_name = _event.name
+        else:
+            event_name = _event.name
+
     _start_of_week = date.today() - timedelta(date.today().weekday())
     learnerstate = LearnerState.objects.filter(
         participant=_participant
@@ -75,8 +89,7 @@ def home(request, state, user):
         = ParticipantBadgeTemplateRel.objects \
         .filter(participant=_participant) \
         .count()
-    request.session["state"]["home_position"] \
-        = Participant.objects.filter(
+    request.session["state"]["home_position"] = Participant.objects.filter(
         classs=_participant.classs,
         points__gt=_participant.points
     ).count() + 1
@@ -84,8 +97,7 @@ def home(request, state, user):
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day()
 
-    request.session["state"]["home_tasks_today"] \
-        = ParticipantQuestionAnswer.objects.filter(
+    request.session["state"]["home_tasks_today"] = ParticipantQuestionAnswer.objects.filter(
         participant=_participant,
         answerdate__gte=date.today()
     ).count()
@@ -96,20 +108,16 @@ def home(request, state, user):
     request.session["state"]["home_required_tasks"] \
         = learnerstate.get_total_questions()
 
-    request.session["state"]["home_tasks"] \
-        = ParticipantQuestionAnswer.objects.filter(
+    request.session["state"]["home_tasks"] = ParticipantQuestionAnswer.objects.filter(
         participant=_participant,
         answerdate__gte=_start_of_week
     ).count()
-    request.session["state"]["home_correct"] \
-        = ParticipantQuestionAnswer.objects.filter(
+    request.session["state"]["home_correct"] = ParticipantQuestionAnswer.objects.filter(
         participant=_participant,
         correct=True,
         answerdate__gte=_start_of_week
     ).count()
-    request.session["state"]["home_goal"] \
-        = settings.ONEPLUS_WIN_REQUIRED \
-          - request.session["state"]["home_correct"]
+    request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
 
     def get():
         _learner = Learner.objects.get(id=user['id'])
@@ -132,11 +140,33 @@ def home(request, state, user):
             update_metric("running.active.participants48", 1, "SUM")
 
         return render(request, "learn/home.html", {"state": state,
-                                                   "user": user})
+                                                   "user": user,
+                                                   "event_name": event_name})
 
     def post():
-        return render(request, "learn/home.html", {"state": state,
-                                                   "user": user})
+        if "take_event" in request.POST:
+            state["in_event"] = True
+            state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
+                participant=_participant,
+                event=_event,
+                answer_date__gte=date.today()
+            ).distinct('participant', 'question', 'event').count()
+            state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
+            if not learnerstate.active_question:
+                learnerstate.getnexteventquestion(_event)
+            return render(
+                request,
+                "learn/next.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": learnerstate.active_question,
+                    "sittings": _event.number_sittings
+
+                }
+            )
+        else:
+            return get()
 
     return resolve_http_method(request, [get, post])
 

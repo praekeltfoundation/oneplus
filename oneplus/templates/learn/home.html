@@ -45,6 +45,14 @@
 
     </div>
 
+    {% if event_name %}
+        <form name="event" action="#" method="post">
+            <div class="content">
+                <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+            </div>
+        </form>
+    {% endif %}
+
 
     <div class="weeksummary">
         <div class="text badge" onclick="window.location='/badges'">
