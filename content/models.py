@@ -4,6 +4,8 @@ from organisation.models import Module
 from django.core.urlresolvers import reverse
 from django.utils.html import remove_tags
 from mobileu.utils import format_content, format_option
+from django.db.models import Count
+from datetime import datetime
 
 
 class LearningChapter(models.Model):
@@ -202,6 +204,36 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_next_event_question_rel(self, participant):
+        if self.is_active():
+            event_answers = EventQuestionAnswer.objects.filter(event=self, participant=participant) \
+                .aggregate(Count('question'))['question__count']
+            all_event_questions = EventQuestionRel.objects.filter(event=self)
+            total_event_questions = all_event_questions.aggregate(Count('question'))['question__count']
+
+            if total_event_questions < event_answers:
+                event_question_rel = all_event_questions.filter(order=event_answers+1).first()
+                return event_question_rel
+
+        return None
+
+    def get_next_event_question(self, participant):
+        event_question_rel = self.get_next_event_question_rel(participant)
+        if event_question_rel:
+            return event_question_rel.question
+        else:
+            return None
+
+    def get_next_event_question_order(self, participant):
+        event_question_rel = self.get_next_event_question_rel(participant)
+        if event_question_rel:
+            return event_question_rel.order
+        else:
+            return None
+
+    def is_active(self):
+        return self.activation_date < datetime.now() < self.deactivation_date
 
 
 class EventStartPage(models.Model):
