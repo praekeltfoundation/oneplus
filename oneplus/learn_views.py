@@ -149,18 +149,23 @@ def nextchallenge(request, state, user):
     _learnerstate = LearnerState.objects.filter(
         participant__id=user["participant_id"]
     ).first()
+
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
     in_event = False
+
     if "in_event" in state:
         in_event = state["in_event"]
+
     if in_event:
-        _event = Event.objects.filter(course=_participant.classs.course,
-                                      activation_date__lte=datetime.now(),
-                                      deactivation_date__gt=datetime.now()
-                                      ).first()
+        _event = Event.objects.filter(
+            course=_participant.classs.course,
+            activation_date__lte=datetime.now(),
+            deactivation_date__gt=datetime.now()
+        ).first()
         _learnerstate.getnexteventquestion(_event)
+
     else:
         # check if new question required then show question
         _learnerstate.getnextquestion()
@@ -182,6 +187,13 @@ def nextchallenge(request, state, user):
                 participant=_participant,
                 answerdate__gte=date.today()
             ).distinct('participant', 'question').count() + 1
+
+    golden_egg = {}
+
+    if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
+            _learnerstate.golden_egg_question:
+        golden_egg["question"] = True
+        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -261,12 +273,12 @@ def nextchallenge(request, state, user):
 
             if in_event:
                 _event = Event.objects.filter(course=_participant.classs.course,
-                                      activation_date__lte=datetime.now(),
-                                      deactivation_date__gt=datetime.now()
-                                      ).first()
+                                              activation_date__lte=datetime.now(),
+                                              deactivation_date__gt=datetime.now()
+                ).first()
 
                 answer = EventQuestionAnswer(
-                    event = _event,
+                    event=_event,
                     participant=_participant,
                     question=_option.question,
                     question_option=_option,
@@ -487,6 +499,7 @@ def get_points_awarded(participant):
 
     return question.points
 
+
 def get_event_points_awarded(participant):
     # Get current participant question answer
     answer = EventQuestionAnswer.objects.filter(
@@ -502,6 +515,7 @@ def get_event_points_awarded(participant):
         question.save()
 
     return question.points
+
 
 def get_badge_awarded(participant):
     # Get relevant badge related to scenario
@@ -577,7 +591,7 @@ def right(request, state, user):
         _event = Event.objects.filter(course=_participant.classs.course,
                                       activation_date__lte=datetime.now(),
                                       deactivation_date__gt=datetime.now()
-                                      ).first()
+        ).first()
         request.session["state"]["event_questions_answered"] = \
             EventQuestionAnswer.objects.filter(
                 participant=_participant,
@@ -587,7 +601,7 @@ def right(request, state, user):
         request.session["state"]["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
     golden_egg = {}
     if _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
-        _learnerstate.get_num_questions_answered_today():
+            _learnerstate.get_num_questions_answered_today():
         _golden_egg = get_golden_egg(_participant)
         if _golden_egg:
             if _golden_egg.point_value:
@@ -802,7 +816,7 @@ def wrong(request, state, user):
                  "user": user,
                  "question": _learnerstate.active_question,
                  "messages": _messages
-                 }
+                }
             )
         else:
             return HttpResponseRedirect("right")
@@ -907,7 +921,7 @@ def event_splash_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
-                                  ).first()
+    ).first()
     _event_participant_rel = EventParticipantRel.objects.filter(participant=_participant, event=_event)
 
     page = {}
@@ -941,7 +955,7 @@ def event_start_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
-                                  ).first()
+    ).first()
     _learnerstate = LearnerState.objects.filter(participant=_participant).first()
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
@@ -1016,7 +1030,7 @@ def event_end_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
-                                  ).first()
+    ).first()
 
     page = {}
 
@@ -1038,10 +1052,10 @@ def event_end_page(request, state, user):
             _participant.save()
         if _event.airtime:
             mail_managers(subject="Event Airtime Award", message="%s %s %s won R %d airtime from an event"
-                                                                          % (_participant.learner.first_name,
-                                                                             _participant.learner.last_name,
-                                                                             _participant.learner.mobile,
-                                                                             _event.airtime), fail_silently=False)
+                                                                 % (_participant.learner.first_name,
+                                                                    _participant.learner.last_name,
+                                                                    _participant.learner.mobile,
+                                                                    _event.airtime), fail_silently=False)
         if _event.event_badge:
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(

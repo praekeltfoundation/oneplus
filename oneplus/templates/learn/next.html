@@ -19,6 +19,11 @@
             <div class="text heading darkgrey-back"><p>Q {{ state.next_tasks_today }}/{{ state.total_tasks_today }}</p></div>
         {% endif %}
 
+        {% if golden_egg and golden_egg.question == True %}
+            <div class="text heading darkgrey-back"><p>You’ve found the Golden Egg!</p></div>
+            <div class="center-font"><img src="{{ golden_egg.url }}"></div>
+        {% endif %}
+
         {% autoescape off %}
             {{ state.question_id }}
             <div class="content narrow white-back darkgrey-front">

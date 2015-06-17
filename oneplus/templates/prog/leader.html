@@ -5,18 +5,13 @@
 {% block content %}
     {% load humanize %}
 <div class="menu">
-    <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon leaderboard"></li><p>Leaderboard</p></div></a>
+    <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon leaderboard"></li><p>{{ header_1 }}</p></div></a>
 </div>
-    <div class="text heading darkgrey-back">{% if state.leader_place > 0 %}
-        <p>Well done, you're in <span class="red-front">{{ state.leader_place|ordinal }} Place</span>
-    {% else %}
-        <p>You do not live here, thus you don't have a ranking</p>
-    {% endif %}
-
-    </p>
-
-
- </div>
+    <div class="text heading darkgrey-back">
+        {% if position %}
+            <p>{{ header_2 }} <span class="red-front">{{ position |ordinal }} place</span></p>
+        {% endif %}
+    </div>
 
     <div class="content narrow">
         {% if state.leader_menu %}
@@ -30,13 +25,21 @@
         <table width="100%">
         {% for participant in learners %}
         <tr class="item grey-back {% if participant.me %}red-front{% endif %}">
-                <td class="large-font pull-left" style="width:20%">#{{ forloop.counter }}</td>
-                <td class="large-font pull-left" >{{ participant.learner.first_name }}</td>
+                <td class="large-font pull-left" style="width:20%">#{{ participant.position }}</td>
+                <td class="large-font pull-left" >{{ participant.name }}</td>
                 <td class="large-font pull-right">{{ participant.points }}</td>
                 <td class="clear"></td>
         </tr>
         {% endfor %}
         </table>
+
+        {% for b in buttons %}
+            <form name="leaderboard" action="" method="post">
+                {% csrf_token %}
+                <input type="submit" name="{{ b.name }}" class="button green-back grey-front" value="{{ b.value }}">
+            </form>
+        {% endfor %}
+        </form>
     </div>
 
 {% endblock %}
