@@ -953,6 +953,14 @@ def event_start_page(request, state, user):
         start_page = EventStartPage.objects.filter(events=_event).first()
         page["header"] = start_page.header
         page["message"] = start_page.paragraph
+        EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
+
+    if _event_participant_rel and _event.number_sittings == 2:
+        start_page = EventStartPage.objects.filter(events=_event).first()
+        page["header"] = start_page.header
+        page["message"] = start_page.paragraph
+        _event_participant_rel.sitting_number += 1
+        _event_participant_rel.save()
 
     def get():
         return render(
@@ -983,7 +991,8 @@ def event_start_page(request, state, user):
                     "state": state,
                     "user": user,
                     "question": _learnerstate.active_question,
-                    "question_type": "event"
+                    "sittings": _event.number_sittings
+
                 }
             )
         else:
