@@ -10,12 +10,17 @@ class Migration(DataMigration):
         "Write your forwards methods here."
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
-        # and orm['appname.ModelName'] for models in other applications.
-        spot_test = orm.GamificationBadgeTemplate.objects.create(name="Spot Test")
-        five_spot_test = orm.GamificationBadgeTemplate.objects.create(name="5 Spot Tests")
-        exam = orm.GamificationBadgeTemplate.objects.create(name="Exam")
-        spot_test_champ = orm.GamificationBadgeTemplate.objects.create(name="Spot Test Champ")
-        exam_champ = orm.GamificationBadgeTemplate.objects.create(name="Exam Champ")
+        # and orm['appname.ModelName'] for models in other applications
+        spot_test = orm.GamificationBadgeTemplate.objects.create(name="Spot Test",
+                                                                 image="img/OP_Badge_Event_01_SpotTest.png")
+        five_spot_test = orm.GamificationBadgeTemplate.objects.create(name="5 Spot Tests",
+                                                                      image="img/OP_Badge_Event_02_5SpotTests.png")
+        exam = orm.GamificationBadgeTemplate.objects.create(name="Exam",
+                                                            image="img/OP_Badge_Event_03_Exam.png")
+        spot_test_champ = orm.GamificationBadgeTemplate.objects.create(name="Spot Test Champ",
+                                                                       image="img/OP_Badge_Event_04_SpotTestChamp.png")
+        exam_champ = orm.GamificationBadgeTemplate.objects.create(name="Exam Champ",
+                                                                  image="img/OP_Badge_Event_05_ExamChamp.png")
 
         orm.GamificationScenario.objects.create(name="Spot Test", badge=spot_test, event="SPOT_TEST")
         orm.GamificationScenario.objects.create(name="5 Spot Tests", badge=five_spot_test, event="5_SPOT_TEST")
@@ -25,6 +30,17 @@ class Migration(DataMigration):
 
     def backwards(self, orm):
         "Write your backwards methods here."
+        orm.GamificationScenario.objects.filter(name="Spot Test").delete()
+        orm.GamificationScenario.objects.filter(name="5 Spot Tests").delete()
+        orm.GamificationScenario.objects.filter(name="Exam").delete()
+        orm.GamificationScenario.objects.filter(name="Spot Test Champ").delete()
+        orm.GamificationScenario.objects.filter(name="Exam Champ").delete()
+
+        orm.GamificationBadgeTemplate.objects.filter(name="Spot Test").delete()
+        orm.GamificationBadgeTemplate.objects.filter(name="5 Spot Tests").delete()
+        orm.GamificationBadgeTemplate.objects.filter(name="Exam").delete()
+        orm.GamificationBadgeTemplate.objects.filter(name="Spot Test Champ").delete()
+        orm.GamificationBadgeTemplate.objects.filter(name="Exam Champ").delete()
 
     models = {
         u'gamification.gamificationbadgetemplate': {
