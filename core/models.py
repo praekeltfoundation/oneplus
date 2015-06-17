@@ -5,8 +5,7 @@ from organisation.models import Course
 from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
-from content.models import TestingQuestion, TestingQuestionOption
-from django.contrib import admin
+from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer
 
 
 class Class(models.Model):
@@ -100,13 +99,24 @@ class Participant(models.Model):
 
     def answer_event(self, event, question, option):
         #Create participant event question answer
-        answer = ParticipantQuestionAnswer(
+        answer = EventQuestionAnswer(
             participant=self,
             event=event,
             question=question,
-            question_option=option
+            question_option=option,
+            correct=option.correct
         )
         answer.save()
+
+    def can_take_event(self, event):
+        event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self)
+
+        if event_participant_rel:
+            if event.number_sittings == 1 or event_participant_rel.results_received:
+                return None, event_participant_rel
+            else:
+                return True, event_participant_rel
+        return True, None
 
     # Probably to be used in migrations
     def recalculate_total_points(self):
