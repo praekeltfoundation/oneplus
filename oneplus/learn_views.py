@@ -33,7 +33,7 @@ def home(request, state, user):
                                   ).first()
     event_name = None
     if _event:
-        event_participant = EventParticipantRel.objects.filter(event=_event, participant=_participant)
+        event_participant = EventParticipantRel.objects.filter(event=_event, participant=_participant).first()
 
         if event_participant:
             if not event_participant.results_received:
@@ -963,6 +963,8 @@ def event_splash_page(request, state, user):
         _splash_page = splash_pages[random_splash_page]
         page["header"] = _splash_page.header
         page["message"] = _splash_page.paragraph
+    else:
+        return redirect("learn.home")
 
     def get():
         return render(
@@ -998,13 +1000,14 @@ def event_start_page(request, state, user):
         page["header"] = start_page.header
         page["message"] = start_page.paragraph
         EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
-
-    if _event_participant_rel and _event.number_sittings == 2:
+    elif _event_participant_rel and _event.number_sittings == 2:
         start_page = EventStartPage.objects.filter(events=_event).first()
         page["header"] = start_page.header
         page["message"] = start_page.paragraph
         _event_participant_rel.sitting_number += 1
         _event_participant_rel.save()
+    else:
+        return redirect("learn.home")
 
     def get():
         return render(
@@ -1068,6 +1071,10 @@ def event_end_page(request, state, user):
     _num_questions_answered = EventQuestionAnswer.objects.filter(event=_event, participant=_participant).count()
 
     if _num_event_questions == _num_questions_answered:
+        event_participant = EventParticipantRel.objects.filter(event=_event, participant=_participant).first()
+        event_participant.results_received = True
+        event_participant.save()
+
         _num_questions_correct = EventQuestionAnswer.objects.filter(event=_event, participant=_participant,
                                                                     correct=True).count()
         percentage = _num_questions_correct / _num_event_questions * 100
@@ -1114,8 +1121,9 @@ def event_end_page(request, state, user):
                 "EXAM",
                 module
             )
-
-        badge, badge_points = get_badge_awarded(_participant)
+    else:
+        return redirect("learn.home")
+    badge, badge_points = get_badge_awarded(_participant)
 
     def get():
         state["in_event"] = False

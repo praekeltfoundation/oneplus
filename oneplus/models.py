@@ -3,7 +3,7 @@ from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta, time
 from random import randint
-from content.models import GoldenEgg, EventQuestionAnswer
+from content.models import GoldenEgg, EventQuestionAnswer, EventQuestionRel
 from organisation.models import CourseModuleRel
 
 
@@ -184,13 +184,9 @@ class LearnerState(models.Model):
             event=event
         ).distinct().values('question')
 
-        module = CourseModuleRel.objects.filter(course=event.course)
-
+        event_questions = EventQuestionRel.objects.filter(event=event).values("question")
         # Get list of unanswered questions
-        questions = TestingQuestion.objects.filter(
-            module=module,
-            module__is_active=True,
-        ).exclude(id__in=answered)
+        questions = TestingQuestion.objects.filter(id__in=event_questions).exclude(id__in=answered)
         # If a question exists
         if questions.count() > 0:
             self.active_question = questions.first()

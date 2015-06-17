@@ -8,7 +8,7 @@ from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
-    EventQuestionRel
+    EventQuestionRel, EventSplashPage
 from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
@@ -564,6 +564,38 @@ class GeneralTests(TestCase):
         )
 
         self.assertEquals(resp.status_code, 200)
+
+    def test_event_splash_page(self):
+        learner = Learner.objects.create_user(
+            username="+27231231231",
+            mobile="+27231231231",
+            password='1234'
+        )
+        learner.save()
+        learner.is_active = True
+        learner.save()
+
+        self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
+                                     deactivation_date=datetime.now() + timedelta(days=1))
+        EventSplashPage.objects.create(events=event, header="Test Splash Page", paragraph="Test")
+
+        c = Client()
+
+        resp = c.post(
+            reverse('auth.login'),
+            data={
+                'username': "+27231231231",
+                'password': '1234'},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test Splash Page")
 
     def test_report_question(self):
         self.client.get(
