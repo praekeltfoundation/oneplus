@@ -363,6 +363,7 @@ class GeneralTests(TestCase):
         )
         question1 = self.create_test_question(
             'question1', self.module, question_content='test question', state=3)
+
         questionoption1 = TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
