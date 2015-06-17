@@ -208,7 +208,7 @@ class Event(models.Model):
         event_answers = EventQuestionAnswer.objects.filter(event=self, participant=participant) \
             .aggregate(Count('question'))['question__count']
         all_event_questions = EventQuestionRel.objects.filter(event=self)
-        total_event_questions = all_event_questions.aggregate(Count('questions'))['questions__count']
+        total_event_questions = all_event_questions.aggregate(Count('question'))['question__count']
         print total_event_questions
         if total_event_questions < event_answers:
             event_question = all_event_questions.filter(order=event_answers+1).first().question
