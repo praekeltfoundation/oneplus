@@ -12,15 +12,15 @@ class Migration(DataMigration):
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications
         spot_test = orm.GamificationBadgeTemplate.objects.create(name="Spot Test",
-                                                                 image="img/OP_Badge_Event_01_SpotTest,png")
+                                                                 image="img/OP_Badge_Event_01_SpotTest.png")
         five_spot_test = orm.GamificationBadgeTemplate.objects.create(name="5 Spot Tests",
-                                                                      image="img/OP_Badge_Event_02_5SpotTests,png")
+                                                                      image="img/OP_Badge_Event_02_5SpotTests.png")
         exam = orm.GamificationBadgeTemplate.objects.create(name="Exam",
-                                                            image="img/OP_Badge_Event_03_Exam,png")
+                                                            image="img/OP_Badge_Event_03_Exam.png")
         spot_test_champ = orm.GamificationBadgeTemplate.objects.create(name="Spot Test Champ",
-                                                                       image="img/OP_Badge_Event_04_SpotTestChamp,png")
+                                                                       image="img/OP_Badge_Event_04_SpotTestChamp.png")
         exam_champ = orm.GamificationBadgeTemplate.objects.create(name="Exam Champ",
-                                                                  image="img/OP_Badge_Event_05_ExamChamp,png")
+                                                                  image="img/OP_Badge_Event_05_ExamChamp.png")
 
         orm.GamificationScenario.objects.create(name="Spot Test", badge=spot_test, event="SPOT_TEST")
         orm.GamificationScenario.objects.create(name="5 Spot Tests", badge=five_spot_test, event="5_SPOT_TEST")
