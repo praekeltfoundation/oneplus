@@ -33,7 +33,7 @@ from django.db.models import Q
 from organisation.models import School, Course
 from core.models import Class, Participant
 from oneplusmvp import settings
-from content.models import Event
+from content.models import Event, EventParticipantRel
 
 __author__ = 'herman'
 
@@ -95,10 +95,12 @@ def login(request, state):
                             )
                             return render(request, "misc/account_problem.html")
 
-                        if Event.objects.filter(course=par.first().classs.course,
-                                                activation_date__lte=datetime.now(),
-                                                deactivation_date__gt=datetime.now()
-                                                ).count() > 0:
+                        event = Event.objects.filter(course=par.first().classs.course,
+                                                     activation_date__lte=datetime.now(),
+                                                     deactivation_date__gt=datetime.now()
+                                                     ).first()
+                        if event and not EventParticipantRel.objects.filter(event=event, participant=par,
+                                                                            results_seen=True):
                             return redirect("learn.event_splash_page")
                         elif ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
                             return redirect("learn.first_time")

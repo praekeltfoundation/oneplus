@@ -953,6 +953,14 @@ def event_start_page(request, state, user):
         start_page = EventStartPage.objects.filter(events=_event).first()
         page["header"] = start_page.header
         page["message"] = start_page.paragraph
+        EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
+
+    if _event_participant_rel and _event.number_sittings == 2:
+        start_page = EventStartPage.objects.filter(events=_event).first()
+        page["header"] = start_page.header
+        page["message"] = start_page.paragraph
+        _event_participant_rel.sitting_number += 1
+        _event_participant_rel.save()
 
     def get():
         return render(
@@ -983,7 +991,8 @@ def event_start_page(request, state, user):
                     "state": state,
                     "user": user,
                     "question": _learnerstate.active_question,
-                    "question_type": "event"
+                    "sittings": _event.number_sittings
+
                 }
             )
         else:
@@ -1024,7 +1033,21 @@ def event_end_page(request, state, user):
         page["message"] = end_page.paragraph
         page["percentage"] = round(percentage)
 
-        print page
+        if _event.event_points:
+            _participant.points += _event.event_points;
+            _participant.save()
+        if _event.airtime:
+            mail_managers(subject="Event Airtime Award", message="%s %s %s won R %d airtime from an event"
+                                                                          % (_participant.learner.first_name,
+                                                                             _participant.learner.last_name,
+                                                                             _participant.learner.mobile,
+                                                                             _event.airtime), fail_silently=False)
+        if _event.event_badge:
+            module = CourseModuleRel.objects.filter(course=_event.course).first()
+            _participant.award_scenario(
+                _event.event_badge.event,
+                module
+            )
 
         if "spot test" in _event.name.lower():
             module = CourseModuleRel.objects.filter(course=_event.course).first()
