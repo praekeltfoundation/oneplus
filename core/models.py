@@ -98,6 +98,16 @@ class Participant(models.Model):
             self.points += question.points
             self.save()
 
+    def answer_event(self, event, question, option):
+        #Create participant event question answer
+        answer = ParticipantQuestionAnswer(
+            participant=self,
+            event=event,
+            question=question,
+            question_option=option
+        )
+        answer.save()
+
     # Probably to be used in migrations
     def recalculate_total_points(self):
         answers = ParticipantQuestionAnswer.objects.filter(
