@@ -193,39 +193,50 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
+
+        #no questions
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
 
-        self.create_test_question('question1', self.module)
+        #with questions
+        self.create_test_question('question1', self.module, state=3)
         LearnerState.objects.create(
             participant=self.participant,
             active_question=None,
         )
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
 
+        #with event active
         event_module = self.create_module("event_module", self.course, type=2)
-
         event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
                                   datetime.now() + timedelta(days=1))
-        question = self.create_test_question("question_1", event_module)
-        question_option = self.create_test_question_option("question_1_option", question)
-        event_question = self.create_event_question(event, question, 1)
+        start_page = EventStartPage.objects.create(event=event, header="Start Page Header", paragraph="Start Page Paragraph")
+        EventEndPage.objects.create(event=event, header="End Page Header", paragraph="End Page Paragraph")
+        EventSplashPage.objects.create(event=event, header="Splash Page Header", paragraph="Splash Page Paragraph",
+                                       order_number=1)
 
+        question = self.create_test_question("question_1", event_module)
+        self.create_test_question_option("question_1_option", question)
+        self.create_event_question(event, question, 1)
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Take the %s" % event.name)
 
-        resp = self.client.post(reverse('learn.home'))
+        #no data in post
+        resp = self.client.post(reverse('learn.home'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"})
+        #take event
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+        self.assertRedirects(resp, "event_start_page", status_code=302, target_status_code=200)
+        self.assertContains(resp, start_page.header)
+
+        #take event the second time
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "NEXT")
+        self.assertNotContains(resp, "NEXT")
+        self.assertNotContains(resp, "Take the %s" % event.name)
 
     def test_first_time(self):
         self.client.get(reverse(

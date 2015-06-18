@@ -143,14 +143,14 @@ def home(request, state, user):
         if "take_event" in request.POST:
             if _event:
                 if not allowed:
-                    return redirect("learn.home")
+                    return get()
                 if _event_participant_rel:
                     _event_participant_rel.sitting_number += 1
                     _event_participant_rel.save()
                 else:
                     return redirect("learn.event_start_page")
             else:
-                return redirect("learn.home")
+                return get()
 
             state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
                 participant=_participant,
@@ -162,7 +162,7 @@ def home(request, state, user):
 
             #take to end page?
             if not event_question:
-                return redirect("learn.home")
+                return get()
 
             return render(
                 request,
@@ -1081,7 +1081,7 @@ def event_splash_page(request, state, user):
         redirect("learn.home")
 
     page = {}
-    splash_pages = EventSplashPage.objects.filter(events=_event)
+    splash_pages = EventSplashPage.objects.filter(event=_event)
     num_splash_pages = len(splash_pages)
     random_splash_page = randint(1, num_splash_pages) - 1
     _splash_page = splash_pages[random_splash_page]
@@ -1121,7 +1121,7 @@ def event_start_page(request, state, user):
         return redirect("learn.home")
 
     page = {}
-    start_page = EventStartPage.objects.filter(events=_event).first()
+    start_page = EventStartPage.objects.filter(event=_event).first()
     page["header"] = start_page.header
     page["message"] = start_page.paragraph
 
@@ -1194,7 +1194,7 @@ def event_end_page(request, state, user):
                                                                     correct=True).count()
         percentage = _num_questions_correct / _num_event_questions * 100
 
-        end_page = EventEndPage.objects.filter(events=_event).first()
+        end_page = EventEndPage.objects.filter(event=_event).first()
         page["header"] = end_page.header
         page["message"] = end_page.paragraph
         page["percentage"] = round(percentage)
