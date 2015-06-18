@@ -191,6 +191,11 @@ class Event(models.Model):
         (MULTIPLE, "Multiple")
     )
 
+    TYPE_CHOICES = (
+        (1, "Spot Test")
+        (2, "Exam")
+    )
+
     name = models.CharField(max_length=50, unique=True)
     course = models.ForeignKey("organisation.Course", null=False, blank=False)
     activation_date = models.DateTimeField("Activate On", null=False, blank=False)
@@ -200,6 +205,7 @@ class Event(models.Model):
     airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
     event_badge = models.ForeignKey("gamification.GamificationScenario",
                                     related_name="event_badge", null=True, blank=True)
+    type = models.PositiveIntegerField("Type of Event", choices=TYPE_CHOICES, default=1)
     end_processed = models.BooleanField(default=False)
 
     def __str__(self):

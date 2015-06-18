@@ -268,7 +268,7 @@ class EventAdmin(admin.ModelAdmin):
     list_filter = ()
     fieldsets = [
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "number_sittings", "event_points",
-                           "airtime", "event_badge"]})]
+                           "airtime", "event_badge", "type"]})]
     inlines = (EventSplashPageInline, EventStartPageInline, EventEndPageInline, EventQuestionRelInline)
     form = EventForm
     add_form = EventForm
