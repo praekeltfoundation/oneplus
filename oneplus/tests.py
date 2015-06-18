@@ -211,7 +211,8 @@ class GeneralTests(TestCase):
         event_module = self.create_module("event_module", self.course, type=2)
         event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
                                   datetime.now() + timedelta(days=1))
-        start_page = EventStartPage.objects.create(event=event, header="Start Page Header", paragraph="Start Page Paragraph")
+        start_page = EventStartPage.objects.create(event=event, header="Start Page Header",
+                                                   paragraph="Start Page Paragraph")
         EventEndPage.objects.create(event=event, header="End Page Header", paragraph="End Page Paragraph")
         EventSplashPage.objects.create(event=event, header="Splash Page Header", paragraph="Splash Page Paragraph",
                                        order_number=1)
@@ -373,10 +374,17 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
+
+        #no questions
+        resp = self.client.get(reverse('learn.next'), follow=True)
+        self.assertRedirects(resp, "home", status_code=302, target_status_code=200)
+        self.assertContains(resp, "ONEPLUS | WELCOME")
+
+        #with question
         question1 = self.create_test_question(
             'question1', self.module, question_content='test question', state=3)
 
-        questionoption1 = TestingQuestionOption.objects.create(
+        TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
             content='questionanswer1',
@@ -395,6 +403,64 @@ class GeneralTests(TestCase):
             follow=True
         )
 
+        self.assertEquals(resp.status_code, 200)
+
+    def test_answer_event_nextchallenge(self):
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': self.learner.unique_token})
+        )
+
+        #no event
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer_event': 0
+            }, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #with event
+        event_module = self.create_module("event_module", self.course, type=2)
+        event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
+                                  datetime.now() + timedelta(days=1))
+        EventStartPage.objects.create(event=event, header="Start Page Header",
+                                      paragraph="Start Page Paragraph")
+        EventEndPage.objects.create(event=event, header="End Page Header", paragraph="End Page Paragraph")
+        EventSplashPage.objects.create(event=event, header="Splash Page Header", paragraph="Splash Page Paragraph",
+                                       order_number=1)
+        question = self.create_test_question("question_1", event_module)
+        correct_option = self.create_test_question_option("question_1_option_1", question)
+        incorrect_option = self.create_test_question_option("question_1_option_2", question)
+        self.create_event_question(event, question, 1)
+
+        #invalid option
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer_event': correct_option.id+1
+            }, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        EventParticipantRel.objects.filter(event=event, participant=self.participant).delete()
+        EventQuestionAnswer.objects.filter(event=event, participant=self.participant).delete()
+
+        #valid correct answer
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer_event': correct_option.id
+            }, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        EventParticipantRel.objects.filter(event=event, participant=self.participant).delete()
+        EventQuestionAnswer.objects.filter(event=event, participant=self.participant).delete()
+
+        #valid incorrect answer
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer_event': incorrect_option.id
+            }, follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_answer_correct_nextchallenge(self):

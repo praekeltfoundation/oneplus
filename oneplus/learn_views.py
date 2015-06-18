@@ -164,6 +164,8 @@ def home(request, state, user):
             if not event_question:
                 return get()
 
+            request.session["state"]["answer_event"] = 0
+
             return render(
                 request,
                 "learn/next.html",
@@ -206,26 +208,29 @@ def nextchallenge(request, state, user):
         state=3
     ).exclude(id__in=answered)
 
-    if not questions:
-        return redirect("learn.home")
+    if "answer_event" not in request.session:
+        if not questions:
+            return redirect("learn.home")
 
-    request.session["state"]["next_tasks_today"] = \
-        ParticipantQuestionAnswer.objects.filter(
-            participant=_participant,
-            answerdate__gte=date.today()
-        ).distinct('participant', 'question').count() + 1
+        request.session["state"]["next_tasks_today"] = \
+            ParticipantQuestionAnswer.objects.filter(
+                participant=_participant,
+                answerdate__gte=date.today()
+            ).distinct('participant', 'question').count() + 1
 
-    golden_egg = {}
+        golden_egg = {}
 
-    if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
-            _learnerstate.golden_egg_question:
-        golden_egg["question"] = True
-        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+        if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
+                _learnerstate.golden_egg_question:
+            golden_egg["question"] = True
+            golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
 
-    if _learnerstate.active_question:
-        question_id = _learnerstate.active_question.id
-        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
-                                                  + str(question_id) + "-->"
+        if _learnerstate.active_question:
+            question_id = _learnerstate.active_question.id
+            request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                      + str(question_id) + "-->"
+    else:
+        del request.session["state"]["answer_event"]
 
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
@@ -595,7 +600,7 @@ def get_golden_egg(participant):
 
 @oneplus_state_required
 @oneplus_login_required
-def right(request, state, user, event=False):
+def right(request, state, user):
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
@@ -754,6 +759,8 @@ def right(request, state, user, event=False):
             if not event_question:
                 return redirect("learn.home")
 
+            request.session["state"]["answer_event"] = 0
+
             return render(
                 request,
                 "learn/next.html",
@@ -848,7 +855,7 @@ def right(request, state, user, event=False):
 
 @oneplus_state_required
 @oneplus_login_required
-def wrong(request, state, user, event=False):
+def wrong(request, state, user):
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
     _learnerstate = LearnerState.objects.filter(
@@ -960,6 +967,8 @@ def wrong(request, state, user, event=False):
             #take to end page?
             if not event_question:
                 return redirect("learn.home")
+
+            request.session["state"]["answer_event"] = 0
 
             return render(
                 request,
@@ -1150,6 +1159,8 @@ def event_start_page(request, state, user):
             state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
 
             event_question = _event.get_next_event_question(_participant)
+
+            request.session["state"]["answer_event"] = 0
 
             return render(
                 request,
