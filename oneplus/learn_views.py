@@ -160,7 +160,7 @@ def home(request, state, user):
 
             event_question = _event.get_next_event_question(_participant)
 
-            #take to end page?
+            # take to end page?
             if not event_question:
                 return get()
 
@@ -750,7 +750,7 @@ def right(request, state, user, event=False):
 
             event_question = _event.get_next_event_question(_participant)
 
-            #take to end page?
+            # take to end page?
             if not event_question:
                 return redirect("learn.home")
 
@@ -942,7 +942,7 @@ def wrong(request, state, user, event=False):
                  "user": user,
                  "question": _learnerstate.active_question,
                  "messages": _messages
-                }
+                 }
             )
         else:
             return HttpResponseRedirect("right")
@@ -957,7 +957,7 @@ def wrong(request, state, user, event=False):
 
             event_question = _event.get_next_event_question(_participant)
 
-            #take to end page?
+            # take to end page?
             if not event_question:
                 return redirect("learn.home")
 
@@ -1175,8 +1175,7 @@ def event_end_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
-                                  deactivation_date__gt=datetime.now()
-    ).first()
+                                  deactivation_date__gt=datetime.now()).first()
 
     page = {}
 
