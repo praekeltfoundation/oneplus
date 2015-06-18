@@ -698,8 +698,13 @@ class GeneralTests(TestCase):
 
         resp = self.client.get(reverse('learn.event_end_page'))
 
+        pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=spot_test, scenario=badge,
+                                                   participant=self.participant)
+
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Test End Page")
+        self.assertEquals(self.participant.points, 5)
+        self.assertIsNotNone(pbtr)
 
         event.name = "Exam"
         event.save()
