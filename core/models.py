@@ -110,7 +110,7 @@ class Participant(models.Model):
 
     def can_take_event(self, event):
         event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
-        
+
         if event_participant_rel:
             if event.number_sittings == 1 or event_participant_rel.results_received:
                 return None, event_participant_rel
@@ -123,9 +123,12 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
+        events = EventParticipantRel.objects.filter(particpant=self, results_received=True)
         points = 0
         for answer in answers:
             points += answer.question.points
+        for event in events:
+            points += event.event.event_points
         self.points = points
         self.save()
         return points
