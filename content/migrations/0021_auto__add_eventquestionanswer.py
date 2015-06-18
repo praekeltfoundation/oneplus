@@ -110,7 +110,7 @@ class Migration(SchemaMigration):
         },
         u'content.eventendpage': {
             'Meta': {'object_name': 'EventEndPage'},
-            'events': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
             'header': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'paragraph': ('django.db.models.fields.TextField', [], {'max_length': '500'})
@@ -134,7 +134,7 @@ class Migration(SchemaMigration):
         },
         u'content.eventsplashpage': {
             'Meta': {'object_name': 'EventSplashPage'},
-            'events': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
             'header': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'order_number': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
@@ -142,7 +142,7 @@ class Migration(SchemaMigration):
         },
         u'content.eventstartpage': {
             'Meta': {'object_name': 'EventStartPage'},
-            'events': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.Event']", 'null': 'True'}),
             'header': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'paragraph': ('django.db.models.fields.TextField', [], {'max_length': '500'})
@@ -239,7 +239,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantbadgetemplaterel': {
             'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 15, 0, 0)', 'null': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 18, 0, 0)', 'null': 'True'}),
             'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
@@ -247,7 +247,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantpointbonusrel': {
             'Meta': {'object_name': 'ParticipantPointBonusRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 15, 0, 0)', 'null': 'True', 'blank': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 18, 0, 0)', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),

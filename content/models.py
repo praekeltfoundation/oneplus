@@ -238,19 +238,19 @@ class Event(models.Model):
 
 
 class EventStartPage(models.Model):
-    events = models.ForeignKey(Event, null=True, blank=False)
+    event = models.ForeignKey(Event, null=True, blank=False)
     header = models.CharField("Header Text", max_length=50)
     paragraph = models.TextField("Paragraph Text", max_length=500)
 
 
 class EventEndPage(models.Model):
-    events = models.ForeignKey(Event, null=True, blank=False)
+    event = models.ForeignKey(Event, null=True, blank=False)
     header = models.CharField("Header Text", max_length=50)
     paragraph = models.TextField("Paragraph Text", max_length=500)
 
 
 class EventSplashPage(models.Model):
-    events = models.ForeignKey(Event, null=True, blank=False)
+    event = models.ForeignKey(Event, null=True, blank=False)
     order_number = models.PositiveIntegerField("Order", null=True, blank=False)
     header = models.CharField("Header Text", max_length=50)
     paragraph = models.TextField("Paragraph Text", max_length=500)
