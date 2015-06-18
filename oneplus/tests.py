@@ -637,6 +637,8 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Test Start Page")
 
+        EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+
         resp = self.client.get(reverse('learn.event_start_page'))
 
         self.assertEquals(resp.status_code, 302)
