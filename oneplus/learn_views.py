@@ -657,7 +657,7 @@ def right(request, state, user, event=False):
     request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
-        if "answer_event" not in request.session:
+        if "answer_event" in request.session:
             question = TestingQuestion.objects.get(id=request.session["state"]["answer_event"])
             del request.session["state"]["answer_event"]
 
@@ -876,7 +876,7 @@ def wrong(request, state, user, event=False):
                                   deactivation_date__gt=datetime.now()).first()
 
     def get():
-        if "answer_event" not in request.session:
+        if "answer_event" in request.session:
             question = TestingQuestion.objects.get(id=request.session["state"]["answer_event"])
             del request.session["state"]["answer_event"]
 
@@ -1072,13 +1072,12 @@ def event_splash_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
-
     if _event:
         allowed, _event_participant_rel = _participant.can_take_event(_event)
         if not allowed:
-            redirect("learn.home")
+            return redirect("learn.home")
     else:
-        redirect("learn.home")
+        return redirect("learn.home")
 
     page = {}
     splash_pages = EventSplashPage.objects.filter(event=_event)
