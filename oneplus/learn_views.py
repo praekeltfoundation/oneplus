@@ -21,6 +21,7 @@ from oneplus.utils import update_metric
 from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
+from django.db.models import Count
 
 
 @oneplus_state_required
@@ -32,10 +33,13 @@ def home(request, state, user):
                                   deactivation_date__gt=datetime.now()
                                   ).first()
     event_name = None
+    first_sitting = True
     if _event:
         allowed, _event_participant_rel = _participant.can_take_event(_event)
         if allowed:
             event_name = _event.name
+            if _event_participant_rel:
+                first_sitting = False
 
     _start_of_week = date.today() - timedelta(date.today().weekday())
     learnerstate = LearnerState.objects.filter(
@@ -137,49 +141,20 @@ def home(request, state, user):
 
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user,
+                                                   "first_sitting": first_sitting,
                                                    "event_name": event_name})
 
     def post():
         if "take_event" in request.POST:
-            if _event:
-                if not allowed:
-                    return get()
+            if not _event or not allowed:
+                return get()
+            else:
                 if _event_participant_rel:
-                    _event_participant_rel.sitting_number += 1
+                    _event_participant_rel.number_sitting += 1
                     _event_participant_rel.save()
+                    return redirect("learn.event_next")
                 else:
                     return redirect("learn.event_start_page")
-            else:
-                return get()
-
-            state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
-                participant=_participant,
-                event=_event
-            ).distinct('participant', 'question', 'event').count()
-            state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
-
-            event_question = _event.get_next_event_question(_participant)
-
-            # take to end page?
-            if not event_question:
-                return get()
-
-            request.session["state"]["answer_event"] = 0
-
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": event_question,
-                    "sittings": _event.number_sittings,
-                    "question_type": "answer_event"
-
-                }
-            )
-        else:
-            return get()
 
     return resolve_http_method(request, [get, post])
 
@@ -208,29 +183,26 @@ def nextchallenge(request, state, user):
         state=3
     ).exclude(id__in=answered)
 
-    if "answer_event" not in request.session:
-        if not questions:
-            return redirect("learn.home")
+    if not questions:
+        return redirect("learn.home")
 
-        request.session["state"]["next_tasks_today"] = \
-            ParticipantQuestionAnswer.objects.filter(
-                participant=_participant,
-                answerdate__gte=date.today()
-            ).distinct('participant', 'question').count() + 1
+    request.session["state"]["next_tasks_today"] = \
+        ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=date.today()
+        ).distinct('participant', 'question').count() + 1
 
-        golden_egg = {}
+    golden_egg = {}
 
-        if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
-                _learnerstate.golden_egg_question:
-            golden_egg["question"] = True
-            golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+    if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
+            _learnerstate.golden_egg_question:
+        golden_egg["question"] = True
+        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
 
-        if _learnerstate.active_question:
-            question_id = _learnerstate.active_question.id
-            request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
-                                                      + str(question_id) + "-->"
-    else:
-        del request.session["state"]["answer_event"]
+    if _learnerstate.active_question:
+        question_id = _learnerstate.active_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
 
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
@@ -241,7 +213,6 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "question_type": "answer",
         })
 
     def update_num_question_metric():
@@ -374,42 +345,152 @@ def nextchallenge(request, state, user):
                     "question_type": "answer"
                 }
             )
-
-        elif "answer_event" in request.POST:
-            _event_ans_id = request.POST["answer_event"]
-
-            event = Event.objects.filter(course=_participant.classs.course,
-                                         activation_date__lte=datetime.now(),
-                                         deactivation_date__gt=datetime.now()).first()
-
-            if event:
-                options = event.get_next_event_question(_participant).testingquestionoption_set
-                try:
-                    _option = options.get(pk=_event_ans_id)
-                except TestingQuestionOption.DoesNotExist:
-                    return redirect("learn.next")
-
-                _participant.answer_event(event, _option.question, _option)
-
-                request.session["state"]["answer_event"] = _option.question.id
-
-                if _option.correct:
-                    return redirect("learn.right")
-
-                return redirect("learn.wrong")
-
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": _learnerstate.active_question,
-                    "question_type": "answer_event"
-                }
-            )
         else:
             return redirect("learn.home")
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def event(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
+                                  ).first()
+
+    if _event:
+        allowed, _event_participant_rel = _participant.can_take_event(_event)
+        # if allowed:
+        _event_question = _event.get_next_event_question(_participant)
+        #
+        #     if not _event_question:
+        #         return redirect("learn.home")
+        # else:
+        #     return redirect("learn.home")
+    else:
+        return redirect("learn.home")
+
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+        .aggregate(Count('question'))['question__count']
+    _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
+
+    def get():
+        return render(
+            request,
+            "learn/event_next.html",
+            {
+                "state": state,
+                "user": user,
+                "sittings": _event.number_sittings,
+                "event_questions_answered": _answered,
+                "total_event_questions": _total_questions,
+                "question": _event_question,
+            }
+        )
+
+    def post():
+        if "answer" in request.POST:
+            _event_ans_id = request.POST["answer"]
+
+            options = _event.get_next_event_question(_participant).testingquestionoption_set
+            try:
+                _option = options.get(pk=_event_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                return redirect("learn.next")
+
+            _participant.answer_event(_event, _option.question, _option)
+
+            if _option.correct:
+                return redirect("learn.event_right")
+
+            return redirect("learn.event_wrong")
+
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+
+@oneplus_state_required
+@oneplus_login_required
+def event_right(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+    if not _event:
+        # allowed, _event_participant_rel = _participant.can_take_event(_event)
+        # if not allowed:
+        #     return redirect("learn.home")
+    # else:
+        return redirect("learn.home")
+
+    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
+        .order_by("-answer_date").first().question
+
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+        .aggregate(Count('question'))['question__count']
+    _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
+
+    def get():
+        return render(
+            request,
+            "learn/event_right.html",
+            {
+                "state": state,
+                "user": user,
+                "event_questions_answered": _answered,
+                "total_event_questions": _total_questions,
+                "question": _question,
+                # "points": points,
+            }
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def event_wrong(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+    if _event:
+        allowed, _event_participant_rel = _participant.can_take_event(_event)
+        if not allowed:
+            return redirect("learn.home")
+    else:
+        return redirect("learn.home")
+
+    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
+        .order_by("-answer_date").first().question
+
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+        .aggregate(Count('question'))['question__count']
+    _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
+
+    def get():
+        return render(
+            request,
+            "learn/event_wrong.html",
+            {
+                "state": state,
+                "user": user,
+                "event_questions_answered": _answered,
+                "total_event_questions": _total_questions,
+                "question": _question,
+                # "points": points,
+            }
+        )
+
+    def post():
+        return get()
 
     return resolve_http_method(request, [get, post])
 
@@ -662,46 +743,7 @@ def right(request, state, user):
     request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
-        if "answer_event" in request.session:
-            question = TestingQuestion.objects.get(id=request.session["state"]["answer_event"])
-            del request.session["state"]["answer_event"]
-
-            # Max discussion page
-            request.session["state"]["discussion_page_max"] = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).count()
-
-            # Discussion page?
-            request.session["state"]["discussion_page"] = \
-                min(2, request.session["state"]["discussion_page_max"])
-
-            # Messages for discussion page
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
-
-            return render(
-                request,
-                "learn/right.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": question,
-                    "messages": _messages,
-                    # "points": points,
-                    "question_type": "answer_event"
-                }
-            )
-
-        elif _learnerstate.active_result:
+        if _learnerstate.active_result:
             # Max discussion page
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
@@ -738,42 +780,14 @@ def right(request, state, user):
                     "messages": _messages,
                     "badge": badge,
                     "points": points,
-                    "golden_egg": golden_egg,
-                    "question_type": "answer"
+                    "golden_egg": golden_egg
                 }
             )
         else:
             return HttpResponseRedirect("wrong")
 
     def post():
-        if "answer_event" in request.POST.keys():
-            state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
-                participant=_participant,
-                event=_event
-            ).distinct('participant', 'question', 'event').count()
-            state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
-
-            event_question = _event.get_next_event_question(_participant)
-
-            # take to end page?
-            if not event_question:
-                return redirect("learn.home")
-
-            request.session["state"]["answer_event"] = 0
-
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": event_question,
-                    "sittings": _event.number_sittings,
-                    "question_type": "answer_event"
-
-                }
-            )
-        elif _learnerstate.active_result:
+        if _learnerstate.active_result:
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
             request.session["state"]["report_sent"] = False
@@ -883,46 +897,7 @@ def wrong(request, state, user):
                                   deactivation_date__gt=datetime.now()).first()
 
     def get():
-        if "answer_event" in request.session:
-            question = TestingQuestion.objects.get(id=request.session["state"]["answer_event"])
-            del request.session["state"]["answer_event"]
-
-            # Max discussion page
-            request.session["state"]["discussion_page_max"] = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).count()
-
-            # Discussion page?
-            request.session["state"]["discussion_page"] = \
-                min(2, request.session["state"]["discussion_page_max"])
-
-            # Messages for discussion page
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
-
-            return render(
-                request,
-                "learn/wrong.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": question,
-                    "messages": _messages,
-                    # "points": points,
-                    "question_type": "answer_event"
-                }
-            )
-
-        elif not _learnerstate.active_result:
+        if not _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -955,34 +930,7 @@ def wrong(request, state, user):
             return HttpResponseRedirect("right")
 
     def post():
-        if "answer_event" in request.POST.keys():
-            state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
-                participant=_participant,
-                event=_event
-            ).distinct('participant', 'question', 'event').count()
-            state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
-
-            event_question = _event.get_next_event_question(_participant)
-
-            # take to end page?
-            if not event_question:
-                return redirect("learn.home")
-
-            request.session["state"]["answer_event"] = 0
-
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": event_question,
-                    "sittings": _event.number_sittings,
-                    "question_type": "answer_event"
-
-                }
-            )
-        elif not _learnerstate.active_result:
+        if not _learnerstate.active_result:
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
             request.session["state"]["report_sent"] = False
@@ -1152,28 +1100,7 @@ def event_start_page(request, state, user):
             else:
                 EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
 
-            state["event_questions_answered"] = EventQuestionAnswer.objects.filter(
-                participant=_participant,
-                event=_event
-            ).distinct('participant', 'question', 'event').count()
-            state["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
-
-            event_question = _event.get_next_event_question(_participant)
-
-            request.session["state"]["answer_event"] = 0
-
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": event_question,
-                    "sittings": _event.number_sittings,
-                    "question_type": "answer_event"
-
-                }
-            )
+            return redirect("learn.event")
         else:
             return get()
 

@@ -49,7 +49,11 @@
         <form name="event" action="#" method="post">
             {% csrf_token %}
             <div class="content">
-                <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+                {% if first_sitting %}
+                    <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+                {% else %}
+                    <input class="button green-back grey-front" type="submit" name="take_event" value="Finish {{ event_name }}">
+                {% endif %}
             </div>
         </form>
     {% endif %}

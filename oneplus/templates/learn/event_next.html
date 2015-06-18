@@ -1,0 +1,43 @@
+{% extends "core/main.html" %}
+{% load bleach_tags %}
+{% load oneplus_extras %}
+{% block title %}EVENT{% endblock %}
+
+{% block content %}
+    {% load humanize %}
+    {% if state.report_sent %}
+        <div class="content narrow darkgrey-back pad-top">
+            <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
+        </div>
+    {% endif %}
+
+
+    <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Event Question</p></div>
+    <div class="text heading darkgrey-back"><p>Q {{ event_questions_answered | add:1 }}/{{ total_event_questions }}</p></div>
+
+    {% autoescape off %}
+        <div class="content narrow white-back darkgrey-front">
+            <form action="event" method="post" class="pad-bottom">{% csrf_token %}
+                <p>{{ question.question_content | format_content }}</p>
+                {% for opt in question.testingquestionoption_set.all %}
+                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                    <label class="label-question" for="answer_{{ opt.id }}">
+                    {% if opt.content %}
+                        <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
+                    {% else %}
+                        {{ opt.name }} </label><br/><br/>
+                    {% endif %}
+                {% endfor %}
+                <br/>
+                <div>
+                    <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
+                </div>
+                {% if sittings%}
+                    {% if sittings == 2%}
+                        <a class="button green-back grey-front drop-relative" href="menu">Save & Finish Later</a>
+                    {% endif %}
+                {% endif %}
+            </form>
+        </div>
+    {% endautoescape %}
+{% endblock %}

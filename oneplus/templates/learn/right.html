@@ -12,13 +12,8 @@
             </div>
         {% endif %}
 
-        {% if question_type == "answer_event" %}
-            <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Event Question</p></div>
-            <div class="text heading darkgrey-back"><p>Q {{ state.event_questions_answered }}/{{ state.total_event_questions }}</p></div>
-        {% else %}
-            <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
-            <div class="text heading darkgrey-back"><p>Q {{ state.right_tasks_today }}/{{ state.total_tasks_today }}</p></div>
-        {% endif %}
+        <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
+        <div class="text heading darkgrey-back"><p>Q {{ state.right_tasks_today }}/{{ state.total_tasks_today }}</p></div>
 
         {% autoescape off %}
             {{ state.question_id }}
@@ -54,21 +49,10 @@
                             </div>
                     {% endif %}
                     {% if not preview %}
-                        {% if question_type == "answer_event" %}
-                            {% if state.event_questions_answered >= state.total_event_questions %}
-                                <a class="button green-back grey-front drop" href="event_end_page">Finish</a>
-                            {% else %}
-                                <form name="right_answer" action="" method="post">
-                                    {% csrf_token %}
-                                    <input name="{{ question_type }}" type="submit" class="button green-back grey-front drop" value="Next Question">
-                                </form>
-                            {% endif %}
+                        {% if state.right_tasks_today >= state.total_tasks_today %}
+                            <a class="button green-back grey-front drop" href="home">Done For Today</a>
                         {% else %}
-                            {% if state.right_tasks_today >= state.total_tasks_today %}
-                                <a class="button green-back grey-front drop" href="home">Done For Today</a>
-                            {% else %}
-                                <a class="button green-back grey-front drop" href="next">Next Question</a>
-                            {% endif %}
+                            <a class="button green-back grey-front drop" href="next">Next Question</a>
                         {% endif %}
                     {% endif %}
                 </div>
