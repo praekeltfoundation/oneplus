@@ -101,7 +101,7 @@ def login(request, state):
                                                      ).first()
 
                         if event:
-                            allowed, event_participant_rel = par.can_take_event(event)
+                            allowed, event_participant_rel = par.first().can_take_event(event)
                             if allowed:
                                 return redirect("learn.event_splash_page")
 
