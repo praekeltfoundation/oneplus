@@ -657,7 +657,7 @@ def right(request, state, user, event=False):
     request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
-        if "answer_event" not in request.session:
+        if "answer_event" in request.session:
             question = TestingQuestion.objects.get(id=request.session["state"]["answer_event"])
             del request.session["state"]["answer_event"]
 
@@ -876,7 +876,7 @@ def wrong(request, state, user, event=False):
                                   deactivation_date__gt=datetime.now()).first()
 
     def get():
-        if "answer_event" not in request.session:
+        if "answer_event" in request.session:
             question = TestingQuestion.objects.get(id=request.session["state"]["answer_event"])
             del request.session["state"]["answer_event"]
 
