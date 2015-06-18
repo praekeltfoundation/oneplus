@@ -590,7 +590,7 @@ class GeneralTests(TestCase):
 
         event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
                                      deactivation_date=datetime.now() + timedelta(days=1))
-        EventSplashPage.objects.create(events=event, header="Test Splash Page", paragraph="Test")
+        EventSplashPage.objects.create(event=event, header="Test Splash Page", paragraph="Test")
 
         resp = self.client.get(reverse('learn.event_splash_page'))
 
@@ -641,7 +641,7 @@ class GeneralTests(TestCase):
 
         event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
                                      deactivation_date=datetime.now() + timedelta(days=1))
-        EventStartPage.objects.create(events=event, header="Test Start Page", paragraph="Test")
+        EventStartPage.objects.create(event=event, header="Test Start Page", paragraph="Test")
 
         resp = self.client.get(reverse('learn.event_start_page'))
 
@@ -694,7 +694,7 @@ class GeneralTests(TestCase):
         EventQuestionRel.objects.create(event=event, question=question, order=1)
         EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
                                            question_option=question_option, correct=True, answer_date=datetime.now())
-        EventEndPage.objects.create(events=event, header="Test End Page", paragraph="Test")
+        EventEndPage.objects.create(event=event, header="Test End Page", paragraph="Test")
 
         resp = self.client.get(reverse('learn.event_end_page'))
 
