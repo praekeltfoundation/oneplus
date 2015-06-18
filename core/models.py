@@ -109,8 +109,8 @@ class Participant(models.Model):
         answer.save()
 
     def can_take_event(self, event):
-        event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self)
-
+        event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
+        
         if event_participant_rel:
             if event.number_sittings == 1 or event_participant_rel.results_received:
                 return None, event_participant_rel
