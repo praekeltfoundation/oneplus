@@ -586,6 +586,11 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Test Splash Page")
 
+        EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+
+        resp = self.client.get(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 302)
+
         learner = Learner.objects.create_user(
             username="+27231231231",
             mobile="+27231231231",

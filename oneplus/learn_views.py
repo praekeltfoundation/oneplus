@@ -1072,13 +1072,12 @@ def event_splash_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
-
     if _event:
         allowed, _event_participant_rel = _participant.can_take_event(_event)
         if not allowed:
-            redirect("learn.home")
+            return redirect("learn.home")
     else:
-        redirect("learn.home")
+        return redirect("learn.home")
 
     page = {}
     splash_pages = EventSplashPage.objects.filter(events=_event)
