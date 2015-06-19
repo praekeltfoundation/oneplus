@@ -5,7 +5,9 @@ from organisation.models import Course
 from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
-from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer
+from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
+    EventQuestionRel
+from django.db.models import Count
 
 
 class Class(models.Model):
@@ -112,7 +114,12 @@ class Participant(models.Model):
         event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
 
         if event_participant_rel:
-            if event.number_sittings == 1 or event_participant_rel.results_received:
+            answered = EventQuestionAnswer.objects.filter(participant=self, event=event)\
+                .aggregate(Count('question'))['question__count']
+            total_questions = EventQuestionRel.objects.filter(event=event).\
+                aggregate(Count('question'))['question__count']
+
+            if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
                 return None, event_participant_rel
             else:
                 return True, event_participant_rel

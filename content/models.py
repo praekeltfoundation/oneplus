@@ -265,7 +265,8 @@ class EventSplashPage(models.Model):
 class EventQuestionRel(models.Model):
     order = models.PositiveIntegerField("Order", null=True, blank=False)
     event = models.ForeignKey(Event, null=True, blank=False)
-    question = models.ForeignKey(TestingQuestion, limit_choices_to=dict(module__type=2), null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, limit_choices_to=dict(module__type=2, state=3), null=True,
+                                 blank=False)
 
 
 class EventQuestionAnswer(models.Model):
