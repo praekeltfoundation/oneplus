@@ -192,7 +192,7 @@ class Event(models.Model):
     )
 
     TYPE_CHOICES = (
-        (1, "Spot Test")
+        (1, "Spot Test"),
         (2, "Exam")
     )
 
@@ -282,3 +282,50 @@ class EventParticipantRel(models.Model):
     participant = models.ForeignKey("core.Participant", null=True, blank=False)
     sitting_number = models.PositiveIntegerField(null=True, blank=False)
     results_received = models.BooleanField(default=False)
+
+
+class SUMit(Event):
+    pass
+
+    class Meta:
+        verbose_name = "SUMit!"
+        verbose_name_plural = "SUMit!"
+
+
+class SUMitEndPage(EventEndPage):
+    TYPE_CHOICES = (
+        (1, "Level 1-4"),
+        (2, "Level 5"),
+        (3, "Winner")
+    )
+
+    type = models.PositiveIntegerField(choices=TYPE_CHOICES)
+
+
+class SUMitLevel(models.Model):
+    name = models.CharField("Name", max_length=50)
+    num_easy_questions = models.PositiveIntegerField(
+        "Number of Easy Questions",
+        validators=[MaxValueValidator(3)],
+        default=0,
+        blank=True,
+        null=True
+    )
+    num_normal_questions = models.PositiveIntegerField(
+        "Number of Normal Questions",
+        validators=[MaxValueValidator(3)],
+        default=0,
+        blank=True,
+        null=True
+    )
+    num_advanced_questions = models.PositiveIntegerField(
+        "Number of Advanced Questions",
+        validators=[MaxValueValidator(3)],
+        default=0,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        verbose_name = "SUMit! Level"
+        verbose_name_plural = "SUMit! Levels"
