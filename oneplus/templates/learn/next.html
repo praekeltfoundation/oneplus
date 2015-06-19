@@ -15,7 +15,7 @@
         <div class="text heading darkgrey-back"><p>Q {{ state.next_tasks_today }}/{{ state.total_tasks_today }}</p></div>
 
         {% if golden_egg and golden_egg.question == True %}
-            <div class="text heading darkgrey-back"><p>You’ve found the Golden Egg!</p></div>
+            <div class="text heading darkgrey-back center-font"><p>You’ve found the Golden Egg!</p></div>
             <div class="center-font"><img src="{{ golden_egg.url }}"></div>
         {% endif %}
 
