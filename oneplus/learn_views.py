@@ -220,6 +220,7 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
+            "golden_egg": golden_egg
         })
 
     def update_num_question_metric():
