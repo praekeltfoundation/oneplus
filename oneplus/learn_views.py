@@ -12,7 +12,7 @@ from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
-    EventEndPage, SUMitLevel
+    EventEndPage, SUMitLevel, SUMit
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
@@ -509,6 +509,70 @@ def event_wrong(request, state, user):
         )
 
     def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit(request, state, user):
+    print "SUMit"
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
+                                  ).first()
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    _question = _sumit.get_next_event_question(_participant)
+
+    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit_question = _learnerstate.sumit_question
+
+    sumit = {}
+    sumit["level"] = sumit_level.name
+    for i in range(1, 4):
+        if i in range(1, sumit_question + 1):
+            sumit["url%d" %i] = "media/img/OP_SUMit_Question_04.png"
+        else:
+            sumit["url%d" %i] = "media/img/OP_SUMit_Question_0%d.png" % i
+
+    # if not _question:
+    #     return redirect("learn.home")
+
+    def get():
+        return render(
+            request,
+            "learn/sumit.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _question,
+                "sumit": sumit
+            }
+        )
+
+    def post():
+        if "answer" in request.POST.keys():
+            _event_ans_id = request.POST["answer"]
+
+            options = _sumit.get_next_event_question(_participant).testingquestionoption_set
+            try:
+                _option = options.get(pk=_event_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                return get()
+
+            _participant.answer_event(_sumit, _option.question, _option)
+
+            if _option.correct:
+                return redirect("learn.event_right")
+
+            return redirect("learn.event_wrong")
+
         return get()
 
     return resolve_http_method(request, [get, post])
@@ -1094,10 +1158,14 @@ def event_start_page(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
 
+    sumit = None
     if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if not allowed:
-            return redirect("learn.home")
+        if _event.type != 0:
+            allowed, _event_participant_rel = _participant.can_take_event(_event)
+            if not allowed:
+                return redirect("learn.home")
+        else:
+            sumit = True
     else:
         return redirect("learn.home")
 
@@ -1119,15 +1187,19 @@ def event_start_page(request, state, user):
 
     def post():
         if "event_start_button" in request.POST.keys():
-            if _event_participant_rel:
-                _event_participant_rel.sitting_number += 1
-                _event_participant_rel.save()
+            print not sumit
+            if not sumit:
+                if _event_participant_rel:
+                    _event_participant_rel.sitting_number += 1
+                    _event_participant_rel.save()
+                else:
+                    EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
+
+                request.session["event_session"] = True
+
+                return redirect("learn.event")
             else:
-                EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
-
-            request.session["event_session"] = True
-
-            return redirect("learn.event")
+                return redirect("learn.sumit")
         else:
             return get()
 

@@ -316,6 +316,23 @@ p a { display: inline;}
     margin-top: 22px;
 }
 
+.sumit {
+    position:relative;
+    width: 100%;
+    text-align: center
+ }
+
+.sumit_line {
+    border-top: 8px solid black;
+    display: block;
+    height: 1px;
+    content: " ";
+    width: 100%;
+    left: 0;
+    top: 30px;
+    position: relative
+}
+
 .drop-relative {
     position:relative;
     line-height: 35px;
