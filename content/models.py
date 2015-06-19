@@ -333,6 +333,15 @@ class SUMitLevel(models.Model):
         blank=True,
         null=True
     )
+    image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def image_(self):
+        return '<a href="/media/{0}"><img src="/media/{0}"></a>'.format(
+            self.image)
+    image_.allow_tags = True
 
     class Meta:
         verbose_name = "SUMit! Level"

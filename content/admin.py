@@ -428,9 +428,9 @@ class SUMitAdmin(admin.ModelAdmin):
 
 
 class SUMitLevelAdmin(admin.ModelAdmin):
-    list_display = ("order", "name", "num_easy_questions", "num_normal_questions", "num_advanced_questions")
+    list_display = ("order", "name", "num_easy_questions", "num_normal_questions", "num_advanced_questions", "image_")
     fieldsets = [(None, {"fields": ["order", "name", "num_easy_questions", "num_normal_questions",
-                                    "num_advanced_questions"]})]
+                                    "num_advanced_questions", "image"]})]
     ordering = ["order"]
     form = SUMitLevelForm
 

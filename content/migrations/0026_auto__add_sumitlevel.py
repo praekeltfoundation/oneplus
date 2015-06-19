@@ -16,6 +16,7 @@ class Migration(SchemaMigration):
             ('num_easy_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
             ('num_normal_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
             ('num_advanced_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
+            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal(u'content', ['SUMitLevel'])
 
@@ -106,7 +107,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
             'number_sittings': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
-            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
         },
         u'content.eventendpage': {
             'Meta': {'object_name': 'EventEndPage'},
@@ -205,6 +206,7 @@ class Migration(SchemaMigration):
         u'content.sumitlevel': {
             'Meta': {'object_name': 'SUMitLevel'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'num_advanced_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
             'num_easy_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),

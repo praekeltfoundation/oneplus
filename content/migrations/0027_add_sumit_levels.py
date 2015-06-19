@@ -11,19 +11,24 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        orm.SUMitLevel.objects.create(order=1, name="Basecamp", num_easy_questions=3)
-        orm.SUMitLevel.objects.create(order=2, name="Foothills", num_easy_questions=1, num_normal_questions=2)
-        orm.SUMitLevel.objects.create(order=3, name="Cliffs", num_normal_questions=3)
-        orm.SUMitLevel.objects.create(order=4, name="Peaks", num_normal_questions=1, num_advanced_questions=2)
-        orm.SUMitLevel.objects.create(order=5, name="Summit", num_advanced_questions=3)
+        orm.SUMitLevel.objects.create(order=1, name="Basecamp", num_easy_questions=3,
+                                      image="img/OP_SUMit_Level_01_Basecamp.png")
+        orm.SUMitLevel.objects.create(order=2, name="Foothills", num_easy_questions=1, num_normal_questions=2,
+                                      image="img/OP_SUMit_Level_02_Foothills.png")
+        orm.SUMitLevel.objects.create(order=3, name="Cliffs", num_normal_questions=3,
+                                      image="img/OP_SUMit_Level_03_Cliffs.png")
+        orm.SUMitLevel.objects.create(order=4, name="Peak", num_normal_questions=1, num_advanced_questions=2,
+                                      image="img/OP_SUMit_Level_04_Peak.png")
+        orm.SUMitLevel.objects.create(order=5, name="Summit", num_advanced_questions=3,
+                                      image="img/OP_SUMit_Level_05_Summit.png")
 
     def backwards(self, orm):
         "Write your backwards methods here."
-        orm.SUMitLevel.objects.delete(order=1, name="Basecamp", num_easy_questions=3)
-        orm.SUMitLevel.objects.delete(order=2, name="Foothills", num_easy_questions=1, num_normal_questions=2)
-        orm.SUMitLevel.objects.delete(order=3, name="Cliffs", num_normal_questions=3)
-        orm.SUMitLevel.objects.delete(order=4, name="Peaks", num_normal_questions=1, num_advanced_questions=2)
-        orm.SUMitLevel.objects.delete(order=5, name="Summit", num_advanced_questions=3)
+        orm.SUMitLevel.objects.filter(order=1, name="Basecamp").delete()
+        orm.SUMitLevel.objects.filter(order=2, name="Foothills").delete()
+        orm.SUMitLevel.objects.filter(order=3, name="Cliffs").delete()
+        orm.SUMitLevel.objects.filter(order=4, name="Peak").delete()
+        orm.SUMitLevel.objects.filter(order=5, name="Summit").delete()
 
     models = {
         u'auth.customuser': {
@@ -106,7 +111,7 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
             'number_sittings': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
-            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
         },
         u'content.eventendpage': {
             'Meta': {'object_name': 'EventEndPage'},
@@ -205,6 +210,7 @@ class Migration(DataMigration):
         u'content.sumitlevel': {
             'Meta': {'object_name': 'SUMitLevel'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'num_advanced_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
             'num_easy_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
