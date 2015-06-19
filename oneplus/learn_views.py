@@ -12,7 +12,7 @@ from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
-    EventEndPage
+    EventEndPage, SUMitLevel
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
@@ -28,18 +28,6 @@ from django.db.models import Count
 @oneplus_login_required
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
-    _event = Event.objects.filter(course=_participant.classs.course,
-                                  activation_date__lte=datetime.now(),
-                                  deactivation_date__gt=datetime.now()
-                                  ).first()
-    event_name = None
-    first_sitting = True
-    if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if allowed:
-            event_name = _event.name
-            if _event_participant_rel:
-                first_sitting = False
 
     _start_of_week = date.today() - timedelta(date.today().weekday())
     learnerstate = LearnerState.objects.filter(
@@ -47,6 +35,34 @@ def home(request, state, user):
     ).first()
     if learnerstate is None:
         learnerstate = LearnerState(participant=_participant)
+
+    _event = Event.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
+                                  ).first()
+    event_name = None
+    first_sitting = True
+    sumit = None
+    if _event:
+        if _event.type != 0:
+            allowed, _event_participant_rel = _participant.can_take_event(_event)
+            if allowed:
+                event_name = _event.name
+                if _event_participant_rel:
+                    first_sitting = False
+        else:
+            sumit = {}
+            sumit["name"] = _event.name
+            _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
+            if _sumit_level:
+                sumit["url"] = _sumit_level.image.url
+                sumit["level"] = _sumit_level.name
+            else:
+                learnerstate.sumit_level = 1
+                learnerstate.save()
+                _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
+                sumit["url"] = _sumit_level.image.url
+                sumit["level"] = _sumit_level.name
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -142,7 +158,8 @@ def home(request, state, user):
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user,
                                                    "first_sitting": first_sitting,
-                                                   "event_name": event_name})
+                                                   "event_name": event_name,
+                                                   "sumit": sumit})
 
     def post():
         if "take_event" in request.POST:
@@ -1030,10 +1047,15 @@ def event_splash_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+
+    sumit = None
     if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if not allowed:
-            return redirect("learn.home")
+        if _event.type != 0:
+            allowed, _event_participant_rel = _participant.can_take_event(_event)
+            if not allowed:
+                return redirect("learn.home")
+        else:
+            sumit = {"name": _event.name}
     else:
         return redirect("learn.home")
 
@@ -1052,7 +1074,8 @@ def event_splash_page(request, state, user):
             {
                 "state": state,
                 "user": user,
-                "page": page
+                "page": page,
+                "sumit": sumit
             }
         )
 
