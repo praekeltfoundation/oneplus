@@ -8,7 +8,7 @@ from import_export import fields
 from core.models import ParticipantQuestionAnswer, Participant
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
-    EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet
+    EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm
 from organisation.models import Course
 from django.db.models import Count
 from datetime import datetime
@@ -425,8 +425,11 @@ class SUMitAdmin(admin.ModelAdmin):
 
 
 class SUMitLevelAdmin(admin.ModelAdmin):
-    list_display = ("name", "num_easy_questions", "num_normal_questions", "num_advanced_questions")
-    fieldsets = [(None, {"fields": ["name", "num_easy_questions", "num_normal_questions", "num_advanced_questions"]})]
+    list_display = ("order", "name", "num_easy_questions", "num_normal_questions", "num_advanced_questions")
+    fieldsets = [(None, {"fields": ["order", "name", "num_easy_questions", "num_normal_questions",
+                                    "num_advanced_questions"]})]
+    ordering = ["order"]
+    form = SUMitLevelForm
 
     def has_add_permission(self, request):
         return False
