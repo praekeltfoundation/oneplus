@@ -17,9 +17,9 @@ def menu(request, state, user):
         _participant.learner,
         _participant.classs.course
     )
-    if "in_event" in state:
-        if state["in_event"]:
-            state["in_event"] = False
+
+    if "event_session" in request.session.keys():
+        del request.session['event_session']
 
     def get():
         return render(
