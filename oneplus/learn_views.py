@@ -155,7 +155,7 @@ def home(request, state, user):
                 return get()
             else:
                 if _event_participant_rel:
-                    _event_participant_rel.number_sitting += 1
+                    _event_participant_rel.sitting_number += 1
                     _event_participant_rel.save()
                     request.session["event_session"] = True
                     return redirect("learn.event")
@@ -367,7 +367,6 @@ def event(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
                                   ).first()
-
     if not _event or "event_session" not in request.session.keys():
         if "event_session" in request.session.keys():
             del request.session["event_session"]
@@ -612,20 +611,19 @@ def get_points_awarded(participant):
 
 
 def get_event_points_awarded(participant):
-    # Get current participant question answer
-    answer = EventQuestionAnswer.objects.filter(
-        participant=participant,
-    ).latest('answer_date')
+    total_event_points = 0
 
-    # Get question
-    question = answer.question
+    all_events = EventParticipantRel.objects.filter(participant=participant)
+    for e in all_events:
+        if e.event.event_points:
+            total_event_questions = EventQuestionRel.objects.filter(event=e.event)\
+                .aggregate(Count('question'))['question__count']
+            participant_answers = EventQuestionAnswer.objects.filter(event=e.event, participant=participant)
 
-    # Get points
-    if question.points is 0:
-        question.points = 1
-        question.save()
+            if total_event_questions == participant_answers:
+                total_event_points += e.event.event_points
 
-    return question.points
+    return total_event_points
 
 
 def get_badge_awarded(participant):
@@ -770,7 +768,7 @@ def right(request, state, user):
 
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
-            points = get_points_awarded(_participant)
+            points = get_points_awarded(_participant) + get_event_points_awarded(_participant)
 
             return render(
                 request,
@@ -1143,7 +1141,7 @@ def event_end_page(request, state, user):
         page["percentage"] = round(percentage)
 
         if _event.event_points:
-            _participant.points += _event.event_points;
+            _participant.points += _event.event_points
             _participant.save()
         if _event.airtime:
             mail_managers(subject="Event Airtime Award", message="%s %s %s won R %d airtime from an event"
