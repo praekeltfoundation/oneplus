@@ -192,7 +192,7 @@ class Event(models.Model):
     )
 
     TYPE_CHOICES = (
-        (1, "Spot Test")
+        (1, "Spot Test"),
         (2, "Exam")
     )
 
