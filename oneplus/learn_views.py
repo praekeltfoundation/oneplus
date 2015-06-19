@@ -417,7 +417,6 @@ def event(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-
 @oneplus_state_required
 @oneplus_login_required
 def event_right(request, state, user):
@@ -1224,7 +1223,7 @@ def report_question(request, state, user, questionid, frm):
 
     def post():
         if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                        "fix" in request.POST.keys() and request.POST["fix"] != "":
+                "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]

@@ -281,7 +281,6 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertContains(resp, "5</span><br/>POINTS")
 
-
     def test_first_time(self):
         self.client.get(reverse(
             'auth.autologin',
