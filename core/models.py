@@ -130,9 +130,12 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
+        events = EventParticipantRel.objects.filter(participant=self, results_received=True)
         points = 0
         for answer in answers:
             points += answer.question.points
+        for event in events:
+            points += event.event.event_points
         self.points = points
         self.save()
         return points
