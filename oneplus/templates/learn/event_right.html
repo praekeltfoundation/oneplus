@@ -14,15 +14,6 @@
             <div class="pad-bottom">
                 <div class="xlarge-font center-font pad-bottom">
                     Correct
-                <div class="large-font-normal center-font">
-                    <span class="large-font center-font">
-                        {% if points %}
-                            {{ points }} point{{ points |pluralize }}
-                        {% else %}
-                            0 points
-                        {% endif %}
-                    </span> added.
-                </div>
                 </div>
                 {% if not preview %}
                     {% if event_questions_answered >= total_event_questions %}

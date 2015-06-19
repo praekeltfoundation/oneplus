@@ -22,6 +22,7 @@ from oneplus.views import oneplus_state_required, oneplus_login_required, _conte
 from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
 from django.db.models import Count
+from requests.sessions import session
 
 
 @oneplus_state_required
@@ -40,6 +41,10 @@ def home(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
                                   ).first()
+
+    if "event_session" in request.session.keys():
+        del request.session['event_session']
+
     event_name = None
     first_sitting = True
     sumit = None
@@ -162,16 +167,18 @@ def home(request, state, user):
                                                    "sumit": sumit})
 
     def post():
-        if "take_event" in request.POST:
+        if "take_event" in request.POST.keys():
             if not _event or not allowed:
                 return get()
             else:
                 if _event_participant_rel:
                     _event_participant_rel.number_sitting += 1
                     _event_participant_rel.save()
-                    return redirect("learn.event_next")
+                    request.session["event_session"] = True
+                    return redirect("learn.event")
                 else:
                     return redirect("learn.event_start_page")
+        return get()
 
     return resolve_http_method(request, [get, post])
 
@@ -378,26 +385,24 @@ def event(request, state, user):
                                   deactivation_date__gt=datetime.now()
                                   ).first()
 
-    if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        # if allowed:
-        _event_question = _event.get_next_event_question(_participant)
-        #
-        #     if not _event_question:
-        #         return redirect("learn.home")
-        # else:
-        #     return redirect("learn.home")
-    else:
+    if not _event or "event_session" not in request.session.keys():
+        if "event_session" in request.session.keys():
+            del request.session["event_session"]
         return redirect("learn.home")
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+    _event_question = _event.get_next_event_question(_participant)
+
+    if not _event_question:
+        return redirect("learn.home")
+
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event)\
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
     def get():
         return render(
             request,
-            "learn/event_next.html",
+            "learn/event.html",
             {
                 "state": state,
                 "user": user,
@@ -409,14 +414,14 @@ def event(request, state, user):
         )
 
     def post():
-        if "answer" in request.POST:
+        if "answer" in request.POST.keys():
             _event_ans_id = request.POST["answer"]
 
             options = _event.get_next_event_question(_participant).testingquestionoption_set
             try:
                 _option = options.get(pk=_event_ans_id)
             except TestingQuestionOption.DoesNotExist:
-                return redirect("learn.next")
+                return get()
 
             _participant.answer_event(_event, _option.question, _option)
 
@@ -438,11 +443,10 @@ def event_right(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
-    if not _event:
-        # allowed, _event_participant_rel = _participant.can_take_event(_event)
-        # if not allowed:
-        #     return redirect("learn.home")
-    # else:
+
+    if not _event or "event_session" not in request.session.keys():
+        if "event_session" in request.session.keys():
+            del request.session['event_session']
         return redirect("learn.home")
 
     _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
@@ -462,7 +466,6 @@ def event_right(request, state, user):
                 "event_questions_answered": _answered,
                 "total_event_questions": _total_questions,
                 "question": _question,
-                # "points": points,
             }
         )
 
@@ -479,11 +482,10 @@ def event_wrong(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
-    if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if not allowed:
-            return redirect("learn.home")
-    else:
+
+    if not _event or "event_session" not in request.session.keys():
+        if "event_session" in request.session.keys():
+            del request.session['event_session']
         return redirect("learn.home")
 
     _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
@@ -503,7 +505,6 @@ def event_wrong(request, state, user):
                 "event_questions_answered": _answered,
                 "total_event_questions": _total_questions,
                 "question": _question,
-                # "points": points,
             }
         )
 
@@ -1124,6 +1125,8 @@ def event_start_page(request, state, user):
             else:
                 EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
 
+            request.session["event_session"] = True
+
             return redirect("learn.event")
         else:
             return get()
@@ -1138,6 +1141,9 @@ def event_end_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+
+    if "event_session" in request.session.keys():
+        del request.session['event_session']
 
     page = {}
 
