@@ -313,6 +313,14 @@ class EventForm(forms.ModelForm):
                 msg = u"Select a valid date."
                 self._errors["deactivation_date"] = self.error_class([msg])
 
+        if data.get("type"):
+            if data.get("type") == 0:
+                msg = u"Type must be selected"
+                self._errors["type"] = self.error_class([msg])
+        else:
+            msg = u"Type must be selected"
+            self._errors["type"] = self.error_class([msg])
+
         return data
 
     class Meta:
