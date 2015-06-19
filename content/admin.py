@@ -273,6 +273,9 @@ class EventAdmin(admin.ModelAdmin):
     form = EventForm
     add_form = EventForm
 
+    def queryset(self, request):
+        return Event.objects.all().exclude(type=0)
+
     def get_total_users(self, obj):
         return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
     get_total_users.short_description = "Total Users"
