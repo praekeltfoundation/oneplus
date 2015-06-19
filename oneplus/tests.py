@@ -126,6 +126,16 @@ class GeneralTests(TestCase):
         return Event.objects.create(name=name, course=course, activation_date=activation_date,
                                     deactivation_date=deactivation_date, **kwargs)
 
+    def create_event_start_page(self, event, header, paragraph):
+        return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
+
+    def create_event_end_page(self, event, header, paragraph):
+        return EventEndPage.objects.create(event=event, header=header, paragraph=paragraph)
+
+    def create_event_splash_page(self, event, order_number, header, paragraph):
+        return EventSplashPage.objects.create(event=event, order_number=order_number, header=header,
+                                              paragraph=paragraph)
+
     def create_event_question(self, event, question, order):
         return EventQuestionRel.objects.create(event=event, question=question, order=order)
 
@@ -207,19 +217,23 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
 
+        #post with no event
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
         #with event active
         event_module = self.create_module("event_module", self.course, type=2)
         event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
-                                  datetime.now() + timedelta(days=1))
-        start_page = EventStartPage.objects.create(event=event, header="Start Page Header",
-                                                   paragraph="Start Page Paragraph")
-        EventEndPage.objects.create(event=event, header="End Page Header", paragraph="End Page Paragraph")
-        EventSplashPage.objects.create(event=event, header="Splash Page Header", paragraph="Splash Page Paragraph",
-                                       order_number=1)
+                                  datetime.now() + timedelta(days=1), number_sittings=2, event_points=5)
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
+        end_page = self.create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
+        question_1 = self.create_test_question("question_1", event_module, state=3)
+        question_option_1 = self.create_test_question_option("question_1_option", question_1)
+        self.create_event_question(event, question_1, 1)
+        question_2 = self.create_test_question("question_2", event_module, state=3)
+        question_option_2 = self.create_test_question_option("question_2_option", question_2)
+        self.create_event_question(event, question_2, 2)
 
-        question = self.create_test_question("question_1", event_module)
-        self.create_test_question_option("question_1_option", question)
-        self.create_event_question(event, question, 1)
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Take the %s" % event.name)
@@ -230,14 +244,42 @@ class GeneralTests(TestCase):
 
         #take event
         resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
-        self.assertRedirects(resp, "event_start_page", status_code=302, target_status_code=200)
+        self.assertRedirects(resp, "event_start_page")
         self.assertContains(resp, start_page.header)
+
+        #go to event_start_page
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "event")
+
+        #valid correct answer
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': question_option_1.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_right")
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Finish %s" % event.name)
 
         #take event the second time
         resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+        self.assertRedirects(resp, "event")
+
+        #valid correct answer
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': question_option_2.id},
+                                follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertNotContains(resp, "NEXT")
-        self.assertNotContains(resp, "Take the %s" % event.name)
+        self.assertRedirects(resp, "event_right")
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, end_page.header)
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, "5</span><br/>POINTS")
 
     def test_first_time(self):
         self.client.get(reverse(
@@ -405,63 +447,102 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
-    def test_answer_event_nextchallenge(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
+    def test_event(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
 
         #no event
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={
-                'answer_event': 0
-            }, follow=True)
-        self.assertEquals(resp.status_code, 200)
+        resp = self.client.get(reverse('learn.event'))
+        self.assertRedirects(resp, "home")
 
-        #with event
-        event_module = self.create_module("event_module", self.course, type=2)
-        event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
-                                  datetime.now() + timedelta(days=1))
-        EventStartPage.objects.create(event=event, header="Start Page Header",
-                                      paragraph="Start Page Paragraph")
-        EventEndPage.objects.create(event=event, header="End Page Header", paragraph="End Page Paragraph")
-        EventSplashPage.objects.create(event=event, header="Splash Page Header", paragraph="Splash Page Paragraph",
-                                       order_number=1)
-        question = self.create_test_question("question_1", event_module)
+        #create event
+        event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+        event_module = self.create_module("Event Module", self.course, type=2)
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        #no event questions
+        resp = self.client.get(reverse('learn.event'))
+        self.assertRedirects(resp, "home")
+
+        #add question to event
+        question = self.create_test_question("Event Question", event_module, state=3)
         correct_option = self.create_test_question_option("question_1_option_1", question)
-        incorrect_option = self.create_test_question_option("question_1_option_2", question)
+        incorrect_option = self.create_test_question_option("question_1_option_2", question, correct=False)
         self.create_event_question(event, question, 1)
 
-        #invalid option
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={
-                'answer_event': correct_option.id+1
-            }, follow=True)
+        #delete EventParticipantRel before calling event_start_page
+        EventParticipantRel.objects.filter(event=event, participant=self.participant).delete()
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse('learn.event'))
         self.assertEquals(resp.status_code, 200)
 
-        EventParticipantRel.objects.filter(event=event, participant=self.participant).delete()
-        EventQuestionAnswer.objects.filter(event=event, participant=self.participant).delete()
+        #no data in post
+        resp = self.client.post(reverse('learn.event'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #invalid option
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': 99},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
 
         #valid correct answer
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={
-                'answer_event': correct_option.id
-            }, follow=True)
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': correct_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_right")
+
+        #test event right post
+        resp = self.client.post(reverse("learn.event_right"))
         self.assertEquals(resp.status_code, 200)
 
-        EventParticipantRel.objects.filter(event=event, participant=self.participant).delete()
-        EventQuestionAnswer.objects.filter(event=event, participant=self.participant).delete()
+        EventQuestionAnswer.objects.filter(participant=self.participant, event=event, question=question).delete()
 
         #valid incorrect answer
-        resp = self.client.post(
-            reverse('learn.next'),
-            data={
-                'answer_event': incorrect_option.id
-            }, follow=True)
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': incorrect_option.id},
+                                follow=True)
         self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_wrong")
+
+        #test event right post
+        resp = self.client.post(reverse("learn.event_wrong"))
+        self.assertEquals(resp.status_code, 200)
+
+    def test_event_right(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse("learn.event_right"))
+        self.assertRedirects(resp, "home")
+
+    def test_event_wrong(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse("learn.event_wrong"))
+        self.assertRedirects(resp, "home")
 
     def test_answer_correct_nextchallenge(self):
         self.client.get(
@@ -651,49 +732,30 @@ class GeneralTests(TestCase):
                 kwargs={'token': self.learner.unique_token})
         )
 
+        #no event
         resp = self.client.get(reverse('learn.event_splash_page'))
-        self.assertEquals(resp.status_code, 302)
+        self.assertRedirects(resp, "home")
 
-        event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
-                                     deactivation_date=datetime.now() + timedelta(days=1))
-        EventSplashPage.objects.create(event=event, header="Test Splash Page", paragraph="Test")
+        #create event
+        event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        splash_page = self.create_event_splash_page(event, 1, "Test Splash Page", "Test Paragraph")
+        event_module = self.create_module("Event Module", self.course, type=2)
+        question = self.create_test_question("Event Question", event_module, state=3)
+        self.create_event_question(event, question, 1)
 
         resp = self.client.get(reverse('learn.event_splash_page'))
-
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test Splash Page")
+        self.assertContains(resp, splash_page.header)
+
+        resp = self.client.post(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, splash_page.header)
 
         EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
 
         resp = self.client.get(reverse('learn.event_splash_page'))
-        self.assertEquals(resp.status_code, 302)
-
-        learner = Learner.objects.create_user(
-            username="+27231231231",
-            mobile="+27231231231",
-            password='1234'
-        )
-        learner.save()
-        learner.is_active = True
-        learner.save()
-
-        self.create_participant(
-            learner,
-            self.classs,
-            datejoined=datetime.now())
-
-        c = Client()
-
-        resp = c.post(
-            reverse('auth.login'),
-            data={
-                'username': "+27231231231",
-                'password': '1234'},
-            follow=True
-        )
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test Splash Page")
+        self.assertRedirects(resp, "home")
 
     def test_event_start_page(self):
         self.client.get(
@@ -702,39 +764,46 @@ class GeneralTests(TestCase):
                 kwargs={'token': self.learner.unique_token})
         )
 
+        #no event
         resp = self.client.get(reverse('learn.event_start_page'))
-        self.assertEquals(resp.status_code, 302)
+        self.assertRedirects(resp, "home")
 
-        event = Event.objects.create(name="Test event", course=self.course, activation_date=datetime.now(),
-                                     deactivation_date=datetime.now() + timedelta(days=1))
-        EventStartPage.objects.create(event=event, header="Test Start Page", paragraph="Test")
+        #create event
+        event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+        event_module = self.create_module("Event Module", self.course, type=2)
+        question = self.create_test_question("Event Question", event_module, state=3)
+        self.create_event_question(event, question, 1)
 
+        #with event
         resp = self.client.get(reverse('learn.event_start_page'))
-
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test Start Page")
+        self.assertContains(resp, start_page.header)
 
-        EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+        #no data in post
+        resp = self.client.post(reverse("learn.event_start_page"), data={}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, start_page.header)
 
-        resp = self.client.get(reverse('learn.event_start_page'))
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "event")
+        self.assertContains(resp, "EVENT")
 
-        self.assertEquals(resp.status_code, 302)
+        #attempt to load start page again
+        resp = self.client.get(reverse("learn.event_start_page"))
+        self.assertRedirects(resp, "home")
 
+        #change to multiple sittings
         event.number_sittings = 2
         event.save()
 
-        resp = self.client.get(reverse('learn.event_start_page'))
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test Start Page")
-
-        resp = self.client.post(reverse("learn.event_start_page"), data={}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test Start Page")
-
-        resp = self.client.post(reverse("learn.event_start_page"), data={"event_start_button":"a"}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "NEXT")
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "event")
+        event_participant_rel = EventParticipantRel.objects.get(event=event, participant=self.participant)
+        self.assertEquals(event_participant_rel.sitting_number, 2)
 
     def test_event_end_page(self):
         self.client.get(
@@ -743,8 +812,13 @@ class GeneralTests(TestCase):
                 kwargs={'token': self.learner.unique_token})
         )
 
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
         resp = self.client.get(reverse('learn.event_end_page'))
-        self.assertEquals(resp.status_code, 302)
+        self.assertRedirects(resp, "home")
 
         spot_test = GamificationBadgeTemplate.objects.create(name="Spot Test 1")
         badge = GamificationScenario.objects.create(name="Spot Test 1", badge=spot_test, event="SPOT_TEST_1",
@@ -753,7 +827,7 @@ class GeneralTests(TestCase):
         event = Event.objects.create(name="Spot Test event", course=self.course, activation_date=datetime.now(),
                                      deactivation_date=datetime.now() + timedelta(days=1), event_points=5, airtime=5,
                                      event_badge=badge)
-        for i in range (1, 6):
+        for i in range(1, 6):
             EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
         question = self.create_test_question("Event question", self.module)
         question_option = self.create_test_question_option("Option 1", question, True)
@@ -1895,6 +1969,12 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
         resp = self.client.get(reverse('core.menu'))
         self.assertEquals(resp.status_code, 200)
 
