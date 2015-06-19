@@ -11,6 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'SUMitLevel'
         db.create_table(u'content_sumitlevel', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('order', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
             ('num_easy_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
             ('num_normal_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
@@ -207,7 +208,8 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'num_advanced_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
             'num_easy_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'num_normal_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'})
+            'num_normal_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
         },
         u'content.testingquestion': {
             'Meta': {'ordering': "['name']", 'object_name': 'TestingQuestion'},

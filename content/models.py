@@ -304,6 +304,13 @@ class SUMitEndPage(EventEndPage):
 
 
 class SUMitLevel(models.Model):
+    order = models.PositiveIntegerField(
+        "Order",
+        validators=[MaxValueValidator(5)],
+        default=0,
+        blank=False,
+        null=False
+    )
     name = models.CharField("Name", max_length=50)
     num_easy_questions = models.PositiveIntegerField(
         "Number of Easy Questions",
