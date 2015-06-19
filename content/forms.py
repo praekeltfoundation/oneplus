@@ -296,14 +296,22 @@ class EventForm(forms.ModelForm):
             self._errors["airtime"] = self.error_class([msg])
             self._errors["event_badge"] = self.error_class([msg])
 
-        if data.get('activation_date') < datetime.now():
-            msg = u"Invalid date selected."
+        if data.get('activation_date'):
+            if data.get('activation_date') < datetime.now():
+                msg = u"Invalid date selected."
+                self._errors["activation_date"] = self.error_class([msg])
+        else:
+            msg = u"Select a valid date."
             self._errors["activation_date"] = self.error_class([msg])
 
-        if data.get('deactivation_date') < datetime.now() or \
-                data.get('deactivation_date') < data.get('activation_date'):
+        if not data.get('deactivation_date'):
             msg = u"Invalid date selected."
             self._errors["deactivation_date"] = self.error_class([msg])
+        else:
+            if data.get('deactivation_date') < datetime.now() or \
+                    data.get('deactivation_date') < data.get('activation_date'):
+                msg = u"Select a valid date."
+                self._errors["deactivation_date"] = self.error_class([msg])
 
         return data
 

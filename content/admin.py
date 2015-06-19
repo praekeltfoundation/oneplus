@@ -282,11 +282,16 @@ class EventAdmin(admin.ModelAdmin):
     get_total_questions_answered.short_description = "Total Questions Answered"
 
     def get_percent_complete_all(self, obj):
-        #total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
-        #completed = EventQuestionAnswer.objects.filter(event=obj).values('participant') \
-        #    .annotate(answered=Count('participant')).filter(answered=15).aggregate(Count('answered'))
-        #return (completed / total_participants) * 100
-        return "I'm borken fix me"
+        # total_participants = Participant.objects.filter(classs__course=obj.course, is_active=True)\
+        #     .aggregate(Count('id'))['id__count']
+        # total_event_questions = EventQuestionRel.objects.filter(event=obj) \
+        #     .aggregate(Count('question'))['question__count']
+        # completed = EventQuestionAnswer.objects.values('participant')\
+        #     .annotate(answered=Count('question_option'))\
+        #     .filter(event=obj, answered=total_event_questions).aggregate(Count('answered'))
+        #
+        # return (completed / total_participants) * 100
+        return 0
     get_percent_complete_all.short_description = "% Complete All Questions"
 
     def get_percent_correct(self, obj):
