@@ -17,6 +17,8 @@ class LearnerState(models.Model):
     )
     active_result = models.NullBooleanField()
     golden_egg_question = models.PositiveIntegerField(default=0)
+    sumit_level = models.PositiveIntegerField(default=0)
+    sumit_question = models.PositiveIntegerField(default=0)
     QUESTIONS_PER_DAY = 3
     MONDAY = 0
     FRIDAY = 4
