@@ -4476,6 +4476,8 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/content/mathml/")
         self.admin_page_test_helper(c, "/admin/content/testingquestionoption/")
         self.admin_page_test_helper(c, "/admin/content/testingquestion/")
+        self.admin_page_test_helper(c, "/admin/content/goldenegg/")
+        self.admin_page_test_helper(c, "/admin/content/event/")
 
     def test_core_admin_pages_render(self):
         c = Client()
