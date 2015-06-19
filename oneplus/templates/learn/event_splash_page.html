@@ -1,0 +1,21 @@
+{% extends "core/main.html" %}
+{% load bleach_tags %}
+{% load oneplus_extras %}
+{% block title %}EVENT SPLASH PAGE{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<div class="content narrow white-back darkgrey-front">
+    <div class="pad-bottom">
+
+        <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
+        <div class="large-font center-font"><p>{{ page.message }}</p></div>
+
+        <a class="button green-back grey-front drop-relative" href="event_start_page">Take It!</a>
+        <a href="home"><div class="center-font">Skip to your normal daily challenge</div></a>
+    </div>
+</div>
+
+
+{% endblock %}

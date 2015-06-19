@@ -1,0 +1,60 @@
+{% extends "core/main.html" %}
+{% load bleach_tags %}
+{% load oneplus_extras %}
+{% block title %}RIGHT{% endblock %}
+
+{% block content %}
+    {% load humanize %}
+
+    <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Event Question</p></div>
+    <div class="text heading darkgrey-back"><p>Q {{ event_questions_answered }}/{{ total_event_questions }}</p></div>
+
+    {% autoescape off %}
+        <div class="content narrow white-back darkgrey-front">
+            <div class="pad-bottom">
+                <div class="xlarge-font center-font pad-bottom">
+                    Correct
+                </div>
+                {% if not preview %}
+                    {% if event_questions_answered >= total_event_questions %}
+                        <a class="button green-back grey-front drop" href="event_end_page">Finish</a>
+                    {% else %}
+                        <a class="button green-back grey-front drop" href="event">Next Question</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="content narrow white-back darkgrey-front">
+            <h1 class="green-front" style="padding-top: 15px">Question</h1>
+            <p>{{ question.question_content | format_content }}</p>
+
+            <h1 class="green-front" style="padding-top: 15px">Options</h1>
+            {% for opt in question.testingquestionoption_set.all %}
+                <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                <label class="label-question" for="answer_{{ opt.id }}">
+                {% if opt.content %}
+                    <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
+                {% else %}
+                    {{ opt.name }} </label><br/><br/>
+                {% endif %}
+            {% endfor %}
+
+            <h1 class="green-front" style="padding-top: 15px">Correct Answer:</h1>
+            {% for opt in question.testingquestionoption_set.all %}
+                {% if  opt.correct %}
+                    <p>Option {{ forloop.counter }}:
+                        {% if opt.content %}
+                            <div class="align-option"> {{ opt.content | format_option  }}</div> </label>
+                        {% else %}
+                            {{ opt.name }} </label>
+                        {% endif %}
+                    </p>
+                {% endif %}
+            {% endfor %}
+
+            <h1 class="green-front" style="padding-top: 15px">Solution</h1>
+            <p>{{ question.answer_content | format_content  }}</p>
+        </div>
+    {% endautoescape %}
+{% endblock %}
