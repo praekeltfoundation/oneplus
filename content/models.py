@@ -310,6 +310,17 @@ class SUMit(Event):
                 EventQuestionRel.objects.create(order=order, question=question, event=self)
                 order += 1
 
+    def get_next_sumit_question(self, participant, level, question):
+        if self.is_active():
+            self.get_questions()
+            difficulty = SUMitLevel.objects.values("question_%d" % question).get(order=level).values()[0]
+            answered = EventQuestionAnswer.objects.filter(participant=participant, event=self,
+                                                          question__difficulty=difficulty).\
+                aggregate(Count('question'))['question__count']
+            return EventQuestionRel.objects.filter(event=self, order=answered+1,
+                                                   question__difficulty=difficulty).first().question
+        return None
+
     class Meta:
         verbose_name = "SUMit!"
         verbose_name_plural = "SUMit!"
