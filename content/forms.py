@@ -4,7 +4,8 @@ import os
 import shutil
 
 from django import forms
-from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage
+from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage, SUMit
+from gamification.models import GamificationScenario
 import requests
 from django.conf import settings
 from core.models import Class
@@ -406,6 +407,35 @@ class EventQuestionRelInline(forms.models.BaseInlineFormSet):
                 if page.get('order') != count:
                     raise forms.ValidationError({'name': ["Order number's must start with 1 and increment by 1 for "
                                                           "each questions added.", ]})
+
+
+class SUMitForm(forms.ModelForm):
+    badge = forms.ModelChoiceField(queryset=GamificationScenario.objects.filter(name="SUMit!"))
+
+    def clean(self):
+        data = self.cleaned_data
+
+        if data.get('activation_date'):
+            if data.get('activation_date') < datetime.now():
+                msg = u"Invalid date selected."
+                self._errors["activation_date"] = self.error_class([msg])
+        else:
+            msg = u"Select a valid date."
+            self._errors["activation_date"] = self.error_class([msg])
+
+        if not data.get('deactivation_date'):
+            msg = u"Invalid date selected."
+            self._errors["deactivation_date"] = self.error_class([msg])
+        else:
+            if data.get('deactivation_date') < datetime.now() or \
+                    data.get('deactivation_date') < data.get('activation_date'):
+                msg = u"Select a valid date."
+                self._errors["deactivation_date"] = self.error_class([msg])
+
+        return data
+
+    class Meta:
+        model = SUMit
 
 
 class SUMitEndPageInlineFormSet(forms.models.BaseInlineFormSet):
