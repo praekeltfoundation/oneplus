@@ -376,7 +376,7 @@ class SUMitAdmin(admin.ModelAdmin):
         total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
         completed = len(EventQuestionAnswer.objects.values('participant').filter(correct=True).\
             annotate(answered=Count('question_option')).values('participant').filter(answered=15))
-        return (completed / total_participants) * 100
+        return round((float(completed) / total_participants) * 100)
     get_percent_complete_all.short_description = "% Complete All Questions"
 
     def get_percent_correct_easy(self, obj):
@@ -384,7 +384,7 @@ class SUMitAdmin(admin.ModelAdmin):
         correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
             .aggregate(Count('correct'))['correct__count']
         if answered > 0:
-            return (correct / answered) * 100
+            return round((float(correct) / answered) * 100)
         else:
             return 0
     get_percent_correct_easy.short_description = "% Correct Easy Questions Answered"
@@ -394,7 +394,7 @@ class SUMitAdmin(admin.ModelAdmin):
         correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
             .aggregate(Count('correct'))['correct__count']
         if answered > 0:
-            return (correct / answered) * 100
+            return round((float(correct) / answered) * 100)
         else:
             return 0
     get_percent_correct_normal.short_description = "% Correct Normal Questions Answered"
@@ -404,14 +404,14 @@ class SUMitAdmin(admin.ModelAdmin):
         correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
             .aggregate(Count('correct'))['correct__count']
         if answered > 0:
-            return (correct / answered) * 100
+            return round((float(correct) / answered) * 100)
         else:
             return 0
     get_percent_correct_advanced.short_description = "% Correct Advanced Questions Answered"
 
     def get_winners(self, obj):
         participant_string = ""
-        winner_ids = EventQuestionAnswer.objects.values('participant').filter(correct=True).\
+        winner_ids = EventQuestionAnswer.objects.values('participant').filter(event=obj, correct=True).\
             annotate(correct=Count('question_option')).values('participant').filter(correct=15)
         all_participants = Participant.objects.filter(id__in=winner_ids)
         for p in all_participants:
