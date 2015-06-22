@@ -6,6 +6,7 @@ from django.utils.html import remove_tags
 from mobileu.utils import format_content, format_option
 from django.db.models import Count
 from datetime import datetime
+from organisation.models import CourseModuleRel
 
 
 class LearningChapter(models.Model):
@@ -291,11 +292,12 @@ class SUMit(Event):
     def get_questions(self):
         event_question_rel = EventQuestionRel.objects.filter(event=self)
         if not event_question_rel:
-            easy_questions = TestingQuestion.objects.filter(module__coursemodulerel=self.course.coursemodulerel,
+            modules = CourseModuleRel.objects.filter(course=self.course)
+            easy_questions = TestingQuestion.objects.filter(module__in=modules,
                                                             difficulty=2).order_by("?")[:15]
-            normal_questions = TestingQuestion.objects.filter(module__course=self.course,
+            normal_questions = TestingQuestion.objects.filter(module__in=modules,
                                                               difficulty=3).order_by("?")[:11]
-            advanced_questions = TestingQuestion.objects.filter(module__course=self.course,
+            advanced_questions = TestingQuestion.objects.filter(module__in=modules,
                                                                 difficulty=4).order_by("?")[:5]
             order = 1
             for question in easy_questions:
