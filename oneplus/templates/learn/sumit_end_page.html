@@ -1,0 +1,33 @@
+{% extends "core/main.html" %}
+{% load bleach_tags %}
+{% load oneplus_extras %}
+{% block title %}EVENT END PAGE{% endblock %}
+
+{% block content %}
+{% load humanize %}
+
+<div class="content narrow white-back darkgrey-front">
+    <div class="pad-bottom">
+
+        <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
+        <div class="large-font center-font">You made it to:</div>
+        <div class="xlarge-font center-font pad-bottom">{{ sumit.level }}%</div>
+        <div class="large-font center-font">And earned:</div>
+        <div class="xlarge-font center-font pad-bottom">{{ sumit.points }}%</div>
+        <div class="large-font center-font">{{ page.message }}</div>
+
+        {% if badge %}
+            <div class="badge-layout">
+                {% if badge.image %}
+                    <span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>
+                {% endif %}
+                <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
+            </div>
+        {% endif %}
+
+        <a class="button green-back grey-front" href="home">Done</a>
+    </div>
+</div>
+
+
+{% endblock %}

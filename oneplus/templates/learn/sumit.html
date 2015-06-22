@@ -1,7 +1,7 @@
 {% extends "core/main.html" %}
 {% load bleach_tags %}
 {% load oneplus_extras %}
-{% block title %}EVENT{% endblock %}
+{% block title %}SUMit!{% endblock %}
 
 {% block content %}
     {% load humanize %}
@@ -15,20 +15,22 @@
     <div class="text heading green-back darkgrey-front center-font"><p>SUMit!</p></div>
 
     {% if sumit %}
-        <div class="center-font content">
-            <span class="large-font center-font">{{ sumit.level }}</span>
-        </div>
-        <div class="sumit_line"></div>
-        <div class="sumit">
-            <img class="badge-img" src="{{ sumit.url1 }}">
-            <img class="badge-img" src="{{ sumit.url2 }}">
-            <img class="badge-img" src="{{ sumit.url3 }}">
+        <div class="sumit_content">
+            <div class="center-font">
+                <span class="large-font center-font">{{ sumit.level }}</span>
+            </div>
+            <div class="sumit_line"></div>
+            <div class="sumit">
+                <img class="badge-img" src="{{ sumit.url1 }}">
+                <img class="badge-img" src="{{ sumit.url2 }}">
+                <img class="badge-img" src="{{ sumit.url3 }}">
+            </div>
         </div>
     {% endif %}
 
     {% autoescape off %}
         <div class="content narrow white-back darkgrey-front">
-            <form action="event" method="post" class="pad-bottom">{% csrf_token %}
+            <form action="sumit" method="post" class="pad-bottom">{% csrf_token %}
                 <p>{{ question.question_content | format_content }}</p>
                 {% for opt in question.testingquestionoption_set.all %}
                     <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">

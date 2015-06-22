@@ -12,7 +12,7 @@ from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
-    EventEndPage, SUMitLevel, SUMit
+    EventEndPage, SUMitLevel, SUMit, SUMitEndPage
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
@@ -129,15 +129,28 @@ def home(request, state, user):
     request.session["state"]["home_required_tasks"] \
         = learnerstate.get_total_questions()
 
-    request.session["state"]["home_tasks"] = ParticipantQuestionAnswer.objects.filter(
-        participant=_participant,
-        answerdate__gte=_start_of_week
-    ).count()
-    request.session["state"]["home_correct"] = ParticipantQuestionAnswer.objects.filter(
-        participant=_participant,
-        correct=True,
-        answerdate__gte=_start_of_week
-    ).count()
+    if not sumit:
+        request.session["state"]["home_tasks"] = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=_start_of_week
+        ).count()
+        request.session["state"]["home_correct"] = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            correct=True,
+            answerdate__gte=_start_of_week
+        ).count()
+    else:
+        request.session["state"]["home_tasks"] = EventQuestionAnswer.objects.filter(
+            event=_event,
+            participant=_participant,
+            answer_date__gte=_start_of_week
+        ).count()
+        request.session["state"]["home_correct"] = EventQuestionAnswer.objects.filter(
+            event=_event,
+            participant=_participant,
+            correct=True,
+            answer_date__gte=_start_of_week
+        ).count()
     request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
 
     def get():
@@ -515,7 +528,6 @@ def event_wrong(request, state, user):
 @oneplus_state_required
 @oneplus_login_required
 def sumit(request, state, user):
-    print "SUMit"
     _participant = Participant.objects.get(pk=user["participant_id"])
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -526,7 +538,14 @@ def sumit(request, state, user):
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
-    _question = _sumit.get_next_event_question(_participant)
+    request.session["state"]["next_tasks_today"] = \
+        EventQuestionAnswer.objects.filter(
+            event=_sumit,
+            participant=_participant,
+            answerdate__gte=date.today()
+        ).distinct('participant', 'question').count() + 1
+
+    _question = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level, _learnerstate.sumit_question)
 
     sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
     sumit_question = _learnerstate.sumit_question
@@ -534,15 +553,19 @@ def sumit(request, state, user):
     sumit = {}
     sumit["level"] = sumit_level.name
     for i in range(1, 4):
-        if i in range(1, sumit_question + 1):
+        if i in range(1, sumit_question):
             sumit["url%d" %i] = "media/img/OP_SUMit_Question_04.png"
         else:
             sumit["url%d" %i] = "media/img/OP_SUMit_Question_0%d.png" % i
 
-    # if not _question:
-    #     return redirect("learn.home")
+    if not _question:
+        return redirect("learn.home")
 
     def get():
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+                    return redirect("learn.home")
+
         return render(
             request,
             "learn/sumit.html",
@@ -558,23 +581,143 @@ def sumit(request, state, user):
         if "answer" in request.POST.keys():
             _event_ans_id = request.POST["answer"]
 
-            options = _sumit.get_next_event_question(_participant).testingquestionoption_set
+            options = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level,
+                                                     _learnerstate.sumit_question).testingquestionoption_set
             try:
                 _option = options.get(pk=_event_ans_id)
             except TestingQuestionOption.DoesNotExist:
                 return get()
 
             _participant.answer_event(_sumit, _option.question, _option)
+            state["total_tasks_today"] = _learnerstate.get_total_questions()
 
             if _option.correct:
-                return redirect("learn.event_right")
+                return redirect("learn.sumit_right")
 
-            return redirect("learn.event_wrong")
+            return redirect("learn.sumit_wrong")
 
         return get()
 
     return resolve_http_method(request, [get, post])
 
+@oneplus_state_required
+@oneplus_login_required
+def sumit_right(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    _learnerstate.sumit_question += 1
+    _learnerstate.save()
+    if _learnerstate.sumit_question > 3:
+        _learnerstate.sumit_level += 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+    request.session["state"]["right_tasks_today"] = \
+        EventQuestionAnswer.objects.filter(event=_sumit,
+                                           participant=_participant, answer_date__gte=date.today()
+                                           ).distinct('participant', 'question').count()
+
+    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit_question = _learnerstate.sumit_question
+
+    _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant)\
+        .order_by("-answer_date").first().question
+
+    sumit = {}
+    sumit["level"] = sumit_level.name
+    for i in range(1, 4):
+        if i in range(1, sumit_question):
+            sumit["url%d" %i] = "media/img/OP_SUMit_Question_04.png"
+        else:
+            sumit["url%d" %i] = "media/img/OP_SUMit_Question_0%d.png" % i
+
+    num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
+    num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
+
+    sumit["finsihed"] = None
+    if num_sumit_questions == num_sumit_questions_answered:
+        sumit["finished"] = True
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_right.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _question,
+                "sumit": sumit
+            }
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit_wrong(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    request.session["state"]["right_tasks_today"] = \
+        EventQuestionAnswer.objects.filter(event=_sumit,
+                                           participant=_participant, answer_date__gte=date.today()
+                                           ).distinct('participant', 'question').count()
+
+    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit_question = _learnerstate.sumit_question
+
+    _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant)\
+        .order_by("-answer_date").first().question
+
+    sumit = {}
+    sumit["level"] = sumit_level.name
+    for i in range(1, 4):
+        if i in range(1, sumit_question):
+            sumit["url%d" %i] = "media/img/OP_SUMit_Question_04.png"
+        else:
+            sumit["url%d" %i] = "media/img/OP_SUMit_Question_0%d.png" % i
+
+    num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
+    num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
+
+    sumit["finsihed"] = None
+    if num_sumit_questions == num_sumit_questions_answered:
+        sumit["finished"] = True
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_wrong.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _question,
+                "sumit": sumit
+            }
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
 
 @user_passes_test(lambda u: u.is_staff)
 def adminpreview(request, questionid):
@@ -1184,7 +1327,6 @@ def event_start_page(request, state, user):
 
     def post():
         if "event_start_button" in request.POST.keys():
-            print not sumit
             if not sumit:
                 if _event_participant_rel:
                     _event_participant_rel.sitting_number += 1
@@ -1196,6 +1338,15 @@ def event_start_page(request, state, user):
 
                 return redirect("learn.event")
             else:
+                _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+                if _learnerstate is None:
+                    _learnerstate = LearnerState(participant=_participant)
+
+                _learnerstate.sumit_level = 1
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+
                 return redirect("learn.sumit")
         else:
             return get()
@@ -1269,6 +1420,76 @@ def event_end_page(request, state, user):
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "EXAM",
+                module
+            )
+    else:
+        return redirect("learn.home")
+    badge, badge_points = get_badge_awarded(_participant)
+
+    def get():
+        return render(
+            request,
+            "learn/event_end_page.html",
+            {
+                "state": state,
+                "user": user,
+                "page": page,
+                "badge": badge,
+            }
+        )
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit_end_page(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    page = {}
+    sumit = {}
+
+    num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
+    num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
+
+    if num_sumit_questions == num_sumit_questions_answered:
+        if _learnerstate.sumit_level in range(1, 5):
+            end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
+        elif _learnerstate.sumit_level == 5:
+            num_sumit_questions_correct = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant,
+                                                                              correct=True).count()
+            if num_sumit_questions_correct == num_sumit_questions:
+                end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
+            else:
+                end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
+
+        sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+        sumit["points"] = _sumit.event_points
+
+        page["header"] = end_page.header
+        page["message"] = end_page.paragraph
+
+        if _sumit.event_points:
+            _participant.points += _sumit.event_points
+            _participant.save()
+        if _sumit.airtime:
+            mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
+                                                                  % (_participant.learner.first_name,
+                                                                     _participant.learner.last_name,
+                                                                     _participant.learner.mobile,
+                                                                     _sumit.airtime), fail_silently=False)
+        if _sumit.event_badge:
+            module = CourseModuleRel.objects.filter(course=_sumit.course).first()
+            _participant.award_scenario(
+                _sumit.event_badge.event,
                 module
             )
     else:
