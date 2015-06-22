@@ -291,7 +291,7 @@ class SUMit(Event):
     def get_questions(self):
         event_question_rel = EventQuestionRel.objects.filter(event=self)
         if not event_question_rel:
-            easy_questions = TestingQuestion.objects.filter(module__course=self.course,
+            easy_questions = TestingQuestion.objects.filter(module__courses__course=self.course,
                                                             difficulty=2).order_by("?")[:15]
             normal_questions = TestingQuestion.objects.filter(module__course=self.course,
                                                               difficulty=3).order_by("?")[:11]
