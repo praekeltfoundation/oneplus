@@ -11,15 +11,15 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        orm.SUMitLevel.objects.create(order=1, name="Basecamp", num_easy_questions=3,
+        orm.SUMitLevel.objects.create(order=1, name="Basecamp", question_1=2, question_2=2, question_3=2,
                                       image="img/OP_SUMit_Level_01_Basecamp.png")
-        orm.SUMitLevel.objects.create(order=2, name="Foothills", num_easy_questions=1, num_normal_questions=2,
+        orm.SUMitLevel.objects.create(order=2, name="Foothills", question_1=2, question_2=3, question_3=3,
                                       image="img/OP_SUMit_Level_02_Foothills.png")
-        orm.SUMitLevel.objects.create(order=3, name="Cliffs", num_normal_questions=3,
+        orm.SUMitLevel.objects.create(order=3, name="Cliffs", question_1=3, question_2=3, question_3=3,
                                       image="img/OP_SUMit_Level_03_Cliffs.png")
-        orm.SUMitLevel.objects.create(order=4, name="Peak", num_normal_questions=1, num_advanced_questions=2,
+        orm.SUMitLevel.objects.create(order=4, name="Peak", question_1=3, question_2=4, question_3=4,
                                       image="img/OP_SUMit_Level_04_Peak.png")
-        orm.SUMitLevel.objects.create(order=5, name="Summit", num_advanced_questions=3,
+        orm.SUMitLevel.objects.create(order=5, name="Summit", question_1=4, question_2=4, question_3=4,
                                       image="img/OP_SUMit_Level_05_Summit.png")
 
     def backwards(self, orm):
@@ -212,10 +212,10 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'num_advanced_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'num_easy_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'num_normal_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_1': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_2': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_3': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
         },
         u'content.testingquestion': {
             'Meta': {'ordering': "['name']", 'object_name': 'TestingQuestion'},
@@ -271,7 +271,7 @@ class Migration(DataMigration):
         },
         u'core.participantbadgetemplaterel': {
             'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 19, 0, 0)', 'null': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 22, 0, 0)', 'null': 'True'}),
             'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
@@ -279,7 +279,7 @@ class Migration(DataMigration):
         },
         u'core.participantpointbonusrel': {
             'Meta': {'object_name': 'ParticipantPointBonusRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 19, 0, 0)', 'null': 'True', 'blank': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 22, 0, 0)', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),

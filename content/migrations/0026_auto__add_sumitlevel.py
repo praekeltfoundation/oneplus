@@ -13,9 +13,9 @@ class Migration(SchemaMigration):
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('order', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('num_easy_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
-            ('num_normal_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
-            ('num_advanced_questions', self.gf('django.db.models.fields.PositiveIntegerField')(default=0, null=True, blank=True)),
+            ('question_1', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
+            ('question_2', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
+            ('question_3', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
             ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
         ))
         db.send_create_signal(u'content', ['SUMitLevel'])
@@ -208,10 +208,10 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'num_advanced_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'num_easy_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'num_normal_questions': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_1': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_2': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
+            'question_3': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'})
         },
         u'content.testingquestion': {
             'Meta': {'ordering': "['name']", 'object_name': 'TestingQuestion'},
@@ -267,7 +267,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantbadgetemplaterel': {
             'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 19, 0, 0)', 'null': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 22, 0, 0)', 'null': 'True'}),
             'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
@@ -275,7 +275,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantpointbonusrel': {
             'Meta': {'object_name': 'ParticipantPointBonusRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 19, 0, 0)', 'null': 'True', 'blank': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 22, 0, 0)', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),

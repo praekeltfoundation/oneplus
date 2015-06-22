@@ -428,10 +428,11 @@ class SUMitAdmin(admin.ModelAdmin):
 
 
 class SUMitLevelAdmin(admin.ModelAdmin):
-    list_display = ("order", "name", "num_easy_questions", "num_normal_questions", "num_advanced_questions", "image_")
-    fieldsets = [(None, {"fields": ["order", "name", "num_easy_questions", "num_normal_questions",
-                                    "num_advanced_questions", "image"]})]
+    list_display = ("order", "name", "question_1", "question_2", "question_3", "image_")
+    fieldsets = [(None, {"fields": ["order", "name", "question_1", "question_2", "question_3", "image"]})]
     ordering = ["order"]
+    readonly_fields = ["order"]
+
     form = SUMitLevelForm
 
     def has_add_permission(self, request):

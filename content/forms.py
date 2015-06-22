@@ -442,30 +442,3 @@ class SUMitLevelForm(forms.ModelForm):
         if 1 < order < 5:
             raise forms.ValidationError("Order must be between 1 and 5")
         return order
-
-    def clean_num_easy_questions(self):
-        num_easy_questions = int(self.data.get("num_easy_questions"))
-        num_normal_questions = int(self.data.get("num_normal_questions"))
-        num_advanced_questions = int(self.data.get("num_advanced_questions"))
-
-        if num_easy_questions + num_normal_questions + num_advanced_questions != 3:
-            raise forms.ValidationError("There must be a total of three questions in a level")
-        return num_easy_questions
-
-    def clean_num_normal_questions(self):
-        num_easy_questions = int(self.data.get("num_easy_questions"))
-        num_normal_questions = int(self.data.get("num_normal_questions"))
-        num_advanced_questions = int(self.data.get("num_advanced_questions"))
-
-        if num_easy_questions + num_normal_questions + num_advanced_questions != 3:
-            raise forms.ValidationError("There must be a total of three questions in a level")
-        return num_normal_questions
-
-    def clean_num_advanced_questions(self):
-        num_easy_questions = int(self.data.get("num_easy_questions"))
-        num_normal_questions = int(self.data.get("num_normal_questions"))
-        num_advanced_questions = int(self.data.get("num_advanced_questions"))
-
-        if num_easy_questions + num_normal_questions + num_advanced_questions != 3:
-            raise forms.ValidationError("There must be a total of three questions in a level")
-        return num_advanced_questions

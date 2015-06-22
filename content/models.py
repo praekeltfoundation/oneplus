@@ -288,6 +288,28 @@ class EventParticipantRel(models.Model):
 class SUMit(Event):
     pass
 
+    def get_questions(self):
+        event_question_rel = EventQuestionRel.objects.filter(event=self)
+        if not event_question_rel:
+            easy_questions = TestingQuestion.objects.filter(module__course=self.course,
+                                                            difficulty=2).order_by("?")[:15]
+            normal_questions = TestingQuestion.objects.filter(module__course=self.course,
+                                                              difficulty=3).order_by("?")[:11]
+            advanced_questions = TestingQuestion.objects.filter(module__course=self.course,
+                                                                difficulty=4).order_by("?")[:5]
+            order = 1
+            for question in easy_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+            order = 1
+            for question in normal_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+            order = 1
+            for question in advanced_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+
     class Meta:
         verbose_name = "SUMit!"
         verbose_name_plural = "SUMit!"
@@ -304,6 +326,11 @@ class SUMitEndPage(EventEndPage):
 
 
 class SUMitLevel(models.Model):
+    DIFFICULTY_CHOICES = (
+        (2, "Easy"),
+        (3, "Normal"),
+        (4, "Advanced")
+    )
     order = models.PositiveIntegerField(
         "Order",
         validators=[MaxValueValidator(5)],
@@ -312,26 +339,26 @@ class SUMitLevel(models.Model):
         null=False
     )
     name = models.CharField("Name", max_length=50)
-    num_easy_questions = models.PositiveIntegerField(
-        "Number of Easy Questions",
-        validators=[MaxValueValidator(3)],
+    question_1 = models.PositiveIntegerField(
+        "Question 1",
+        choices = DIFFICULTY_CHOICES,
         default=0,
-        blank=True,
-        null=True
+        blank=False,
+        null=False
     )
-    num_normal_questions = models.PositiveIntegerField(
-        "Number of Normal Questions",
-        validators=[MaxValueValidator(3)],
+    question_2 = models.PositiveIntegerField(
+        "Question 2",
+        choices = DIFFICULTY_CHOICES,
         default=0,
-        blank=True,
-        null=True
+        blank=False,
+        null=False
     )
-    num_advanced_questions = models.PositiveIntegerField(
-        "Number of Advanced Questions",
-        validators=[MaxValueValidator(3)],
+    question_3 = models.PositiveIntegerField(
+        "Question 3",
+        choices = DIFFICULTY_CHOICES,
         default=0,
-        blank=True,
-        null=True
+        blank=False,
+        null=False
     )
     image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
 
