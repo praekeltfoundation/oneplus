@@ -54,6 +54,7 @@ urlpatterns = [
     url(r"^event_splash_page", oneplus.learn_views.event_splash_page, name="learn.event_splash_page"),
     url(r"^event_start_page", oneplus.learn_views.event_start_page, name="learn.event_start_page"),
     url(r"^event_end_page", oneplus.learn_views.event_end_page, name="learn.event_end_page"),
+    url(r"^sumit_end_page", oneplus.learn_views.sumit_end_page, name="learn.sumit_end_page"),
 
     # Communicate
     url(r"^inbox$", oneplus.com_views.inbox, name="com.inbox"),

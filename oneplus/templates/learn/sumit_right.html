@@ -29,10 +29,10 @@
                     Correct
                 </div>
                 {% if not preview %}
-                    {% if state.right_tasks_today >= state.total_tasks_today %}
+                    {% if sumit.finished %}
+                        <a class="button green-back grey-front drop" href="sumit_end_page">Finish</a>
+                    {% elif state.right_tasks_today >= state.total_tasks_today %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
-                    {% elseif sumit.finished %}
-                        <a class="button green-back grey-front drop" href="event_end_page">Finish</a>
                     {% else %}
                         <a class="button green-back grey-front drop" href="sumit">Next Question</a>
                     {% endif %}

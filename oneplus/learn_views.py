@@ -118,10 +118,17 @@ def home(request, state, user):
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day()
 
-    request.session["state"]["home_tasks_today"] = ParticipantQuestionAnswer.objects.filter(
-        participant=_participant,
-        answerdate__gte=date.today()
-    ).count()
+    if not sumit:
+        request.session["state"]["home_tasks_today"] = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=date.today()
+        ).count()
+    else:
+        request.session["state"]["home_tasks_today"] = EventQuestionAnswer.objects.filter(
+            event=_event,
+            participant=_participant,
+            answer_date__gte=date.today()
+        ).count()
 
     request.session["state"]["home_tasks_week"] \
         = learnerstate.get_questions_answered_week()
@@ -542,7 +549,7 @@ def sumit(request, state, user):
         EventQuestionAnswer.objects.filter(
             event=_sumit,
             participant=_participant,
-            answerdate__gte=date.today()
+            answer_date__gte=date.today()
         ).distinct('participant', 'question').count() + 1
 
     _question = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level, _learnerstate.sumit_question)
@@ -619,6 +626,9 @@ def sumit_right(request, state, user):
         _learnerstate.sumit_level += 1
         _learnerstate.sumit_question = 1
         _learnerstate.save()
+    if _learnerstate.sumit_level > 5:
+            _learnerstate.sumit_level = 5
+            _learnerstate.save()
 
     request.session["state"]["right_tasks_today"] = \
         EventQuestionAnswer.objects.filter(event=_sumit,
@@ -1471,7 +1481,7 @@ def sumit_end_page(request, state, user):
             else:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
 
-        sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+        sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         sumit["points"] = _sumit.event_points
 
         page["header"] = end_page.header
@@ -1497,14 +1507,16 @@ def sumit_end_page(request, state, user):
     badge, badge_points = get_badge_awarded(_participant)
 
     def get():
+        print sumit
         return render(
             request,
-            "learn/event_end_page.html",
+            "learn/sumit_end_page.html",
             {
                 "state": state,
                 "user": user,
                 "page": page,
                 "badge": badge,
+                "sumit": sumit
             }
         )
 
