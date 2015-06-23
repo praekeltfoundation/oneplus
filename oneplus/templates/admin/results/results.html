@@ -1,0 +1,76 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Results | OnePlus site admin{% endblock %}
+
+<!-- BREADCRUMBS -->
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        <ul>
+            <li><a href="/admin/">Home</a></li>
+            <li>Results</li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="/static/css/results.css" media="screen">
+{% endblock %}
+
+{% block extrahead %}
+    <!--<script type="text/javascript" src="/static/js/d3.js"></script>-->
+    <!--<script type="text/javascript" src="/static/js/sapphire.js"></script>-->
+    <script type="text/javascript" src="/static/js/results.js"></script>
+    <script type="text/javascript">
+        _state = {{ state.id }};
+        _course = {{ course.id }};
+    </script>
+{% endblock %}
+
+{% block content_title %}
+    <h1>{{ course.name }}</h1>
+{% endblock %}
+
+{% block content %}
+    <form enctype="multipart/form-data" action="" method="post" name="result_form">
+        {% csrf_token %}
+        <input type="hidden" id="state" name="state" value="{{ state.id }}">
+        <a class={% if state.id == 1 %} "result-button-selected"{% else %}"result-button-active"{% endif %} onclick="ChangeMode(1);">Activity</a>
+        <a class={% if state.id == 2 %}"result-button-selected"{% else %}"result-button-active"{% endif %} onclick="ChangeMode(2);">Question Results</a>
+        <a class={% if state.id == 3 %}"result-button-selected"{% else %}"result-button-active"{% endif %} onclick="ChangeMode(3);">Class Results</a>
+        <br><br>
+        <div id="grp-content-container">
+            <fieldset class="grp-module ">
+                <h2 class="grp-collapse-handler header-large">
+                    {% if state.id == 1 %}
+                        {{ state.name }}
+                    {% elif state.id == 2 %}
+                        <select id="module_filter" onchange="ModuleFilterChanged()">
+                            <option value="0">All Modules</option>
+                            {% for module in modules %}
+                                <option value="{{ module.id }}" {% if module.selected %}selected{% endif %}>{{ module.name }}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif state.id == 3 %}
+                    {% endif %}
+                    <select class="right" id="timeframe_filter" onchange="TimeframeChanged()">
+                        <option value="0">All</option>
+                        {% for timeframe in timeframes %}
+                            <option value="{{ timeframe.id }}" {% if timeframe.selected %}selected{% endif %}>{{ timeframe.name }}</option>
+                        {% endfor %}
+                    </select>
+                </h2>
+            </fieldset>
+            {% if state.id == 1 %}
+
+            {% elif state.id == 2 %}
+                {% for result in module_results %}
+                    <div>
+                        <span>{{ result.num_questions }}</span>
+                        <span>{{ result.num_correct }}</span>
+                        <span>{{ result.question__name }}</span>
+                    </div>
+                {% endfor %}
+            {% elif state.id == 3 %}
+            {% endif %}
+        </div>
+    </form>
+{% endblock %}
