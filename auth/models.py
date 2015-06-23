@@ -164,6 +164,10 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
+    class Meta:
+        verbose_name = "Learner"
+        verbose_name_plural = "Learners"
+
 
 #A teacher
 class Teacher(CustomUser):
