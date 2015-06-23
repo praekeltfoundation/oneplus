@@ -810,7 +810,7 @@ def nextchallenge(request, state, user):
     _learnerstate.getnextquestion()
 
     golden_egg = {}
-    if _learnerstate.golden_egg_question == _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
+    if _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
             _learnerstate.get_num_questions_answered_today() + 1:
         golden_egg["question"] = True
         golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
@@ -847,6 +847,7 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
+            "golden_egg": golden_egg
         })
 
     def update_num_question_metric():
