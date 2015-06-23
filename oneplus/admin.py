@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.conf import settings
 from content.admin import TestingQuestionAdmin, TestingQuestion
 from auth.admin import LearnerResource, LearnerAdmin
-from auth.models import Learner, LearnerView
+from auth.models import Learner
 from oneplus.utils import update_metric
 from import_export import fields
 from django.db.models import Q, Count
