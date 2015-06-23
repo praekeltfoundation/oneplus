@@ -8,7 +8,7 @@ from import_export import fields
 from core.models import ParticipantQuestionAnswer, Participant
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
-    EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm
+    EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm, SUMitForm
 from organisation.models import Course
 from django.db.models import Count
 from datetime import datetime
@@ -349,8 +349,8 @@ class SUMitAdmin(admin.ModelAdmin):
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "event_points",
                            "airtime", "event_badge"]})]
     inlines = (EventSplashPageInline, EventStartPageInline, SUMitEndPageInline)
-    form = EventForm
-    add_form = EventForm
+    form = SUMitForm
+    add_form = SUMitForm
 
     def get_total_users(self, obj):
         return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
@@ -373,11 +373,10 @@ class SUMitAdmin(admin.ModelAdmin):
     get_advanced_questions_answered.short_description = "Total Advanced Questions Answered"
 
     def get_percent_complete_all(self, obj):
-        #total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
-        #completed = EventQuestionAnswer.objects.filter(event=obj).values('participant') \
-        #    .annotate(answered=Count('participant')).filter(answered=15).aggregate(Count('answered'))
-        #return (completed / total_participants) * 100
-        return "I'm borken fix me"
+        total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
+        completed = len(EventQuestionAnswer.objects.values('participant').filter(correct=True).\
+            annotate(answered=Count('question_option')).values('participant').filter(answered=15))
+        return round((float(completed) / total_participants) * 100)
     get_percent_complete_all.short_description = "% Complete All Questions"
 
     def get_percent_correct_easy(self, obj):
@@ -385,7 +384,7 @@ class SUMitAdmin(admin.ModelAdmin):
         correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
             .aggregate(Count('correct'))['correct__count']
         if answered > 0:
-            return (correct / answered) * 100
+            return round((float(correct) / answered) * 100)
         else:
             return 0
     get_percent_correct_easy.short_description = "% Correct Easy Questions Answered"
@@ -395,7 +394,7 @@ class SUMitAdmin(admin.ModelAdmin):
         correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
             .aggregate(Count('correct'))['correct__count']
         if answered > 0:
-            return (correct / answered) * 100
+            return round((float(correct) / answered) * 100)
         else:
             return 0
     get_percent_correct_normal.short_description = "% Correct Normal Questions Answered"
@@ -405,14 +404,16 @@ class SUMitAdmin(admin.ModelAdmin):
         correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
             .aggregate(Count('correct'))['correct__count']
         if answered > 0:
-            return (correct / answered) * 100
+            return round((float(correct) / answered) * 100)
         else:
             return 0
     get_percent_correct_advanced.short_description = "% Correct Advanced Questions Answered"
 
     def get_winners(self, obj):
         participant_string = ""
-        all_participants = Participant.objects.filter(classs__course=obj.course)
+        winner_ids = EventQuestionAnswer.objects.values('participant').filter(event=obj, correct=True).\
+            annotate(correct=Count('question_option')).values('participant').filter(correct=15)
+        all_participants = Participant.objects.filter(id__in=winner_ids)
         for p in all_participants:
             participant_string += "%s %s, " % (p.learner.first_name, p.learner.last_name)
         return participant_string[:-2]
