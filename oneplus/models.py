@@ -189,7 +189,6 @@ class LearnerState(models.Model):
     def get_next_redo_question(self):
         if self.redo_question is None or self.active_redo_result is not None:
             questions = self.get_redo_questions()
-            print questions
             if questions.count() > 0:
                 self.redo_question = questions.order_by('?')[0]
                 self.active_redo_result = None

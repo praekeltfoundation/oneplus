@@ -389,8 +389,6 @@ def redo(request, state, user):
     # check if new question required then show question
     _learnerstate.get_next_redo_question()
 
-    print _learnerstate.redo_question
-
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=_learnerstate.participant
     ).distinct().values_list('question')
