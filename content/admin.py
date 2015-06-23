@@ -97,7 +97,8 @@ class TestingQuestionResource(resources.ModelResource):
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "order", "module", "get_course", "description",
-                    "correct", "incorrect", "percentage_correct", "preview_link", "state")
+                    "correct", "incorrect", "percentage_correct", "redo_correct", "redo_incorrect",
+                    "redo_percentage_correct", "preview_link", "state")
     list_filter = ("module", "state")
     search_fields = ("name", "description")
 
@@ -144,6 +145,37 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             return 0
     percentage_correct.allow_tags = True
     percentage_correct.short_description = "Percentage Correct"
+
+    def redo_correct(self, question):
+        return ParticipantQuestionAnswer.objects.filter(
+            question=question,
+            correct=True
+        ).count()
+    correct.allow_tags = True
+    correct.short_description = "Redo Correct"
+
+    def redo_incorrect(self, question):
+        return ParticipantQuestionAnswer.objects.filter(
+            question=question,
+            correct=False
+        ).count()
+    incorrect.allow_tags = True
+    incorrect.short_description = "Redo Incorrect"
+
+    def redo_percentage_correct(self, question):
+        correct = ParticipantQuestionAnswer.objects.filter(
+            question=question,
+            correct=True
+        ).count()
+        total = ParticipantQuestionAnswer.objects.filter(
+            question=question
+        ).count()
+        if total > 0:
+            return 100 * correct / total
+        else:
+            return 0
+    percentage_correct.allow_tags = True
+    percentage_correct.short_description = "Redo Percentage Correct"
 
     def preview_link(self, question):
         return u'<a href="/preview/%s">Preview</a>' % question.id

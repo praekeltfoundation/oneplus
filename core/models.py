@@ -203,6 +203,27 @@ class ParticipantQuestionAnswer(models.Model):
         verbose_name_plural = "Participant Question Responses"
 
 
+class ParticipantRedoQuestionAnswer(models.Model):
+    participant = models.ForeignKey(Participant, verbose_name="Participant")
+    question = models.ForeignKey(TestingQuestion, verbose_name="Question")
+    option_selected = models.ForeignKey(
+        TestingQuestionOption, verbose_name="Selected")
+    correct = models.BooleanField("Correct")
+    answerdate = models.DateTimeField(
+        "Answer Date", null=True, blank=False, default=datetime.now())
+
+    def __str__(self):
+        return self.participant.learner.username
+
+    def delete(self):
+        self.participant.recalculate_total_points()
+        super(ParticipantQuestionAnswer, self).delete()
+
+    class Meta:
+        verbose_name = "Participant Question Response"
+        verbose_name_plural = "Participant Question Responses"
+
+
 class Setting(models.Model):
     key = models.CharField("Key", max_length=50, blank=False, unique=True)
     value = models.TextField("Value", max_length=100, blank=False)
