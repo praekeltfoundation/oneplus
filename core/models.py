@@ -110,6 +110,17 @@ class Participant(models.Model):
         )
         answer.save()
 
+    def answer_redo(self, question, option):
+        # Create participant question answer
+        answer = ParticipantRedoQuestionAnswer(
+            participant=self,
+            question=question,
+            option_selected=option,
+            correct=option.correct,
+            answerdate=datetime.now()
+        )
+        answer.save()
+
     def can_take_event(self, event):
         event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
 
