@@ -540,6 +540,10 @@ def sumit(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
                                   ).first()
+
+    if not _sumit:
+        return redirect("learn.home")
+
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
     if _learnerstate is None:
@@ -1475,7 +1479,7 @@ def sumit_end_page(request, state, user):
             end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
         elif _learnerstate.sumit_level == 5:
             num_sumit_questions_correct = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant,
-                                                                              correct=True).count()
+                                                                             correct=True).count()
             if num_sumit_questions_correct == num_sumit_questions:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
             else:
@@ -1507,7 +1511,6 @@ def sumit_end_page(request, state, user):
     badge, badge_points = get_badge_awarded(_participant)
 
     def get():
-        print sumit
         return render(
             request,
             "learn/sumit_end_page.html",
