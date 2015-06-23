@@ -76,23 +76,39 @@ class ResultsView(View):
 
         return timeframes
 
-    def get_total_active_users(self, tf_start, tf_end):
-        learners = Learner.objects.all()
-
+    def get_total_active_users_core(self, learners, tf_start, tf_end):
         if tf_start and tf_end:
             learners = learners.filter(last_active_date__range=[tf_start, tf_end])
 
         return learners.aggregate(num_active=Count("pk"))["num_active"]
 
-    def get_total_inactive_users(self, tf_start, tf_end):
+    def get_total_active_users(self, tf_start, tf_end):
         learners = Learner.objects.all()
 
+        return self.get_total_active_users_core(learners, tf_start, tf_end)
+
+    def get_total_active_users_per_class(self, tf_start, tf_end, classs):
+        learners = Learner.objects.filter(participant__classs=classs)
+
+        return self.get_total_active_users_core(learners, tf_start, tf_end)
+
+    def get_total_inactive_users_core(self, learners, tf_start, tf_end):
         if tf_start and tf_end:
             learners = learners.exclude(last_active_date__range=[tf_start, tf_end])
         else:
             learners = learners.filter(last_active_date__isnull=True)
 
         return learners.aggregate(num_inactive=Count("pk"))["num_inactive"]
+
+    def get_total_inactive_users(self, tf_start, tf_end):
+        learners = Learner.objects.all()
+
+        return self.get_total_inactive_users_core(learners, tf_start, tf_end)
+
+    def get_total_inactive_users_per_class(self, tf_start, tf_end, classs):
+        learners = Learner.objects.filter(participant__classs=classs)
+
+        return self.get_total_inactive_users_core(learners, tf_start, tf_end)
 
     def get_total_questions_core(self, answers, tf_start, tf_end):
         if tf_start and tf_end:
@@ -108,19 +124,48 @@ class ResultsView(View):
         return self.get_total_questions_core(answers, tf_start, tf_end)
 
     def get_total_questions_per_module(self, tf_start, tf_end, module):
-        answers = ParticipantQuestionAnswer.objects.filter(testingquestion__module__pk=module)
+        answers = ParticipantQuestionAnswer.objects.filter(question__module=module)
 
         return self.get_total_questions_core(answers, tf_start, tf_end)
 
     def get_total_questions_per_class(self, tf_start, tf_end, cls):
-        answers = ParticipantQuestionAnswer.objects.filter(participant__class__pk=cls)
+        answers = ParticipantQuestionAnswer.objects.filter(participant__classs=cls)
 
         return self.get_total_questions_core(answers, tf_start, tf_end)
 
     def get_total_questions_per_class_per_module(self, tf_start, tf_end, cls, module):
-        answers = ParticipantQuestionAnswer.objects.filter(participant__class__pk=cls, testingquestion__module__pk=module)
+        answers = ParticipantQuestionAnswer.objects.filter(participant__classs=cls, question__module=module)
 
         return self.get_total_questions_core(answers, tf_start, tf_end)
+
+    def make_result_datiod(self, num, total, name):
+        perc = 0
+
+        if total > 0:
+            perc = num * 100 / total
+
+        return {
+            "large": num,
+            "small": perc,
+            "name": name
+        }
+
+    def get_active_user_data(self, tf_start, tf_end, cls, total):
+        num = self.get_total_active_users_per_class(tf_start, tf_end, cls)
+        return self.make_result_datiod(num, total, "Active Users")
+
+    def get_inactive_user_data(self, tf_start, tf_end, cls, total):
+        num = self.get_total_inactive_users_per_class(tf_start, tf_end, cls)
+        return self.make_result_datiod(num, total, "Inactive Users")
+
+    def get_questions_answered_data(self, total, num):
+        return self.make_result_datiod(num, total, "Questions Answered")
+
+    def get_questions_correct_data(self, total, num):
+        return self.make_result_datiod(num, total, "Questions Correct")
+
+    def get_questions_incorrect_data(self, total, num):
+        return self.make_result_datiod(num, total, "Questions Incorrect")
 
     def get_data_dict(self, request, course):
         course_obj = self.get_course(course)
@@ -198,29 +243,45 @@ class ResultsView(View):
             classes = Class.objects.filter(course__pk=course)
             modules = Module.objects.filter(coursemodulerel__course__pk=course)
             class_results = []
-            class_module_results = []
-
-            for md in modules:
-                class_module_results.append({"large": 0, "small": 0, "name": md.name})
-
-            for cls in classes:
-                result = {
-                    "name": cls.name,
-                    "results": [
-                        {"large": 0, "small": 0, "name": "Active Users"},
-                        {"large": 0, "small": 0, "name": "Inactive Users"},
-                        {"large": 0, "small": 0, "name": "Questions Answered"},
-                        {"large": 0, "small": 0, "name": "Questions Correct"},
-                        {"large": 0, "small": 0, "name": "Questions Incorrect"},
-                        {"large": 0, "small": 0, "name": "Active Users"},
-                    ] + class_module_results
-                }
-
-                class_results.append(result)
+            total_module_results = {}
 
             total_active_learners = self.get_total_active_users(tf_start, tf_end)
             total_inactive_learners = self.get_total_inactive_users(tf_start, tf_end)
             total_questions, total_correct, total_incorrect = self.get_total_questions(tf_start, tf_end)
+
+            for md in modules:
+                num_questions, num_correct, num_incorrect = self.get_total_questions_per_module(tf_start, tf_end, md)
+                total_module_results[md.id] = {
+                    "total_questions": num_questions,
+                    "total_correct": num_correct,
+                    "total_incorrect": num_incorrect
+                }
+
+            for cls in classes:
+                num_questions, num_correct, num_incorrect = self.get_total_questions_per_class(tf_start, tf_end, cls)
+                result = {
+                    "name": cls.name,
+                    "results": [
+                        self.get_active_user_data(tf_start, tf_end, cls, total_active_learners),
+                        self.get_inactive_user_data(tf_start, tf_end, cls, total_inactive_learners),
+                        self.get_questions_answered_data(total_questions, num_questions),
+                        self.get_questions_correct_data(total_correct, num_correct),
+                        self.get_questions_incorrect_data(total_incorrect, num_incorrect),
+                    ]
+                }
+
+                for md in modules:
+                    num_questions, num_correct, num_incorrect = \
+                        self.get_total_questions_per_class_per_module(tf_start, tf_end, cls, md)
+
+                    result["results"].append(
+                        self.make_result_datiod(
+                            num_correct,
+                            total_module_results[md.id]["total_correct"],
+                            md.name
+                        )
+                    )
+                class_results.append(result)
 
         return {
             "course": course_obj,
