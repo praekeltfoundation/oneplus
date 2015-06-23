@@ -67,7 +67,8 @@ class OnePlusLearnerResource(LearnerResource):
 class OnePlusLearnerAdmin(LearnerAdmin):
     resource_class = OnePlusLearnerResource
 
-    list_display = LearnerAdmin.list_display + ("get_completed", "get_perc_correct")
+    list_display = LearnerAdmin.list_display + ("get_completed", "get_perc_correct", "get_redo_completed",
+                                                "get_redo_perc_correct")
 
     list_filter = (LearnerActiveFilter, LearnerPercentageCorrectFilter, LearnerPercentageOfQuestionsCompletedFilter,
                    LearnerTimeFrameFilter) + LearnerAdmin.list_filter
@@ -109,6 +110,16 @@ class OnePlusLearnerAdmin(LearnerAdmin):
     get_perc_correct.short_description = "Percentage Correct"
     get_perc_correct.admin_order_field = "perc"
 
+    def get_redo_completed(self, obj):
+        return obj.redo_total
+    get_redo_completed.short_description = "Redo Completed"
+    get_redo_completed.admin_order_field = "redo_total"
+
+    def get_redo_perc_correct(self, obj):
+        return obj.redo_perc
+    get_redo_perc_correct.short_description = "Redo Percentage Correct"
+    get_redo_perc_correct.admin_order_field = "redo_perc"
+
     @staticmethod
     def get_total_query(timeframe):
         qry = """
@@ -143,6 +154,40 @@ class OnePlusLearnerAdmin(LearnerAdmin):
 
         return qry
 
+    @staticmethod
+    def get_redo_total_query(timeframe):
+        qry = """
+            select count(1)
+            from core_participantredoquestionanswer pqa
+            INNER JOIN core_participant p
+                ON p.id = pqa.participant_id
+                AND p.learner_id = auth_learner.customuser_ptr_id
+        """
+
+        if timeframe:
+            qry += " where answerdate between %s and %s"
+
+        return qry
+
+    @staticmethod
+    def get_redo_perc_correct_query(timeframe):
+        rep_str = get_sum_boolean_cast_string()
+
+        qry = """
+            coalesce((select sum(coalesce(correct%s, 0)) * 100 / count(1)
+            from core_participantredoquestionanswer pqa
+            INNER JOIN core_participant p
+                ON p.id = pqa.participant_id
+                AND p.learner_id = auth_learner.customuser_ptr_id
+        """ % rep_str
+
+        if timeframe:
+            qry += " where answerdate between %s and %s"
+
+        qry += "), 0)"
+
+        return qry
+
     def queryset(self, request):
         if "tf" in request.GET:
             timeframe = request.GET["tf"]
@@ -153,10 +198,14 @@ class OnePlusLearnerAdmin(LearnerAdmin):
         if timeframe:
             start, end = get_timeframe_range(timeframe)
             qs = qs.extra(select={"total": self.get_total_query(timeframe)}, select_params=(start, end))\
-                .extra(select={"perc": self.get_perc_correct_query(timeframe)}, select_params=(start, end))
+                .extra(select={"perc": self.get_perc_correct_query(timeframe)}, select_params=(start, end))\
+                .extra(select={"redo_total": self.get_redo_total_query(timeframe)}, select_params=(start, end))\
+                .extra(select={"redo_perc": self.get_redo_perc_correct_query(timeframe)}, select_params=(start, end))
         else:
             qs = qs.extra(select={"total": self.get_total_query(timeframe)})\
-                .extra(select={"perc": self.get_perc_correct_query(timeframe)})
+                .extra(select={"perc": self.get_perc_correct_query(timeframe)})\
+                .extra(select={"redo_total": self.get_redo_total_query(timeframe)})\
+                .extra(select={"redo_perc": self.get_redo_perc_correct_query(timeframe)})
 
         return qs
 
