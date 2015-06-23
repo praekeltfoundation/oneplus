@@ -20,7 +20,6 @@ from auth.resources import LearnerResource, TeacherResource
 from auth.filters import AirtimeFilter, LearnerViewClassFilter, LearnerViewCourseFilter, ClassFilter, CourseFilter
 from core.models import TeacherClass
 from communication.models import Message
-from dateutil import parser
 from datetime import datetime
 
 
@@ -200,11 +199,10 @@ def send_message(modeladmin, request, queryset):
         form = SendMessageForm(request.POST)
 
         if form.is_valid():
-            print request
             name = form.cleaned_data["name"]
-            date = request.POST['publishdate_0']
-            time = request.POST['publishdate_1']
-            publish_date = parser.parse(date + ' ' + time, default=datetime(1970, 2, 1))
+            date = datetime.strptime(request.POST['publishdate_0'], '%Y-%m-%d')
+            t = datetime.strptime(request.POST['publishdate_1'], "%H:%M")
+            publish_date = datetime.combine(date, t.time())
             message = form.cleaned_data["message"]
 
             for learner in queryset:
