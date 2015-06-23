@@ -1,0 +1,51 @@
+{% extends "core/main.html" %}
+{% load bleach_tags %}
+{% load oneplus_extras %}
+{% block title %}SUMit!{% endblock %}
+
+{% block content %}
+    {% load humanize %}
+    {% if state.report_sent %}
+        <div class="content narrow darkgrey-back pad-top">
+            <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
+        </div>
+    {% endif %}
+
+
+    <div class="text heading green-back darkgrey-front center-font"><p>SUMit!</p></div>
+
+    {% if sumit %}
+        <div class="sumit_content">
+            <div class="center-font">
+                <span class="large-font center-font">{{ sumit.level }}</span>
+            </div>
+            <div class="sumit_line"></div>
+            <div class="sumit">
+                <img class="badge-img" src="{{ sumit.url1 }}">
+                <img class="badge-img" src="{{ sumit.url2 }}">
+                <img class="badge-img" src="{{ sumit.url3 }}">
+            </div>
+        </div>
+    {% endif %}
+
+    {% autoescape off %}
+        <div class="content narrow white-back darkgrey-front">
+            <form action="sumit" method="post" class="pad-bottom">{% csrf_token %}
+                <p>{{ question.question_content | format_content }}</p>
+                {% for opt in question.testingquestionoption_set.all %}
+                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                    <label class="label-question" for="answer_{{ opt.id }}">
+                    {% if opt.content %}
+                        <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
+                    {% else %}
+                        {{ opt.name }} </label><br/><br/>
+                    {% endif %}
+                {% endfor %}
+                <br/>
+                <div>
+                    <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
+                </div>
+            </form>
+        </div>
+    {% endautoescape %}
+{% endblock %}

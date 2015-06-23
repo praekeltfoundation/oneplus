@@ -7,7 +7,11 @@
 
     {% if state.home_tasks_today < state.home_required_tasks %}
         {% if not state.questions_complete %}
-        <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
+            {% if sumit %}
+                <div class="text heading grey-back"><p>Hello {{ user.name }}. It's {{ sumit.name }}, are you ready?</p></div>
+            {% else %}
+                <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
+            {% endif %}
         {% endif %}
     {% endif %}
     <div class="dayheading">
@@ -18,7 +22,13 @@
         <div class="text {% if state.home_day == 4 %} present {% elif state.home_day > 4 %} past {% elif state.home_day < 4 %} future {% endif %}"><p>5<br/>DAY</p></div>
     </div>
 
-
+    {% if sumit %}
+        <div class="center-font content">
+            <span class="large-font center-font">{{ sumit.name }}</span>
+            <span class="text center-font"><p>Current level: {{ sumit.level }}</p>></span>
+            <span class="badge-award"><img class="badge-img" src="{{ sumit.url }}"></span>
+        </div>
+    {% endif %}
 
 
     <div class="content">
@@ -44,6 +54,19 @@
     {% endif %}
 
     </div>
+
+    {% if event_name %}
+        <form name="event" action="#" method="post">
+            {% csrf_token %}
+            <div class="content">
+                {% if first_sitting %}
+                    <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+                {% else %}
+                    <input class="button green-back grey-front" type="submit" name="take_event" value="Finish {{ event_name }}">
+                {% endif %}
+            </div>
+        </form>
+    {% endif %}
 
 
     <div class="weeksummary">
