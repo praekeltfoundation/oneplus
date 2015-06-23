@@ -1,4 +1,11 @@
 from djcelery import celery
+from auth.models import Teacher
+from core.models import Class, TeacherClass, Participant, ParticipantQuestionAnswer
+from django.db.models import Count
+from datetime import datetime, timedelta
+import csv
+from django.core.mail import EmailMessage
+
 
 @celery.task(bind=True)
 def debug_task(self):
@@ -7,3 +14,71 @@ def debug_task(self):
 @celery.task
 def send_sms(x, y):
     return x + y
+
+
+@celery.task
+def send_teacher_reports():
+    today = datetime.now()
+    last_month = datetime.date(day=1, month=today.month, year=today.year) - datetime.timedelta(days=1)
+
+    t_c_rel = TeacherClass.objects.values_list("id", flat=True).distinct()
+
+    #get all the teachers
+    all_teachers = Teacher.objects.all(email__is_null=False, id__in=t_c_rel)
+
+    for teacher in all_teachers:
+        all_teacher_classes_rel = TeacherClass.objects.filter(teacher=teacher)
+
+        #list containing reports for a specific teacher to be emailed
+        teacher_reports = list()
+
+        for teach_class in all_teacher_classes_rel:
+
+            #list to store tuple of participant data
+            class_list = list()
+
+            all_participants = Participant.objects.filter(classs=teach_class.classs)
+
+            for participant in all_participants:
+                all_time_ans = ParticipantQuestionAnswer.objects.filter(participant=participant)
+
+                all_time_cor = all_time_ans.filter(correct=True)
+
+                last_month_ans = all_time_ans.filter(answerdate__month=last_month.month)
+
+                last_month_cor = (last_month_ans.filter(correct=True)
+                                  .aggregate(Count('correct'))['correct__count'] / last_month_ans) * 100
+
+                all_time_ans = all_time_ans.aggregate(Count('id'))['id__count']
+                all_time_cor = all_time_cor.aggregate(Count('correct'))['correct__count'] / all_time_ans * 100
+                last_month_ans = last_month_ans.aggregate(Count('id'))['id__count']
+
+                class_list.append((participant.learner.first_name, last_month_ans, last_month_cor, all_time_ans,
+                                   all_time_cor))
+
+            #create a class report
+            report_file = open("%s_class_report.csv" % teach_class.classs.name, 'wt')
+            try:
+                headings = ("Learner's Name", "Answered LAST MONTH", "Answered Correctly LAST MONTH (%)",
+                            "Answered ALL TIME", "Answered Correctly ALL TIME (%)")
+                writer = csv.writer(report_file)
+                writer.writerow(headings)
+
+                for item in class_list:
+                    writer.writerow(item)
+            finally:
+                report_file.close()
+
+            teacher_reports.append(report_file)
+
+        #email all the reports to a teacher
+        month = last_month.strftime("%B")
+        subject = "OnePlus report %s" % month
+        message = "Please find attached reports of your OnePlus classes for %s." % month
+        from_email = "info@oneplus.co.za"
+
+        email = EmailMessage(subject, message, from_email, [teacher.email])
+        #attach all the reports for this teacher
+        for report in teacher_reports:
+            email.attach(report.name, report.getvalue(), 'text/csv')
+        email.send()
