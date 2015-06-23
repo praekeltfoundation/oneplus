@@ -343,3 +343,15 @@ class SendSmsForm(forms.Form):
     message = forms.CharField(
         widget=forms.Textarea
     )
+
+
+class SendMessageForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    name = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={"style": "width: 400px;", "required": "required"})
+    )
+    message = forms.CharField(
+        required=True,
+        widget=forms.Textarea(attrs={"style": "width: 400px;", "required": "required"})
+    )
