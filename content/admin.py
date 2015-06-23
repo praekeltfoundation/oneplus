@@ -5,7 +5,7 @@ from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mat
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
-from core.models import ParticipantQuestionAnswer, Participant
+from core.models import ParticipantQuestionAnswer, Participant, ParticipantRedoQuestionAnswer
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
     EventQuestionRelInline, EventForm
@@ -147,35 +147,35 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     percentage_correct.short_description = "Percentage Correct"
 
     def redo_correct(self, question):
-        return ParticipantQuestionAnswer.objects.filter(
+        return ParticipantRedoQuestionAnswer.objects.filter(
             question=question,
             correct=True
         ).count()
-    correct.allow_tags = True
-    correct.short_description = "Redo Correct"
+    redo_correct.allow_tags = True
+    redo_correct.short_description = "Redo Correct"
 
     def redo_incorrect(self, question):
-        return ParticipantQuestionAnswer.objects.filter(
+        return ParticipantRedoQuestionAnswer.objects.filter(
             question=question,
             correct=False
         ).count()
-    incorrect.allow_tags = True
-    incorrect.short_description = "Redo Incorrect"
+    redo_incorrect.allow_tags = True
+    redo_incorrect.short_description = "Redo Incorrect"
 
     def redo_percentage_correct(self, question):
-        correct = ParticipantQuestionAnswer.objects.filter(
+        correct = ParticipantRedoQuestionAnswer.objects.filter(
             question=question,
             correct=True
         ).count()
-        total = ParticipantQuestionAnswer.objects.filter(
+        total = ParticipantRedoQuestionAnswer.objects.filter(
             question=question
         ).count()
         if total > 0:
             return 100 * correct / total
         else:
             return 0
-    percentage_correct.allow_tags = True
-    percentage_correct.short_description = "Redo Percentage Correct"
+    redo_percentage_correct.allow_tags = True
+    redo_percentage_correct.short_description = "Redo Percentage Correct"
 
     def preview_link(self, question):
         return u'<a href="/preview/%s">Preview</a>' % question.id
