@@ -33,9 +33,9 @@
     <form enctype="multipart/form-data" action="" method="post" name="result_form">
         {% csrf_token %}
         <input type="hidden" id="state" name="state" value="{{ state.id }}">
-        <a class={% if state.id == 1 %} "result-button-selected"{% else %}"result-button-active"{% endif %} onclick="ChangeMode(1);">Activity</a>
-        <a class={% if state.id == 2 %}"result-button-selected"{% else %}"result-button-active"{% endif %} onclick="ChangeMode(2);">Question Results</a>
-        <a class={% if state.id == 3 %}"result-button-selected"{% else %}"result-button-active"{% endif %} onclick="ChangeMode(3);">Class Results</a>
+        <a class="result-button-{% if state.id == 1 %}selected{% else %}active{% endif %}" onclick="ChangeMode(1);">Activity</a>
+        <a class="result-button-{% if state.id == 2 %}selected{% else %}active{% endif %}" onclick="ChangeMode(2);">Question Results</a>
+        <a class="result-button-{% if state.id == 3 %}selected{% else %}active{% endif %}" onclick="ChangeMode(3);">Class Results</a>
         <br><br>
         <div id="grp-content-container">
             <fieldset class="grp-module ">
@@ -43,16 +43,15 @@
                     {% if state.id == 1 %}
                         {{ state.name }}
                     {% elif state.id == 2 %}
-                        <select id="module_filter" onchange="ModuleFilterChanged()">
-                            <option value="0">All Modules</option>
+                        <select name="module_filter" onchange="ModuleFilterChanged()">
                             {% for module in modules %}
                                 <option value="{{ module.id }}" {% if module.selected %}selected{% endif %}>{{ module.name }}</option>
                             {% endfor %}
                         </select>
                     {% elif state.id == 3 %}
+                        {{ state.name }}
                     {% endif %}
-                    <select class="right" id="timeframe_filter" onchange="TimeframeChanged()">
-                        <option value="0">All</option>
+                    <select class="right" name="timeframe_filter" onchange="TimeframeChanged()">
                         {% for timeframe in timeframes %}
                             <option value="{{ timeframe.id }}" {% if timeframe.selected %}selected{% endif %}>{{ timeframe.name }}</option>
                         {% endfor %}
@@ -64,12 +63,24 @@
             {% elif state.id == 2 %}
                 {% for result in module_results %}
                     <div>
-                        <span>{{ result.num_questions }}</span>
-                        <span>{{ result.num_correct }}</span>
-                        <span>{{ result.question__name }}</span>
+                        <p>{{ result.num_answers }}</p>
+                        <p>{{ result.perc }}</p>
+                        <p>{{ result.question__name }}</p>
                     </div>
                 {% endfor %}
             {% elif state.id == 3 %}
+                {% for class in class_results %}
+                    <div>
+                        <p>{{ class.name }}</p>
+                    </div>
+                    {% for result in class.results %}
+                        <div>
+                            <p>{{ result.large }}</p>
+                            <p>{{ result.small }}</p>
+                            <p>{{ result.name }}</p>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
             {% endif %}
         </div>
     </form>
