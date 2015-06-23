@@ -226,10 +226,6 @@ class ParticipantRedoQuestionAnswer(models.Model):
     def __str__(self):
         return self.participant.learner.username
 
-    def delete(self):
-        self.participant.recalculate_total_points()
-        super(ParticipantQuestionAnswer, self).delete()
-
     class Meta:
         verbose_name = "Participant Question Response"
         verbose_name_plural = "Participant Question Responses"
