@@ -13,7 +13,7 @@ from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage
-from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
+from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
@@ -199,12 +199,16 @@ def nextchallenge(request, state, user):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count() + 1
 
+    points = " - %d point question" % _learnerstate.active_question.points
+    if Setting.objects.get(key="SHOW_POINT_ALLOCATION").value != "True" or _learnerstate.active_question.points is None:
+        points = ""
+
     golden_egg = {}
 
     if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
             _learnerstate.golden_egg_question:
         golden_egg["question"] = True
-        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+        golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -220,7 +224,8 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "golden_egg": golden_egg
+            "golden_egg": golden_egg,
+            "points": points
         })
 
     def update_num_question_metric():
