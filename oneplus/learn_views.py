@@ -13,7 +13,8 @@ from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage
-from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
+from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, \
+    ParticipantRedoQuestionAnswer
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
@@ -124,6 +125,19 @@ def home(request, state, user):
     ).count()
     request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
 
+    redo = None
+    if (request.session["state"]["home_tasks_week"] >= 15) or \
+            (request.session["state"]["home_tasks_today"] >= request.session["state"]["home_required_tasks"]):
+        correct = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant, correct=True).distinct().values('question')
+        redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
+            participant=_participant, correct=True).distinct().values('question')
+        answered = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant).distinct().values('question')
+        questions = TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct).exclude(id__in=redo_correct)
+        if questions:
+            redo = True
+
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
@@ -147,7 +161,8 @@ def home(request, state, user):
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user,
                                                    "first_sitting": first_sitting,
-                                                   "event_name": event_name})
+                                                   "event_name": event_name,
+                                                   "redo": redo})
 
     def post():
         if "take_event" in request.POST.keys():
@@ -214,7 +229,7 @@ def nextchallenge(request, state, user):
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
         if state['next_tasks_today'] > state["total_tasks_today"]:
-                    return redirect("learn.home")
+            return redirect("learn.home")
 
         return render(request, "learn/next.html", {
             "state": state,
@@ -361,6 +376,346 @@ def nextchallenge(request, state, user):
 
 @oneplus_state_required
 @oneplus_login_required
+def redo(request, state, user):
+    # get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant__id=user["participant_id"]
+    ).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    # check if new question required then show question
+    _learnerstate.get_next_redo_question()
+
+    print _learnerstate.redo_question
+
+    answered = ParticipantQuestionAnswer.objects.filter(
+        participant=_learnerstate.participant
+    ).distinct().values_list('question')
+    correct = ParticipantQuestionAnswer.objects.filter(
+        participant=_learnerstate.participant, correct=True
+    ).distinct().values_list('question')
+    questions = TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct)
+
+    if not questions:
+        return redirect("learn.home")
+
+    if _learnerstate.redo_question:
+        question_id = _learnerstate.redo_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+
+    def get():
+        return render(request, "learn/redo.html", {
+            "state": state,
+            "user": user,
+            "question": _learnerstate.redo_question,
+        })
+
+    def post():
+        request.session["state"]["report_sent"] = False
+
+        # answer provided
+        if "answer" in request.POST.keys():
+            _ans_id = request.POST["answer"]
+
+            options = _learnerstate.redo_question.testingquestionoption_set
+            try:
+                _option = options.get(pk=_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                return redirect("learn.redo")
+
+            _learnerstate.active_redo_result = _option.correct
+            _learnerstate.save()
+
+            # Answer question
+            _participant.answer_redo(_option.question, _option)
+
+            # Check for awards
+            if _option.correct:
+                return redirect("learn.redo_right")
+            else:
+                return redirect("learn.redo_wrong")
+        else:
+            return redirect("learn.home")
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def redo_right(request, state, user):
+    # get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
+
+    if _learnerstate.redo_question:
+        question_id = _learnerstate.redo_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+
+    questions = len(_learnerstate.get_redo_questions())
+
+    _usr = Learner.objects.get(pk=user["id"])
+    request.session["state"]["banned"] = _usr.is_banned()
+
+    def get():
+        if _learnerstate.active_redo_result:
+            # Max discussion page
+            request.session["state"]["discussion_page_max"] = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    reply=None
+                ).count()
+
+            # Discussion page?
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
+
+            # Messages for discussion page
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_right.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question,
+                    "messages": _messages,
+                    "questions": questions
+                }
+            )
+        else:
+            return HttpResponseRedirect("redo_wrong")
+
+    def post():
+        if _learnerstate.active_result:
+            request.session["state"]["discussion_comment"] = False
+            request.session["state"]["discussion_responded_id"] = None
+            request.session["state"]["report_sent"] = False
+
+            # new comment created
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
+                _comment = request.POST["comment"]
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    reply=None,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_comment"] = True
+                request.session["state"]["discussion_response_id"] = None
+
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
+                _comment = request.POST["reply"]
+                _parent = Discussion.objects.get(
+                    pk=request.POST["reply_button"]
+                )
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    reply=_parent,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_responded_id"] \
+                    = request.session["state"]["discussion_response_id"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show more comments
+            elif "page" in request.POST.keys():
+                request.session["state"]["discussion_page"] += 2
+                if request.session["state"]["discussion_page"] \
+                        > request.session["state"]["discussion_page_max"]:
+                    request.session["state"]["discussion_page"] \
+                        = request.session["state"]["discussion_page_max"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show reply to comment comment
+            elif "comment_response_button" in request.POST.keys():
+                request.session["state"]["discussion_response_id"] \
+                    = request.POST["comment_response_button"]
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_right.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question,
+                    "messages": _messages,
+                }
+            )
+        else:
+            return HttpResponseRedirect("redo_wrong")
+
+    return resolve_http_method(request, [get, post])
+
+@oneplus_state_required
+@oneplus_login_required
+def redo_wrong(request, state, user):
+    # get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
+
+    if _learnerstate.redo_question:
+        question_id = _learnerstate.redo_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+    questions = len(_learnerstate.get_redo_questions())
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    request.session["state"]["banned"] = _usr.is_banned()
+
+    def get():
+        if not _learnerstate.active_redo_result:
+            request.session["state"]["discussion_page_max"] = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    reply=None
+                ).count()
+
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_wrong.html",
+                {"state": state,
+                 "user": user,
+                 "question": _learnerstate.redo_question,
+                 "messages": _messages,
+                 "questions": questions
+                 }
+            )
+        else:
+            return HttpResponseRedirect("redo_right")
+
+    def post():
+        if not _learnerstate.active_result:
+            request.session["state"]["discussion_comment"] = False
+            request.session["state"]["discussion_responded_id"] = None
+            request.session["state"]["report_sent"] = False
+
+            # new comment created
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
+                _comment = request.POST["comment"]
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    reply=None,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_comment"] = True
+                request.session["state"]["discussion_response_id"] = None
+
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
+                _comment = request.POST["reply"]
+                _parent = Discussion.objects.get(
+                    pk=request.POST["reply_button"]
+                )
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    reply=_parent,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_responded_id"] \
+                    = request.session["state"]["discussion_response_id"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show more comments
+            elif "page" in request.POST.keys():
+                request.session["state"]["discussion_page"] += 2
+                if request.session["state"]["discussion_page"] \
+                        > request.session["state"]["discussion_page_max"]:
+                    request.session["state"]["discussion_page"] \
+                        = request.session["state"]["discussion_page_max"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show reply to comment comment
+            elif "comment_response_button" in request.POST.keys():
+                request.session["state"]["discussion_response_id"] \
+                    = request.POST["comment_response_button"]
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.active_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_wrong.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.active_question,
+                    "messages": _messages
+                }
+            )
+        else:
+            return HttpResponseRedirect("right")
+
+    return resolve_http_method(request, [get, post])
+
+@oneplus_state_required
+@oneplus_login_required
 def event(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,
@@ -377,7 +732,7 @@ def event(request, state, user):
     if not _event_question:
         return redirect("learn.home")
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event)\
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event) \
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
@@ -430,10 +785,10 @@ def event_right(request, state, user):
             del request.session['event_session']
         return redirect("learn.home")
 
-    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
+    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant) \
         .order_by("-answer_date").first().question
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event, ) \
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
@@ -469,10 +824,10 @@ def event_wrong(request, state, user):
             del request.session['event_session']
         return redirect("learn.home")
 
-    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
+    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant) \
         .order_by("-answer_date").first().question
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event, ) \
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
@@ -615,7 +970,7 @@ def get_event_points_awarded(participant):
     all_events = EventParticipantRel.objects.filter(participant=participant)
     for e in all_events:
         if e.event.event_points:
-            total_event_questions = EventQuestionRel.objects.filter(event=e.event)\
+            total_event_questions = EventQuestionRel.objects.filter(event=e.event) \
                 .aggregate(Count('question'))['question__count']
             participant_answers = EventQuestionAnswer.objects.filter(event=e.event, participant=participant)
 
@@ -1223,7 +1578,7 @@ def report_question(request, state, user, questionid, frm):
 
     def post():
         if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                "fix" in request.POST.keys() and request.POST["fix"] != "":
+                        "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]

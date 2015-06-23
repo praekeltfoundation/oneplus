@@ -1,6 +1,6 @@
 from django.db import models
 from content.models import TestingQuestion
-from core.models import Participant, ParticipantQuestionAnswer
+from core.models import Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer
 from datetime import datetime, timedelta, time
 from random import randint
 from content.models import GoldenEgg, EventQuestionAnswer, EventQuestionRel
@@ -13,9 +13,17 @@ class LearnerState(models.Model):
     active_question = models.ForeignKey(
         TestingQuestion,
         null=True,
-        blank=False
+        blank=False,
+        related_name="aquestion"
     )
     active_result = models.NullBooleanField()
+    redo_question = models.ForeignKey(
+        TestingQuestion,
+        null=True,
+        blank=False,
+        related_name="rquestion",
+    )
+    active_redo_result = models.NullBooleanField()
     golden_egg_question = models.PositiveIntegerField(default=0)
     QUESTIONS_PER_DAY = 3
     MONDAY = 0
@@ -177,3 +185,25 @@ class LearnerState(models.Model):
                 self.save()
 
         return self.active_question
+
+    def get_next_redo_question(self):
+        if self.redo_question is None or self.active_redo_result is not None:
+            questions = self.get_redo_questions()
+            print questions
+            if questions.count() > 0:
+                self.redo_question = questions.order_by('?')[0]
+                self.active_redo_result = None
+                self.save()
+
+        return self.redo_question
+
+    def get_redo_questions(self):
+        correct = ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant, correct=True).distinct().values('question')
+        redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
+            participant=self.participant, correct=True).distinct().values('question')
+        answered = ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant).distinct().values('question')
+
+        return TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct).\
+            exclude(id__in=redo_correct)
