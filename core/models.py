@@ -134,7 +134,7 @@ class Participant(models.Model):
             participant=self,
             results_received=True)
         badges = ParticipantBadgeTemplateRel.objects.filter(
-            participant=True
+            participant=self
         )
         points = 0
         for answer in answers:
@@ -142,7 +142,8 @@ class Participant(models.Model):
         for event in events:
             points += event.event.event_points
         for badge in badges:
-            points += badge.scenario.point.value
+            if badge.scenario.point:
+                points += badge.scenario.point.value
         self.points = points
         self.save()
         return points
