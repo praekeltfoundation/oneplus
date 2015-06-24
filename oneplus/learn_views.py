@@ -467,7 +467,7 @@ def redo_right(request, state, user):
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     moderated=True,
                     reply=None
                 ).count()
@@ -480,7 +480,7 @@ def redo_right(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
@@ -491,7 +491,7 @@ def redo_right(request, state, user):
                 {
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question,
+                    "question": _learnerstate.redo_question,
                     "messages": _messages,
                     "questions": questions
                 }
@@ -500,7 +500,7 @@ def redo_right(request, state, user):
             return HttpResponseRedirect("redo_wrong")
 
     def post():
-        if _learnerstate.active_result:
+        if _learnerstate.active_redo_result:
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
             request.session["state"]["report_sent"] = False
@@ -510,7 +510,7 @@ def redo_right(request, state, user):
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     reply=None,
                     content=_comment,
                     author=_usr,
@@ -529,7 +529,7 @@ def redo_right(request, state, user):
                 )
                 _message = Discussion(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     reply=_parent,
                     content=_comment,
                     author=_usr,
@@ -559,7 +559,7 @@ def redo_right(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
@@ -570,7 +570,7 @@ def redo_right(request, state, user):
                 {
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question,
+                    "question": _learnerstate.redo_question,
                     "messages": _messages,
                 }
             )
@@ -603,7 +603,7 @@ def redo_wrong(request, state, user):
             request.session["state"]["discussion_page_max"] = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     moderated=True,
                     reply=None
                 ).count()
@@ -614,7 +614,7 @@ def redo_wrong(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
@@ -633,7 +633,7 @@ def redo_wrong(request, state, user):
             return HttpResponseRedirect("redo_right")
 
     def post():
-        if not _learnerstate.active_result:
+        if not _learnerstate.active_redo_result:
             request.session["state"]["discussion_comment"] = False
             request.session["state"]["discussion_responded_id"] = None
             request.session["state"]["report_sent"] = False
@@ -643,7 +643,7 @@ def redo_wrong(request, state, user):
                 _comment = request.POST["comment"]
                 _message = Discussion(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     reply=None,
                     content=_comment,
                     author=_usr,
@@ -662,7 +662,7 @@ def redo_wrong(request, state, user):
                 )
                 _message = Discussion(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     reply=_parent,
                     content=_comment,
                     author=_usr,
@@ -692,7 +692,7 @@ def redo_wrong(request, state, user):
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
-                    question=_learnerstate.active_question,
+                    question=_learnerstate.redo_question,
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
@@ -703,7 +703,7 @@ def redo_wrong(request, state, user):
                 {
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question,
+                    "question": _learnerstate.redo_question,
                     "messages": _messages
                 }
             )
