@@ -130,12 +130,19 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
-        events = EventParticipantRel.objects.filter(participant=self, results_received=True)
+        events = EventParticipantRel.objects.filter(
+            participant=self,
+            results_received=True)
+        badges = ParticipantBadgeTemplateRel.objects.filter(
+            participant=True
+        )
         points = 0
         for answer in answers:
             points += answer.question.points
         for event in events:
             points += event.event.event_points
+        for badge in badges:
+            points += badge.scenario.point.value
         self.points = points
         self.save()
         return points
@@ -155,11 +162,15 @@ class Participant(models.Model):
                         participant=self, badgetemplate=scenario.badge,
                         scenario=scenario, awarddate=datetime.now())
                     b.save()
+                    ParticipantPointBonusRel(participant=self, scenario=scenario,
+                                             pointbonus=scenario.point, awarddate=datetime.now()).save()
                 elif template_rels.first().badgetemplate.multiple:
                     b = template_rels.first()
                     b.awardcount += 1
                     b.awarddate=datetime.now()
                     b.save()
+                    ParticipantPointBonusRel(participant=self, scenario=scenario,
+                                             pointbonus=scenario.point, awarddate=datetime.now()).save()
 
         # Recalculate total points - not entirely sure that this should be here.
         self.points = self.recalculate_total_points()
