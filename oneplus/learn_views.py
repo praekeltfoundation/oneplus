@@ -732,10 +732,9 @@ def right(request, state, user):
             if _golden_egg.badge:
                 golden_egg["message"] = "You've won this week's Golden Egg and a badge"
                 _participant.award_scenario(
-                        _golden_egg.badge.event,
-                        _golden_egg.course.module
-                    )
-                _participant.save()
+                    _golden_egg.badge.event,
+                    _golden_egg.badge.module
+                )
             golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
             GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
                                badge=_golden_egg.badge).save()
