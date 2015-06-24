@@ -63,3 +63,64 @@
 {
     line-height: 26px !important;
 }
+
+.result-container
+{
+    width: 100%;
+    display: block;
+}
+
+.result-block
+{
+    text-align: center;
+    display: inline-block;
+    width: 115px;
+    height: 100px;
+    vertical-align: top;
+    padding: 5px;
+}
+
+.result-block-border
+{
+    border: 2px solid black;
+}
+
+.result-header
+{
+    text-align: left;
+    line-height: 100px;
+    width: 200px;
+    margin-left: 15px;
+}
+
+.result-text-header
+{
+    font-weight: bold;
+}
+
+.result-text-large
+{
+    height: 50px;
+    line-height: 50px;
+    font-size: 48px;
+    font-weight: bold;
+}
+
+.result-text-small
+{
+    height: 20px;
+    line-height: 20px;
+}
+
+.result-text-name
+{
+    font-weight: bold;
+    padding-top: 5px;
+}
+
+.result-box {
+    height: 300px;
+    width: 100%;
+    padding: 10px;
+    float: left;
+}

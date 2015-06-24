@@ -3,8 +3,10 @@ from django.views.generic import View
 from django.db.models import Count
 from django_boolean_sum import BooleanSum
 from organisation.models import Course, Module
-from core.models import ParticipantQuestionAnswer, Class, Learner
+from core.models import ParticipantQuestionAnswer, Class, Learner, Participant
 from filters import get_timeframe_range
+from calendar import timegm
+import json
 
 
 class ResultsView(View):
@@ -138,34 +140,51 @@ class ResultsView(View):
 
         return self.get_total_questions_core(answers, tf_start, tf_end)
 
-    def make_result_datiod(self, num, total, name):
+    def make_result_datiod(self,
+                           num,
+                           total,
+                           name,
+                           large_formatter="%s",
+                           small_formatter="( %s )",
+                           name_formatter="%s",
+                           inv=False):
         perc = 0
 
-        if total > 0:
+        if inv is False and total > 0:
             perc = num * 100 / total
 
+        if inv:
+            return {
+                "large": large_formatter % num,
+                "small": small_formatter % total,
+                "name": name_formatter % name
+            }
+
         return {
-            "large": num,
-            "small": perc,
-            "name": name
+            "large": large_formatter % num,
+            "small": small_formatter % perc,
+            "name": name_formatter % name
         }
 
     def get_active_user_data(self, tf_start, tf_end, cls, total):
         num = self.get_total_active_users_per_class(tf_start, tf_end, cls)
-        return self.make_result_datiod(num, total, "Active Users")
+        return self.make_result_datiod(num, total, "Active Users", small_formatter="( %s%% )")
 
     def get_inactive_user_data(self, tf_start, tf_end, cls, total):
         num = self.get_total_inactive_users_per_class(tf_start, tf_end, cls)
-        return self.make_result_datiod(num, total, "Inactive Users")
+        return self.make_result_datiod(num, total, "Inactive Users", small_formatter="( %s%% )")
 
     def get_questions_answered_data(self, total, num):
-        return self.make_result_datiod(num, total, "Questions Answered")
+        return self.make_result_datiod(num, total, "Questions Answered", small_formatter="( %s%% )")
 
-    def get_questions_correct_data(self, total, num):
-        return self.make_result_datiod(num, total, "Questions Correct")
+    def get_questions_correct_data(self, total, perc):
+        return self.make_result_datiod(perc, total, "Questions Correct", large_formatter="%s%%", inv=True)
 
-    def get_questions_incorrect_data(self, total, num):
-        return self.make_result_datiod(num, total, "Questions Incorrect")
+    def get_questions_incorrect_data(self, total, perc):
+        return self.make_result_datiod(perc, total, "Questions Incorrect", large_formatter="%s%%", inv=True)
+
+    def get_d3_date(self, date):
+        return timegm(date.timetuple())*1000
 
     def get_data_dict(self, request, course):
         course_obj = self.get_course(course)
@@ -180,6 +199,17 @@ class ResultsView(View):
         tf_start = None
         tf_end = None
         class_results = None
+        activity_results = {
+            "activity": {
+                "active": [],
+                "inactive": []
+            },
+            "questions": {
+                "total": [],
+                "correct": [],
+                "incorrect": []
+            }
+        }
 
         if "state" in request.POST.keys():
             state = self.get_state(request.POST["state"])
@@ -196,8 +226,50 @@ class ResultsView(View):
         if timeframe > 0:
             tf_start, tf_end = get_timeframe_range(str(timeframe - 1))
 
+        if state["id"] == 1:
+            ar_base = ParticipantQuestionAnswer.objects.filter(participant__classs__course__pk=course)\
+                .extra(select={"act_date": "date_trunc('day', answerdate)"})
+            total_participants = Participant.objects.filter(classs__course__pk=course).count()
+
+            if tf_start and tf_end:
+                ar_base = ar_base.filter(answerdate__range=[tf_start, tf_end])
+
+            ar = ar_base.values("act_date")\
+                .annotate(num_active=Count("participant", distinct=True))\
+                .order_by("act_date")
+
+            active_results = []
+            inactive_results = []
+
+            for result in ar:
+                d3d = self.get_d3_date(result["act_date"])
+                active_results.append({"x": d3d, "y": result["num_active"]})
+                inactive_results.append({"x": d3d, "y": total_participants - result["num_active"]})
+
+            activity_results["activity"]["active"] = json.dumps(active_results)
+            activity_results["activity"]["inactive"] = json.dumps(inactive_results)
+
+            qa = ar_base.values("act_date")\
+                .annotate(total=Count("pk"))\
+                .annotate(correct=BooleanSum("correct"))\
+                .order_by("act_date")
+
+            qa_total_results = []
+            qa_correct_results = []
+            qa_incorrect_results = []
+
+            for result in qa:
+                d3d = self.get_d3_date(result["act_date"])
+                qa_total_results.append({"x": d3d, "y": result["total"]})
+                qa_correct_results.append({"x": d3d, "y": result["correct"]})
+                qa_incorrect_results.append({"x": d3d, "y": result["total"] - result["correct"]})
+
+            activity_results["questions"]["total"] = json.dumps(qa_total_results)
+            activity_results["questions"]["correct"] = json.dumps(qa_correct_results)
+            activity_results["questions"]["incorrect"] = json.dumps(qa_incorrect_results)
+
         if state["id"] == 2:
-            mr = ParticipantQuestionAnswer.objects.all()
+            mr = ParticipantQuestionAnswer.objects.filter(participant__classs__course__pk=course)
 
             module = self.get_module(module_filter)
             modules = self.get_modules(course, module)
@@ -208,38 +280,33 @@ class ResultsView(View):
             if tf_start and tf_end:
                 mr = mr.filter(answerdate__range=[tf_start, tf_end])
 
-            module_results = list(
-                mr.values("question__name")
-                .annotate(num_answers=Count("pk"))
-                .annotate(num_correct=BooleanSum("correct"))
-                .order_by("question__name")
-            )
+            module_results = []
 
-            for result in module_results:
-                if result["num_answers"] is not None and result["num_answers"] > 0:
-                    result["perc"] = result["num_correct"] * 100 / result["num_answers"]
+            results = mr.values("question", "question__name")\
+                .annotate(num_answers=Count("pk"))\
+                .annotate(num_correct=BooleanSum("correct"))\
+                .order_by("question__name")
+
+            for result in results:
+                perc = 0
+
+                if result["num_answers"] > 0:
+                    perc = result["num_correct"] * 100 / result["num_answers"]
+
+                name = "<a href=\"/admin/content/testingquestion/%s/\" target=\"_blank\">%s</a>" \
+                       % (result["question"], result["question__name"])
+
+                module_results.append(
+                    self.make_result_datiod(
+                        result["num_answers"],
+                        perc,
+                        name,
+                        small_formatter="( %s%% correct )",
+                        inv=True
+                    )
+                )
 
         if state["id"] == 3:
-            """
-            * Active Users
-                * Large Text: Shows total active users for time period selected.
-                * Small Text: Shows percentage of total users active
-            * Inactive Users
-                * Large Text: Shows total inactive users for time period selected.
-                * Small Text: Shows percentage of total users inactive for time period selected.
-            * Questions Answered
-                * Large Text: Shows total answers for time period selected.
-                * Small Text: Shows percentage of total questions answered for time period selected.
-            * Questions Correct
-                * Large Text: Shows percentage correct answers for time period selected
-                * Small Text: Shows total correct answers for time period selected.
-            * Questions Incorrect
-                * Large Text: : Shows percentage incorrect answers for time period selected.
-                * Small Text: Shows total incorrect answers for time period selected.
-            * Questions Correct per Module (Each module has an individual text display)
-                * Large Text: Shows percentage correct answers for time period selected
-                * Small Text: Shows total correct answers for time period selected.
-            """
             classes = Class.objects.filter(course__pk=course)
             modules = Module.objects.filter(coursemodulerel__course__pk=course)
             class_results = []
@@ -259,14 +326,21 @@ class ResultsView(View):
 
             for cls in classes:
                 num_questions, num_correct, num_incorrect = self.get_total_questions_per_class(tf_start, tf_end, cls)
+                correct_perc = 0
+                incorrect_perc = 0
+
+                if num_questions > 0:
+                    correct_perc = num_correct * 100 / num_questions
+                    incorrect_perc = num_incorrect * 100 / num_questions
+
                 result = {
                     "name": cls.name,
                     "results": [
                         self.get_active_user_data(tf_start, tf_end, cls, total_active_learners),
                         self.get_inactive_user_data(tf_start, tf_end, cls, total_inactive_learners),
                         self.get_questions_answered_data(total_questions, num_questions),
-                        self.get_questions_correct_data(total_correct, num_correct),
-                        self.get_questions_incorrect_data(total_incorrect, num_incorrect),
+                        self.get_questions_correct_data(total_correct, correct_perc),
+                        self.get_questions_incorrect_data(total_incorrect, incorrect_perc),
                     ]
                 }
 
@@ -274,11 +348,18 @@ class ResultsView(View):
                     num_questions, num_correct, num_incorrect = \
                         self.get_total_questions_per_class_per_module(tf_start, tf_end, cls, md)
 
+                    perc_correct = 0
+
+                    if num_questions > 0:
+                        perc_correct = num_correct * 100 / total_module_results[md.id]["total_correct"]
+
                     result["results"].append(
                         self.make_result_datiod(
-                            num_correct,
+                            perc_correct,
                             total_module_results[md.id]["total_correct"],
-                            md.name
+                            md.name,
+                            large_formatter="%s%%",
+                            inv=True
                         )
                     )
                 class_results.append(result)
@@ -290,6 +371,7 @@ class ResultsView(View):
             "module_results": module_results,
             "timeframes": timeframes,
             "class_results": class_results,
+            "activity_results": activity_results
         }
 
     def get(self, request, course):

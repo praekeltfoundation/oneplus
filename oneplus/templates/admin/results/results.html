@@ -11,17 +11,28 @@
     {% endif %}
 {% endblock %}
 
+{% load static %}
+
 {% block extrastyle %}
-    <link rel="stylesheet" type="text/css" href="/static/css/results.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="{% static "css/results.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/sapphire.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/sapphire-theme.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
 {% endblock %}
 
 {% block extrahead %}
-    <!--<script type="text/javascript" src="/static/js/d3.js"></script>-->
-    <!--<script type="text/javascript" src="/static/js/sapphire.js"></script>-->
-    <script type="text/javascript" src="/static/js/results.js"></script>
+    <script type="text/javascript" src="{% static "js/d3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/strain.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/sapphire.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/results.js" %}"></script>
     <script type="text/javascript">
         _state = {{ state.id }};
         _course = {{ course.id }};
+        _activity_data_active = {{ activity_results.activity.active|safe }};
+        _activity_data_inactive = {{ activity_results.activity.inactive|safe }};
+        _question_data_total = {{ activity_results.questions.total|safe }};
+        _question_data_correct = {{ activity_results.questions.correct|safe }};
+        _question_data_incorrect = {{ activity_results.questions.incorrect|safe }};
     </script>
 {% endblock %}
 
@@ -59,27 +70,42 @@
                 </h2>
             </fieldset>
             {% if state.id == 1 %}
-
+                <div class="readable-bg">
+                    <div class="sapphire">
+                        <div class="result-box">
+                            <div id="d3-activity"></div>
+                        </div>
+                    </div>
+                    <div class="sapphire">
+                        <div class="result-box">
+                            <div id="d3-qa"></div>
+                        </div>
+                    </div>
+                </div>
             {% elif state.id == 2 %}
-                {% for result in module_results %}
-                    <div>
-                        <p>{{ result.num_answers }}</p>
-                        <p>{{ result.perc }}</p>
-                        <p>{{ result.question__name }}</p>
-                    </div>
-                {% endfor %}
-            {% elif state.id == 3 %}
-                {% for class in class_results %}
-                    <div>
-                        <p>{{ class.name }}</p>
-                    </div>
-                    {% for result in class.results %}
-                        <div>
-                            <p>{{ result.large }}</p>
-                            <p>{{ result.small }}</p>
-                            <p>{{ result.name }}</p>
+                <div class="result-container">
+                    {% for result in module_results %}
+                        <div class="result-block result-block-border">
+                            <p class="result-text-large">{{ result.large }}</p>
+                            <p class="result-text-small">{{ result.small }}</p>
+                            <p class="result-text-name">{{ result.name|safe }}</p>
                         </div>
                     {% endfor %}
+                </div>
+            {% elif state.id == 3 %}
+                {% for class in class_results %}
+                    <div class="result-container">
+                        <div class="result-block result-header">
+                            <p class="result-text-header">{{ class.name }}</p>
+                        </div>
+                        {% for result in class.results %}
+                            <div class="result-block result-block-border">
+                                <p class="result-text-large">{{ result.large }}</p>
+                                <p class="result-text-small">{{ result.small }}</p>
+                                <p class="result-text-name">{{ result.name }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
                 {% endfor %}
             {% endif %}
         </div>
