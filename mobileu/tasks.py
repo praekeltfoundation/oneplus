@@ -19,15 +19,18 @@ def send_sms(x, y):
 @celery.task
 def send_teacher_reports():
     today = datetime.now()
-    last_month = datetime.date(day=1, month=today.month, year=today.year) - datetime.timedelta(days=1)
+    # first = datetime.datetime(today.year, today.month, 1)
+    first = today.replace(year=today.year, month=today.month, day=1)
+    last_month = first - timedelta(days=1)
 
-    t_c_rel = TeacherClass.objects.values_list("id", flat=True).distinct()
+    t_c_rel = TeacherClass.objects.values_list("teacher__id", flat=True).distinct()
 
     #get all the teachers
-    all_teachers = Teacher.objects.all(email__is_null=False, id__in=t_c_rel)
+    all_teachers = Teacher.objects.filter(email__isnull=False, id__in=t_c_rel)
 
     for teacher in all_teachers:
         all_teacher_classes_rel = TeacherClass.objects.filter(teacher=teacher)
+        print teacher.email
 
         #list containing reports for a specific teacher to be emailed
         teacher_reports = list()
@@ -40,21 +43,24 @@ def send_teacher_reports():
             all_participants = Participant.objects.filter(classs=teach_class.classs)
 
             for participant in all_participants:
-                all_time_ans = ParticipantQuestionAnswer.objects.filter(participant=participant)
+                all_time_ans_set = ParticipantQuestionAnswer.objects.filter(participant=participant)
+                all_time_ans_num = all_time_ans_set.aggregate(Count('id'))['id__count']
 
-                all_time_cor = all_time_ans.filter(correct=True)
+                all_time_cor_set = all_time_ans_set.filter(correct=True)
+                all_time_cor_num = all_time_cor_set.aggregate(Count('id'))['id__count']
+                if all_time_ans_num != 0:
+                    all_time_cor_num = all_time_cor_num / all_time_ans_num * 100
 
-                last_month_ans = all_time_ans.filter(answerdate__month=last_month.month)
+                last_month_ans_set = all_time_ans_set.filter(answerdate__month=last_month.month)
+                last_month_ans_num = last_month_ans_set.aggregate(Count('id'))['id__count']
 
-                last_month_cor = (last_month_ans.filter(correct=True)
-                                  .aggregate(Count('correct'))['correct__count'] / last_month_ans) * 100
+                last_month_cor_num = last_month_ans_set.filter(correct=True)\
+                    .aggregate(Count('id'))['id__count']
+                if last_month_ans_num != 0:
+                    last_month_cor_num = last_month_cor_num / last_month_ans_num * 100
 
-                all_time_ans = all_time_ans.aggregate(Count('id'))['id__count']
-                all_time_cor = all_time_cor.aggregate(Count('correct'))['correct__count'] / all_time_ans * 100
-                last_month_ans = last_month_ans.aggregate(Count('id'))['id__count']
-
-                class_list.append((participant.learner.first_name, last_month_ans, last_month_cor, all_time_ans,
-                                   all_time_cor))
+                class_list.append((participant.learner.first_name, last_month_ans_num, last_month_cor_num,
+                                   all_time_ans_num, all_time_cor_num))
 
             #create a class report
             report_file = open("%s_class_report.csv" % teach_class.classs.name, 'wt')
@@ -80,5 +86,5 @@ def send_teacher_reports():
         email = EmailMessage(subject, message, from_email, [teacher.email])
         #attach all the reports for this teacher
         for report in teacher_reports:
-            email.attach(report.name, report.getvalue(), 'text/csv')
+            email.attach(report.name, report, 'text/csv')
         email.send()
