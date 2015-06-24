@@ -155,6 +155,11 @@ class Participant(models.Model):
                         participant=self, badgetemplate=scenario.badge,
                         scenario=scenario, awarddate=datetime.now())
                     b.save()
+                elif template_rels.first().badgetemplate.multiple:
+                    b = template_rels.first()
+                    b.awardcount += 1
+                    b.awarddate=datetime.now()
+                    b.save()
 
         # Recalculate total points - not entirely sure that this should be here.
         self.points = self.recalculate_total_points()
@@ -180,6 +185,7 @@ class ParticipantBadgeTemplateRel(models.Model):
     scenario = models.ForeignKey(GamificationScenario)
     awarddate = models.DateTimeField(
         "Award Date", null=True, blank=False, default=datetime.now())
+    awardcount = models.PositiveIntegerField(default=1)
 
 
 class ParticipantQuestionAnswer(models.Model):
