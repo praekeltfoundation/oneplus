@@ -296,19 +296,19 @@ def nextchallenge(request, state, user):
                         _learnerstate.active_question.module
                     )
 
-                if _total_correct >= 15:
+                if _total_correct == 15:
                     _participant.award_scenario(
                         "15_CORRECT",
                         _learnerstate.active_question.module
                     )
 
-                if _total_correct >= 30:
+                if _total_correct == 30:
                     _participant.award_scenario(
                         "30_CORRECT",
                         _learnerstate.active_question.module
                     )
 
-                if _total_correct >= 100:
+                if _total_correct % 100 == 0:
                     _participant.award_scenario(
                         "100_CORRECT",
                         _learnerstate.active_question.module
@@ -320,10 +320,14 @@ def nextchallenge(request, state, user):
 
                 if last_3.count() == 3 \
                         and len([i for i in last_3 if i.correct]) == 3:
-                    _participant.award_scenario(
-                        "3_CORRECT_RUNNING",
-                        _learnerstate.active_question.module
-                    )
+                    last_3 = ParticipantQuestionAnswer.objects.filter(
+                        participant=_participant
+                    ).order_by("answerdate").reverse()[3:6]
+                    if last_3.count() == 0 or (last_3.count() == 3 and len([i for i in last_3 if i.correct]) == 3):
+                        _participant.award_scenario(
+                            "3_CORRECT_RUNNING",
+                            _learnerstate.active_question.module
+                        )
 
                 last_5 = ParticipantQuestionAnswer.objects.filter(
                     participant=_participant
@@ -331,10 +335,14 @@ def nextchallenge(request, state, user):
 
                 if last_5.count() == 5 \
                         and len([i for i in last_5 if i.correct]) == 5:
-                    _participant.award_scenario(
-                        "5_CORRECT_RUNNING",
-                        _learnerstate.active_question.module
-                    )
+                    last_5 = ParticipantQuestionAnswer.objects.filter(
+                        participant=_participant
+                    ).order_by("answerdate").reverse()[5:10]
+                    if last_5.count() == 0 or (last_5.count() == 5 and len([i for i in last_5 if i.correct]) == 5):
+                        _participant.award_scenario(
+                            "5_CORRECT_RUNNING",
+                            _learnerstate.active_question.module
+                        )
 
                 return redirect("learn.right")
 
@@ -723,9 +731,10 @@ def right(request, state, user):
                                                                              _golden_egg.airtime), fail_silently=False)
             if _golden_egg.badge:
                 golden_egg["message"] = "You've won this week's Golden Egg and a badge"
-                ParticipantBadgeTemplateRel(participant=_participant, badgetemplate=_golden_egg.badge.badge,
-                                            scenario=_golden_egg.badge, awarddate=datetime.now()).save()
-                _participant.points += _golden_egg.badge.point.value
+                _participant.award_scenario(
+                        _golden_egg.badge.event,
+                        _golden_egg.course.module
+                    )
                 _participant.save()
             golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
             GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
@@ -1155,13 +1164,13 @@ def event_end_page(request, state, user):
                 module
             )
 
-        if "spot test" in _event.name.lower():
+        if _event.type == 1:
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "SPOT_TEST",
                 module
             )
-            _num_spot_tests = EventParticipantRel.objects.filter(event__name__icontains="spot test",
+            _num_spot_tests = EventParticipantRel.objects.filter(event__type=1,
                                                                  participant=_participant).count()
             if _num_spot_tests > 0 and _num_spot_tests % 5 == 0:
                 module = CourseModuleRel.objects.filter(course=_event.course).first()
@@ -1170,7 +1179,7 @@ def event_end_page(request, state, user):
                     module
                 )
 
-        if "exam" in _event.name.lower():
+        if _event.type == 2:
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "EXAM",

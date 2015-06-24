@@ -346,11 +346,10 @@ def badges(request, state, user):
 
     # Link achieved badges
     for x in _badges:
-        if ParticipantBadgeTemplateRel.objects.filter(
-                participant=_participant,
-                badgetemplate=x
-        ).exists():
+        rel = ParticipantBadgeTemplateRel.objects.filter(participant=_participant, badgetemplate=x)
+        if rel.exists():
             x.achieved = True
+            x.count = rel.first().awardcount
 
     def get():
         return render(request, "prog/badges.html", {
