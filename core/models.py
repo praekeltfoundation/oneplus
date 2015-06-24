@@ -162,15 +162,17 @@ class Participant(models.Model):
                         participant=self, badgetemplate=scenario.badge,
                         scenario=scenario, awarddate=datetime.now())
                     b.save()
-                    ParticipantPointBonusRel(participant=self, scenario=scenario,
-                                             pointbonus=scenario.point, awarddate=datetime.now()).save()
+                    if scenario.point:
+                        ParticipantPointBonusRel(participant=self, scenario=scenario,
+                                                 pointbonus=scenario.point, awarddate=datetime.now()).save()
                 elif template_rels.first().badgetemplate.multiple:
                     b = template_rels.first()
                     b.awardcount += 1
                     b.awarddate=datetime.now()
                     b.save()
-                    ParticipantPointBonusRel(participant=self, scenario=scenario,
-                                             pointbonus=scenario.point, awarddate=datetime.now()).save()
+                    if scenario.point:
+                        ParticipantPointBonusRel(participant=self, scenario=scenario,
+                                                 pointbonus=scenario.point, awarddate=datetime.now()).save()
 
         # Recalculate total points - not entirely sure that this should be here.
         self.points = self.recalculate_total_points()
