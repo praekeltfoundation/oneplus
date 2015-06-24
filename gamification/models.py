@@ -36,6 +36,7 @@ class GamificationBadgeTemplate(models.Model):
     description = models.CharField("Description", max_length=500, blank=True)
     image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
     order = models.IntegerField("Order Number", blank=True, null=True)
+    multiple = models.BooleanField("Unlimited Awards", default=False)
 
     def __str__(self):
         return self.name

@@ -13,11 +13,11 @@ class GamificationPointBonusAdmin(admin.ModelAdmin):
 
 
 class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
-    list_display = ("name", "description", "image_", "order")
+    list_display = ("name", "description", "image_", "order", "multiple")
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "image", "order"]})
+            {"fields": ["name", "description", "image", "order", "multiple"]})
     ]
 
 
