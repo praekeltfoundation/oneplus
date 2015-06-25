@@ -202,6 +202,11 @@ class ParticipantBadgeTemplateRel(models.Model):
     awardcount = models.PositiveIntegerField(default=1)
 
 
+class BadgeAwardLog(models.Model):
+    participant_badge_rel = models.ForeignKey(ParticipantBadgeTemplateRel, blank=False, null=True)
+    award_date = models.DateTimeField(auto_now_add=True)
+
+
 class ParticipantQuestionAnswer(models.Model):
     participant = models.ForeignKey(Participant, verbose_name="Participant")
     question = models.ForeignKey(TestingQuestion, verbose_name="Question")
