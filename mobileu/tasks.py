@@ -30,7 +30,6 @@ def send_teacher_reports():
 
     for teacher in all_teachers:
         all_teacher_classes_rel = TeacherClass.objects.filter(teacher=teacher)
-        print teacher.email
 
         #list containing reports for a specific teacher to be emailed
         teacher_reports = list()
@@ -63,7 +62,7 @@ def send_teacher_reports():
                                    all_time_ans_num, all_time_cor_num))
 
             #create a class report
-            report_file = open("%s_class_report.csv" % teach_class.classs.name, 'wt')
+            report_file = open("%s_class_report.csv" % teach_class.classs.name, 'wb')
             try:
                 headings = ("Learner's Name", "Answered LAST MONTH", "Answered Correctly LAST MONTH (%)",
                             "Answered ALL TIME", "Answered Correctly ALL TIME (%)")
@@ -86,5 +85,6 @@ def send_teacher_reports():
         email = EmailMessage(subject, message, from_email, [teacher.email])
         #attach all the reports for this teacher
         for report in teacher_reports:
-            email.attach(report.name, report, 'text/csv')
+            with open(report.name, 'r') as r:
+                email.attach(report.name, r.read(), 'text/csv')
         email.send()
