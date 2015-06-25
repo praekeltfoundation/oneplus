@@ -2,8 +2,6 @@ from django.db import models
 from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta, time
-from random import randint
-from content.models import GoldenEgg
 
 
 # Participant(Learner) State
@@ -15,7 +13,6 @@ class LearnerState(models.Model):
         blank=False
     )
     active_result = models.NullBooleanField()
-    golden_egg_question = models.PositiveIntegerField(default=0)
     QUESTIONS_PER_DAY = 3
     MONDAY = 0
     FRIDAY = 4
@@ -122,7 +119,7 @@ class LearnerState(models.Model):
             return False
 
     def get_monday_after_training(self):
-        # Get week day
+          # Get week day
         weekday = self.participant.datejoined.weekday()
         one_week = 7
         days = 0-weekday + one_week
@@ -159,15 +156,9 @@ class LearnerState(models.Model):
         return total
 
     def getnextquestion(self):
-        golden_egg_list1 = GoldenEgg.objects.filter(classs=self.participant.classs,
-                                                    course=self.participant.classs.course,
-                                                    active=True)
-        golden_egg_list2 = GoldenEgg.objects.filter(classs=None, course=self.participant.classs.course, active=True)
-        if self.golden_egg_question == 0 and (golden_egg_list1.exists() or golden_egg_list2.exists()):
-            self.golden_egg_question = randint(1, 15)
-
         if self.active_question is None or self.active_result is not None:
             questions = self.get_unanswered()
+
 
             # If a question exists
             if questions.count() > 0:
@@ -176,3 +167,4 @@ class LearnerState(models.Model):
                 self.save()
 
         return self.active_question
+
