@@ -167,7 +167,7 @@ class Participant(models.Model):
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
                                                  pointbonus=scenario.point, awarddate=datetime.now()).save()
                     BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
-                elif template_rels.first().badgetemplate.multiple:
+                elif scenario.award_type == 2:
                     b = template_rels.first()
                     b.awardcount += 1
                     b.awarddate=datetime.now()
