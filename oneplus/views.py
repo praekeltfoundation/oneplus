@@ -2,7 +2,6 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, logout
-from django.utils.cache import learn_cache_key
 from .forms import LoginForm, SmsPasswordForm
 from django.core.mail import mail_managers, BadHeaderError
 from communication.models import *
@@ -1911,259 +1910,75 @@ def ontrack(request, state, user):
 def leader(request, state, user):
     # get learner state
     _participant = Participant.objects.get(pk=user["participant_id"])
+    request.session["state"]["leader_region"] = None
 
-    def get_overall_leaderboard():
-        leaderboard = Participant.objects.filter(classs=_participant.classs,) \
-            .order_by("-points", 'learner__first_name')
+    def leader_position(location):
 
-        learners = []
-        position = None
-        i = 0
-        for a in leaderboard:
-            i += 1
-            learner = {"id": a.id, "name": a.learner.first_name, "points": a.points, "position": i}
-            if a.id == _participant.id:
-                learner['me'] = True
-                position = i
-            learners.append(learner)
+        return Participant.objects.filter(
+            classs=_participant.classs,
+            points__gt=_participant.points,
+        ).count() + 1
 
-            if position is not None and i >= 10:
-                break
-
-        if position > 10 or position is None:
-            learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": _participant.points,
-                       "me": True, "position": position}
-            learners.insert(10, learner)
-            return learners[:11], position
-        else:
-            return learners[:10], position
-
-    def get_weeks_leaderboard(weeks):
-        leaderboard = ParticipantQuestionAnswer.objects.values('participant__id', 'participant__learner__first_name') \
-            .annotate(points=Sum('question__points')) \
-            .filter(answerdate__range=[datetime.now() - timedelta(weeks=weeks), datetime.now()],
-                    correct=True,
-                    participant__classs=_participant.classs) \
-            .order_by('-points', 'participant__learner__first_name')
-
-        learners = []
-        position = None
-        position_counter = 0
-        id_list = []
-
-        for _l in leaderboard:
-            position_counter += 1
-            _learner = {"id": _l['participant__id'], "name": _l['participant__learner__first_name'],
-                        "points": _l['points'], "position": position_counter}
-
-            if _participant.id == _l['participant__id']:
-                position = position_counter
-                _learner['me'] = True
-
-            id_list.append(_l['participant__id'])
-            learners.append(_learner)
-
-        if len(leaderboard) < 10:
-            no_points_list = Participant.objects.filter(classs=_participant.classs) \
-                .exclude(id__in=id_list) \
-                .order_by('learner__first_name')
-
-            if not position:
-                temp_counter = position_counter
-                for _l in no_points_list:
-                    temp_counter += 1
-                    if _participant.id == _l.id:
-                        position = temp_counter
-                        break
-
-            no_points_list = no_points_list[:10 - len(leaderboard)]
-
-            for _l in no_points_list:
-                position_counter += 1
-                _learner = {"id": _l.id, "name": _l.learner.first_name, "points": 0, "position": position_counter}
-                if _participant.id == _l.id:
-                    _learner['me'] = True
-                learners.append(_learner)
-
-                if len(learners) >= 10:
-                    break
-
-        if position > 10:
-            _learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": 0, 'me': True,
-                        "position": position}
-            learners.insert(11, _learner)
-            return learners[:11], position
-        else:
-            return learners[:10], position
-
-    def get_correct(answered_list, class_name):
-        for l in answered_list:
-            if l['participant__classs__name'] == class_name:
-                return l
-        return None
-
-    def get_class_leaderboard():
-        total_list = ParticipantQuestionAnswer.objects.values('participant__classs__name', ) \
-            .annotate(answered=Count('question')) \
-            .order_by('participant__classs')
-
-        correct_list = ParticipantQuestionAnswer.objects.values('participant__classs__name') \
-            .annotate(cor=Count('question')) \
-            .filter(correct=True) \
-            .order_by('participant__classs')
-
-        classes = []
-        position = None
-        position_counter = 0
-        name_list = []
-
-        for tl in total_list:
-            position_counter += 1
-            cl = get_correct(correct_list, tl['participant__classs__name'])
-            percent = '-'
-            if cl:
-                name_list.append(cl['participant__classs__name'])
-                percent = str(int((cl['cor']) / int(tl['answered']) * 100)) + '%'
-
-            classs = {"name": tl['participant__classs__name'], "points": percent}
-            if _participant.classs.name == tl['participant__classs__name']:
-                position = position_counter
-                classs['me'] = True
-            classes.append(classs)
-
-        classes = sorted(classes, key=lambda k: k['points'])
-
-        a = 0
-        temp = []
-        for classs in classes:
-            a += 1
-            classs['position'] = a
-            temp.append(classs)
-
-        classes = temp
-
-        if len(classes) < 10:
-            no_points_list = Class.objects.exclude(name__in=name_list).order_by('name')
-
-            if not position:
-                temp_counter = position_counter
-                for _l in no_points_list:
-                    temp_counter += 1
-                    if _participant.classs.name == _l.name:
-                        position = temp_counter
-                        break
-
-            no_points_list = no_points_list[:10 - len(classes)]
-
-            for _l in no_points_list:
-                position_counter += 1
-                classs = {"id": _l.id, "name": _l.name, "points": '-', "position": position_counter}
-                if _participant.classs.name == _l.name:
-                    classs['me'] = True
-                classes.append(classs)
-
-        if position > 10:
-            classs = {"me": True, "name": _participant.classs.name, "points": '-', "position": position}
-            classes.insert(11, classs)
-            return classes[:11], position
-        else:
-            return classes[:10], position
-
-    def get_buttons(button_name):
-        buttons = []
-        overall = {"name": "overall", "value": "Overall Leaderboard"}
-        two_week = {"name": "two_week", "value": "2 Week Leaderboard"}
-        three_month = {"name": "three_month", "value": "3 Month Leaderboard"}
-        classs = {"name": "class", "value": "Class Leaderboard"}
-
-        if button_name != "overall":
-            buttons.append(overall)
-        if button_name != "two_week":
-            buttons.append(two_week)
-        if button_name != "three_month":
-            buttons.append(three_month)
-        if button_name != "class":
-            buttons.append(classs)
-
-        return buttons
+    def get_leaderboard(location):
+        return Participant.objects.filter(
+            classs=_participant.classs,
+        ).order_by("-points")[:10]
 
     def get():
         request.session["state"]["leader_menu"] = False
 
         # Get leaderboard and position
-        _learners, position = get_overall_leaderboard()
+        _location = request.session["state"]["leader_region"]
+        _learners = list(get_leaderboard(_location))
+        request.session["state"]["leader_place"] = leader_position(_location)
 
-        return render(
-            request,
-            "prog/leader.html",
-            {
-                "state": state,
-                "user": user,
-                "learners": _learners,
-                "position": position,
-                "buttons": get_buttons("overall"),
-                "header_1": "Leaderboard",
-                "header_2": "Well done you're in "
-            }
-        )
+        try:
+            index = _learners.index(_participant)
+            _learners[index].me = True
+        finally:
+            return render(
+                request,
+                "prog/leader.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "learners": _learners
+                }
+            )
 
     def post():
-        buttons = get_buttons("overall")
-        _learners, position = get_overall_leaderboard()
-        header_1 = "Leaderboard"
-        header_2 = "Well done you're in "
-
         # show region menu?
         if "leader_menu" in request.POST:
             request.session["state"]["leader_menu"] \
                 = request.POST["leader_menu"] != 'True'
-
         elif "region" in request.POST:
             request.session["state"]["leader_menu"] = False
             request.session["state"]["leader_region"] = request.POST["region"]
 
-        elif "overall" in request.POST:
-            buttons = get_buttons("overall")
-            _learners, position = get_overall_leaderboard()
-            header_1 = "Leaderboard"
-            header_2 = "Well done you're in "
-
-        elif "two_week" in request.POST:
-            buttons = get_buttons("two_week")
-            _learners, position = get_weeks_leaderboard(2)
-            header_1 = "2 Week Leaderboard"
-            header_2 = "In the last 2 weeks, you're in"
-
-        elif "three_month" in request.POST:
-            buttons = get_buttons("three_month")
-            _learners, position = get_weeks_leaderboard(12)
-            header_1 = "3 Month Leaderboard"
-            header_2 = "In the last 3 months, you're in"
-
-        elif "class" in request.POST:
-            buttons = get_buttons("class")
-            _learners, position = get_class_leaderboard()
-            header_1 = "Class Leaderboard"
-            header_2 = "%s, you're in" % _participant.classs.name
+        # Get leaderboard and position
+        _location = request.session["state"]["leader_region"]
+        _learners = list(get_leaderboard(_location))
+        request.session["state"]["leader_place"] = leader_position(_location)
 
         # Get unique regions
         request.session["state"]["leader_regions"] \
             = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
 
-        return render(
-            request,
-            "prog/leader.html",
-            {
-                "state": state,
-                "user": user,
-                "learners": _learners,
-                "position": position,
-                "buttons": buttons,
-                "header_1": header_1,
-                "header_2": header_2
-            }
-        )
+        # Tag the user
+        try:
+            index = _learners.index(_participant)
+            _learners[index].me = True
+        finally:
+            return render(
+                request,
+                "prog/leader.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "learners": _learners
+                }
+            )
 
     return resolve_http_method(request, [get, post])
 
