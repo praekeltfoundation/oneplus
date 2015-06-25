@@ -809,12 +809,6 @@ def nextchallenge(request, state, user):
     # check if new question required then show question
     _learnerstate.getnextquestion()
 
-    golden_egg = {}
-    if _learnerstate.golden_egg_question == _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
-            _learnerstate.get_num_questions_answered_today() + 1:
-        golden_egg["question"] = True
-        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
-
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=_learnerstate.participant
     ).distinct().values_list('question')
