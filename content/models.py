@@ -158,3 +158,11 @@ allowed_styles = [
     'font-variant',
     'width',
     'height']
+
+class Definition(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+    definition = models.TextField(null=False, blank=False)
+
+    class Meta:
+        verbose_name = "Definition"
+        verbose_name_plural = "Definitions"

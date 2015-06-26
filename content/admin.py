@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml
+from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, Definition
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -190,3 +190,4 @@ admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
+admin.site.register(Definition)
