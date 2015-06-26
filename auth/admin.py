@@ -3,13 +3,11 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
-from communication.utils import VumiSmsApi, get_autologin_link
+from communication.utils import VumiSmsApi
 from auth.forms import SendSmsForm
 from communication.tasks import bulk_send_all
 from django import template
-from core.models import Class
-from auth.models import LearnerView, SystemAdministrator, SchoolManager,\
-    CourseManager, CourseMentor, Teacher, Learner
+from auth.models import SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Teacher, Learner
 from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
@@ -18,7 +16,7 @@ from .forms import SystemAdministratorChangeForm, \
     TeacherCreationForm, TeacherChangeForm
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
-from auth.filters import AirtimeFilter, LearnerViewClassFilter, LearnerViewCourseFilter, ClassFilter, CourseFilter
+from auth.filters import AirtimeFilter, ClassFilter, CourseFilter
 from core.models import TeacherClass, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
 
@@ -192,57 +190,6 @@ def send_sms(modeladmin, request, queryset):
 send_sms.short_description = "Send sms to learners"
 
 
-class LearnerViewAdmin(UserAdmin):
-    # The forms to add and change user instances
-    form = LearnerChangeForm
-    add_form = LearnerCreationForm
-    resource_class = LearnerResource
-    list_max_show_all = 1000
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ("username", "first_name", "last_name", "school",
-                    "area", "questions_completed", "questions_correct",
-                    "welcome_message_sent")
-    list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
-                   "welcome_message_sent", LearnerViewClassFilter, LearnerViewCourseFilter, AirtimeFilter)
-    search_fields = ("last_name", "first_name", "username")
-    ordering = ("country", "area", "last_name", "first_name", "last_login")
-    filter_horizontal = ()
-    readonly_fields = ("mobile",)
-
-    fieldsets = (
-        ("Personal info", {"fields": ("first_name", "last_name",
-                                      "email", "mobile")}),
-        ("Access", {"fields": ("username", "password",
-                               "is_active", "unique_token")}),
-        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
-        ("Region", {"fields": ("country", "area", "city",
-                               "school")}),
-        ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
-    )
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
-    add_fieldsets = (
-        ("Personal info", {"fields": ("first_name", "last_name")}),
-        ("Access", {"fields": ("username", "password1",
-                               "password2")}),
-        ("Region", {"fields": ("country", "area", "school")})
-    )
-
-    actions = [send_sms]
-
-    def get_actions(self, request):
-        #Disable delete
-        actions = super(LearnerViewAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
@@ -386,6 +333,5 @@ admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
 admin.site.register(SchoolManager, SchoolManagerAdmin)
 admin.site.register(CourseManager, CourseManagerAdmin)
 admin.site.register(CourseMentor, CourseMentorAdmin)
-admin.site.register(LearnerView, LearnerViewAdmin)
 admin.site.register(Learner, LearnerAdmin)
 admin.site.register(Teacher, TeacherAdmin)

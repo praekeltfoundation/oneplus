@@ -13,21 +13,22 @@ class GamificationPointBonusAdmin(admin.ModelAdmin):
 
 
 class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
-    list_display = ("name", "description", "image_", "order", "multiple")
+    list_display = ("name", "description", "image_", "order")
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "image", "order", "multiple"]})
+            {"fields": ["name", "description", "image", "order"]})
     ]
 
 
 class GamificationScenarioAdmin(admin.ModelAdmin):
-    list_display = ("name", "course", "description", "module", "course", "point", "get_pointvalue", "badge")
+    list_display = ("name", "course", "description", "module", "course", "point", "get_pointvalue", "badge",
+                    "award_type")
     list_filter = ("name", "course", "module")
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "event", "course", "module"]}),
+            {"fields": ["name", "description", "event", "course", "module", "award_type"]}),
         ("Rewards",
             {"fields": ["point", "badge"]})
     ]

@@ -8,15 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'GamificationBadgeTemplate.multiple'
-        db.add_column(u'gamification_gamificationbadgetemplate', 'multiple',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
+        # Adding field 'GamificationScenario.award_type'
+        db.add_column(u'gamification_gamificationscenario', 'award_type',
+                      self.gf('django.db.models.fields.PositiveIntegerField')(default=1),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'GamificationBadgeTemplate.multiple'
-        db.delete_column(u'gamification_gamificationbadgetemplate', 'multiple')
+        # Deleting field 'GamificationScenario.award_type'
+        db.delete_column(u'gamification_gamificationscenario', 'award_type')
 
 
     models = {
@@ -25,7 +25,6 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'multiple': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
         },
@@ -39,6 +38,7 @@ class Migration(SchemaMigration):
         },
         u'gamification.gamificationscenario': {
             'Meta': {'object_name': 'GamificationScenario'},
+            'award_type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'badge': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']", 'null': 'True', 'blank': 'True'}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
