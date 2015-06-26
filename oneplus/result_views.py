@@ -350,7 +350,7 @@ class ResultsView(View):
 
                     perc_correct = 0
 
-                    if num_questions > 0:
+                    if total_module_results[md.id]["total_correct"] > 0:
                         perc_correct = num_correct * 100 / total_module_results[md.id]["total_correct"]
 
                     result["results"].append(
