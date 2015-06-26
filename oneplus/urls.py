@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from oneplus import views
+from oneplus import result_views
 
 urlpatterns = [
     # Misc
@@ -120,4 +121,7 @@ urlpatterns = [
     url(r'^classes/(?P<course>\w+)$', views.get_classes),
     url(r'^users/(?P<classs>\w+)$', views.get_users),
 
+    url(r"^admin/results/(?P<course>\d+)$",
+        result_views.ResultsView.as_view(),
+        name="results.home"),
 ]
