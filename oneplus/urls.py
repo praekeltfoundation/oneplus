@@ -19,7 +19,7 @@ urlpatterns = [
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
     url(r"^a/(?P<token>\S+)$", views.autologin, name="auth.autologin"),
     url(r'^signup$', views.signup, name="auth.signup"),
-    url(r'signup/form', views.signup_form, name="auth.signup_form"),
+    url(r'signup_form', views.signup_form, name="auth.signup_form"),
     url(r'^changedetails$', views.change_details, name="auth.change_details"),
 
     # Learn
