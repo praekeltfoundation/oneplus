@@ -372,3 +372,67 @@ def badges(request, state, user):
         )
 
     return resolve_http_method(request, [get, post])
+
+
+from django.shortcuts import redirect
+
+def award_badge(request, participant_id, scenario_id):
+    try:
+        participant = Participant.objects.get(id=participant_id)
+    except Participant.DoesNotExist:
+        return redirect("/admin/auth/learner")
+
+    try:
+        scenario = GamificationScenario.objects.get(id=scenario_id)
+    except GamificationScenario.DoesNotExist:
+        return redirect("/admin/auth/learner")
+
+    def get():
+        return render(request,
+                      "admin/auth/confirm_badge_award.html",
+                      {
+                          "participant": participant,
+                          "scenario": scenario
+                      })
+
+    def post():
+        if "award_yes" in request.POST.keys():
+            awarding_scenario = ParticipantBadgeTemplateRel.objects.filter(participant=participant,
+                                                                           participant__is_active=True,
+                                                                           scenario=scenario).first()
+
+            if awarding_scenario:
+
+                if awarding_scenario.scenario.award_type == 2:
+                    awarding_scenario.awardcount += 1
+                    awarding_scenario.save()
+                else:
+                    return render(
+                        request,
+                        "misc/badge_awarded_result.html",
+                        {
+                            "success": False,
+                            "badge_name": awarding_scenario.scenario.name,
+                            "participant": participant,
+                            "message": "badge cannot be awarded multiple times."
+                        }
+                    )
+            else:
+                awarding_scenario = ParticipantBadgeTemplateRel(participant=participant,
+                                                                badgetemplate=scenario.badge,
+                                                                scenario=scenario,
+                                                                awarddate=datetime.now(),
+                                                                awardcount=1)
+                awarding_scenario.save()
+
+        return render(
+            request,
+            "misc/badge_awarded_result.html",
+            {
+                "success": True,
+                "badge_name": awarding_scenario.scenario.name,
+                "participant": participant
+            }
+        )
+
+    return resolve_http_method(request, [get, post])

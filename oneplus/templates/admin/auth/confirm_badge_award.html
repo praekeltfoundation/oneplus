@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block content %}
+    <header id="grp-content-title">
+        <h1>Are you sure?</h1>
+    </header>
+    <div id="grp-content-container">
+        <div class="grp-group">
+            <h2>Are you sure you want to award {{ scenario.name }} badge to {{ participant.learner.first_name }} {{ participant.learner.last_name }} ({{ participant.learner.mobile }})?</h2>
+        </div>
+        <form name="award_badge" action="" method="post">
+            {% csrf_token %}
+            <input class="grp-button grp-default" type="submit" name="award_yes" value="Yes">
+            <a class="grp-button grp-cancel-link" href="/admin/auth/learner/{{ participant.learner.id }}">No</a>
+        </form>
+    </div>
+{% endblock %}
