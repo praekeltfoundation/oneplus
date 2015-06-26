@@ -1,6 +1,6 @@
 from __future__ import division
 from datetime import datetime, timedelta
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
 from auth.models import Learner
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantBadgeTemplateRel
@@ -374,11 +374,9 @@ def badges(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-from django.shortcuts import redirect
-
-def award_badge(request, participant_id, scenario_id):
+def award_badge(request, learner_id, scenario_id):
     try:
-        participant = Participant.objects.get(id=participant_id)
+        participant = Participant.objects.get(learner__id=learner_id, is_active=True)
     except Participant.DoesNotExist:
         return redirect("/admin/auth/learner")
 
@@ -387,52 +385,39 @@ def award_badge(request, participant_id, scenario_id):
     except GamificationScenario.DoesNotExist:
         return redirect("/admin/auth/learner")
 
+    awarding_scenario = ParticipantBadgeTemplateRel.objects.filter(participant=participant,
+                                                                   participant__is_active=True,
+                                                                   scenario=scenario).first()
+
+    allowed = True
+    if awarding_scenario:
+        if awarding_scenario.scenario.award_type == 1:
+            allowed = False
+
     def get():
         return render(request,
-                      "admin/auth/confirm_badge_award.html",
+                      "admin/auth/badge_award.html",
                       {
+                          "allowed": allowed,
                           "participant": participant,
                           "scenario": scenario
                       })
 
     def post():
         if "award_yes" in request.POST.keys():
-            awarding_scenario = ParticipantBadgeTemplateRel.objects.filter(participant=participant,
-                                                                           participant__is_active=True,
-                                                                           scenario=scenario).first()
-
             if awarding_scenario:
-
-                if awarding_scenario.scenario.award_type == 2:
+                if allowed:
                     awarding_scenario.awardcount += 1
                     awarding_scenario.save()
                 else:
-                    return render(
-                        request,
-                        "misc/badge_awarded_result.html",
-                        {
-                            "success": False,
-                            "badge_name": awarding_scenario.scenario.name,
-                            "participant": participant,
-                            "message": "badge cannot be awarded multiple times."
-                        }
-                    )
+                    return redirect("/admin/auth/learner/%s" % participant.learner.id)
             else:
-                awarding_scenario = ParticipantBadgeTemplateRel(participant=participant,
-                                                                badgetemplate=scenario.badge,
-                                                                scenario=scenario,
-                                                                awarddate=datetime.now(),
-                                                                awardcount=1)
-                awarding_scenario.save()
+                ParticipantBadgeTemplateRel.objects.create(participant=participant,
+                                                           badgetemplate=scenario.badge,
+                                                           scenario=scenario,
+                                                           awarddate=datetime.now(),
+                                                           awardcount=1)
 
-        return render(
-            request,
-            "misc/badge_awarded_result.html",
-            {
-                "success": True,
-                "badge_name": awarding_scenario.scenario.name,
-                "participant": participant
-            }
-        )
+        return redirect("/admin/auth/learner/%s" % participant.learner.id)
 
     return resolve_http_method(request, [get, post])
