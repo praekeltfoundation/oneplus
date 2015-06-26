@@ -13,6 +13,22 @@ class TestingQuestionCreateForm(forms.ModelForm):
                                     error_messages={'required': 'A Test question needs to '
                                                                 'be associated with a module.'})
 
+    def clean_name(self):
+        module = self.data.get("module")
+        if not module:
+            raise forms.ValidationError("You must select a module")
+        count = TestingQuestion.objects.filter(module__id=module).count() + 1
+        module = Module.objects.get(id=module)
+        self.data["name"] = "%s Question %d" % (module, count)
+        return "%s Question %d" % (module, count)
+
+    def clean_order(self):
+        module = self.data.get("module")
+        if not module:
+            raise forms.ValidationError("You must select a module")
+        count = TestingQuestion.objects.filter(module__id=module).count() + 1
+        return count
+
     def save(self, commit=True):
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
 
@@ -33,6 +49,15 @@ class TestingQuestionCreateForm(forms.ModelForm):
 
 
 class TestingQuestionOptionCreateForm(forms.ModelForm):
+    def clean_name(self):
+        question = self.data.get("question")
+        if not question:
+            raise ValueError("Question must be selected")
+        order = self.data.get("order")
+        if not order:
+            raise ValueError("Order myst be filled in")
+        return "%s Option %s" % (question, order)
+
     def save(self, commit=True):
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
 
@@ -55,13 +80,14 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
         self.initial = [{'order': '1'}, {'order': '2'}]
 
     def clean(self):
-        super(TestingQuestionFormSet, self).clean()
+        print super(TestingQuestionFormSet, self).clean()
 
         question_options = []
         for form in self.forms:
             if not hasattr(form, 'cleaned_data'):
                 continue
             data = form.cleaned_data
+            data["name"] = "%s Option %d" % (self.data.get("name"), data.get("order"))
             question_options.append(data.get('correct'))
 
         if len(question_options) < 2:
@@ -75,7 +101,8 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
         if correct_selected is False:
             raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
-        
+
+        return self.forms
 
 def process_mathml_content(_content, _source, _source_id):
     _content = convert_to_tags(_content)

@@ -12,6 +12,7 @@ class TestingQuestionInline(admin.TabularInline):
     model = TestingQuestion
     extra = 1
     fields = ("order", "name", "description", "difficulty", "points")
+    readonly_fields = ("name", "order")
     ordering = ("order", "name")
 
 
@@ -19,7 +20,7 @@ class TestingQuestionOptionInline(admin.TabularInline):
     model = TestingQuestionOption
     extra = 2
     fields = ("order", "name", "admin_thumbnail", "correct", "link")
-    readonly_fields = ('link', "admin_thumbnail")
+    readonly_fields = ('link', "admin_thumbnail", "name", "order")
     ordering = ("order", "name")
     formset = TestingQuestionFormSet
 
@@ -93,6 +94,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "order", "module", "get_course", "description",
                     "correct", "incorrect", "percentage_correct", "preview_link", "state")
     list_filter = ("module", "state")
+    readonly_fields = ("name", "order")
     search_fields = ("name", "description")
 
     form = TestingQuestionCreateForm
