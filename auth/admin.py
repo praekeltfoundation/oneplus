@@ -236,6 +236,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                                                                             participant__is_active=True)
 
         badges_list = list()
+        count = 0
+        row = list()
         for s in all_scenarios:
             item = dict()
             item['scenario'] = s
@@ -244,7 +246,15 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                 if s == a.scenario:
                     item['scenario_count'] = a.awardcount
                     break
-            badges_list.append(item)
+            row.append(item)
+            count += 1
+
+            if count % 5 == 0:
+                badges_list.append(row)
+                row = []
+
+        if len(row) > 0:
+            badges_list.append(row)
 
         extra_context = extra_context or {}
         extra_context['scenario_list'] = badges_list
