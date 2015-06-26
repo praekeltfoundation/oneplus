@@ -232,7 +232,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         all_scenarios = GamificationScenario.objects.all()
-        all_participant_badges = ParticipantBadgeTemplateRel.objects.filter(participant__id=object_id)
+        all_participant_badges = ParticipantBadgeTemplateRel.objects.filter(participant__learner__id=object_id,
+                                                                            participant__is_active=True)
 
         badges_list = list()
         for s in all_scenarios:
