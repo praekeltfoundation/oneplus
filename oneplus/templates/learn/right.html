@@ -19,15 +19,27 @@
             {{ state.question_id }}
             <div class="content narrow white-back darkgrey-front">
                 <div class="pad-bottom">
-                    <div class="xlarge-font center-font pad-bottom">Correct
+                    {% if golden_egg %}
+                        <div class="center-font"><img src="{{ golden_egg.url }}"></div>
+                    {% endif %}
+                    <div class="xlarge-font center-font pad-bottom">
+                        {% if not golden_egg %}
+                            Correct
+                        {% else %}
+                            Congratulations!
+                        {% endif %}
                     <div class="large-font-normal center-font">
                         <span class="large-font center-font">
-                        {% if points %}
-                            {{ points }} point{{ points |pluralize }}
+                        {% if not golden_egg %}
+                            {% if points %}
+                                {{ points }} point{{ points |pluralize }}
+                            {% else %}
+                                0 points
+                            {% endif %}
+                            </span> added.
                         {% else %}
-                            0 points
+                             <p>{{ golden_egg.message }}</p>
                         {% endif %}
-                        </span> added.
                     </div>
                     </div>
                     {% if badge %}

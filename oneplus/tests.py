@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-from amqp.basic_message import Message
-from celery.app.registry import TaskRegistry
-from django.core.urlresolvers import reverse
-from datetime import datetime, timedelta, date
-from django.contrib.admin.sites import AdminSite
-from django.test import TestCase
 from datetime import datetime, timedelta
+import logging
+from billiard.synchronize import Event
+
+from django.core.urlresolvers import reverse
+from django.test import TestCase
 from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from organisation.models import Organisation, School, Module, CourseModuleRel
-from content.models import TestingQuestion, TestingQuestionOption
-from gamification.models import GamificationScenario, GamificationBadgeTemplate
+from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
+    EventQuestionRel, EventSplashPage, EventStartPage, EventEndPage, EventQuestionAnswer, EventParticipantRel
+from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
 from communication.models import Message, ChatGroup, ChatMessage, Post, \
@@ -17,15 +17,14 @@ from communication.models import Message, ChatGroup, ChatMessage, Post, \
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
-from .views import get_points_awarded, get_badge_awarded, get_week_day, space_available, validate_mobile
+from .views import get_week_day
+from oneplus.learn_views import get_badge_awarded, get_points_awarded
+from oneplus.auth_views import space_available, validate_mobile
 from .utils import get_today
-from oneplus.admin import OnePlusLearnerAdmin, OnePlusLearnerResource
 from go_http.tests.test_send import RecordingHandler
-from django.conf import settings
-from auth.admin import LearnerCreationForm
 from django.test.utils import override_settings
-import logging
 from django.db.models import Count
+from oneplusmvp import settings
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -68,6 +67,12 @@ class GeneralTests(TestCase):
         return GamificationBadgeTemplate.objects.create(
             name=name,
             image="none",
+            **kwargs)
+
+    def create_gamification_point_bonus(self, name, value, **kwargs):
+        return GamificationPointBonus.objects.create(
+            name=name,
+            value=value,
             **kwargs)
 
     def create_gamification_scenario(self, **kwargs):
@@ -116,6 +121,26 @@ class GeneralTests(TestCase):
             answers.append(answer)
 
         return answers
+
+    def create_event(self, name, course, activation_date, deactivation_date, **kwargs):
+        return Event.objects.create(name=name, course=course, activation_date=activation_date,
+                                    deactivation_date=deactivation_date, **kwargs)
+
+    def create_event_start_page(self, event, header, paragraph):
+        return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
+
+    def create_event_end_page(self, event, header, paragraph):
+        return EventEndPage.objects.create(event=event, header=header, paragraph=paragraph)
+
+    def create_event_splash_page(self, event, order_number, header, paragraph):
+        return EventSplashPage.objects.create(event=event, order_number=order_number, header=header,
+                                              paragraph=paragraph)
+
+    def create_event_question(self, event, question, order):
+        return EventQuestionRel.objects.create(event=event, question=question, order=order)
+
+    def fake_mail_managers(subject, message, fail_silently):
+        pass
 
     def setUp(self):
 
@@ -172,18 +197,89 @@ class GeneralTests(TestCase):
         # check active question
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
+    @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_home(self):
-        self.create_test_question('question1', self.module)
-        LearnerState.objects.create(
-            participant=self.participant,
-            active_question=None,
-        )
         self.client.get(reverse(
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
+
+        #no questions
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
+
+        #with questions
+        self.create_test_question('question1', self.module, state=3)
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=None,
+        )
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+
+        #post with no event
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #with event active
+        event_module = self.create_module("event_module", self.course, type=2)
+        event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
+                                  datetime.now() + timedelta(days=1), number_sittings=2, event_points=5)
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
+        end_page = self.create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
+        question_1 = self.create_test_question("question_1", event_module, state=3)
+        question_option_1 = self.create_test_question_option("question_1_option", question_1)
+        self.create_event_question(event, question_1, 1)
+        question_2 = self.create_test_question("question_2", event_module, state=3)
+        question_option_2 = self.create_test_question_option("question_2_option", question_2)
+        self.create_event_question(event, question_2, 2)
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Take the %s" % event.name)
+
+        #no data in post
+        resp = self.client.post(reverse('learn.home'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #take event
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+        self.assertRedirects(resp, "event_start_page")
+        self.assertContains(resp, start_page.header)
+
+        #go to event_start_page
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "event")
+
+        #valid correct answer
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': question_option_1.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_right")
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Finish %s" % event.name)
+
+        #take event the second time
+        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+        self.assertRedirects(resp, "event")
+
+        #valid correct answer
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': question_option_2.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_right")
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, end_page.header)
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, "5</span><br/>POINTS")
 
     def test_first_time(self):
         self.client.get(reverse(
@@ -320,9 +416,17 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
+
+        #no questions
+        resp = self.client.get(reverse('learn.next'), follow=True)
+        self.assertRedirects(resp, "home", status_code=302, target_status_code=200)
+        self.assertContains(resp, "ONEPLUS | WELCOME")
+
+        #with question
         question1 = self.create_test_question(
             'question1', self.module, question_content='test question', state=3)
-        questionoption1 = TestingQuestionOption.objects.create(
+
+        TestingQuestionOption.objects.create(
             name='questionoption1',
             question=question1,
             content='questionanswer1',
@@ -342,6 +446,103 @@ class GeneralTests(TestCase):
         )
 
         self.assertEquals(resp.status_code, 200)
+
+    def test_event(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        #no event
+        resp = self.client.get(reverse('learn.event'))
+        self.assertRedirects(resp, "home")
+
+        #create event
+        event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+        event_module = self.create_module("Event Module", self.course, type=2)
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        #no event questions
+        resp = self.client.get(reverse('learn.event'))
+        self.assertRedirects(resp, "home")
+
+        #add question to event
+        question = self.create_test_question("Event Question", event_module, state=3)
+        correct_option = self.create_test_question_option("question_1_option_1", question)
+        incorrect_option = self.create_test_question_option("question_1_option_2", question, correct=False)
+        self.create_event_question(event, question, 1)
+
+        #delete EventParticipantRel before calling event_start_page
+        EventParticipantRel.objects.filter(event=event, participant=self.participant).delete()
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse('learn.event'))
+        self.assertEquals(resp.status_code, 200)
+
+        #no data in post
+        resp = self.client.post(reverse('learn.event'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #invalid option
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': 99},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #valid correct answer
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': correct_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_right")
+
+        #test event right post
+        resp = self.client.post(reverse("learn.event_right"))
+        self.assertEquals(resp.status_code, 200)
+
+        EventQuestionAnswer.objects.filter(participant=self.participant, event=event, question=question).delete()
+
+        #valid incorrect answer
+        resp = self.client.post(reverse('learn.event'),
+                                data={'answer': incorrect_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "event_wrong")
+
+        #test event right post
+        resp = self.client.post(reverse("learn.event_wrong"))
+        self.assertEquals(resp.status_code, 200)
+
+    def test_event_right(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse("learn.event_right"))
+        self.assertRedirects(resp, "home")
+
+    def test_event_wrong(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse("learn.event_wrong"))
+        self.assertRedirects(resp, "home")
 
     def test_answer_correct_nextchallenge(self):
         self.client.get(
@@ -523,6 +724,136 @@ class GeneralTests(TestCase):
         )
 
         self.assertEquals(resp.status_code, 200)
+
+    def test_event_splash_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        #no event
+        resp = self.client.get(reverse('learn.event_splash_page'))
+        self.assertRedirects(resp, "home")
+
+        #create event
+        event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        splash_page = self.create_event_splash_page(event, 1, "Test Splash Page", "Test Paragraph")
+        event_module = self.create_module("Event Module", self.course, type=2)
+        question = self.create_test_question("Event Question", event_module, state=3)
+        self.create_event_question(event, question, 1)
+
+        resp = self.client.get(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, splash_page.header)
+
+        resp = self.client.post(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, splash_page.header)
+
+        EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+
+        resp = self.client.get(reverse('learn.event_splash_page'))
+        self.assertRedirects(resp, "home")
+
+    def test_event_start_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        #no event
+        resp = self.client.get(reverse('learn.event_start_page'))
+        self.assertRedirects(resp, "home")
+
+        #create event
+        event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+        event_module = self.create_module("Event Module", self.course, type=2)
+        question = self.create_test_question("Event Question", event_module, state=3)
+        self.create_event_question(event, question, 1)
+
+        #with event
+        resp = self.client.get(reverse('learn.event_start_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, start_page.header)
+
+        #no data in post
+        resp = self.client.post(reverse("learn.event_start_page"), data={}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, start_page.header)
+
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "event")
+        self.assertContains(resp, "EVENT")
+
+        #attempt to load start page again
+        resp = self.client.get(reverse("learn.event_start_page"))
+        self.assertRedirects(resp, "home")
+
+        #change to multiple sittings
+        event.number_sittings = 2
+        event.save()
+
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "event")
+        event_participant_rel = EventParticipantRel.objects.get(event=event, participant=self.participant)
+        self.assertEquals(event_participant_rel.sitting_number, 2)
+
+    def test_event_end_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+        self.assertRedirects(resp, "home")
+
+        spot_test = GamificationBadgeTemplate.objects.create(name="Spot Test 1")
+        badge = GamificationScenario.objects.create(name="Spot Test 1", badge=spot_test, event="SPOT_TEST_1",
+                                                    module=self.module, course=self.course)
+
+        event = Event.objects.create(name="Spot Test event", course=self.course, activation_date=datetime.now(),
+                                     deactivation_date=datetime.now() + timedelta(days=1), event_points=5, airtime=5,
+                                     event_badge=badge)
+        for i in range(1, 6):
+            EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+        question = self.create_test_question("Event question", self.module)
+        question_option = self.create_test_question_option("Option 1", question, True)
+        EventQuestionRel.objects.create(event=event, question=question, order=1)
+        EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
+                                           question_option=question_option, correct=True, answer_date=datetime.now())
+        EventEndPage.objects.create(event=event, header="Test End Page", paragraph="Test")
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+
+        pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=spot_test, scenario=badge,
+                                                          participant=self.participant)
+
+        _participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test End Page")
+        self.assertEquals(_participant.points, 5)
+        self.assertIsNotNone(pbtr)
+
+        event.name = "Exam"
+        event.save()
+
+        resp = self.client.get(reverse('learn.event_end_page'))
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Test End Page")
 
     def test_report_question(self):
         self.client.get(
@@ -734,7 +1065,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_smspassword_post(self):
-        #invalid form
+        # invalid form
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
@@ -746,7 +1077,7 @@ class GeneralTests(TestCase):
 
         self.assertEqual(resp.status_code, 200)
 
-        #incorrect msisdn
+        # incorrect msisdn
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
@@ -758,7 +1089,7 @@ class GeneralTests(TestCase):
 
         self.assertEqual(resp.status_code, 200)
 
-        #correct msisdn
+        # correct msisdn
         resp = self.client.post(
             reverse('auth.smspassword'),
             {
@@ -1607,9 +1938,6 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('misc.about'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    def fake_mail_managers(subject, message, fail_silently):
-        pass
-
     @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_contact_screen(self):
         resp = self.client.get(reverse('misc.contact'))
@@ -1641,6 +1969,12 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
+
+        #create event_session variable
+        s = self.client.session
+        s["event_session"] = True
+        s.save()
+
         resp = self.client.get(reverse('core.menu'))
         self.assertEquals(resp.status_code, 200)
 
@@ -1792,14 +2126,139 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_leaderboard_screen(self):
+        question = self.create_test_question('question',
+                                             self.module,
+                                             question_content='test question',
+                                             state=3)
+        question_option = self.create_test_question_option('question_option', question)
+
+        all_classes = []
+        all_learners_classes = []
+        all_particpants_classes = []
+        all_learners = []
+        all_particpants = []
+        counter = 0
+        password = "12345"
+
+        for x in range(10, 21):
+            all_learners.append(self.create_learner(self.school,
+                                                    first_name="test_%s" % x,
+                                                    username="07612345%s" % x,
+                                                    mobile="07612345%s" % x,
+                                                    unique_token='%s' % x,
+                                                    unique_token_expiry=datetime.now() + timedelta(days=30)))
+            all_learners[counter].set_password(password)
+
+            all_particpants.append(self.create_participant(all_learners[counter],
+                                                           self.classs, datejoined=datetime.now()))
+
+            if counter < 5:
+                all_particpants[counter].answer(question, question_option)
+
+            #data for class leaderboard
+            new_class = self.create_class('class_%s' % x, self.course)
+            all_learners_classes.append(self.create_learner(self.school,
+                                                            first_name="test_%s" % x,
+                                                            username="08612345%s" % x,
+                                                            mobile="07812345%s" % x,
+                                                            unique_token='abc%s' % x,
+                                                            unique_token_expiry=datetime.now() + timedelta(days=30)))
+            all_learners_classes[counter].set_password(password)
+
+            all_particpants_classes.append(self.create_participant(all_learners_classes[counter],
+                                                                   new_class, datejoined=datetime.now()))
+
+            counter += 1
+
         self.client.get(
             reverse('auth.autologin',
-                    kwargs={'token': self.learner.unique_token})
+                    kwargs={'token': "20"})
         )
         resp = self.client.get(reverse('prog.leader'))
         self.assertEquals(resp.status_code, 200)
 
         resp = self.client.post(reverse('prog.leader'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "test_20")
+        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "test_20")
+        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "test_20")
+        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': "10"})
+        )
+
+        resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "test_10")
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "test_10")
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "test_10")
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': "abc20"})
+        )
+
+        resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "class_20")
+        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+
+        all_particpants_classes[counter-1].answer(question, question_option)
+
+        resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "class_20")
+        self.assertContains(resp, "2nd place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'leader_menu': 'leader_menu'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        resp = self.client.post(reverse('prog.leader'), data={'region': 'region'}, follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_ontrack_screen(self):
@@ -1957,21 +2416,21 @@ class GeneralTests(TestCase):
 
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
-        #csv no region
+        # csv no region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': ''}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv'))
 
-        #xls no region
+        # xls no region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 2, 'region': ''}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('xls'))
 
-        #csv + region
+        # csv + region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area'}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area'))
         self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
         self.assertContains(resp, '+27123456789,,,school name,Test_Area,1,100')
 
-        #csv + region that doesn't exist
+        # csv + region that doesn't exist
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area44'}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area44'))
         self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
@@ -2129,7 +2588,7 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.signup_form'))
         self.assertEqual(resp.status_code, 200)
 
-        #no data given
+        # no data given
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={},
                                 follow=True)
@@ -2137,7 +2596,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Select a Centre/Province")
         self.assertContains(resp, "Select a class")
 
-        #invalid cellphone, enrolled - invalid school and class, invalid grade
+        # invalid cellphone, enrolled - invalid school and class, invalid grade
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': self.learner.first_name,
@@ -2156,7 +2615,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Select a class")
         self.assertContains(resp, "Select a grade")
 
-        #invalid cellphone, not enrolled - invalid province
+        # invalid cellphone, not enrolled - invalid province
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': self.learner.first_name,
@@ -2173,7 +2632,7 @@ class GeneralTests(TestCase):
         self.assertNotContains(resp, "Select a Centre/Province")
         self.assertNotContains(resp, "Select a class")
 
-        #registered cellphone
+        # registered cellphone
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Bob",
@@ -2188,7 +2647,7 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertContains(resp, "This number has already been registered.")
 
-        #valid - enrolled
+        # valid - enrolled
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Bob",
@@ -2205,7 +2664,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876543')
         self.assertEquals('Bob', new_learner.first_name)
 
-        #valid - not enrolled - grade 10 - no open class created
+        # valid - not enrolled - grade 10 - no open class created
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Koos",
@@ -2221,7 +2680,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876540')
         self.assertEquals('Koos', new_learner.first_name)
 
-        #valid - not enrolled - grade 10
+        # valid - not enrolled - grade 10
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Willy",
@@ -2237,7 +2696,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729878963')
         self.assertEquals('Willy', new_learner.first_name)
 
-        #valid - not enrolled - grade 11 - creaing open class
+        # valid - not enrolled - grade 11 - creaing open class
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Tom",
@@ -2253,7 +2712,7 @@ class GeneralTests(TestCase):
         new_learner = Learner.objects.get(username='0729876576')
         self.assertEquals('Tom', new_learner.first_name)
 
-        #valid - not enrolled - grade 11
+        # valid - not enrolled - grade 11
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': "Henky",
@@ -2278,26 +2737,26 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('auth.change_details'))
         self.assertEqual(resp.status_code, 200)
 
-        #no change
+        # no change
         resp = self.client.post(reverse("auth.change_details"), follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "No changes made.")
 
-        #invalid old_number
+        # invalid old_number
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '012'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Please enter a valid mobile number.")
 
-        #incorrect old_number
+        # incorrect old_number
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27721234567'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "This number is not associated with this account.")
 
-        #invalid new_mobile
+        # invalid new_mobile
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27123456789',
                                       'new_number': '012'},
@@ -2305,7 +2764,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Please enter a valid mobile number.")
 
-        #invalid new_mobile
+        # invalid new_mobile
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27123456789',
                                       'new_number': '+27123456789'},
@@ -2313,7 +2772,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "You cannot change your number to your current number.")
 
-        #new number same as an existing user
+        # new number same as an existing user
         learner = self.create_learner(
             self.school,
             username="+271234569999",
@@ -2334,14 +2793,14 @@ class GeneralTests(TestCase):
 
         self.learner.email = "qwer@qwer.com"
         self.learner.save()
-        #incorrect old_email
+        # incorrect old_email
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'xyz@xyz.com'},
                                 follow=True)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "This email is not associated with this account.")
 
-        #changing to current email
+        # changing to current email
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'qwer@qwer.com',
                                       'new_email': 'qwer@qwer.com'},
@@ -2349,7 +2808,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "This is your current email.")
 
-        #invalid new_email
+        # invalid new_email
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'qwer@qwer.com',
                                       'new_email': 'abc'},
@@ -2357,7 +2816,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Please enter a valid email.")
 
-        #email exists
+        # email exists
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_email': 'qwer@qwer.com',
                                       'new_email': 'abcd@abcd.com'},
@@ -2365,7 +2824,7 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "A user with this email (abcd@abcd.com) already exists.")
 
-        #valid
+        # valid
         resp = self.client.post(reverse("auth.change_details"),
                                 data={'old_number': '+27123456789',
                                       'new_number': '0721478529',
@@ -2375,6 +2834,138 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Your number has been changed to 0721478529")
         self.assertContains(resp, "Your email has been changed to asdf@asdf.com.")
+
+    def test_golden_egg(self):
+        new_learner = self.create_learner(
+            self.school,
+            username="+27761234567",
+            mobile="+27761234567",
+            unique_token='123456789',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+        new_participant = self.create_participant(new_learner, self.classs, datejoined=datetime.now())
+
+        q = self.create_test_question('question_1', module=self.module, state=3)
+        q_o = self.create_test_question_option('question_option_1', q)
+
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': new_learner.unique_token})
+        )
+
+        #GOLDEN EGG DOESN'T EXIST
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
+
+        self.assertEquals(1, new_participant.points)
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant).count()
+        self.assertEquals(0, log)
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+        new_participant.points = 0
+        new_participant.save()
+
+        #GOLDEN EGG INACTIVE
+        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5)
+
+        #set the golden egg number to 1
+        self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
+
+        self.assertEquals(1, new_participant.points)
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant).count()
+        self.assertEquals(0, log)
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+        new_participant.points = 0
+        new_participant.save()
+
+        #GOLDEN EGG ACTIVE - TEST POINTS
+        golden_egg.active = True
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
+
+        self.assertEquals(6, new_participant.points)
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant, points=5).count()
+        self.assertEquals(1, log)
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+
+        #TEST AIRTIME
+        golden_egg.point_value = None
+        golden_egg.airtime = 5
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant, airtime=5).count()
+        self.assertEquals(1, log)
+
+        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                 question=q,
+                                                 option_selected=q_o).delete()
+        new_participant.points = 0
+        new_participant.save()
+
+        #TEST BADGE
+        bt1 = self.create_badgetemplate(
+            name="Golden Egg",
+            description="Weekly Golden Egg"
+        )
+
+        pt1 = self.create_gamification_point_bonus("point", 5)
+
+        sc1 = self.create_gamification_scenario(
+            name="Golden Egg",
+            course=self.course,
+            module=self.module,
+            badge=bt1,
+            event="Golden Egg",
+            point=pt1
+        )
+
+        golden_egg.airtime = None
+        golden_egg.badge = sc1
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=new_participant).first()
+        state.golden_egg_question = 1
+        state.save()
+        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+        new_participant = Participant.objects.filter(learner=new_learner).first()
+
+        cnt = ParticipantBadgeTemplateRel.objects.filter(
+            participant=new_participant,
+            badgetemplate=bt1,
+            scenario=sc1
+        ).count()
+        self.assertEquals(cnt, 1)
+        self.assertEquals(6, new_participant.points)
+        log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
+        self.assertEquals(1, log)
+        #check log
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -2489,10 +3080,10 @@ class LearnerStateTest(TestCase):
         mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
         week_range = self.learner_state.get_week_range()
 
-        #Begin: Monday the 18th of August
+        # Begin: Monday the 18th of August
         self.assertEquals(week_range[0], datetime(2014, 8, 18, 0, 0))
 
-        #End: Friday the 22nd of August
+        # End: Friday the 22nd of August
         self.assertEquals(week_range[1], datetime(2014, 8, 23, 0, 0))
 
     def test_get_number_questions(self):
@@ -2676,33 +3267,33 @@ class MessageTest(TestCase):
         c = Client()
         c.login(username=admin.username, password=password)
 
-        #create a participant in course 1 class 1
+        # create a participant in course 1 class 1
         leaner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
         self.create_participant(leaner_1, self.classs, datejoined=datetime.now())
 
-        #create another class in same course
+        # create another class in same course
         c1_class2 = self.create_class("c1_class2", self.course)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         leaner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
         self.create_participant(leaner_2, c1_class2, datejoined=datetime.now())
 
-        #create a new course and a class
+        # create a new course and a class
         course2 = self.create_course("course2")
         c2_class1 = self.create_class("c2_class1", course2)
 
-        #create a participant in course 2 class 1
+        # create a participant in course 2 class 1
         leaner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
         self.create_participant(leaner_3, c2_class1, datejoined=datetime.now())
 
-        #create another class in course 2
+        # create another class in course 2
         c2_class2 = self.create_class("c2_class2", course2)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         leaner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
         self.create_participant(leaner_4, c2_class2, datejoined=datetime.now())
 
-        #test date and content validation errors
+        # test date and content validation errors
         resp = c.post(reverse('com.add_message'),
                       data={'name': '',
                             'course': 'all',
@@ -2715,7 +3306,7 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'This field is required')
 
-        #test invalid date
+        # test invalid date
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': 'all',
@@ -2728,7 +3319,7 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'Please enter a valid date and time.')
 
-        #test users list, all + user
+        # test users list, all + user
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2741,13 +3332,13 @@ class MessageTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'Please make a valid learner selection')
 
-        #test no data posted
+        # test no data posted
         resp = c.post(reverse('com.add_message'), follow=True)
         self.assertContains(resp, 'This field is required')
 
         self.assertEquals(resp.status_code, 200)
 
-        #send message to all course (4 messages, total 4)
+        # send message to all course (4 messages, total 4)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': 'all',
@@ -2763,7 +3354,7 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 4)
 
-        #send message to course 1 (2 messages, total 6)
+        # send message to course 1 (2 messages, total 6)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2779,7 +3370,7 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 6)
 
-        #send message to course 1 class 1 (1 messages, total 7)
+        # send message to course 1 class 1 (1 messages, total 7)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2795,7 +3386,7 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 7)
 
-        #send message to course 1 class 1  learner 1(1 messages, total 8)
+        # send message to course 1 class 1  learner 1(1 messages, total 8)
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2811,8 +3402,8 @@ class MessageTest(TestCase):
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 8)
 
-        #send message to course 1 class 1  learner 1(1 messages, total 9)
-        #testing _save button
+        # send message to course 1 class 1  learner 1(1 messages, total 9)
+        # testing _save button
         resp = c.post(reverse('com.add_message'),
                       data={'name': 'asdf',
                             'course': self.course.id,
@@ -2910,33 +3501,33 @@ class SMSQueueTest(TestCase):
         c = Client()
         c.login(username=admin.username, password=password)
 
-        #create a participant in course 1 class 1
+        # create a participant in course 1 class 1
         learner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
         self.create_participant(learner_1, self.classs, datejoined=datetime.now())
 
-        #create another class in same course
+        # create another class in same course
         c1_class2 = self.create_class("c1_class2", self.course)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         learner_2 = self.create_learner(self.school, mobile="+27147852369", country="country", username="+27147852369")
         self.create_participant(learner_2, c1_class2, datejoined=datetime.now())
 
-        #create a new course and a class
+        # create a new course and a class
         course2 = self.create_course("course2")
         c2_class1 = self.create_class("c2_class1", course2)
 
-        #create a participant in course 2 class 1
+        # create a participant in course 2 class 1
         learner_3 = self.create_learner(self.school, mobile="+27963258741", country="country", username="+27963258741")
         self.create_participant(learner_3, c2_class1, datejoined=datetime.now())
 
-        #create another class in course 2
+        # create another class in course 2
         c2_class2 = self.create_class("c2_class2", course2)
 
-        #create a participant in course 1 class 2
+        # create a participant in course 1 class 2
         learner_4 = self.create_learner(self.school, mobile="+27123654789", country="country", username="+27123654789")
         self.create_participant(learner_4, c2_class2, datejoined=datetime.now())
 
-        #send sms to all course (4 sms, total 4)
+        # send sms to all course (4 sms, total 4)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': 'all',
                             'to_class': 'all',
@@ -2950,7 +3541,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 4)
 
-        #send sms to course 1 (2 sms, total 6)
+        # send sms to course 1 (2 sms, total 6)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': 'all',
@@ -2964,7 +3555,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 6)
 
-        #send sms to course 1 class 1 (1 sms, total 7)
+        # send sms to course 1 class 1 (1 sms, total 7)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -2978,7 +3569,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 7)
 
-        #send sms to course 1 class 1 (1 sms, total 8)
+        # send sms to course 1 class 1 (1 sms, total 8)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -2992,7 +3583,7 @@ class SMSQueueTest(TestCase):
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 8)
 
-        #send sms to course 1 class 1 (1 sms, total 9)
+        # send sms to course 1 class 1 (1 sms, total 9)
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -3021,7 +3612,7 @@ class SMSQueueTest(TestCase):
                       follow=True)
         self.assertContains(resp, 'This field is required')
 
-        #testing _save button
+        # testing _save button
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': c1_class2.id,
@@ -3046,7 +3637,7 @@ class SMSQueueTest(TestCase):
         resp = c.post(reverse('com.add_sms'),
                       data={'to_course': self.course.id,
                             'to_class': self.classs.id,
-                            'users':  learner_1.id,
+                            'users': learner_1.id,
                             'date_sent_0': datetime.now().time(),
                             'date_sent_1': datetime.now().date(),
                             'message': 'message'},
@@ -3147,8 +3738,50 @@ class ExtraAdminBitTests(TestCase):
             publishdate=datetime.now()
         )
 
-    def setUp(self):
+    def create_and_answer_questions(self, num_questions, prefix, date, correct=False):
+        answers = []
+        for x in range(0, num_questions):
+            # Create a question
+            question = self.create_test_question(
+                'q' + prefix + str(x), self.module)
 
+            question.save()
+            option = self.create_test_question_option(
+                'option_' + prefix + str(x),
+                question)
+            option.save()
+            answer = self.create_test_answer(
+                participant=self.participant,
+                question=question,
+                option_selected=option,
+                answerdate=date,
+                correct=correct
+            )
+            answer.save()
+            answers.append(answer)
+
+        return answers
+
+    def create_test_question_option(self, name, question, correct=True):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=correct)
+
+    def create_test_answer(
+            self,
+            participant,
+            question,
+            option_selected,
+            answerdate,
+            correct):
+        return ParticipantQuestionAnswer.objects.create(
+            participant=participant,
+            question=question,
+            option_selected=option_selected,
+            answerdate=answerdate,
+            correct=correct
+        )
+
+    def setUp(self):
         self.course = self.create_course()
         self.classs = self.create_class('class name', self.course)
         self.organisation = self.create_organisation()
@@ -3851,8 +4484,8 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/auth/coursemanager/")
         self.admin_page_test_helper(c, "/admin/auth/coursementor/")
         self.admin_page_test_helper(c, "/admin/auth/group/")
-        self.admin_page_test_helper(c, "/admin/auth/learnerview/")
         self.admin_page_test_helper(c, "/admin/auth/learner/")
+        self.admin_page_test_helper(c, "/admin/auth/learner/?tf=1")
         self.admin_page_test_helper(c, "/admin/auth/teacher/")
         self.admin_page_test_helper(c, "/admin/auth/schoolmanager/")
         self.admin_page_test_helper(c, "/admin/auth/systemadministrator/")
@@ -3885,6 +4518,8 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/content/mathml/")
         self.admin_page_test_helper(c, "/admin/content/testingquestionoption/")
         self.admin_page_test_helper(c, "/admin/content/testingquestion/")
+        self.admin_page_test_helper(c, "/admin/content/goldenegg/")
+        self.admin_page_test_helper(c, "/admin/content/event/")
 
     def test_core_admin_pages_render(self):
         c = Client()
@@ -3913,3 +4548,104 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/organisation/module/")
         self.admin_page_test_helper(c, "/admin/organisation/organisation/")
         self.admin_page_test_helper(c, "/admin/organisation/school/")
+
+    def test_results_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.create_and_answer_questions(2, "_res_w_", datetime(2015, 6, 1))
+        self.create_and_answer_questions(2, "_res_c_", datetime(2015, 6, 1), True)
+
+        url = "/admin/results/%s" % self.course.id
+        self.admin_page_test_helper(c, url)
+
+        resp = c.post(url, data={"state": 1})
+        self.assertContains(resp, "Activity")
+
+        resp = c.post(url, data={"state": 2})
+        self.assertContains(resp, "q_res_w_0")
+        self.assertContains(resp, "q_res_w_1")
+        self.assertContains(resp, "q_res_c_0")
+        self.assertContains(resp, "q_res_c_1")
+        self.assertContains(resp, "( 0% correct )")
+        self.assertContains(resp, "( 100% correct )")
+
+        resp = c.post(url, data={"state": 2, "module_filter": self.module.id})
+        self.assertContains(resp, "q_res_w_0")
+        self.assertContains(resp, "q_res_w_1")
+        self.assertContains(resp, "q_res_c_0")
+        self.assertContains(resp, "q_res_c_1")
+        self.assertContains(resp, "( 0% correct )")
+        self.assertContains(resp, "( 100% correct )")
+
+        resp = c.post(url, data={"state": 3})
+        self.assertContains(resp, "Class Results")
+        self.assertContains(resp, self.classs.name)
+
+    def test_basic_learner_filters(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        url = "/admin/auth/learner/?%s=%s"
+
+        #active filter
+        resp = c.get(url % ("acic", "a"))
+        self.assertContains(resp, "27123456789")
+
+        lad = self.learner.last_active_date
+        self.learner.last_active_date = None
+        self.learner.save()
+
+        resp = c.get(url % ("acic", "i"))
+        self.assertContains(resp, "27123456789")
+
+        self.learner.last_active_date = lad
+        self.learner.save()
+
+        #percentage correct
+        resp = c.get(url % ("pc", "0"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "1"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "2"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "3"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "4"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "5"))
+        self.assertContains(resp, "Learners")
+
+        # no filter number 6 should render 0's data
+        resp = c.get(url % ("pc", "6"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc=0&tf=", "0"))
+        self.assertContains(resp, "Learners")
+
+        #percentage completed
+        resp = c.get(url % ("pqc", "0"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "1"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "2"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "3"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "4"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "5"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "6"))
+        self.assertContains(resp, "Learners")
