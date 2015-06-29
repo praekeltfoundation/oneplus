@@ -29,12 +29,26 @@ class School(models.Model):
     Schools have a name, description and some basic contact details.
     A school manager has the ability to CRUD courses under a school.
     """
+
+    PROVINCE_CHOICES = (
+        ("Eastern Cape", "Eastern Cape"),
+        ("Free State", "Free State"),
+        ("Gauteng", "Gauteng"),
+        ("KwaZulu-Natal", "KwaZulu-Natal"),
+        ("Limpopo", "Limpopo"),
+        ("Mpumalanga", "Mpumalanga"),
+        ("North West", "North West"),
+        ("Northern Cape", "Northern Cape"),
+        ("Western Cape", "Western Cape")
+    )
+
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     organisation = models.ForeignKey(Organisation, null=True, blank=False)
     website = models.URLField("Website", max_length=200, blank=True)
     email = models.EmailField("E-Mail", max_length=75, blank=True)
+    province = models.CharField("Province", null=True, blank=True, choices=PROVINCE_CHOICES)
 
     def __str__(self):
         return self.name
