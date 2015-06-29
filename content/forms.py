@@ -1,14 +1,11 @@
+from django import forms
+from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml
 import re
 import uuid
 import os
-import shutil
-
-from django import forms
-from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg
 import requests
+import shutil
 from django.conf import settings
-from core.models import Class
-from organisation.models import Course
 
 
 class TestingQuestionCreateForm(forms.ModelForm):
@@ -78,7 +75,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
         if correct_selected is False:
             raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
-
+        
 
 def process_mathml_content(_content, _source, _source_id):
     _content = convert_to_tags(_content)
@@ -96,23 +93,23 @@ def process_mathml_tag(_content, _source, _source_id):
 
     directory = settings.MEDIA_ROOT
 
-    # if not os.path.exists(directory):
-    # os.makedirs(directory)
+    #if not os.path.exists(directory):
+        #os.makedirs(directory)
 
     unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
     while True:
-        if not os.path.isfile(directory + unique_filename):
+        if not os.path.isfile(directory+unique_filename):
             break
         else:
             unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
-    # coming soon image that will be displayed until the mathml content is rendered
+    #coming soon image that will be displayed until the mathml content is rendered
     temp_image = "%s/being_rendered.png" % settings.MEDIA_ROOT
 
-    # copy temp image to a mathml folder with unique name
+    #copy temp image to a mathml folder with unique name
     if os.path.isfile(temp_image):
-        shutil.copyfile(temp_image, directory + unique_filename)
+        shutil.copyfile(temp_image, directory+unique_filename)
 
     Mathml.objects.create(mathml_content=convert_to_text(_content),
                           filename=unique_filename,
@@ -151,28 +148,28 @@ def render_mathml():
     directory = settings.MEDIA_ROOT
 
 
-    # get all the mathml objects that have not been rendered
+    #get all the mathml objects that have not been rendered
     not_rendered = Mathml.objects.filter(rendered=False)
 
     for nr in not_rendered:
-        # 0 - question 1 - answer
+        #0 - question 1 - answer
         if nr.source == 0 or nr.source == 1:
-            # check if the source still exists (testing question)
+            #check if the source still exists (testing question)
             if TestingQuestion.objects.filter(id=nr.source_id).count() == 0:
-                # delete image and record as the source doesn't exists anymore
-                if os.path.isfile(directory + nr.filename):
-                    os.remove(directory + nr.filename)
+                #delete image and record as the source doesn't exists anymore
+                if os.path.isfile(directory+nr.filename):
+                    os.remove(directory+nr.filename)
                 nr.delete()
                 continue
         else:
-            # else is 2 - option
+            #else is 2 - option
             if TestingQuestionOption.objects.filter(id=nr.source_id).count() == 0:
-                if os.path.isfile(directory + nr.filename):
-                    os.remove(directory + nr.filename)
+                if os.path.isfile(directory+nr.filename):
+                    os.remove(directory+nr.filename)
                 nr.delete()
                 continue
 
-        # get the mathml content
+        #get the mathml content
         content = nr.mathml_content
 
         values = {'mathml': content,
@@ -180,22 +177,22 @@ def render_mathml():
                   'image_format': image_format,
                   'quality': quality}
 
-        # request mathml to be processed into an image
+        #request mathml to be processed into an image
         r = requests.post(url, data=values, stream=True)
 
-        # if successful replace the image
+        #if successful replace the image
         if r.status_code == 200:
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
             unique_filename = nr.filename
 
-            # file exists remove it
-            if os.path.isfile(directory + unique_filename):
-                os.remove(directory + unique_filename)
+            #file exists remove it
+            if os.path.isfile(directory+unique_filename):
+                os.remove(directory+unique_filename)
 
-            # save the new rendered image with the right filename
-            with open(directory + unique_filename, 'wb') as f:
+            #save the new rendered image with the right filename
+            with open(directory+unique_filename, 'wb') as f:
                 r.raw.decode_content = True
                 shutil.copyfileobj(r.raw, f)
 
@@ -205,75 +202,3 @@ def render_mathml():
         else:
             nr.error = r.text
             nr.save()
-
-
-class GoldenEggCreateForm(forms.ModelForm):
-    course = forms.ModelChoiceField(queryset=Course.objects.all())
-
-    def clean_classs(self):
-        course = self.data.get("course")
-        classs = self.cleaned_data.get("classs")
-        active = self.data.get("active") == "on"
-        active_golden_eggs_class = GoldenEgg.objects.filter(classs=classs, active=True)
-        active_golden_eggs_course = GoldenEgg.objects.filter(course=course, classs=None, active=True)
-        if (active_golden_eggs_class.exists() or active_golden_eggs_course.exists()) and active:
-            raise forms.ValidationError("There can only be one active Golden Egg per class")
-        if active_golden_eggs_course.exists() and active:
-            raise forms.ValidationError("There can only be one active Golden Egg per class")
-        if active_golden_eggs_class.exists() and active:
-            raise forms.ValidationError("There can only be one active Golden Egg per class")
-        return classs
-
-    def clean_course(self):
-        classs = self.cleaned_data.get("classs")
-        course = self.cleaned_data.get("course")
-        active = self.data.get("active") == "on"
-        classes = Class.objects.filter(course=course)
-        if not classs:
-            active_golden_eggs = GoldenEgg.objects.filter(classs__in=classes, active=True)
-            if active_golden_eggs.exists() and active:
-                raise forms.ValidationError("There can only be one active Golden Egg per class")
-        active_golden_eggs = GoldenEgg.objects.values_list("classs").filter(classs__in=classes, active=True)
-        classes = Class.objects.filter(id__in=active_golden_eggs)
-        if active and classs in classes:
-            raise forms.ValidationError("There can only be one active Golden Egg per class")
-        return course
-
-    def clean_point_value(self):
-        points = self.data["point_value"]
-        airtime = self.data["airtime"]
-        badge = self.data["badge"]
-        if points is None and airtime is None and not badge:
-            raise forms.ValidationError("One reward must be selected")
-        if points and (airtime or badge):
-            raise forms.ValidationError("Only one reward can be applied")
-        if points:
-            return points
-        return None
-
-    def clean_airtime(self):
-        points = self.data["point_value"]
-        airtime = self.data["airtime"]
-        badge = self.data["badge"]
-        if points is None and airtime is None and not badge:
-            raise forms.ValidationError("One reward must be selected")
-        if airtime and (points or badge):
-            raise forms.ValidationError("Only one reward can be applied")
-        if airtime:
-            return airtime
-        return None
-
-    def clean_badge(self):
-        points = self.data["point_value"]
-        airtime = self.data["airtime"]
-        badge = self.data["badge"]
-        if points is None and airtime is None and not badge:
-            raise forms.ValidationError("One reward must be selected")
-        if badge and (points or airtime):
-            raise forms.ValidationError("Only one reward can be applied")
-        if badge:
-            return self.cleaned_data.get("badge")
-        return None
-
-    class Meta:
-        model = GoldenEgg
