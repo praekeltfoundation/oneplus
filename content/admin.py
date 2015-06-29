@@ -26,7 +26,7 @@ class TestingQuestionOptionInline(admin.TabularInline):
     model = TestingQuestionOption
     extra = 2
     fields = ("order", "name", "admin_thumbnail", "correct", "link")
-    readonly_fields = ('link', "admin_thumbnail", "name", "order")
+    readonly_fields = ('link', "admin_thumbnail", "name")
     ordering = ("order", "name")
     formset = TestingQuestionFormSet
 
