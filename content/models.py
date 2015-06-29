@@ -158,3 +158,23 @@ allowed_styles = [
     'font-variant',
     'width',
     'height']
+
+
+class GoldenEgg(models.Model):
+    course = models.ForeignKey("organisation.Course", null=False, blank=False, verbose_name="Course")
+    classs = models.ForeignKey("core.Class", null=True, blank=True, verbose_name="Class")
+    active = models.BooleanField(default=False, verbose_name="Is Active")
+    point_value = models.PositiveIntegerField(null=True, blank=True, verbose_name="Points")
+    airtime = models.PositiveIntegerField(null=True, blank=True)
+    badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Golden Egg"
+        verbose_name_plural = "Golden Eggs"
+
+class GoldenEggRewardLog(models.Model):
+    participant = models.ForeignKey("core.Participant", null=False, blank=False)
+    award_date = models.DateTimeField(auto_now_add=True)
+    points = models.PositiveIntegerField(null=True, blank=True)
+    airtime = models.PositiveIntegerField(null=True, blank=True)
+    badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
