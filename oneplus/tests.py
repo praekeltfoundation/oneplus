@@ -2929,21 +2929,8 @@ class GeneralTests(TestCase):
         new_participant.save()
 
         #TEST BADGE
-        bt1 = self.create_badgetemplate(
-            name="Golden Egg",
-            description="Weekly Golden Egg"
-        )
-
-        pt1 = self.create_gamification_point_bonus("point", 5)
-
-        sc1 = self.create_gamification_scenario(
-            name="Golden Egg",
-            course=self.course,
-            module=self.module,
-            badge=bt1,
-            event="Golden Egg",
-            point=pt1
-        )
+        bt1 = GamificationBadgeTemplate.objects.get(name="Golden Egg")
+        sc1 = GamificationScenario.objects.get(name="Golden Egg")
 
         golden_egg.airtime = None
         golden_egg.badge = sc1
@@ -2962,7 +2949,8 @@ class GeneralTests(TestCase):
             scenario=sc1
         ).count()
         self.assertEquals(cnt, 1)
-        self.assertEquals(6, new_participant.points)
+        # we are using the existing golden egg basge with no points
+        self.assertEquals(1, new_participant.points)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
         self.assertEquals(1, log)
         #check log
