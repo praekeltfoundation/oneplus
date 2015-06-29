@@ -27,20 +27,20 @@
             {% else %}
                 <form action="next" method="post" class="pad-bottom">{% csrf_token %}
             {% endif %}
-                        <p>{{ question.question_content | format_content }}</p>
-                        {% for opt in question.testingquestionoption_set.all %}
-                            <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
-                            <label class="label-question" for="answer_{{ opt.id }}">
-                            {% if opt.content %}
-                                <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
-                            {% else %}
-                                {{ opt.name }} </label><br/><br/>
-                            {% endif %}
-                        {% endfor %}
-                        <br/>
-                        <div>
-                            <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
-                        </div>
+                    <p>{{ question.question_content | format_content }}</p>
+                    {% for opt in question.testingquestionoption_set.all %}
+                        <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                        <label class="label-question" for="answer_{{ opt.id }}">
+                        {% if opt.content %}
+                            <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
+                        {% else %}
+                            {{ opt.name }} </label><br/><br/>
+                        {% endif %}
+                    {% endfor %}
+                    <br/>
+                    <div>
+                        <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
+                    </div>
                 </form>
             </div>
         {% endautoescape %}
