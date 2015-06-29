@@ -48,7 +48,7 @@ class School(models.Model):
     organisation = models.ForeignKey(Organisation, null=True, blank=False)
     website = models.URLField("Website", max_length=200, blank=True)
     email = models.EmailField("E-Mail", max_length=75, blank=True)
-    province = models.CharField("Province", null=True, blank=True, choices=PROVINCE_CHOICES)
+    province = models.CharField("Province", max_length=20, null=True, blank=True, choices=PROVINCE_CHOICES)
 
     def __str__(self):
         return self.name
