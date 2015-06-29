@@ -206,10 +206,7 @@ def get_timeframe_range(value):
 
 
 def get_perc_min_max(value):
-    if value == "0":
-        min = 0
-        max = 19
-    elif value == "1":
+    if value == "1":
         min = 20
         max = 39
     elif value == "2":
@@ -224,6 +221,9 @@ def get_perc_min_max(value):
     elif value == "5":
         min = 90
         max = 100
+    else:
+        min = 0
+        max = 19
 
     return min, max
 
