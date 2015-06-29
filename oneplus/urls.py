@@ -27,6 +27,7 @@ urlpatterns = [
     url(r"^a/(?P<token>\S+)$", oneplus.auth_views.autologin, name="auth.autologin"),
     url(r'^signup$', oneplus.auth_views.signup, name="auth.signup"),
     url(r'signup/form', oneplus.auth_views.signup_form, name="auth.signup_form"),
+    url(r'signup_form_promath', oneplus.auth_views.sigup_form_promath, name="auth.signup_form_promath"),
     url(r'^changedetails$', oneplus.auth_views.change_details, name="auth.change_details"),
 
     # Learn
