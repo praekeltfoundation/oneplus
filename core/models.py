@@ -5,8 +5,9 @@ from organisation.models import Course
 from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
-from content.models import TestingQuestion, TestingQuestionOption
-from django.contrib import admin
+from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
+    EventQuestionRel
+from django.db.models import Count
 
 
 class Class(models.Model):
@@ -98,14 +99,43 @@ class Participant(models.Model):
             self.points += question.points
             self.save()
 
+    def answer_event(self, event, question, option):
+        #Create participant event question answer
+        answer = EventQuestionAnswer(
+            participant=self,
+            event=event,
+            question=question,
+            question_option=option,
+            correct=option.correct
+        )
+        answer.save()
+
+    def can_take_event(self, event):
+        event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
+
+        if event_participant_rel:
+            answered = EventQuestionAnswer.objects.filter(participant=self, event=event)\
+                .aggregate(Count('question'))['question__count']
+            total_questions = EventQuestionRel.objects.filter(event=event).\
+                aggregate(Count('question'))['question__count']
+
+            if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
+                return None, event_participant_rel
+            else:
+                return True, event_participant_rel
+        return True, None
+
     # Probably to be used in migrations
     def recalculate_total_points(self):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
+        events = EventParticipantRel.objects.filter(participant=self, results_received=True)
         points = 0
         for answer in answers:
             points += answer.question.points
+        for event in events:
+            points += event.event.event_points
         self.points = points
         self.save()
         return points
