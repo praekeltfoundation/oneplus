@@ -4157,7 +4157,6 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/auth/coursemanager/")
         self.admin_page_test_helper(c, "/admin/auth/coursementor/")
         self.admin_page_test_helper(c, "/admin/auth/group/")
-        self.admin_page_test_helper(c, "/admin/auth/learnerview/")
         self.admin_page_test_helper(c, "/admin/auth/learner/")
         self.admin_page_test_helper(c, "/admin/auth/learner/?tf=1")
         self.admin_page_test_helper(c, "/admin/auth/teacher/")
