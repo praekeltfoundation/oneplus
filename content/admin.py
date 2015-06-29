@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin
-from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml
+from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
-from core.models import ParticipantQuestionAnswer
-from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm
+from core.models import ParticipantQuestionAnswer, Class
+from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, GoldenEggCreateForm
 from organisation.models import Course, CourseModuleRel
 
 class TestingQuestionInline(admin.TabularInline):
@@ -187,8 +187,36 @@ class MathmlAdmin(SummernoteModelAdmin):
     list_display = ("filename", "rendered")
     list_filter = ("rendered", "source", "source_id")
 
+class GoldenEggAdmin(SummernoteModelAdmin):
+    list_display = ("classs", "course", "get_reward", "get_reward_value", "active")
+    list_filter = ("course", "classs", "active", "badge")
+    fieldsets = [
+        (None, {"fields": ["classs", "course", "active"]}),
+        ("Reward", {"fields": ["point_value", "airtime", "badge"]})
+    ]
+    form = GoldenEggCreateForm
+
+    def get_reward(self, golden_egg):
+        if golden_egg.point_value:
+            return "Points"
+        if golden_egg.airtime:
+            return "Airtime"
+        if golden_egg.badge:
+            return "Badge"
+    get_reward.short_description = "Reward"
+
+    def get_reward_value(self, golden_egg):
+        if golden_egg.point_value:
+            return golden_egg.point_value
+        if golden_egg.airtime:
+            return "R%d" % golden_egg.airtime
+        if golden_egg.badge:
+            return golden_egg.badge.name
+    get_reward_value.short_description = "Reward Value"
+
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
+admin.site.register(GoldenEgg, GoldenEggAdmin)
