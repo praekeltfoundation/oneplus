@@ -1,6 +1,7 @@
 {% extends "admin/index.html" %}
 {% load i18n grp_tags %}
 {% load i18n app_order %}
+{% load i18n result_models %}
 
 {% block content %}
     <div class="g-d-c">
@@ -51,6 +52,15 @@
                     {% empty %}
                     <p>{% trans "You don´t have permission to edit anything." %}</p>
                 {% endfor %}
+                <div class="grp-module" id="app_{{ results }}">
+                    <h2><a href="#" class="grp-section">Results</a></h2>
+                    {% result_models %}
+                    {% for model in results %}
+                        <div class="grp-row" id="model-{{ model.name|lower }}">
+                            <a href="/admin/results/{{ model.id }}"><strong>{{ model.name }}</strong></a>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         </div>
         {% block custom_views %}

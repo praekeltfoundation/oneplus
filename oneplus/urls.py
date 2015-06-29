@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from oneplus import views
+from oneplus import result_views
 
 urlpatterns = [
     # Misc
@@ -19,7 +20,7 @@ urlpatterns = [
     url(r"^getconnected$", views.getconnected, name="auth.getconnected"),
     url(r"^a/(?P<token>\S+)$", views.autologin, name="auth.autologin"),
     url(r'^signup$', views.signup, name="auth.signup"),
-    url(r'signup/form', views.signup_form, name="auth.signup_form"),
+    url(r'signup_form', views.signup_form, name="auth.signup_form"),
     url(r'^changedetails$', views.change_details, name="auth.change_details"),
 
     # Learn
@@ -120,4 +121,7 @@ urlpatterns = [
     url(r'^classes/(?P<course>\w+)$', views.get_classes),
     url(r'^users/(?P<classs>\w+)$', views.get_users),
 
+    url(r"^admin/results/(?P<course>\d+)$",
+        result_views.ResultsView.as_view(),
+        name="results.home"),
 ]

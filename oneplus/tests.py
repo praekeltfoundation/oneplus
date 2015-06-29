@@ -3410,6 +3410,49 @@ class ExtraAdminBitTests(TestCase):
             publishdate=datetime.now()
         )
 
+    def create_and_answer_questions(self, num_questions, prefix, date, correct=False):
+        answers = []
+        for x in range(0, num_questions):
+            # Create a question
+            question = self.create_test_question(
+                'q' + prefix + str(x), self.module)
+
+            question.save()
+            option = self.create_test_question_option(
+                'option_' + prefix + str(x),
+                question)
+            option.save()
+            answer = self.create_test_answer(
+                participant=self.participant,
+                question=question,
+                option_selected=option,
+                answerdate=date,
+                correct=correct
+            )
+            answer.save()
+            answers.append(answer)
+
+        return answers
+
+    def create_test_question_option(self, name, question, correct=True):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=correct)
+
+    def create_test_answer(
+            self,
+            participant,
+            question,
+            option_selected,
+            answerdate,
+            correct):
+        return ParticipantQuestionAnswer.objects.create(
+            participant=participant,
+            question=question,
+            option_selected=option_selected,
+            answerdate=answerdate,
+            correct=correct
+        )
+
     def setUp(self):
 
         self.course = self.create_course()
@@ -4116,6 +4159,7 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/auth/group/")
         self.admin_page_test_helper(c, "/admin/auth/learnerview/")
         self.admin_page_test_helper(c, "/admin/auth/learner/")
+        self.admin_page_test_helper(c, "/admin/auth/learner/?tf=1")
         self.admin_page_test_helper(c, "/admin/auth/teacher/")
         self.admin_page_test_helper(c, "/admin/auth/schoolmanager/")
         self.admin_page_test_helper(c, "/admin/auth/systemadministrator/")
@@ -4176,3 +4220,36 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/organisation/module/")
         self.admin_page_test_helper(c, "/admin/organisation/organisation/")
         self.admin_page_test_helper(c, "/admin/organisation/school/")
+
+    def test_results_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.create_and_answer_questions(2, "_res_w_", datetime(2015, 6, 1))
+        self.create_and_answer_questions(2, "_res_c_", datetime(2015, 6, 1), True)
+
+        url = "/admin/results/%s" % self.course.id
+        self.admin_page_test_helper(c, url)
+
+        resp = c.post(url, data={"state": 1})
+        self.assertContains(resp, "Activity")
+
+        resp = c.post(url, data={"state": 2})
+        self.assertContains(resp, "q_res_w_0")
+        self.assertContains(resp, "q_res_w_1")
+        self.assertContains(resp, "q_res_c_0")
+        self.assertContains(resp, "q_res_c_1")
+        self.assertContains(resp, "( 0% correct )")
+        self.assertContains(resp, "( 100% correct )")
+
+        resp = c.post(url, data={"state": 2, "module_filter": self.module.id})
+        self.assertContains(resp, "q_res_w_0")
+        self.assertContains(resp, "q_res_w_1")
+        self.assertContains(resp, "q_res_c_0")
+        self.assertContains(resp, "q_res_c_1")
+        self.assertContains(resp, "( 0% correct )")
+        self.assertContains(resp, "( 100% correct )")
+
+        resp = c.post(url, data={"state": 3})
+        self.assertContains(resp, "Class Results")
+        self.assertContains(resp, self.classs.name)
