@@ -245,7 +245,7 @@ def validate_sign_up_form(post):
         else:
             errors["province_error"] = "Select your province"
     else:
-        errors["province_error"] = "Select your province"
+        errors["province_error"] = "This must be completed"
 
     if "enrolled" in post and post["enrolled"]:
         data["enrolled"] = post["enrolled"]
