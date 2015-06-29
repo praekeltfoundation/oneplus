@@ -38,7 +38,7 @@ class LearningChapter(models.Model):
 
 class TestingQuestion(models.Model):
     name = models.CharField(
-        "Name", max_length=500, null=True, blank=False, unique=True)
+        "Name", max_length=500, null=True, blank=False, unique=True, default="Auto Generated")
     description = models.CharField("Description", max_length=500, blank=True)
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
@@ -92,7 +92,8 @@ class TestingQuestionOption(models.Model):
         max_length=500,
         null=True,
         blank=False,
-        unique=True)
+        unique=True,
+        default="Auto Generated")
     question = models.ForeignKey(TestingQuestion, null=True, blank=False)
     order = models.PositiveIntegerField("Order", default=1)
     content = models.TextField("Content", blank=True)
@@ -101,6 +102,8 @@ class TestingQuestionOption(models.Model):
     def save(self, *args, **kwargs):
         if self.content:
             self.content = format_option(self.content)
+        self.order = TestingQuestionOption.objects.filter(question=self.question).count() + 1
+        self.name = "%s Option %s" % (self.question, self.order)
         super(TestingQuestionOption, self).save(*args, **kwargs)
 
     def link(self):
