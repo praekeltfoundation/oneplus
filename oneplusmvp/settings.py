@@ -247,8 +247,8 @@ MANAGERS = (
 MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
 
 ADMIN_REORDER = (
-    ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Learners - Import/Export",
-              "Teachers", "School Managers", "System Administrators")),
+    ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Teachers", "School Managers",
+              "System Administrators")),
 )
 
 GRADE_10_COURSE_NAME = "One Plus Grade 10"
