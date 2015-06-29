@@ -1,5 +1,17 @@
 from django.db import models
 
+PROVINCE_CHOICES = (
+    ("Eastern Cape", "Eastern Cape"),
+    ("Free State", "Free State"),
+    ("Gauteng", "Gauteng"),
+    ("KwaZulu-Natal", "KwaZulu-Natal"),
+    ("Limpopo", "Limpopo"),
+    ("Mpumalanga", "Mpumalanga"),
+    ("North West", "North West"),
+    ("Northern Cape", "Northern Cape"),
+    ("Western Cape", "Western Cape")
+)
+
 
 class Organisation(models.Model):
 
@@ -29,19 +41,6 @@ class School(models.Model):
     Schools have a name, description and some basic contact details.
     A school manager has the ability to CRUD courses under a school.
     """
-
-    PROVINCE_CHOICES = (
-        ("Eastern Cape", "Eastern Cape"),
-        ("Free State", "Free State"),
-        ("Gauteng", "Gauteng"),
-        ("KwaZulu-Natal", "KwaZulu-Natal"),
-        ("Limpopo", "Limpopo"),
-        ("Mpumalanga", "Mpumalanga"),
-        ("North West", "North West"),
-        ("Northern Cape", "Northern Cape"),
-        ("Western Cape", "Western Cape")
-    )
-
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
