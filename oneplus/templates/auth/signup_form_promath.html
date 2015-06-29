@@ -5,7 +5,7 @@
 {% block content %}
     <div class="content">
         <p class="center-font">To complete your sign up please select your school and class:</p>
-		<form action="" method="post" class="signup">
+		<form action="signup_form_promath" method="post" class="signup">
 			{% csrf_token %}
             <input type="hidden" name="first_name" value="{{ data.first_name }}">
             <input type="hidden" name="surname" value="{{ data.surname }}">

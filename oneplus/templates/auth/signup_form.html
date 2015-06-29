@@ -56,7 +56,7 @@
                 <select name="province" id="id_province">
                     <option value="0">- - - - - - - -</option>
                     {% for province in provinces %}
-                        <option value="{{ province.id }}">{{ province.name }}</option>
+                        <option value="{{ province }}">{{ province }}</option>
                     {% endfor %}
                 </select>
                 <br>

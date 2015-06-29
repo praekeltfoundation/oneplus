@@ -203,10 +203,10 @@ def signup_form(request):
         return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     def post():
-        data, errors = validate_sign_up_form(post)
+        data, errors = validate_sign_up_form(request.POST)
 
         if not errors:
-            if data["enrolled"] == 1:
+            if data["enrolled"] == "1":
                 try:
                     school = School.objects.get(name=OPEN_SCHOOL)
                 except School.DoesNotExist:
@@ -247,7 +247,6 @@ def signup_form(request):
             else:
                 filtered_schools = School.objects.filter(province=data["province"])
                 filtered_classes = Class.objects.filter(province=data["province"])
-
                 return render(request, "auth/signup_form_promath.html", {"data": data,
                                                                          "schools": filtered_schools,
                                                                          "classes": filtered_classes})
@@ -277,13 +276,13 @@ def signup_form_promath(request):
         return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     def post():
-        data, errors = validate_sign_up_form(post)
-        pro_data, pro_errors = validate_sign_up_form_promath(post)
+        data, errors = validate_sign_up_form(request.POST)
+        pro_data, pro_errors = validate_sign_up_form_promath(request.POST)
         data.update(pro_data)
         errors.update(pro_errors)
 
         if not errors:
-            school = School.objects.get(school=data["school"])
+            school = School.objects.get(id=data["school"])
             # create learner
             new_learner = create_learner(first_name=data["first_name"],
                                          last_name=data["surname"],
