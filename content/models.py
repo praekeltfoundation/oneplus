@@ -175,6 +175,6 @@ class GoldenEgg(models.Model):
 class GoldenEggRewardLog(models.Model):
     participant = models.ForeignKey("core.Participant", null=False, blank=False)
     award_date = models.DateTimeField(auto_now_add=True)
-    points = models.PositiveIntegerField(null=True, blank=True, default=0)
-    airtime = models.PositiveIntegerField(null=True, blank=True, default=0)
+    points = models.PositiveIntegerField(null=True, blank=True)
+    airtime = models.PositiveIntegerField(null=True, blank=True)
     badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
