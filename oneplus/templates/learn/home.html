@@ -45,6 +45,19 @@
 
     </div>
 
+    {% if event_name %}
+        <form name="event" action="#" method="post">
+            {% csrf_token %}
+            <div class="content">
+                {% if first_sitting %}
+                    <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+                {% else %}
+                    <input class="button green-back grey-front" type="submit" name="take_event" value="Finish {{ event_name }}">
+                {% endif %}
+            </div>
+        </form>
+    {% endif %}
+
 
     <div class="weeksummary">
         <div class="text badge" onclick="window.location='/badges'">
