@@ -34,7 +34,13 @@ class TestingQuestionCreateForm(forms.ModelForm):
         return count
 
     def save(self, commit=True):
+
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
+
+        count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
+        module = Module.objects.get(id=self.data.get("module"))
+        testing_question.name = "%s Question %d" % (module, count)
+        testing_question.order = count
 
         testing_question.save()
 
@@ -63,6 +69,10 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         return "%s Option %s" % (question, order)
 
     def save(self, commit=True):
+        question = self.data.get("question")
+        order = self.data.get("order")
+        self.cleaned_data["name"] = "%s Option %s" % (question, order)
+
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
 
         question_option.save()
@@ -84,14 +94,14 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
         self.initial = [{'order': '1'}, {'order': '2'}]
 
     def clean(self):
-        print super(TestingQuestionFormSet, self).clean()
+        super(TestingQuestionFormSet, self).clean()
 
         question_options = []
         for form in self.forms:
             if not hasattr(form, 'cleaned_data'):
                 continue
             data = form.cleaned_data
-            data["name"] = "%s Option %d" % (self.data.get("name"), data.get("order"))
+            data["name"] = "%s Option %s" % (self.data.get("name"), data.get("order"))
             question_options.append(data.get('correct'))
 
         if len(question_options) < 2:
