@@ -5,13 +5,9 @@ from django.test import TestCase
 from django.test.runner import DiscoverRunner
 from datetime import datetime
 from auth.models import Learner
-from organisation.models import (Course, Module, School, Organisation,
-                                 CourseModuleRel)
-from core.models import (Participant, Class, ParticipantBadgeTemplateRel,
-                         ParticipantQuestionAnswer)
-from gamification.models import (GamificationBadgeTemplate,
-                                 GamificationPointBonus,
-                                 GamificationScenario)
+from organisation.models import Course, Module, School, Organisation, CourseModuleRel
+from core.models import Participant, Class, ParticipantBadgeTemplateRel, ParticipantQuestionAnswer
+from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption
 import tablib
 from import_export import resources
@@ -50,7 +46,7 @@ class TestMessage(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
@@ -217,23 +213,23 @@ class TestMessage(TestCase):
 
     def test_learner_import_all_strings(self):
         learner_resource = LearnerResource()
-        dataset = tablib.Dataset([
-            '',
-            '821010002',
-            'BAR',
-            'FOO',
-            '',
-            '821010002',
-            'Test High School',
-            'rsa',
-            '',
-            'pta',
-            '0',
-            '0',
-            '0',
-            '0',
-            'class name'
-            ],
+        dataset = tablib.Dataset(
+            [
+                '',
+                '821010002',
+                'BAR',
+                'FOO',
+                '',
+                '821010002',
+                'Test High School',
+                'rsa',
+                '',
+                'pta',
+                '0',
+                '0',
+                '0',
+                '0',
+                'class name'],
             headers=[
                 'id',
                 'username',
@@ -268,23 +264,23 @@ class TestMessage(TestCase):
     def test_learner_import_float_mobile(self):
         # simulate float numberical values from excel imports
         learner_resource = LearnerResource()
-        dataset = tablib.Dataset([
-            '',
-            float(821010003),
-            'BAR',
-            'FOO',
-            '',
-            float(821010003),
-            'Test High School',
-            'rsa',
-            '',
-            'pta',
-            float(0),
-            float(0),
-            float(0),
-            float(0),
-            'class name'
-            ],
+        dataset = tablib.Dataset(
+            [
+                '',
+                float(821010003),
+                'BAR',
+                'FOO',
+                '',
+                float(821010003),
+                'Test High School',
+                'rsa',
+                '',
+                'pta',
+                float(0),
+                float(0),
+                float(0),
+                float(0),
+                'class name'],
             headers=[
                 'id',
                 'username',
