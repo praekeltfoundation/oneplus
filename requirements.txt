@@ -1,4 +1,4 @@
--e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
+-e git+https://github.com/praekelt/mobileu.git@SOW3.2-Part1#egg=django-mobileu
 django-google-analytics-app==2.0.3
 raven
 psycopg2
@@ -12,3 +12,4 @@ mock
 xlwt
 python-dateutil
 coverage
+django-boolean-sum
