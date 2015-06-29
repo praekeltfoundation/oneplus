@@ -118,7 +118,19 @@ class ResultsView(View):
 
         ans = answers.aggregate(total=Count("pk"), correct=BooleanSum("correct"))
 
-        return ans["total"], ans["correct"], ans["total"] - ans["correct"]
+        total = 0
+        correct = 0
+        incorrect = 0
+
+        if ans["total"]:
+            total = ans["total"]
+
+        if ans["correct"]:
+            correct = ans["correct"]
+
+        incorrect = total - correct
+
+        return total, correct, incorrect
 
     def get_total_questions(self, tf_start, tf_end):
         answers = ParticipantQuestionAnswer.objects.all()
