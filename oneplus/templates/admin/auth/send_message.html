@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n %}
+
+{% block extrahead %}
+    <script type="text/javascript" charset="utf-8">
+        (function($) {
+            $(document).ready(function() {
+                grappelli.initDateAndTimePicker();
+            });
+        })(grp.jQuery);
+    </script>
+{% endblock %}
+
+{% block content %}
+
+    <p>Write message:</p>
+
+    <form action="" method="post" name="send_message">
+        {% csrf_token %}
+        {% for field in message_form %}
+            {% if not field.is_hidden %}
+                {{ field.label_tag }}<br>
+            {% endif %}
+            {{ field }}<br><br>
+        {% endfor %}
+        <label for="publish_date">Publish Date:</label> <br>
+        <p class="datetime">
+            <input class="vDateField" id="id_publishdate_0" name="publishdate_0" size="10" type="text" required="required">
+            <br>
+            <input class="vTimeField" id="id_publishdate_1" name="publishdate_1" size="8" type="text" required="required">
+        </p>
+        <br>
+        <p>The message will be sent to:</p>
+        <ul>{{ learners|unordered_list }}</ul> <br>
+
+        <input type="hidden" name="action" value="send_message" />
+        <input type="hidden" name="post" value="yes" />
+        <input type="submit" name="apply" value="Send Message" />
+    </form>
+
+{% endblock %}

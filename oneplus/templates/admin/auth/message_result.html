@@ -1,0 +1,9 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n %}
+{% block content %}
+
+    <p>{{ success_num }} messages were sent successfully.</p>
+
+<a href="{{ redirect }}"><input type="button" value="OK"></a>
+
+{% endblock %}
