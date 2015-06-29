@@ -441,7 +441,7 @@ def signup_form(request):
 
             #sms the learner their OnePlus password
             sms_message = Setting.objects.get(key="WELCOME_SMS")
-            new_learner.generate_unique_token()
+            new_learner.generate_valid_token()
             token = new_learner.unique_token
             SmsQueue.objects.create(message=sms_message.value % (password, token),
                                     send_date=datetime.now(),
