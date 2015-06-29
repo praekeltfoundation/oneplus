@@ -4581,3 +4581,71 @@ class ExtraAdminBitTests(TestCase):
         resp = c.post(url, data={"state": 3})
         self.assertContains(resp, "Class Results")
         self.assertContains(resp, self.classs.name)
+
+    def test_basic_learner_filters(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        url = "/admin/auth/learner/?%s=%s"
+
+        #active filter
+        resp = c.get(url % ("acic", "a"))
+        self.assertContains(resp, "27123456789")
+
+        lad = self.learner.last_active_date
+        self.learner.last_active_date = None
+        self.learner.save()
+
+        resp = c.get(url % ("acic", "i"))
+        self.assertContains(resp, "27123456789")
+
+        self.learner.last_active_date = lad
+        self.learner.save()
+
+        #percentage correct
+        resp = c.get(url % ("pc", "0"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "1"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "2"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "3"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "4"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "5"))
+        self.assertContains(resp, "Learners")
+
+        # no filter number 6 should render 0's data
+        resp = c.get(url % ("pc", "6"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc=0&tf=", "0"))
+        self.assertContains(resp, "Learners")
+
+        #percentage completed
+        resp = c.get(url % ("pqc", "0"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "1"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "2"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "3"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "4"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "5"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "6"))
+        self.assertContains(resp, "Learners")
