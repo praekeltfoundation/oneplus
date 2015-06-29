@@ -244,7 +244,7 @@ MANAGERS = (
     ('Jane', 'info@oneplus.co.za'),
 )
 
-MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
+MATHML_URL = 'http://mathml.p16n.org/'
 
 ADMIN_REORDER = (
     ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Teachers", "School Managers",
