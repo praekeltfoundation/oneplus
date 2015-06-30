@@ -43,7 +43,8 @@ class TestingQuestion(models.Model):
     order = models.PositiveIntegerField("Order", default=1)
     module = models.ForeignKey(Module, null=True, blank=False)
     question_content = models.TextField("Question", blank=True)
-    answer_content = models.TextField("Answer", blank=True)
+    answer_content = models.TextField("Fully Worked Solution", blank=True)
+    notes = models.TextField("Additional Notes", blank=True)
     difficulty = models.PositiveIntegerField(
         "Difficulty", choices=(
             (1, "Not Specified"),
@@ -102,6 +103,7 @@ class TestingQuestionOption(models.Model):
     def save(self, *args, **kwargs):
         if self.content:
             self.content = format_option(self.content)
+        print self.content
         self.order = TestingQuestionOption.objects.filter(question=self.question).count() + 1
         self.name = "%s Option %s" % (self.question, self.order)
         super(TestingQuestionOption, self).save(*args, **kwargs)

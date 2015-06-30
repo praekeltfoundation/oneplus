@@ -70,7 +70,8 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
 
     def save(self, commit=True):
         question = self.data.get("question")
-        order = self.data.get("order")
+        self.cleaned_data["order"] = TestingQuestionOption.objects.filter(question__name=self.data.get("name")).count()
+        order = self.cleaned_data.get("order")
         self.cleaned_data["name"] = "%s Option %s" % (question, order)
 
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
@@ -91,7 +92,10 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
 class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         super(TestingQuestionFormSet, self).__init__(*args, **kwargs)
-        self.initial = [{'order': '1'}, {'order': '2'}]
+        initial = []
+        for i in range(1, self.queryset.count() + 4):
+            initial.append({'order': i})
+        self.initial = initial
 
     def clean(self):
         super(TestingQuestionFormSet, self).clean()
@@ -101,6 +105,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
             if not hasattr(form, 'cleaned_data'):
                 continue
             data = form.cleaned_data
+            data["order"] = TestingQuestionOption.objects.filter(question__name=self.data.get("name")).count()
             data["name"] = "%s Option %s" % (self.data.get("name"), data.get("order"))
             question_options.append(data.get('correct'))
 
