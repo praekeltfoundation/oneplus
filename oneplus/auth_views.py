@@ -19,7 +19,7 @@ from .validators import *
 from django.db.models import Count
 from organisation.models import School, Course
 from core.models import Class, Participant
-from oneplusmvp.settings import OPEN_SCHOOL
+from oneplusmvp import settings
 from content.models import Event
 from core.common import PROVINCES
 from organisation.models import Organisation
@@ -208,10 +208,10 @@ def signup_form(request):
         if not errors:
             if data["enrolled"] == "1":
                 try:
-                    school = School.objects.get(name=OPEN_SCHOOL)
+                    school = School.objects.get(name=settings.OPEN_SCHOOL)
                 except School.DoesNotExist:
                     organisation = Organisation.objects.get(name="One Plus")
-                    school = School.objects.create(name=OPEN_SCHOOL,
+                    school = School.objects.create(name=settings.OPEN_SCHOOL,
                                                    organisation=organisation,
                                                    province=data["province"])
 
