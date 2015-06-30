@@ -301,13 +301,16 @@ def signup_form_promath(request):
 
             return render(request, "auth/signedup.html")
         else:
-            filtered_schools = School.objects.filter(province=data["province"])
-            filtered_classes = Class.objects.filter(province=data["province"])
+            if "province" in data:
+                filtered_schools = School.objects.filter(province=data["province"])
+                filtered_classes = Class.objects.filter(province=data["province"])
 
-            return render(request, "auth/signup_form_promath.html", {"data": data,
-                                                                     "errors": errors,
-                                                                     "schools": filtered_schools,
-                                                                     "classes": filtered_classes})
+                return render(request, "auth/signup_form_promath.html", {"data": data,
+                                                                         "errors": errors,
+                                                                         "schools": filtered_schools,
+                                                                         "classes": filtered_classes})
+            else:
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     return resolve_http_method(request, [get, post])
 

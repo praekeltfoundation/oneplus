@@ -1,6 +1,6 @@
 {% extends "core/main.html" %}
 
-{% block title %}Sign Up - Select School/Class{% endblock %}
+{% block title %}Sign Up - ProMath{% endblock %}
 
 {% block content %}
     <div class="content">
@@ -38,8 +38,8 @@
                     {% endfor %}
                 </select>
                 <br>
-                {% if errors.class_error %}
-                    <span class="red-front">{{ errors.class_error }}</span>
+                {% if errors.classs_error %}
+                    <span class="red-front">{{ errors.classs_error }}</span>
                     <br>
                 {% endif %}
             </p>

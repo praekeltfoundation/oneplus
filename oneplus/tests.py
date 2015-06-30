@@ -2640,8 +2640,25 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'Grade 10')
         self.assertContains(resp, '0')
 
+        #get request
+        resp = self.client.get(reverse('auth.signup_form_promath'), follow=True)
+        self.assertContains(resp, "Sign Up")
+
         #no data
         resp = self.client.post(reverse('auth.signup_form_promath'), follow=True)
+        self.assertContains(resp, "Sign Up")
+
+        #no school and class
+        resp = self.client.post(reverse('auth.signup_form_promath'),
+                                data={
+                                    'first_name': "Bob",
+                                    'surname': "Bobby",
+                                    'cellphone': '0729876543',
+                                    'province': 'Gauteng',
+                                    'grade': 'Grade 10',
+                                    'enrolled': 0,
+                                },
+                                follow=True)
         self.assertContains(resp, "This must be completed", count=2)
 
         #invalid school and class
@@ -2653,8 +2670,8 @@ class GeneralTests(TestCase):
                                     'province': 'Gauteng',
                                     'grade': 'Grade 10',
                                     'enrolled': 0,
-                                    'school': '',
-                                    'classs':''
+                                    'school': 999,
+                                    'classs': 999
                                 },
                                 follow=True)
         self.assertContains(resp, "Select your school")
@@ -2669,8 +2686,8 @@ class GeneralTests(TestCase):
                                     'province': 'Gauteng',
                                     'grade': 'Grade 10',
                                     'enrolled': 0,
-                                    'school': self.school,
-                                    'classs': self.classs
+                                    'school': self.school.id,
+                                    'classs': self.classs.id
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
