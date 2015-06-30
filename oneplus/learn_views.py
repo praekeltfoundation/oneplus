@@ -244,8 +244,14 @@ def nextchallenge(request, state, user):
             _participant.answer(_option.question, _option)
 
             # Update metrics
-            update_num_question_metric.delay()
-            update_all_perc_correct_answers.delay()
+            try:
+                update_num_question_metric.delay()
+            except requests.exceptions.RequestException as e:
+                pass
+            try:
+                update_all_perc_correct_answers.delay()
+            except requests.exceptions.RequestException as e:
+                pass
 
             # Check for awards
             if _option.correct:
