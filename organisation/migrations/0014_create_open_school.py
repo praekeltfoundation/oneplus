@@ -3,7 +3,6 @@ from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models
-from organisation.models import Organisation, School
 
 
 class Migration(DataMigration):
@@ -21,9 +20,9 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        organisation = self.get_or_create(Organisation, name="One Plus")
+        organisation = self.get_or_create(orm.Organisation, name="One Plus")
         organisation.save()
-        obj = self.get_or_create(School, name="Open School", organisation=organisation)
+        obj = self.get_or_create(orm.School, name="Open School", organisation=organisation)
         obj.save()
 
     def backwards(self, orm):
