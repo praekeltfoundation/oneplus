@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from organisation.models import School
 from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models, IntegrityError, transaction
-from organisation.models import Organisation
 
 
 class Migration(DataMigration):
@@ -24,11 +22,11 @@ class Migration(DataMigration):
         # and orm['appname.ModelName'] for models in other applications.
         provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
                      "Northern Cape", "Western Cape")
-        organisation = self.get_or_create(Organisation, name="One Plus")
+        organisation = self.get_or_create(orm.Organisation, name="One Plus")
         organisation.save()
 
         for province in provinces:
-            obj = self.get_or_create(School, name=province, organisation=organisation)
+            obj = self.get_or_create(orm.School, name=province, organisation=organisation)
             obj.save()
 
     def backwards(self, orm):
