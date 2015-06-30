@@ -25,6 +25,7 @@ from go_http.tests.test_send import RecordingHandler
 from django.test.utils import override_settings
 from django.db.models import Count
 from oneplusmvp import settings
+from oneplusmvp.settings import OPEN_SCHOOL
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -2708,6 +2709,11 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Thank you")
         new_learner = Learner.objects.get(username='0729876540')
         self.assertEquals('Koos', new_learner.first_name)
+
+        try:
+            School.objects.get(name=OPEN_SCHOOL).delete()
+        except School.DoesNotExist:
+            pass
 
         # valid - not enrolled - grade 10
         resp = self.client.post(reverse('auth.signup_form'),
