@@ -95,15 +95,17 @@ class TestingQuestionOption(models.Model):
         unique=True,
         default="Auto Generated")
     question = models.ForeignKey(TestingQuestion, null=True, blank=False)
-    order = models.PositiveIntegerField("Order", default=1)
+    order = models.PositiveIntegerField("Order", default=0)
     content = models.TextField("Content", blank=True)
     correct = models.BooleanField("Correct")
 
     def save(self, *args, **kwargs):
         if self.content:
             self.content = format_option(self.content)
-        self.order = TestingQuestionOption.objects.filter(question=self.question).count() + 1
-        self.name = "%s Option %s" % (self.question, self.order)
+        if self.order == 0:
+            self.order = TestingQuestionOption.objects.filter(question=self.question).count() + 1
+        if self.name == "Auto Generated":
+            self.name = "%s Option %s" % (self.question, self.order)
         super(TestingQuestionOption, self).save(*args, **kwargs)
 
     def link(self):

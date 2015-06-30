@@ -63,13 +63,14 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question = self.data.get("question")
         if not question:
             raise ValueError("Question must be selected")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
         order = self.data.get("order")
         if not order:
             raise ValueError("Order myst be filled in")
         return "%s Option %s" % (question, order)
 
     def save(self, commit=True):
-        question = self.data.get("question")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
         order = self.data.get("order")
         self.cleaned_data["name"] = "%s Option %s" % (question, order)
 
