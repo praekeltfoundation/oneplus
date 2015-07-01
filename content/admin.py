@@ -187,6 +187,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
 class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_display = ("question", "order", "name")
     list_filter = ("question",)
+    readonly_fields = ("name", "order")
     search_fields = ("name",)
     form = TestingQuestionOptionCreateForm
     fieldsets = [

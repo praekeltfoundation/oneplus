@@ -78,12 +78,11 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         return "%s Option %s" % (question, order)
 
     def save(self, commit=True):
-        question = TestingQuestion.objects.get(id=self.data.get("question"))
-        order = self.data.get("order")
-        self.cleaned_data["name"] = "%s Option %s" % (question, order)
-
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
-
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
+        order = TestingQuestionOption.objects.filter(question=question).count() + 1
+        question_option.order = order
+        question_option.name = "%s Option %s" % (question, order)
         question_option.save()
 
         option_content = self.cleaned_data.get("content")
