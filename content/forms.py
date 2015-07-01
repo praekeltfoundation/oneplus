@@ -40,14 +40,16 @@ class TestingQuestionCreateForm(forms.ModelForm):
         return order
 
     def save(self, commit=True):
-
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
-
-        count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
-        module = Module.objects.get(id=self.data.get("module"))
-        testing_question.name = "%s Question %d" % (module, count)
-        testing_question.order = count
-
+        if testing_question.order == 0 or testing_question.name == "Auto Generated":
+            count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
+            module = Module.objects.get(id=self.data.get("module"))
+            name = "%s Question %d" % (module, count)
+            while TestingQuestion.objects.filter(name=name):
+                count += 1
+                name = "%s Question %d" % (module, count)
+            testing_question.name = name
+            testing_question.order = count
         testing_question.save()
 
         question_content = self.cleaned_data.get("question_content")
