@@ -252,17 +252,16 @@ class LearnerLimitFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if "lmt" in request.GET and request.GET["lmt"]:
             limit = self.get_limit(request.GET["lmt"])
-            my_list = list( )
+            id_list = list()
             count = 0
-
             for item in queryset:
                 if count < limit:
-                    my_list.append(item.id)
+                    id_list.append(item.id)
                 else:
                     break
                 count += 1
 
-            return queryset.filter(id__in=my_list)
+            return queryset.filter(id__in=id_list)
         else:
             return queryset
 

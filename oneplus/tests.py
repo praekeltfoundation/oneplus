@@ -4674,5 +4674,13 @@ class ExtraAdminBitTests(TestCase):
         self.assertContains(resp, "Learners")
 
         #limiting number of results returned
+        for i in range(1, 6):
+            self.create_learner(
+                self.school,
+                username="+2712345678%s" % i,
+                mobile="+2712345678%s" % i,
+                country="country",
+                area="Test_Area",
+                is_staff=True)
         resp = c.get(url % ("lmt", "0"))
         self.assertContains(resp, "Learners")
