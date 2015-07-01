@@ -162,7 +162,7 @@ def get_timeframe_range(value):
     if value == "1":
         # last week
         start = today - timedelta(days=dw, weeks=1)
-        end = start + timedelta(6 - dw)            ("6", _("This year")),
+        end = start + timedelta(6 - dw)
 
 
     elif value == "2":
