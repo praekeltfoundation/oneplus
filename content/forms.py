@@ -18,30 +18,38 @@ class TestingQuestionCreateForm(forms.ModelForm):
                                                                 'be associated with a module.'})
 
     def clean_name(self):
-        module = self.data.get("module")
-        if not module:
-            raise forms.ValidationError("You must select a module")
-        count = TestingQuestion.objects.filter(module__id=module).count() + 1
-        module = Module.objects.get(id=module)
-        self.data["name"] = "%s Question %d" % (module, count)
-        return "%s Question %d" % (module, count)
+        name = self.data.get("name")
+        if name == "Auto Generated":
+            module = self.data.get("module")
+            if not module:
+                raise forms.ValidationError("You must select a module")
+            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            module = Module.objects.get(id=module)
+            self.data["name"] = "%s Question %d" % (module, count)
+            return "%s Question %d" % (module, count)
+        return name
 
     def clean_order(self):
-        module = self.data.get("module")
-        if not module:
-            raise forms.ValidationError("You must select a module")
-        count = TestingQuestion.objects.filter(module__id=module).count() + 1
-        return count
+        order = self.data.get("order")
+        if order == 0:
+            module = self.data.get("module")
+            if not module:
+                raise forms.ValidationError("You must select a module")
+            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            return count
+        return order
 
     def save(self, commit=True):
-
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
-
-        count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
-        module = Module.objects.get(id=self.data.get("module"))
-        testing_question.name = "%s Question %d" % (module, count)
-        testing_question.order = count
-
+        if testing_question.order == 0 or testing_question.name == "Auto Generated":
+            count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
+            module = Module.objects.get(id=self.data.get("module"))
+            name = "%s Question %d" % (module, count)
+            while TestingQuestion.objects.filter(name=name):
+                count += 1
+                name = "%s Question %d" % (module, count)
+            testing_question.name = name
+            testing_question.order = count
         testing_question.save()
 
         question_content = self.cleaned_data.get("question_content")
@@ -63,15 +71,15 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question = self.data.get("question")
         if not question:
             raise ValueError("Question must be selected")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
         order = self.data.get("order")
         if not order:
             raise ValueError("Order myst be filled in")
         return "%s Option %s" % (question, order)
 
     def save(self, commit=True):
-        question = self.data.get("question")
-        self.cleaned_data["order"] = TestingQuestionOption.objects.filter(question__name=self.data.get("name")).count()
-        order = self.cleaned_data.get("order")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
+        order = self.data.get("order")
         self.cleaned_data["name"] = "%s Option %s" % (question, order)
 
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
