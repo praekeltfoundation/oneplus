@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django_summernote.admin import SummernoteModelAdmin
+from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel
 from import_export import resources
@@ -22,7 +22,7 @@ class TestingQuestionInline(admin.TabularInline):
     ordering = ("order", "name")
 
 
-class TestingQuestionOptionInline(admin.TabularInline):
+class TestingQuestionOptionInline(admin.StackedInline, SummernoteInlineModelAdmin):
     model = TestingQuestionOption
     extra = 3
     fields = ("order", "name", "content", "correct", "link")
