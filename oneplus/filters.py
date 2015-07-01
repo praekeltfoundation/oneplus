@@ -237,22 +237,6 @@ def get_sum_boolean_cast_string():
     return ""
 
 
-class LearnerLimit(admin.SimpleListFilter):
-    title = _("Limit")
-    parameter_name = "lmt"
-
-    def lookups(self, request, model_admin):
-        return [
-            ("0", _("5")),
-            ("1", _("10")),
-            ("2", _("25")),
-            ("3", _("50")),
-        ]
-
-    def queryset(self, request, queryset):
-        return queryset
-
-
 class LearnerLimitFilter(admin.SimpleListFilter):
     title = _("Limit")
     parameter_name = "lmt"

@@ -4672,3 +4672,7 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.get(url % ("pqc", "6"))
         self.assertContains(resp, "Learners")
+
+        #limiting number of results returned
+        resp = c.get(url % ("lmt", "0"))
+        self.assertContains(resp, "Learners")
