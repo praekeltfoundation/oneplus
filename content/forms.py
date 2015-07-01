@@ -18,20 +18,26 @@ class TestingQuestionCreateForm(forms.ModelForm):
                                                                 'be associated with a module.'})
 
     def clean_name(self):
-        module = self.data.get("module")
-        if not module:
-            raise forms.ValidationError("You must select a module")
-        count = TestingQuestion.objects.filter(module__id=module).count() + 1
-        module = Module.objects.get(id=module)
-        self.data["name"] = "%s Question %d" % (module, count)
-        return "%s Question %d" % (module, count)
+        name = self.data.get("name")
+        if name == "Auto Generated":
+            module = self.data.get("module")
+            if not module:
+                raise forms.ValidationError("You must select a module")
+            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            module = Module.objects.get(id=module)
+            self.data["name"] = "%s Question %d" % (module, count)
+            return "%s Question %d" % (module, count)
+        return name
 
     def clean_order(self):
-        module = self.data.get("module")
-        if not module:
-            raise forms.ValidationError("You must select a module")
-        count = TestingQuestion.objects.filter(module__id=module).count() + 1
-        return count
+        order = self.data.get("order")
+        if order == 0:
+            module = self.data.get("module")
+            if not module:
+                raise forms.ValidationError("You must select a module")
+            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            return count
+        return order
 
     def save(self, commit=True):
 
@@ -63,13 +69,14 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question = self.data.get("question")
         if not question:
             raise ValueError("Question must be selected")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
         order = self.data.get("order")
         if not order:
             raise ValueError("Order myst be filled in")
         return "%s Option %s" % (question, order)
 
     def save(self, commit=True):
-        question = self.data.get("question")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
         order = self.data.get("order")
         self.cleaned_data["name"] = "%s Option %s" % (question, order)
 
