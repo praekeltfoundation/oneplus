@@ -4576,8 +4576,8 @@ class ExtraAdminBitTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
-        self.create_and_answer_questions(2, "_res_w_", datetime(2015, 6, 1))
-        self.create_and_answer_questions(2, "_res_c_", datetime(2015, 6, 1), True)
+        self.create_and_answer_questions(2, "_res_w_", datetime.now())
+        self.create_and_answer_questions(2, "_res_c_", datetime.now(), True)
 
         url = "/admin/results/%s" % self.course.id
         self.admin_page_test_helper(c, url)
