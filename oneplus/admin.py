@@ -70,7 +70,7 @@ class OnePlusLearnerAdmin(LearnerAdmin):
     list_display = LearnerAdmin.list_display + ("get_completed", "get_perc_correct")
 
     list_filter = (LearnerActiveFilter, LearnerPercentageCorrectFilter, LearnerPercentageOfQuestionsCompletedFilter,
-                   LearnerTimeFrameFilter) + LearnerAdmin.list_filter
+                   LearnerTimeFrameFilter, LearnerLimitFilter) + LearnerAdmin.list_filter
 
     def save_model(self, request, obj, form, change):
         before_total = Learner.objects.all().count()

@@ -162,7 +162,8 @@ def get_timeframe_range(value):
     if value == "1":
         # last week
         start = today - timedelta(days=dw, weeks=1)
-        end = start + timedelta(6 - dw)
+        end = start + timedelta(6 - dw)            ("6", _("This year")),
+
 
     elif value == "2":
         # this month
@@ -234,3 +235,53 @@ def get_sum_boolean_cast_string():
         return "::int"
 
     return ""
+
+
+class LearnerLimit(admin.SimpleListFilter):
+    title = _("Limit")
+    parameter_name = "lmt"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("0", _("5")),
+            ("1", _("10")),
+            ("2", _("25")),
+            ("3", _("50")),
+        ]
+
+    def queryset(self, request, queryset):
+        return queryset
+
+
+class LearnerLimitFilter(admin.SimpleListFilter):
+    title = _("Limit")
+    parameter_name = "lmt"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("0", _("5")),
+            ("1", _("10")),
+            ("2", _("25")),
+            ("3", _("50")),
+        ]
+
+    def queryset(self, request, queryset):
+        if "lmt" in request.GET and request.GET["lmt"]:
+            limit = self.get_limit(request.GET["lmt"])
+            my_list = list( )
+            count = 0
+
+            for item in queryset:
+                if count < limit:
+                    my_list.append(item.id)
+                else:
+                    break
+                count += 1
+
+            return queryset.filter(id__in=my_list)
+        else:
+            return queryset
+
+    def get_limit(self, value):
+        limit_dict = [5, 10, 25, 50]
+        return limit_dict[int(value)]
