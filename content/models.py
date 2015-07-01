@@ -103,10 +103,6 @@ class TestingQuestionOption(models.Model):
     def save(self, *args, **kwargs):
         if self.content:
             self.content = format_option(self.content)
-        if self.order == 0:
-            self.order = TestingQuestionOption.objects.filter(question=self.question).count() + 1
-        if self.name == "Auto Generated":
-            self.name = "%s Option %s" % (self.question, self.order)
         super(TestingQuestionOption, self).save(*args, **kwargs)
 
     def link(self):

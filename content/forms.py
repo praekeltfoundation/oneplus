@@ -74,7 +74,7 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question = TestingQuestion.objects.get(id=self.data.get("question"))
         order = self.data.get("order")
         if not order:
-            raise ValueError("Order myst be filled in")
+            raise ValueError("Order must be filled in")
         return "%s Option %s" % (question, order)
 
     def save(self, commit=True):
@@ -128,6 +128,22 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
         if correct_selected is False:
             raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
+
+    def save(self, commit=True):
+        options = super(TestingQuestionFormSet, self).save(commit=False)
+        question = options[0].question
+        for option in options:
+            if option.order == 0:
+                option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
+            if option.name == "Auto Generated":
+                option.name = "%s Option %s" % (question, option.order)
+            option.save()
+
+        if len(options) < 2:
+            order = TestingQuestionOption.objects.filter(question=question).count() + 1
+            name = "%s Option %s" % (question, order)
+            TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
+
 
 def process_mathml_content(_content, _source, _source_id):
     _content = convert_to_tags(_content)
