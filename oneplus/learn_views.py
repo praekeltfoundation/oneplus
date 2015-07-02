@@ -340,19 +340,6 @@ def nextchallenge(request, state, user):
 
             else:
                 return redirect("learn.wrong")
-
-            state["total_tasks_today"] = _learnerstate.get_total_questions()
-
-            return render(
-                request,
-                "learn/next.html",
-                {
-                    "state": state,
-                    "user": user,
-                    "question": _learnerstate.active_question,
-                    "question_type": "answer"
-                }
-            )
         else:
             return redirect("learn.home")
 
