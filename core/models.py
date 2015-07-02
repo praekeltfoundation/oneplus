@@ -190,9 +190,9 @@ class ParticipantQuestionAnswer(models.Model):
     question = models.ForeignKey(TestingQuestion, verbose_name="Question")
     option_selected = models.ForeignKey(
         TestingQuestionOption, verbose_name="Selected")
-    correct = models.BooleanField("Correct")
+    correct = models.BooleanField("Correct", db_index=True)
     answerdate = models.DateTimeField(
-        "Answer Date", null=True, blank=False, default=datetime.now())
+        "Answer Date", null=True, blank=False, default=datetime.now(), db_index=True)
 
     def __str__(self):
         return self.participant.learner.username

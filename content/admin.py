@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django_summernote.admin import SummernoteModelAdmin
+from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel
 from import_export import resources
@@ -22,30 +22,29 @@ class TestingQuestionInline(admin.TabularInline):
     ordering = ("order", "name")
 
 
-class TestingQuestionOptionInline(admin.TabularInline):
+class TestingQuestionOptionInline(admin.StackedInline, SummernoteInlineModelAdmin):
     model = TestingQuestionOption
-    extra = 2
-    fields = ("order", "name", "admin_thumbnail", "correct", "link")
-    readonly_fields = ('link', "admin_thumbnail", "name")
+    extra = 3
+    fields = ("order", "name", "content", "correct", "link")
+    readonly_fields = ('link', "order", "name")
     ordering = ("order", "name")
     formset = TestingQuestionFormSet
 
 
 class LearningChapterAdmin(SummernoteModelAdmin):
     list_display = ("module", "order", "name", "description")
-    list_filter = ("module", )
+    list_filter = ("module",)
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "module", "order"]}),
+         {"fields": ["name", "description", "module", "order"]}),
         ("Content",
-            {"fields": ["content"]})
+         {"fields": ["content"]})
     ]
-    ordering = ("module", "order", "name", )
+    ordering = ("module", "order", "name",)
 
 
 class TestingQuestionResource(resources.ModelResource):
-
     class Meta:
         model = TestingQuestion
         fields = (
@@ -114,6 +113,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             course_list += c.name + "\n"
 
         return course_list
+
     get_course.short_description = "Courses"
 
     def correct(self, question):
@@ -121,6 +121,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             question=question,
             correct=True
         ).count()
+
     correct.allow_tags = True
     correct.short_description = "Correct"
 
@@ -129,6 +130,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             question=question,
             correct=False
         ).count()
+
     incorrect.allow_tags = True
     incorrect.short_description = "Incorrect"
 
@@ -144,34 +146,39 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
             return 100 * correct / total
         else:
             return 0
+
     percentage_correct.allow_tags = True
     percentage_correct.short_description = "Percentage Correct"
 
     def preview_link(self, question):
         return u'<a href="/preview/%s">Preview</a>' % question.id
+
     preview_link.allow_tags = True
     preview_link.short_description = "Preview"
 
     def make_incomplete(modeladmin, request, queryset):
         queryset.update(state='1')
+
     make_incomplete.short_description = "Change state to Incomplete"
 
     def make_ready(modeladmin, request, queryset):
         queryset.update(state='2')
+
     make_ready.short_description = "Change state to Ready for Review"
 
     def make_published(modeladmin, request, queryset):
         queryset.update(state='3')
+
     make_published.short_description = "Change state to Published"
 
     actions = [make_incomplete, make_ready, make_published]
 
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "module", "order"]}),
+         {"fields": ["name", "description", "module", "order"]}),
         ("Content",
-            {"fields": ["question_content", "answer_content", "textbook_link",
-                        "difficulty", "points"]})
+         {"fields": ["question_content", "answer_content", "notes", "textbook_link",
+                     "difficulty", "points"]})
     ]
     inlines = (TestingQuestionOptionInline,)
     resource_class = TestingQuestionResource
@@ -179,14 +186,15 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
 
 class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_display = ("question", "order", "name")
-    list_filter = ("question", )
+    list_filter = ("question",)
+    readonly_fields = ("name", "order")
     search_fields = ("name",)
     form = TestingQuestionOptionCreateForm
     fieldsets = [
         (None, {"fields": ["name", "question", "order"]}),
         ("Content", {"fields": ["content", "correct"]})
     ]
-    ordering = ("question", "order", "name", )
+    ordering = ("question", "order", "name",)
 
 
 class MathmlAdmin(SummernoteModelAdmin):
@@ -210,6 +218,7 @@ class GoldenEggAdmin(SummernoteModelAdmin):
             return "Airtime"
         if golden_egg.badge:
             return "Badge"
+
     get_reward.short_description = "Reward"
 
     def get_reward_value(self, golden_egg):
@@ -219,6 +228,7 @@ class GoldenEggAdmin(SummernoteModelAdmin):
             return "R%d" % golden_egg.airtime
         if golden_egg.badge:
             return golden_egg.badge.name
+
     get_reward_value.short_description = "Reward Value"
 
 
@@ -227,7 +237,7 @@ class EventSplashPageInline(admin.TabularInline):
     extra = 1
     max_num = 3
     fields = ("order_number", "header", "paragraph")
-    ordering = ("order_number", )
+    ordering = ("order_number",)
     verbose_name = "Splash Page"
     verbose_name_plural = "Splash Page"
     formset = EventSplashPageInlineFormSet
@@ -256,10 +266,10 @@ class EventEndPageInline(admin.TabularInline):
 class EventQuestionRelInline(admin.TabularInline):
     model = EventQuestionRel
     extra = 1
-    fields = ("order", "question", )
+    fields = ("order", "question",)
     verbose_name = "Event Questions"
     verbose_name_plural = "Event Questions"
-    ordering = ("order", )
+    ordering = ("order",)
     formset = EventQuestionRelInline
 
 
@@ -277,10 +287,12 @@ class EventAdmin(admin.ModelAdmin):
 
     def get_total_users(self, obj):
         return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
+
     get_total_users.short_description = "Total Users"
 
     def get_total_questions_answered(self, obj):
         return EventQuestionAnswer.objects.filter(event=obj).aggregate(Count('id'))['id__count']
+
     get_total_questions_answered.short_description = "Total Questions Answered"
 
     def get_percent_complete_all(self, obj):
@@ -294,6 +306,7 @@ class EventAdmin(admin.ModelAdmin):
         #
         # return (completed / total_participants) * 100
         return 0
+
     get_percent_complete_all.short_description = "% Complete All Questions"
 
     def get_percent_correct(self, obj):
@@ -304,6 +317,7 @@ class EventAdmin(admin.ModelAdmin):
             return (correct / answered) * 100
         else:
             return 0
+
     get_percent_correct.short_description = "% Correct"
 
     def get_participant(self, obj):
@@ -312,6 +326,7 @@ class EventAdmin(admin.ModelAdmin):
         for p in all_participants:
             participant_string += "%s %s, " % (p.learner.first_name, p.learner.last_name)
         return participant_string[:-2]
+
     get_participant.short_description = "Participants"
 
     def get_is_active(self, obj):
@@ -319,9 +334,9 @@ class EventAdmin(admin.ModelAdmin):
             return "<img alt='True' src='/static/admin/img/icon-yes.gif'>"
         else:
             return "<img alt='True' src='/static/admin/img/icon-no.gif'>"
+
     get_is_active.short_description = "Active"
     get_is_active.allow_tags = True
-
 
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
