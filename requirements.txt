@@ -12,3 +12,4 @@ mock
 xlwt
 python-dateutil
 coverage
+django-boolean-sum

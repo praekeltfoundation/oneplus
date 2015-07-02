@@ -55,6 +55,11 @@
 
             <h1 class="green-front" style="padding-top: 15px">Solution</h1>
             <p>{{ question.answer_content | format_content  }}</p>
+
+            {% if question.notes %}
+                <h1 class="green-front" style="padding-top: 15px">Addition Notes</h1>
+                <p>{{ question.notes | format_content  }}</p>
+            {% endif %}
         </div>
     {% endautoescape %}
 {% endblock %}

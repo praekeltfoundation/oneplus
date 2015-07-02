@@ -216,7 +216,8 @@ def chatgroups(request, state, user):
 def chat(request, state, user, chatid):
     # get chat group
     _group = ChatGroup.objects.get(pk=chatid)
-    request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True).count()
+    request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True,
+                                                                              publishdate__lt=datetime.now()).count()
 
     _usr = Learner.objects.get(pk=user["id"])
 
@@ -230,7 +231,7 @@ def chat(request, state, user, chatid):
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set.filter(moderated=True) \
+        _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
@@ -266,7 +267,7 @@ def chat(request, state, user, chatid):
             if msg is not None:
                 report_user_post(msg, _usr, 3)
 
-        _messages = _group.chatmessage_set.filter(moderated=True) \
+        _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(
             request,
