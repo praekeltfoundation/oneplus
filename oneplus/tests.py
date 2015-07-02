@@ -4584,8 +4584,8 @@ class ExtraAdminBitTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
-        self.create_and_answer_questions(2, "_res_w_", datetime.now().date())
-        self.create_and_answer_questions(2, "_res_c_", datetime.now().date(), True)
+        self.create_and_answer_questions(2, "_res_w_", datetime.now())
+        self.create_and_answer_questions(2, "_res_c_", datetime.now(), True)
 
         url = "/admin/results/%s" % self.course.id
         self.admin_page_test_helper(c, url)
@@ -4679,4 +4679,16 @@ class ExtraAdminBitTests(TestCase):
         self.assertContains(resp, "Learners")
 
         resp = c.get(url % ("pqc", "6"))
+        self.assertContains(resp, "Learners")
+
+        #limiting number of results returned
+        for i in range(1, 6):
+            self.create_learner(
+                self.school,
+                username="+2712345678%s" % i,
+                mobile="+2712345678%s" % i,
+                country="country",
+                area="Test_Area",
+                is_staff=True)
+        resp = c.get(url % ("lmt", "0"))
         self.assertContains(resp, "Learners")
