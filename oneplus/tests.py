@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 import logging
-from billiard.synchronize import Event
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -12,8 +11,8 @@ from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, Go
 from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
-from communication.models import Message, ChatGroup, ChatMessage, Post, \
-    Report, ReportResponse, Sms, SmsQueue, Discussion, PostComment, Profanity
+from communication.models import Message, ChatGroup, ChatMessage, Post, Report, ReportResponse, Sms, SmsQueue, \
+    Discussion, PostComment, Profanity
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -26,6 +25,7 @@ from django.test.utils import override_settings
 from django.db.models import Count
 from oneplusmvp import settings
 from django.conf import settings
+from oneplus.tasks import update_perc_correct_answers_worker
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -445,7 +445,13 @@ class GeneralTests(TestCase):
             data={'page': 1},
             follow=True
         )
+        self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer': 99
+            }, follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_event(self):
@@ -545,7 +551,14 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse("learn.event_wrong"))
         self.assertRedirects(resp, "home")
 
-    def test_answer_correct_nextchallenge(self):
+    def fake_update_all_perc_correct_answers():
+        update_perc_correct_answers_worker('24hr', 1)
+        update_perc_correct_answers_worker('48hr', 2)
+        update_perc_correct_answers_worker('7days', 7)
+        update_perc_correct_answers_worker('32days', 32)
+
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    def test_answer_correct_nextchallenge(self, mock_task):
         self.client.get(
             reverse('auth.autologin',
                     kwargs={'token': self.learner.unique_token})
@@ -583,7 +596,8 @@ class GeneralTests(TestCase):
         self.assert_in_metric_logs("questions.correct.7days", 'last', 100)
         self.assert_in_metric_logs("questions.correct.32days", 'last', 100)
 
-    def test_answer_incorrect_nextchallenge(self):
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    def test_answer_incorrect_nextchallenge(self, mock_task):
         self.client.get(reverse(
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
