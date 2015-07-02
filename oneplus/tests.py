@@ -445,7 +445,13 @@ class GeneralTests(TestCase):
             data={'page': 1},
             follow=True
         )
+        self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer': 99
+            }, follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_event(self):
