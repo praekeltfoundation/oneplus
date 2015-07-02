@@ -1,12 +1,16 @@
 <div class="grp-module aligned ">
     <h2>Badges</h2>
-    {% for scenario in scenario_list %}
-        <form name="award_badge" action="" method="post">
-            <div class="grp-row grp-cells-1">
-                <a href="/award_badge/{{ object_id }}/{{ scenario.scenario.id }}">
-                    <img width="10" height="10" src="/static/admin/img/icon_addlink.gif"> {{ scenario.scenario.name }} ({{ scenario.scenario_count }})
-                </a>
-            </div>
-        </form>
-    {% endfor %}
+    <table style="width:100%;">
+        {% for scenario_row in scenario_list %}
+            <tr>
+                {% for scenario in scenario_row %}
+                    <td>
+                        <a href="/award_badge/{{ object_id }}/{{ scenario.scenario.id }}">
+                            <img width="10" height="10" src="/static/admin/img/icon_addlink.gif"> {{ scenario.scenario.name }} ({{ scenario.scenario_count }})
+                        </a>
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
 </div>
