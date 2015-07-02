@@ -17,9 +17,39 @@ class TestingQuestionCreateForm(forms.ModelForm):
                                     error_messages={'required': 'A Test question needs to '
                                                                 'be associated with a module.'})
 
+    def clean_name(self):
+        name = self.data.get("name")
+        if name == "Auto Generated":
+            module = self.data.get("module")
+            if not module:
+                raise forms.ValidationError("You must select a module")
+            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            module = Module.objects.get(id=module)
+            self.data["name"] = "%s Question %d" % (module, count)
+            return "%s Question %d" % (module, count)
+        return name
+
+    def clean_order(self):
+        order = self.data.get("order")
+        if order == 0:
+            module = self.data.get("module")
+            if not module:
+                raise forms.ValidationError("You must select a module")
+            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            return count
+        return order
+
     def save(self, commit=True):
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
-
+        if testing_question.order == 0 or testing_question.name == "Auto Generated":
+            count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
+            module = Module.objects.get(id=self.data.get("module"))
+            name = "%s Question %d" % (module, count)
+            while TestingQuestion.objects.filter(name=name):
+                count += 1
+                name = "%s Question %d" % (module, count)
+            testing_question.name = name
+            testing_question.order = count
         testing_question.save()
 
         question_content = self.cleaned_data.get("question_content")
@@ -37,9 +67,22 @@ class TestingQuestionCreateForm(forms.ModelForm):
 
 
 class TestingQuestionOptionCreateForm(forms.ModelForm):
+    def clean_name(self):
+        question = self.data.get("question")
+        if not question:
+            raise ValueError("Question must be selected")
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
+        order = self.data.get("order")
+        if not order:
+            raise ValueError("Order must be filled in")
+        return "%s Option %s" % (question, order)
+
     def save(self, commit=True):
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
-
+        question = TestingQuestion.objects.get(id=self.data.get("question"))
+        order = TestingQuestionOption.objects.filter(question=question).count() + 1
+        question_option.order = order
+        question_option.name = "%s Option %s" % (question, order)
         question_option.save()
 
         option_content = self.cleaned_data.get("content")
@@ -56,7 +99,10 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
 class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         super(TestingQuestionFormSet, self).__init__(*args, **kwargs)
-        self.initial = [{'order': '1'}, {'order': '2'}]
+        initial = []
+        for i in range(1, self.queryset.count() + 4):
+            initial.append({'order': i})
+        self.initial = initial
 
     def clean(self):
         super(TestingQuestionFormSet, self).clean()
@@ -66,6 +112,8 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
             if not hasattr(form, 'cleaned_data'):
                 continue
             data = form.cleaned_data
+            data["order"] = TestingQuestionOption.objects.filter(question__name=self.data.get("name")).count()
+            data["name"] = "%s Option %s" % (self.data.get("name"), data.get("order"))
             question_options.append(data.get('correct'))
 
         if len(question_options) < 2:
@@ -79,6 +127,21 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
         if correct_selected is False:
             raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
+
+    def save(self, commit=True):
+        options = super(TestingQuestionFormSet, self).save(commit=False)
+        question = options[0].question
+        for option in options:
+            if option.order == 0:
+                option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
+            if option.name == "Auto Generated":
+                option.name = "%s Option %s" % (question, option.order)
+            option.save()
+
+        if len(options) < 2:
+            order = TestingQuestionOption.objects.filter(question=question).count() + 1
+            name = "%s Option %s" % (question, order)
+            TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
 
 
 def process_mathml_content(_content, _source, _source_id):
@@ -150,7 +213,6 @@ def render_mathml():
     image_format = 'PNG'
     quality = 1
     directory = settings.MEDIA_ROOT
-
 
     # get all the mathml objects that have not been rendered
     not_rendered = Mathml.objects.filter(rendered=False)

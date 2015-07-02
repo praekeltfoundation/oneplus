@@ -1,10 +1,10 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
 from communication.utils import VumiSmsApi
-from auth.forms import SendSmsForm
+from auth.forms import SendSmsForm, SendMessageForm
 from communication.tasks import bulk_send_all
 from django import template
 from auth.models import SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Teacher, Learner
@@ -19,6 +19,8 @@ from auth.resources import LearnerResource, TeacherResource
 from auth.filters import AirtimeFilter, ClassFilter, CourseFilter
 from core.models import TeacherClass, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
+from communication.models import Message
+from datetime import datetime
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -187,7 +189,53 @@ def send_sms(modeladmin, request, queryset):
         },
         context_instance=template.RequestContext(request)
     )
-send_sms.short_description = "Send sms to learners"
+send_sms.short_description = "Send SMS to selected learners"
+
+
+def send_message(modeladmin, request, queryset):
+    form = None
+
+    if 'apply' in request.POST:
+        form = SendMessageForm(request.POST)
+
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            date = datetime.strptime(request.POST['publishdate_0'], '%Y-%m-%d')
+            t = datetime.strptime(request.POST['publishdate_1'], "%H:%M")
+            publish_date = datetime.combine(date, t.time())
+            message = form.cleaned_data["message"]
+
+            for learner in queryset:
+                Message.objects.create(name=name, publishdate=publish_date, content=message, to_user=learner,
+                                       author=request.user)
+
+            successful = len(queryset)
+
+            return render_to_response(
+                'admin/auth/message_result.html',
+                {
+                    'redirect': request.get_full_path(),
+                    'success_num': successful,
+                },
+            )
+    if not form:
+        form = SendMessageForm(
+            initial={
+                '_selected_action': request.POST.getlist(
+                    admin.ACTION_CHECKBOX_NAME,
+                ),
+            }
+        )
+
+    return render_to_response(
+        'admin/auth/send_message.html',
+        {
+            'message_form': form,
+            'learners': queryset
+        },
+        context_instance=template.RequestContext(request)
+    )
+send_message.short_description = "Send Message to selected learners"
 
 
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
@@ -228,7 +276,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Region", {"fields": ("country", "area", "school")})
     )
 
-    actions = [send_sms]
+    actions = [send_sms, send_message]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         all_scenarios = GamificationScenario.objects.all()
