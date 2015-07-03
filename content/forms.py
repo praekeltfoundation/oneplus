@@ -410,6 +410,10 @@ class EventQuestionRelInline(forms.models.BaseInlineFormSet):
 
 
 class SUMitEndPageInlineFormSet(forms.models.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super(SUMitEndPageInlineFormSet, self).__init__(*args, **kwargs)
+        self.initial = [{'type': '1'}, {'type': '2'}, {'type': '3'}]
+
     def clean(self):
         super(SUMitEndPageInlineFormSet, self).clean()
         if not hasattr(self.form, 'cleaned_data'):
