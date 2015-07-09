@@ -23,6 +23,7 @@ from oneplusmvp import settings
 from content.models import Event
 from core.common import PROVINCES
 from organisation.models import Organisation
+from communication.utils import VumiSmsApi
 
 __author__ = 'herman'
 
@@ -188,9 +189,14 @@ def send_welcome_sms(learner, password):
     sms_message = Setting.objects.get(key="WELCOME_SMS")
     learner.generate_unique_token()
     token = learner.unique_token
-    SmsQueue.objects.create(message=sms_message.value % (password, token),
-                            send_date=datetime.now(),
-                            msisdn=learner.mobile)
+
+    vumi_api = VumiSmsApi()
+    obj, sent = vumi_api.send(learner.mobile, sms_message.value % (password, token), None, None)
+
+    if not sent:
+        SmsQueue.objects.create(message=sms_message.value % (password, token),
+                                send_date=datetime.now(),
+                                msisdn=learner.mobile)
 
     learner.welcome_message_sent = True
     learner.save()
