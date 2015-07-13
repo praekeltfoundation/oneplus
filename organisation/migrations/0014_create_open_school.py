@@ -2,7 +2,7 @@
 from south.utils import datetime_utils as datetime
 from south.db import db
 from south.v2 import DataMigration
-from django.db import models, IntegrityError, transaction
+from django.db import models
 
 
 class Migration(DataMigration):
@@ -20,14 +20,10 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
-                     "Northern Cape", "Western Cape")
         organisation = self.get_or_create(orm.Organisation, name="One Plus")
         organisation.save()
-
-        for province in provinces:
-            obj = self.get_or_create(orm.School, name=province, organisation=organisation)
-            obj.save()
+        obj = self.get_or_create(orm.School, name="Open School", organisation=organisation)
+        obj.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."
@@ -56,7 +52,8 @@ class Migration(DataMigration):
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'module_link': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
+            'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
         },
         u'organisation.organisation': {
             'Meta': {'object_name': 'Organisation'},
@@ -73,6 +70,7 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'organisation': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Organisation']", 'null': 'True'}),
+            'province': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
         }
     }
