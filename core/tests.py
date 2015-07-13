@@ -134,8 +134,8 @@ class TestMessage(TestCase):
         self.participant.award_scenario('event name no module', self.module)
         self.participant.save()
 
-        # participant should have 0 points
-        self.assertEquals(0, self.participant.points)
+        # participant should have 5 points
+        self.assertEquals(5, self.participant.points)
 
         # check badge was awarded
         b = ParticipantBadgeTemplateRel.objects.get(

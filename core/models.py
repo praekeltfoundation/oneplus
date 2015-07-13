@@ -173,7 +173,7 @@ class Participant(models.Model):
                 elif scenario.award_type == 2:
                     b = template_rels.first()
                     b.awardcount += 1
-                    b.awarddate=datetime.now()
+                    b.awarddate = datetime.now()
                     b.save()
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
