@@ -7,7 +7,7 @@
     <div class="content">
         <h1 class="green-front xlarge-font center-font">Sign Up</h1>
         <p class="center-font">To sign up please complete the following information:</p>
-		<form action="signup/form" method="post" class="signup">
+		<form action="signup_form" method="post" class="signup">
 			{% csrf_token %}
 
             <p>
@@ -42,65 +42,40 @@
             </p>
 
             <p>
-                {% if errors.enrolled_error %}
-                    <span class="red-front">{{ errors.enrolled_error }}</span>
+                What is your current grade?<br>
+                <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
+                <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
+                {% if errors.grade_error %}
+                    <span class="red-front">{{ errors.grade_error }}</span>
                     <br>
                 {% endif %}
+            </p>
+
+            <p>
+                Select your province:<br>
+                <select name="province" id="id_province">
+                    <option value="0">- - - - - - - -</option>
+                    {% for province in provinces %}
+                        <option value="{{ province }}">{{ province }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                {% if errors.province_error %}
+                    <span class="red-front">{{ errors.province_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
                 Are you currently enrolled in a ProMaths class?<br>
                 <input type="radio" name="enrolled" value="0"> Yes
                 <br>
                 <input type="radio" name="enrolled" value="1"> No
-                <p>
-                    Select your Centre/Province:<br>
-                    <select name="school" id="id_school">
-                        <option value="0">- - - - - - - -</option>
-                        {% for school in schools %}
-                            <option value="{{ school.id }}">{{ school.name }}</option>
-                        {% endfor %}
-                    </select>
+                <br>
+                {% if errors.enrolled_error %}
+                    <span class="red-front">{{ errors.enrolled_error }}</span>
                     <br>
-                    {% if errors.school_error %}
-                        <span class="red-front">{{ errors.school_error }}</span>
-                        <br>
-                    {% endif %}
-                    <br>
-                    Class:<br>
-                    <select name="classs" id="id_class">
-                        <option value="0">- - - - - - - -</option>
-                        {% for class in classes %}
-                            <option value="{{ class.id }}">{{ class.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <br>
-                    {% if errors.class_error %}
-                        <span class="red-front">{{ errors.class_error }}</span>
-                        <br>
-                    {% endif %}
-                </p>
-                <!--not enrolled -->
-                <p>
-                    Select your province:<br>
-                    <select name="province" id="id_province">
-                        <option value="0">- - - - - - - -</option>
-                        {% for province in provinces %}
-                            <option value="{{ province.id }}">{{ province.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <br>
-                    {% if errors.province_error %}
-                        <span class="red-front">{{ errors.province_error }}</span>
-                        <br>
-                    {% endif %}
-                </p>
-                <p>
-                    What is your current grade?<br>
-                    <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
-                    <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
-                    {% if errors.grade_error %}
-                        <span class="red-front">{{ errors.grade_error }}</span>
-                        <br>
-                    {% endif %}
-                </p>
+                {% endif %}
             </p>
 
 			<input type="submit" value="Submit" class="button green-back grey-front" />

@@ -1,6 +1,11 @@
 from dateutil import parser
 from datetime import datetime
 import re
+from auth.models import CustomUser
+from core.models import Class
+from core.common import PROVINCES
+from organisation.models import School
+from django.db.models import Q
 
 
 def zero_len(value):
@@ -189,3 +194,87 @@ def clean(content):
     content = pattern.sub(lambda m: rep[re.escape(m.group(0))], content)
 
     return content
+
+
+def validate_mobile(mobile):
+    pattern_both = "^(\+\d{1,2})?\d{10}$"
+    match = re.match(pattern_both, mobile)
+    if match:
+        return mobile
+    else:
+        return None
+
+
+def validate_sign_up_form(post):
+    data = {}
+    errors = {}
+
+    if "first_name" in post and post["first_name"]:
+        data["first_name"] = post["first_name"]
+    else:
+        errors["first_name_error"] = "This must be completed"
+
+    if "surname" in post and post["surname"]:
+        data["surname"] = post["surname"]
+    else:
+        errors["surname_error"] = "This must be completed"
+
+    if "cellphone" in post and post["cellphone"]:
+        cellphone = post["cellphone"]
+        if validate_mobile(cellphone):
+            if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone)).exists():
+                errors["cellphone_error"] = "registered"
+            else:
+                data["cellphone"] = cellphone
+        else:
+            errors["cellphone_error"] = "Enter a valid cellphone number"
+    else:
+        errors["cellphone_error"] = "This must be completed"
+
+    if "grade" in post and post["grade"]:
+        if post["grade"] not in ("Grade 10", "Grade 11"):
+            errors["grade_error"] = "Select your grade"
+        else:
+            data["grade"] = post["grade"]
+    else:
+        errors["grade_error"] = "This must be completed"
+
+    if "province" in post and post["province"]:
+        if post["province"] in PROVINCES:
+            data["province"] = post["province"]
+        else:
+            errors["province_error"] = "Select your province"
+    else:
+        errors["province_error"] = "This must be completed"
+
+    if "enrolled" in post and post["enrolled"]:
+        data["enrolled"] = post["enrolled"]
+    else:
+        errors["enrolled_error"] = "This must be completed"
+
+    return data, errors
+
+
+def validate_sign_up_form_promath(post):
+    data = {}
+    errors = {}
+
+    if "school" in post and post["school"]:
+        try:
+            School.objects.get(id=post["school"])
+            data["school"] = post["school"]
+        except School.DoesNotExist:
+            errors["school_error"] = "Select your school"
+    else:
+        errors["school_error"] = "This must be completed"
+
+    if "classs" in post and post["classs"]:
+        try:
+            Class.objects.get(id=post["classs"])
+            data["classs"] = post["classs"]
+        except Class.DoesNotExist:
+            errors["classs_error"] = "Select your class"
+    else:
+        errors["classs_error"] = "This must be completed"
+
+    return data, errors

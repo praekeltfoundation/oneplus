@@ -164,6 +164,7 @@ def get_timeframe_range(value):
         start = today - timedelta(days=dw, weeks=1)
         end = start + timedelta(6 - dw)
 
+
     elif value == "2":
         # this month
         start = today.replace(day=1)
@@ -206,10 +207,7 @@ def get_timeframe_range(value):
 
 
 def get_perc_min_max(value):
-    if value == "0":
-        min = 0
-        max = 19
-    elif value == "1":
+    if value == "1":
         min = 20
         max = 39
     elif value == "2":
@@ -224,6 +222,9 @@ def get_perc_min_max(value):
     elif value == "5":
         min = 90
         max = 100
+    else:
+        min = 0
+        max = 19
 
     return min, max
 
@@ -234,3 +235,36 @@ def get_sum_boolean_cast_string():
         return "::int"
 
     return ""
+
+
+class LearnerLimitFilter(admin.SimpleListFilter):
+    title = _("Limit")
+    parameter_name = "lmt"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("0", _("5")),
+            ("1", _("10")),
+            ("2", _("25")),
+            ("3", _("50")),
+        ]
+
+    def queryset(self, request, queryset):
+        if "lmt" in request.GET and request.GET["lmt"]:
+            limit = self.get_limit(request.GET["lmt"])
+            id_list = list()
+            count = 0
+            for item in queryset:
+                if count < limit:
+                    id_list.append(item.id)
+                else:
+                    break
+                count += 1
+
+            return queryset.filter(id__in=id_list)
+        else:
+            return queryset
+
+    def get_limit(self, value):
+        limit_dict = [5, 10, 25, 50]
+        return limit_dict[int(value)]
