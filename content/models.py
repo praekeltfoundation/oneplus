@@ -356,21 +356,21 @@ class SUMitLevel(models.Model):
     name = models.CharField("Name", max_length=50)
     question_1 = models.PositiveIntegerField(
         "Question 1",
-        choices = DIFFICULTY_CHOICES,
+        choices=DIFFICULTY_CHOICES,
         default=0,
         blank=False,
         null=False
     )
     question_2 = models.PositiveIntegerField(
         "Question 2",
-        choices = DIFFICULTY_CHOICES,
+        choices=DIFFICULTY_CHOICES,
         default=0,
         blank=False,
         null=False
     )
     question_3 = models.PositiveIntegerField(
         "Question 3",
-        choices = DIFFICULTY_CHOICES,
+        choices=DIFFICULTY_CHOICES,
         default=0,
         blank=False,
         null=False
