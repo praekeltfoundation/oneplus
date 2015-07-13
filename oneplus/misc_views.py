@@ -314,6 +314,8 @@ def message_response(request, msg):
                 name=gen_username(request.user),
                 description=title,
                 course=db_participant.classs.course,
+                to_class=db_participant.classs,
+                to_user=db_participant.learner,
                 content=content,
                 publishdate=dt,
                 author=request.user,
