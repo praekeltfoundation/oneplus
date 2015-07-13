@@ -691,7 +691,7 @@ def right(request, state, user):
                     _participant.points += _golden_egg.badge.point.value
                     _participant.save()
 
-            golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+            golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
             GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
                                badge=_golden_egg.badge).save()
 
