@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum
 from datetime import datetime
 from organisation.models import Course
+from organisation.models import PROVINCE_CHOICES
 from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
@@ -25,6 +26,7 @@ class Class(models.Model):
     startdate = models.DateTimeField("Start Date", null=True, blank=True)
     enddate = models.DateTimeField("End Date", null=True, blank=True)
     is_active = models.BooleanField("Is Active", default=True)
+    province = models.CharField("Province", max_length=20, null=True, blank=True, choices=PROVINCE_CHOICES)
     # learners
     # mentors
     # managers
@@ -130,7 +132,8 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
-        events = EventParticipantRel.objects.filter(participant=self, results_received=True)
+        events = EventParticipantRel.objects.filter(participant=self, results_received=True).\
+            exclude(event__event_points=None)
         points = 0
         for answer in answers:
             points += answer.question.points
@@ -187,9 +190,9 @@ class ParticipantQuestionAnswer(models.Model):
     question = models.ForeignKey(TestingQuestion, verbose_name="Question")
     option_selected = models.ForeignKey(
         TestingQuestionOption, verbose_name="Selected")
-    correct = models.BooleanField("Correct")
+    correct = models.BooleanField("Correct", db_index=True)
     answerdate = models.DateTimeField(
-        "Answer Date", null=True, blank=False, default=datetime.now())
+        "Answer Date", null=True, blank=False, default=datetime.now(), db_index=True)
 
     def __str__(self):
         return self.participant.learner.username
