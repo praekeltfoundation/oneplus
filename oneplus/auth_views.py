@@ -1,17 +1,5 @@
 from __future__ import division
-from django.shortcuts import render, HttpResponse, redirect
-from django.http import HttpResponseRedirect
-from django.contrib.auth import authenticate, logout
-from django.core.mail import mail_managers
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.hashers import make_password
-from lockout import LockedOut
-import koremutake
-from django.db.models import Count
-from django.db.models import Q
-
-from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.contrib.auth import authenticate, logout
 from .forms import SmsPasswordForm
 from django.core.mail import mail_managers
@@ -29,11 +17,13 @@ from lockout import LockedOut
 import koremutake
 from .validators import *
 from django.db.models import Count
-from django.db.models import Q
 from organisation.models import School, Course
 from core.models import Class, Participant
 from oneplusmvp import settings
-from content.models import Event, EventParticipantRel
+from content.models import Event
+from core.common import PROVINCES
+from organisation.models import Organisation
+from communication.utils import VumiSmsApi
 
 __author__ = 'herman'
 
@@ -170,15 +160,6 @@ def signup(request):
     return resolve_http_method(request, [get, post])
 
 
-def validate_mobile(mobile):
-    pattern_both = "^(\+\d{1,2})?\d{10}$"
-    match = re.match(pattern_both, mobile)
-    if match:
-        return mobile
-    else:
-        return None
-
-
 def create_learner(first_name, last_name, mobile, country, school, grade):
     return Learner.objects.create(first_name=first_name,
                                   last_name=last_name,
@@ -195,99 +176,57 @@ def create_participant(learner, classs):
                                datejoined=datetime.now())
 
 
+def set_learner_password(learner):
+    # generate random password
+    password = CustomUser.objects.make_random_password(length=8)
+    learner.set_password(password)
+    learner.save()
+    return password
+
+
+def send_welcome_sms(learner, password):
+    # sms the learner their OnePlus password
+    sms_message = Setting.objects.get(key="WELCOME_SMS")
+    learner.generate_unique_token()
+    token = learner.unique_token
+
+    vumi_api = VumiSmsApi()
+    obj, sent = vumi_api.send(learner.mobile, sms_message.value % (password, token), None, None)
+
+    if not sent:
+        SmsQueue.objects.create(message=sms_message.value % (password, token),
+                                send_date=datetime.now(),
+                                msisdn=learner.mobile)
+
+    learner.welcome_message_sent = True
+    learner.save()
+
+
 @available_space_required
 def signup_form(request):
-    provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
-                 "Northern Cape", "Western Cape")
-    schools = School.objects.exclude(name__in=provinces)
-    classes = Class.objects.all()
-    province_schools = School.objects.filter(name__in=provinces)
 
     def get():
-        return render(request, "auth/signup_form.html", {"schools": schools,
-                                                         "classes": classes,
-                                                         "provinces": province_schools})
+        return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     def post():
-        data = {}
-        errors = {}
-
-        if "first_name" in request.POST.keys() and request.POST["first_name"]:
-            data["first_name"] = request.POST["first_name"]
-        else:
-            errors["first_name_error"] = "This must be completed"
-
-        if "surname" in request.POST.keys() and request.POST["surname"]:
-            data["surname"] = request.POST["surname"]
-        else:
-            errors["surname_error"] = "This must be completed"
-
-        if "cellphone" in request.POST.keys() and request.POST["cellphone"]:
-            cellphone = request.POST["cellphone"]
-            if validate_mobile(cellphone):
-                if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone)).exists():
-                    errors["cellphone_error"] = "registered"
-                else:
-                    data["cellphone"] = cellphone
-            else:
-                errors["cellphone_error"] = "Enter a valid cellphone number"
-        else:
-            errors["cellphone_error"] = "This must be completed"
-
-        enrolled = True
-        if "enrolled" in request.POST.keys() and request.POST["enrolled"]:
-            data["enrolled"] = request.POST["enrolled"]
-            if data["enrolled"] == '1':
-                enrolled = False
-        else:
-            errors["enrolled_error"] = "This must be completed"
-
-        if enrolled:
-            if "school" in request.POST.keys() and request.POST["school"]:
-                data["school"] = request.POST["school"]
-                try:
-                    School.objects.get(id=data["school"])
-                except School.DoesNotExist:
-                    errors["school_error"] = "Select a Centre/Province"
-            else:
-                errors["school_error"] = "Select a Centre/Province"
-
-            if "classs" in request.POST.keys() and request.POST["classs"]:
-                data["classs"] = request.POST["classs"]
-                try:
-                    Class.objects.get(id=data["classs"])
-                except Class.DoesNotExist:
-                    errors["class_error"] = "Select a class"
-            else:
-                errors["class_error"] = "Select a class"
-
-        else:
-            if "province" in request.POST.keys() and request.POST["province"]:
-                data["province"] = request.POST["province"]
-                try:
-                    if School.objects.get(id=data["province"]).name not in provinces:
-                        errors["province_error"] = "Select a province"
-                except School.DoesNotExist:
-                    errors["province_error"] = "Select a province"
-
-        if "grade" in request.POST.keys() and request.POST["grade"]:
-            if request.POST["grade"] not in ("Grade 10", "Grade 11"):
-                errors["grade_error"] = "Select a grade"
-            else:
-                data["grade"] = request.POST["grade"]
-        else:
-            errors["grade_error"] = "This must be completed"
+        data, errors = validate_sign_up_form(request.POST)
 
         if not errors:
-            if not enrolled:
-                province = School.objects.get(id=data["province"])
+            if data["enrolled"] == "1":
+                try:
+                    school = School.objects.get(name=settings.OPEN_SCHOOL)
+                except School.DoesNotExist:
+                    organisation = Organisation.objects.get(name="One Plus")
+                    school = School.objects.create(name=settings.OPEN_SCHOOL,
+                                                   organisation=organisation,
+                                                   province=data["province"])
 
                 # create learner
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
                                              mobile=data["cellphone"],
                                              country="South Africa",
-                                             school=province,
+                                             school=school,
                                              grade=data["grade"])
 
                 if data["grade"] == "Grade 10":
@@ -312,50 +251,72 @@ def signup_form(request):
                 create_participant(new_learner, classs)
 
             else:
-                school = School.objects.get(id=data["school"])
-                # create learner
-                new_learner = create_learner(first_name=data["first_name"],
-                                             last_name=data["surname"],
-                                             mobile=data["cellphone"],
-                                             country="South Africa",
-                                             school=school,
-                                             grade=data["grade"])
+                filtered_schools = School.objects.filter(province=data["province"])
+                filtered_classes = Class.objects.filter(province=data["province"])
+                return render(request, "auth/signup_form_promath.html", {"data": data,
+                                                                         "schools": filtered_schools,
+                                                                         "classes": filtered_classes})
 
-                classs = Class.objects.get(id=data["classs"])
-
-                # create participant
-                create_participant(new_learner, classs)
-
-            # generate random password
-            password = CustomUser.objects.make_random_password(length=8)
-            new_learner.set_password(password)
-            new_learner.save()
-
-            # sms the learner their OnePlus password
-            sms_message = Setting.objects.get(key="WELCOME_SMS")
-            new_learner.generate_unique_token()
-            token = new_learner.unique_token
-            SmsQueue.objects.create(message=sms_message.value % (password, token),
-                                    send_date=datetime.now(),
-                                    msisdn=cellphone)
-
-            new_learner.welcome_message_sent = True
-            new_learner.save()
+            password = set_learner_password(new_learner)
+            send_welcome_sms(new_learner, password)
 
             # inform oneplus about the new learner
             subject = "".join(['New student registered'])
             message = "".join([
                 new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
 
-            # mail_managers(subject=subject, message=message, fail_silently=False)
+            mail_managers(subject=subject, message=message, fail_silently=False)
 
             return render(request, "auth/signedup.html")
         else:
-            return render(request, "auth/signup_form.html", {"schools": schools,
-                                                             "classes": classes,
-                                                             "provinces": province_schools,
+            return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
                                                              "data": data,
                                                              "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@available_space_required
+def signup_form_promath(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+
+    def post():
+        data, errors = validate_sign_up_form(request.POST)
+        pro_data, pro_errors = validate_sign_up_form_promath(request.POST)
+        data.update(pro_data)
+        errors.update(pro_errors)
+
+        if not errors:
+            school = School.objects.get(id=data["school"])
+            # create learner
+            new_learner = create_learner(first_name=data["first_name"],
+                                         last_name=data["surname"],
+                                         mobile=data["cellphone"],
+                                         country="South Africa",
+                                         school=school,
+                                         grade=data["grade"])
+
+            classs = Class.objects.get(id=data["classs"])
+
+            # create participant
+            create_participant(new_learner, classs)
+
+            password = set_learner_password(new_learner)
+            send_welcome_sms(new_learner, password)
+
+            return render(request, "auth/signedup.html")
+        else:
+            if "province" in data:
+                filtered_schools = School.objects.filter(province=data["province"])
+                filtered_classes = Class.objects.filter(province=data["province"])
+
+                return render(request, "auth/signup_form_promath.html", {"data": data,
+                                                                         "errors": errors,
+                                                                         "schools": filtered_schools,
+                                                                         "classes": filtered_classes})
+            else:
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     return resolve_http_method(request, [get, post])
 

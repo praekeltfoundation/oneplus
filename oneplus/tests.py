@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 import logging
-from billiard.synchronize import Event
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -12,8 +11,8 @@ from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, Go
 from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
-from communication.models import Message, ChatGroup, ChatMessage, Post, \
-    Report, ReportResponse, Sms, SmsQueue, Discussion, PostComment, Profanity
+from communication.models import Message, ChatGroup, ChatMessage, Post, Report, ReportResponse, Sms, SmsQueue, \
+    Discussion, PostComment, Profanity
 from .templatetags.oneplus_extras import format_content, format_option
 from mock import patch
 from .models import LearnerState
@@ -25,6 +24,8 @@ from go_http.tests.test_send import RecordingHandler
 from django.test.utils import override_settings
 from django.db.models import Count
 from oneplusmvp import settings
+from django.conf import settings
+from oneplus.tasks import update_perc_correct_answers_worker
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -444,7 +445,13 @@ class GeneralTests(TestCase):
             data={'page': 1},
             follow=True
         )
+        self.assertEquals(resp.status_code, 200)
 
+        resp = self.client.post(
+            reverse('learn.next'),
+            data={
+                'answer': 99
+            }, follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_event(self):
@@ -544,7 +551,14 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse("learn.event_wrong"))
         self.assertRedirects(resp, "home")
 
-    def test_answer_correct_nextchallenge(self):
+    def fake_update_all_perc_correct_answers():
+        update_perc_correct_answers_worker('24hr', 1)
+        update_perc_correct_answers_worker('48hr', 2)
+        update_perc_correct_answers_worker('7days', 7)
+        update_perc_correct_answers_worker('32days', 32)
+
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    def test_answer_correct_nextchallenge(self, mock_task):
         self.client.get(
             reverse('auth.autologin',
                     kwargs={'token': self.learner.unique_token})
@@ -582,7 +596,8 @@ class GeneralTests(TestCase):
         self.assert_in_metric_logs("questions.correct.7days", 'last', 100)
         self.assert_in_metric_logs("questions.correct.32days", 'last', 100)
 
-    def test_answer_incorrect_nextchallenge(self):
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    def test_answer_incorrect_nextchallenge(self, mock_task):
         self.client.get(reverse(
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
@@ -2126,19 +2141,27 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_leaderboard_screen(self):
-        question = self.create_test_question('question',
-                                             self.module,
-                                             question_content='test question',
-                                             state=3)
-        question_option = self.create_test_question_option('question_option', question)
+        question_list = list()
+        question_option_list = list()
 
-        all_classes = []
+        for x in range(0, 11):
+            question = self.create_test_question('question_%s' % x,
+                                                 self.module,
+                                                 question_content='test question',
+                                                 state=3)
+            question_option = self.create_test_question_option('question_option_%s' % x, question)
+
+            question_list.append(question)
+            question_option_list.append(question_option)
+
         all_learners_classes = []
         all_particpants_classes = []
         all_learners = []
         all_particpants = []
         counter = 0
         password = "12345"
+
+        test_class = self.create_class('test_class', self.course)
 
         for x in range(10, 21):
             all_learners.append(self.create_learner(self.school,
@@ -2150,17 +2173,19 @@ class GeneralTests(TestCase):
             all_learners[counter].set_password(password)
 
             all_particpants.append(self.create_participant(all_learners[counter],
-                                                           self.classs, datejoined=datetime.now()))
+                                                           test_class, datejoined=datetime.now()))
 
             if counter < 5:
-                all_particpants[counter].answer(question, question_option)
+                for y in range(0, counter+1):
+                    all_particpants[counter].answer(question_list[y], question_option_list[y])
+
 
             #data for class leaderboard
             new_class = self.create_class('class_%s' % x, self.course)
             all_learners_classes.append(self.create_learner(self.school,
                                                             first_name="test_%s" % x,
                                                             username="08612345%s" % x,
-                                                            mobile="07812345%s" % x,
+                                                            mobile="08612345%s" % x,
                                                             unique_token='abc%s' % x,
                                                             unique_token_expiry=datetime.now() + timedelta(days=30)))
             all_learners_classes[counter].set_password(password)
@@ -2183,7 +2208,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_20")
-        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "11th place")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2191,7 +2216,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_20")
-        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "11th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2199,19 +2224,19 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_20")
-        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "11th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
 
         self.client.get(
             reverse('auth.autologin',
-                    kwargs={'token': "10"})
+                    kwargs={'token': "14"})
         )
 
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_10")
+        self.assertContains(resp, "test_14")
         self.assertContains(resp, "1st place")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
@@ -2219,7 +2244,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_10")
+        self.assertContains(resp, "test_14")
         self.assertContains(resp, "1st place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
@@ -2227,7 +2252,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_10")
+        self.assertContains(resp, "test_14")
         self.assertContains(resp, "1st place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
@@ -2241,7 +2266,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "class_20")
-        self.assertContains(resp, "12th place")
+        self.assertContains(resp, "13th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
@@ -2584,7 +2609,7 @@ class GeneralTests(TestCase):
 
     @patch("django.core.mail.mail_managers", fake_mail_managers)
     def test_signup_form(self):
-        province_school = School.objects.get(name="Gauteng")
+        province_school = School.objects.get(name="Open School")
         resp = self.client.get(reverse('auth.signup_form'))
         self.assertEqual(resp.status_code, 200)
 
@@ -2592,45 +2617,22 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={},
                                 follow=True)
-        self.assertContains(resp, "This must be completed", count=5)
-        self.assertContains(resp, "Select a Centre/Province")
-        self.assertContains(resp, "Select a class")
+        self.assertContains(resp, "This must be completed", count=6)
 
-        # invalid cellphone, enrolled - invalid school and class, invalid grade
+        # invalid cellphone, grade and province
         resp = self.client.post(reverse('auth.signup_form'),
                                 data={
                                     'first_name': self.learner.first_name,
                                     'surname': self.learner.last_name,
                                     'cellphone': '12345',
+                                    'grade': 'Grade 12',
+                                    'province': 'Wrong province name',
                                     'enrolled': 0,
-                                    'school': 0,
-                                    'classs': 0,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 12'
                                 },
                                 follow=True)
         self.assertContains(resp, "Enter a valid cellphone number")
-        self.assertNotContains(resp, "Select a province ")
-        self.assertContains(resp, "Select a Centre/Province")
-        self.assertContains(resp, "Select a class")
-        self.assertContains(resp, "Select a grade")
-
-        # invalid cellphone, not enrolled - invalid province
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': self.learner.first_name,
-                                    'surname': self.learner.last_name,
-                                    'cellphone': '12345',
-                                    'enrolled': 1,
-                                    'province': 9999,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 10'
-                                },
-                                follow=True)
-        self.assertContains(resp, "Enter a valid cellphone number")
-        self.assertContains(resp, "Select a province")
-        self.assertNotContains(resp, "Select a Centre/Province")
-        self.assertNotContains(resp, "Select a class")
+        self.assertContains(resp, "Select your grade")
+        self.assertContains(resp, "Select your province")
 
         # registered cellphone
         resp = self.client.post(reverse('auth.signup_form'),
@@ -2638,11 +2640,9 @@ class GeneralTests(TestCase):
                                     'first_name': "Bob",
                                     'surname': "Bobby",
                                     'cellphone': self.learner.mobile,
-                                    'enrolled': 0,
-                                    'school': self.school.id,
-                                    'classs': self.classs.id,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 10'
+                                    'grade': 'Grade 10',
+                                    'province': 'Gauteng',
+                                    'enrolled': 0
                                 },
                                 follow=True)
         self.assertContains(resp, "This number has already been registered.")
@@ -2653,11 +2653,66 @@ class GeneralTests(TestCase):
                                     'first_name': "Bob",
                                     'surname': "Bobby",
                                     'cellphone': '0729876543',
+                                    'province': 'Gauteng',
+                                    'grade': 'Grade 10',
+                                    'enrolled': 0,
+                                },
+                                follow=True)
+        self.assertContains(resp, 'Bob')
+        self.assertContains(resp, 'Bobby')
+        self.assertContains(resp, '0729876543')
+        self.assertContains(resp, 'Gauteng')
+        self.assertContains(resp, 'Grade 10')
+        self.assertContains(resp, '0')
+
+        #get request
+        resp = self.client.get(reverse('auth.signup_form_promath'), follow=True)
+        self.assertContains(resp, "Sign Up")
+
+        #no data
+        resp = self.client.post(reverse('auth.signup_form_promath'), follow=True)
+        self.assertContains(resp, "Sign Up")
+
+        #no school and class
+        resp = self.client.post(reverse('auth.signup_form_promath'),
+                                data={
+                                    'first_name': "Bob",
+                                    'surname': "Bobby",
+                                    'cellphone': '0729876543',
+                                    'province': 'Gauteng',
+                                    'grade': 'Grade 10',
+                                    'enrolled': 0,
+                                },
+                                follow=True)
+        self.assertContains(resp, "This must be completed", count=2)
+
+        #invalid school and class
+        resp = self.client.post(reverse('auth.signup_form_promath'),
+                                data={
+                                    'first_name': "Bob",
+                                    'surname': "Bobby",
+                                    'cellphone': '0729876543',
+                                    'province': 'Gauteng',
+                                    'grade': 'Grade 10',
+                                    'enrolled': 0,
+                                    'school': 999,
+                                    'classs': 999
+                                },
+                                follow=True)
+        self.assertContains(resp, "Select your school")
+        self.assertContains(resp, "Select your class")
+
+        #valid data
+        resp = self.client.post(reverse('auth.signup_form_promath'),
+                                data={
+                                    'first_name': "Bob",
+                                    'surname': "Bobby",
+                                    'cellphone': '0729876543',
+                                    'province': 'Gauteng',
+                                    'grade': 'Grade 10',
                                     'enrolled': 0,
                                     'school': self.school.id,
-                                    'classs': self.classs.id,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 10'
+                                    'classs': self.classs.id
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
@@ -2670,15 +2725,19 @@ class GeneralTests(TestCase):
                                     'first_name': "Koos",
                                     'surname': "Botha",
                                     'cellphone': '0729876540',
+                                    'grade': 'Grade 10',
+                                    'province': "Gauteng",
                                     'enrolled': 1,
-                                    'province': province_school.id,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 10'
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
         new_learner = Learner.objects.get(username='0729876540')
         self.assertEquals('Koos', new_learner.first_name)
+
+        try:
+            School.objects.get(name=settings.OPEN_SCHOOL).delete()
+        except School.DoesNotExist:
+            pass
 
         # valid - not enrolled - grade 10
         resp = self.client.post(reverse('auth.signup_form'),
@@ -2686,10 +2745,9 @@ class GeneralTests(TestCase):
                                     'first_name': "Willy",
                                     'surname': "Wolly",
                                     'cellphone': '0729878963',
+                                    'grade': 'Grade 10',
+                                    'province': "Gauteng",
                                     'enrolled': 1,
-                                    'province': province_school.id,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 10'
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
@@ -2702,10 +2760,9 @@ class GeneralTests(TestCase):
                                     'first_name': "Tom",
                                     'surname': "Tom",
                                     'cellphone': '0729876576',
+                                    'grade': 'Grade 11',
+                                    'province': "Gauteng",
                                     'enrolled': 1,
-                                    'province': province_school.id,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 11'
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
@@ -2718,15 +2775,17 @@ class GeneralTests(TestCase):
                                     'first_name': "Henky",
                                     'surname': "Tanky",
                                     'cellphone': '0729876486',
+                                    'grade': 'Grade 11',
+                                    'province': "Gauteng",
                                     'enrolled': 1,
-                                    'province': province_school.id,
-                                    'country': "South Africa",
-                                    'grade': 'Grade 11'
                                 },
                                 follow=True)
         self.assertContains(resp, "Thank you")
         new_learner = Learner.objects.get(username='0729876486')
         self.assertEquals('Henky', new_learner.first_name)
+
+        resp = self.client.get(reverse("auth.signup_form_promath"))
+        self.assertContains(resp, 'To sign up please complete the following information:')
 
     def test_change_details(self):
         self.client.get(reverse(
@@ -2929,21 +2988,8 @@ class GeneralTests(TestCase):
         new_participant.save()
 
         #TEST BADGE
-        bt1 = self.create_badgetemplate(
-            name="Golden Egg",
-            description="Weekly Golden Egg"
-        )
-
-        pt1 = self.create_gamification_point_bonus("point", 5)
-
-        sc1 = self.create_gamification_scenario(
-            name="Golden Egg",
-            course=self.course,
-            module=self.module,
-            badge=bt1,
-            event="Golden Egg",
-            point=pt1
-        )
+        bt1 = GamificationBadgeTemplate.objects.get(name="Golden Egg")
+        sc1 = GamificationScenario.objects.get(name="Golden Egg")
 
         golden_egg.airtime = None
         golden_egg.badge = sc1
@@ -2962,7 +3008,8 @@ class GeneralTests(TestCase):
             scenario=sc1
         ).count()
         self.assertEquals(cnt, 1)
-        self.assertEquals(6, new_participant.points)
+        # we are using the existing golden egg basge with no points
+        self.assertEquals(1, new_participant.points)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
         self.assertEquals(1, log)
         #check log
@@ -3738,6 +3785,49 @@ class ExtraAdminBitTests(TestCase):
             publishdate=datetime.now()
         )
 
+    def create_and_answer_questions(self, num_questions, prefix, date, correct=False):
+        answers = []
+        for x in range(0, num_questions):
+            # Create a question
+            question = self.create_test_question(
+                'q' + prefix + str(x), self.module)
+
+            question.save()
+            option = self.create_test_question_option(
+                'option_' + prefix + str(x),
+                question)
+            option.save()
+            answer = self.create_test_answer(
+                participant=self.participant,
+                question=question,
+                option_selected=option,
+                answerdate=date,
+                correct=correct
+            )
+            answer.save()
+            answers.append(answer)
+
+        return answers
+
+    def create_test_question_option(self, name, question, correct=True):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=correct)
+
+    def create_test_answer(
+            self,
+            participant,
+            question,
+            option_selected,
+            answerdate,
+            correct):
+        return ParticipantQuestionAnswer.objects.create(
+            participant=participant,
+            question=question,
+            option_selected=option_selected,
+            answerdate=answerdate,
+            correct=correct
+        )
+
     def setUp(self):
         self.course = self.create_course()
         self.classs = self.create_class('class name', self.course)
@@ -4441,8 +4531,8 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/auth/coursemanager/")
         self.admin_page_test_helper(c, "/admin/auth/coursementor/")
         self.admin_page_test_helper(c, "/admin/auth/group/")
-        self.admin_page_test_helper(c, "/admin/auth/learnerview/")
         self.admin_page_test_helper(c, "/admin/auth/learner/")
+        self.admin_page_test_helper(c, "/admin/auth/learner/?tf=1")
         self.admin_page_test_helper(c, "/admin/auth/teacher/")
         self.admin_page_test_helper(c, "/admin/auth/schoolmanager/")
         self.admin_page_test_helper(c, "/admin/auth/systemadministrator/")
@@ -4505,3 +4595,116 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/organisation/module/")
         self.admin_page_test_helper(c, "/admin/organisation/organisation/")
         self.admin_page_test_helper(c, "/admin/organisation/school/")
+
+    def test_results_admin_pages_render(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        self.create_and_answer_questions(2, "_res_w_", datetime.now())
+        self.create_and_answer_questions(2, "_res_c_", datetime.now(), True)
+
+        url = "/admin/results/%s" % self.course.id
+        self.admin_page_test_helper(c, url)
+
+        resp = c.post(url, data={"state": 1})
+        self.assertContains(resp, "Activity")
+
+        resp = c.post(url, data={"state": 2})
+        self.assertContains(resp, "q_res_w_0")
+        self.assertContains(resp, "q_res_w_1")
+        self.assertContains(resp, "q_res_c_0")
+        self.assertContains(resp, "q_res_c_1")
+        self.assertContains(resp, "( 0% correct )")
+        self.assertContains(resp, "( 100% correct )")
+
+        resp = c.post(url, data={"state": 2, "module_filter": self.module.id})
+        self.assertContains(resp, "q_res_w_0")
+        self.assertContains(resp, "q_res_w_1")
+        self.assertContains(resp, "q_res_c_0")
+        self.assertContains(resp, "q_res_c_1")
+        self.assertContains(resp, "( 0% correct )")
+        self.assertContains(resp, "( 100% correct )")
+
+        resp = c.post(url, data={"state": 3})
+        self.assertContains(resp, "Class Results")
+        self.assertContains(resp, self.classs.name)
+
+    def test_basic_learner_filters(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        url = "/admin/auth/learner/?%s=%s"
+
+        #active filter
+        resp = c.get(url % ("acic", "a"))
+        self.assertContains(resp, "27123456789")
+
+        lad = self.learner.last_active_date
+        self.learner.last_active_date = None
+        self.learner.save()
+
+        resp = c.get(url % ("acic", "i"))
+        self.assertContains(resp, "27123456789")
+
+        self.learner.last_active_date = lad
+        self.learner.save()
+
+        #percentage correct
+        resp = c.get(url % ("pc", "0"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "1"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "2"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "3"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "4"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc", "5"))
+        self.assertContains(resp, "Learners")
+
+        # no filter number 6 should render 0's data
+        resp = c.get(url % ("pc", "6"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pc=0&tf=", "0"))
+        self.assertContains(resp, "Learners")
+
+        #percentage completed
+        resp = c.get(url % ("pqc", "0"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "1"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "2"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "3"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "4"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "5"))
+        self.assertContains(resp, "Learners")
+
+        resp = c.get(url % ("pqc", "6"))
+        self.assertContains(resp, "Learners")
+
+        #limiting number of results returned
+        for i in range(1, 6):
+            self.create_learner(
+                self.school,
+                username="+2712345678%s" % i,
+                mobile="+2712345678%s" % i,
+                country="country",
+                area="Test_Area",
+                is_staff=True)
+        resp = c.get(url % ("lmt", "0"))
+        self.assertContains(resp, "Learners")
