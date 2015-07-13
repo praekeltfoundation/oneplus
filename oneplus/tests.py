@@ -1716,7 +1716,7 @@ class GeneralTests(TestCase):
             event="100_CORRECT",
         )
 
-        fifteen = 15
+        fifteen = 14
         for i in range(0, fifteen):
             question = self.create_test_question('q_15_%s' % i,
                                                  self.module,
@@ -1751,7 +1751,7 @@ class GeneralTests(TestCase):
         ).count()
         self.assertEquals(cnt, 1)
 
-        thirty = 30
+        thirty = 29
         for i in range(fifteen + 1, thirty):
             question = self.create_test_question('q_30_%s' % i,
                                                  self.module,
@@ -1786,7 +1786,7 @@ class GeneralTests(TestCase):
         ).count()
         self.assertEquals(cnt, 1)
 
-        hundred = 100
+        hundred = 99
         for i in range(thirty + 1, hundred):
             question = self.create_test_question('q_100_%s' % i,
                                                  self.module,
