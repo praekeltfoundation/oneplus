@@ -570,3 +570,10 @@ ul.bullets{
     list-style-type: disc;
     padding-left: 10px;
 }
+
+.redo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #28e690;
+    text-decoration: underline;
+}

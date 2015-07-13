@@ -4,7 +4,8 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
+from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
+    ParticipantRedoQuestionAnswer
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
     EventQuestionRel, EventSplashPage, EventStartPage, EventEndPage, EventQuestionAnswer, EventParticipantRel
@@ -282,6 +283,21 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertContains(resp, "5</span><br/>POINTS")
 
+        for i in range(1, 15):
+            question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
+            option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+            ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                     option_selected=option, correct=True)
+
+        question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
+        option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question, correct=False)
+        ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                 option_selected=option, correct=False)
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "redo today's incorrect answers")
+
     def test_first_time(self):
         self.client.get(reverse(
             'auth.autologin',
@@ -550,6 +566,112 @@ class GeneralTests(TestCase):
 
         resp = self.client.get(reverse("learn.event_wrong"))
         self.assertRedirects(resp, "home")
+
+    def test_redo(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        resp = self.client.get(reverse("learn.redo"))
+        self.assertRedirects(resp, "home")
+
+        for i in range(1, 15):
+            question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
+            correct_option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+            ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                     option_selected=correct_option, correct=True)
+
+        question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
+        incorrect_option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question,
+                                                                correct=False)
+        correct_option = TestingQuestionOption.objects.create(name="Option %d.2" % 15, question=question,
+                                                                correct=True)
+        ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                 option_selected=incorrect_option, correct=False)
+
+        resp = self.client.post(reverse('learn.redo'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.redo'),
+                                data={'answer': 99},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.redo'),
+                                data={'answer': correct_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "redo_right")
+
+        resp = self.client.post(reverse("learn.redo_right"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse("learn.redo_right"),
+                                data={"comment": "test"},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
+        disc = Discussion.objects.all().first()
+
+        resp = self.client.post(
+            reverse('learn.redo_right'),
+            data={
+                'reply': 'test',
+                "reply_button": disc.id
+            },
+            follow=True
+        )
+
+        resp = self.client.post(
+            reverse('learn.redo_right'),
+            data={'page': 1},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(Discussion.objects.all().count(), 2)
+
+        disc.delete()
+        ParticipantRedoQuestionAnswer.objects.filter(participant=self.participant, question=question).delete()
+
+        resp = self.client.post(reverse('learn.redo'),
+                                data={'answer': incorrect_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "redo_wrong")
+
+        resp = self.client.post(reverse("learn.redo_wrong"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('learn.redo_wrong'),
+            data={'comment': 'test'}, follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+        disc = Discussion.objects.all().first()
+
+        resp = self.client.post(
+            reverse('learn.redo_wrong'),
+            data={
+                'reply': 'test',
+                "reply_button": disc.id
+            },
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(Discussion.objects.all().count(), 2)
+
+        resp = self.client.post(
+            reverse('learn.redo_wrong'),
+            data={'page': 1},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
 
     def fake_update_all_perc_correct_answers():
         update_perc_correct_answers_worker('24hr', 1)
@@ -2291,6 +2413,7 @@ class GeneralTests(TestCase):
             reverse('auth.autologin',
                     kwargs={'token': self.learner.unique_token})
         )
+
         resp = self.client.get(reverse('prog.ontrack'))
         self.assertEquals(resp.status_code, 200)
 
