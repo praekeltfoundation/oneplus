@@ -17,7 +17,7 @@ from .forms import SystemAdministratorChangeForm, \
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
 from auth.filters import AirtimeFilter, ClassFilter, CourseFilter
-from core.models import TeacherClass, ParticipantBadgeTemplateRel
+from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant
 from gamification.models import GamificationScenario
 from communication.models import Message
 from datetime import datetime
@@ -206,8 +206,9 @@ def send_message(modeladmin, request, queryset):
             message = form.cleaned_data["message"]
 
             for learner in queryset:
+                part = Participant.objects.filter(learner=learner, is_active=True).first()
                 Message.objects.create(name=name, publishdate=publish_date, content=message, to_user=learner,
-                                       author=request.user)
+                                       author=request.user, to_class=part.classs, course=part.classs.course)
 
             successful = len(queryset)
 
