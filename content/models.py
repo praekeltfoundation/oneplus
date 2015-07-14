@@ -6,6 +6,7 @@ from django.utils.html import remove_tags
 from mobileu.utils import format_content, format_option
 from django.db.models import Count
 from datetime import datetime
+from organisation.models import CourseModuleRel
 
 
 class LearningChapter(models.Model):
@@ -207,7 +208,7 @@ class Event(models.Model):
     airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
     event_badge = models.ForeignKey("gamification.GamificationScenario",
                                     related_name="event_badge", null=True, blank=True)
-    type = models.PositiveIntegerField("Type of Event", choices=TYPE_CHOICES, default=1)
+    type = models.PositiveIntegerField("Type of Event", choices=TYPE_CHOICES, default=0)
     end_processed = models.BooleanField(default=False)
 
     def __str__(self):
@@ -285,3 +286,105 @@ class EventParticipantRel(models.Model):
     participant = models.ForeignKey("core.Participant", null=True, blank=False)
     sitting_number = models.PositiveIntegerField(null=True, blank=False)
     results_received = models.BooleanField(default=False)
+
+
+class SUMit(Event):
+    pass
+
+    def get_questions(self):
+        event_question_rel = EventQuestionRel.objects.filter(event=self)
+        if not event_question_rel:
+            modules = CourseModuleRel.objects.filter(course=self.course)
+            easy_questions = TestingQuestion.objects.filter(module__in=modules,
+                                                            difficulty=2).order_by("?")[:15]
+            normal_questions = TestingQuestion.objects.filter(module__in=modules,
+                                                              difficulty=3).order_by("?")[:11]
+            advanced_questions = TestingQuestion.objects.filter(module__in=modules,
+                                                                difficulty=4).order_by("?")[:5]
+            order = 1
+            for question in easy_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+            order = 1
+            for question in normal_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+            order = 1
+            for question in advanced_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+
+    def get_next_sumit_question(self, participant, level, question):
+        if self.is_active():
+            self.get_questions()
+            difficulty = SUMitLevel.objects.values("question_%d" % question).get(order=level).values()[0]
+            answered = EventQuestionAnswer.objects.filter(participant=participant, event=self,
+                                                          question__difficulty=difficulty).\
+                aggregate(Count('question'))['question__count']
+            return EventQuestionRel.objects.filter(event=self, order=answered+1,
+                                                   question__difficulty=difficulty).first().question
+        return None
+
+    class Meta:
+        verbose_name = "SUMit!"
+        verbose_name_plural = "SUMit!"
+
+
+class SUMitEndPage(EventEndPage):
+    TYPE_CHOICES = (
+        (1, "Level 1-4"),
+        (2, "Level 5"),
+        (3, "Winner")
+    )
+
+    type = models.PositiveIntegerField(choices=TYPE_CHOICES)
+
+
+class SUMitLevel(models.Model):
+    DIFFICULTY_CHOICES = (
+        (2, "Easy"),
+        (3, "Normal"),
+        (4, "Advanced")
+    )
+    order = models.PositiveIntegerField(
+        "Order",
+        validators=[MaxValueValidator(5)],
+        default=0,
+        blank=False,
+        null=False
+    )
+    name = models.CharField("Name", max_length=50)
+    question_1 = models.PositiveIntegerField(
+        "Question 1",
+        choices=DIFFICULTY_CHOICES,
+        default=0,
+        blank=False,
+        null=False
+    )
+    question_2 = models.PositiveIntegerField(
+        "Question 2",
+        choices=DIFFICULTY_CHOICES,
+        default=0,
+        blank=False,
+        null=False
+    )
+    question_3 = models.PositiveIntegerField(
+        "Question 3",
+        choices=DIFFICULTY_CHOICES,
+        default=0,
+        blank=False,
+        null=False
+    )
+    image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def image_(self):
+        return '<a href="/media/{0}"><img src="/media/{0}"></a>'.format(
+            self.image)
+    image_.allow_tags = True
+
+    class Meta:
+        verbose_name = "SUMit! Level"
+        verbose_name_plural = "SUMit! Levels"
