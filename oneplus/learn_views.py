@@ -957,23 +957,6 @@ def get_badge_awarded(participant):
     return badgetemplate, badgepoints,
 
 
-def ts_awarded(participant):
-    # Get current participant question answer
-    answer = ParticipantQuestionAnswer.objects.filter(
-        participant=participant,
-    ).latest('answerdate')
-
-    # Get question
-    question = answer.question
-
-    # Get points
-    if question.points is 0:
-        question.points = 1
-        question.save()
-
-    return question.points
-
-
 def get_golden_egg(participant):
     golden_egg = GoldenEgg.objects.filter(
         classs=participant.classs,
