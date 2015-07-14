@@ -30,13 +30,15 @@
                 {% endfor %}
                 <br/>
                 <div>
-                    <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
-                </div>
+                    <input type="submit" class="button green-back grey-front drop-relative" value="Submit Answer"/>
                 {% if sittings%}
                     {% if sittings == 2%}
-                        <a class="button green-back grey-front drop-relative" href="menu">Save & Finish Later</a>
+                        <div >
+                            <a class="button green-back grey-front drop" href="menu">Save & Finish Later</a>
+                        </div>
                     {% endif %}
                 {% endif %}
+                </div>
             </form>
         </div>
     {% endautoescape %}
