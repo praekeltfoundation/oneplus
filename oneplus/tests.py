@@ -582,8 +582,7 @@ class GeneralTests(TestCase):
         question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
         incorrect_option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question,
                                                                 correct=False)
-        correct_option = TestingQuestionOption.objects.create(name="Option %d.2" % 15, question=question,
-                                                                correct=True)
+        correct_option = TestingQuestionOption.objects.create(name="Option %d.2" % 15, question=question, correct=True)
         ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
                                                  option_selected=incorrect_option, correct=False)
 
@@ -679,7 +678,8 @@ class GeneralTests(TestCase):
         update_perc_correct_answers_worker('7days', 7)
         update_perc_correct_answers_worker('32days', 32)
 
-    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay',
+           side_effect=fake_update_all_perc_correct_answers)
     def test_answer_correct_nextchallenge(self, mock_task):
         self.client.get(
             reverse('auth.autologin',
@@ -2300,7 +2300,6 @@ class GeneralTests(TestCase):
             if counter < 5:
                 for y in range(0, counter+1):
                     all_particpants[counter].answer(question_list[y], question_option_list[y])
-
 
             #data for class leaderboard
             new_class = self.create_class('class_%s' % x, self.course)
