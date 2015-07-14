@@ -133,7 +133,7 @@ urlpatterns = [
     url(r'^courses$', views.get_courses),
     url(r'^classes/(?P<course>\w+)$', views.get_classes),
     url(r'^users/(?P<classs>\w+)$', views.get_users),
-    url(r'^award_badge/(?P<learner_id>\d+)/(?P<scenario_id>\d+)$', oneplus.prog_views.award_badge),
+    url(r'^award_badge/(?P<learner_id>\d+)/(?P<scenario_id>\d+)$', oneplus.prog_views.award_badge, name="award.badge"),
 
     url(r"^admin/results/(?P<course>\d+)$",
         result_views.ResultsView.as_view(),

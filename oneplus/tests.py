@@ -2179,7 +2179,6 @@ class GeneralTests(TestCase):
                 for y in range(0, counter+1):
                     all_particpants[counter].answer(question_list[y], question_option_list[y])
 
-
             #data for class leaderboard
             new_class = self.create_class('class_%s' % x, self.course)
             all_learners_classes.append(self.create_learner(self.school,
@@ -3749,6 +3748,15 @@ class ExtraAdminBitTests(TestCase):
             image="none",
             **kwargs)
 
+    def create_gamification_point_bonus(self, name, value, **kwargs):
+        return GamificationPointBonus.objects.create(
+            name=name,
+            value=value,
+            **kwargs)
+
+    def create_gamification_scenario(self, **kwargs):
+        return GamificationScenario.objects.create(**kwargs)
+
     def create_message(self, author, course, **kwargs):
         return Message.objects.create(author=author, course=course, **kwargs)
 
@@ -4708,3 +4716,62 @@ class ExtraAdminBitTests(TestCase):
                 is_staff=True)
         resp = c.get(url % ("lmt", "0"))
         self.assertContains(resp, "Learners")
+
+    def test_award_badge(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        #invalid participant
+        resp = c.get(reverse("award.badge", kwargs={'learner_id': 99, 'scenario_id': 99}), follow=True)
+        self.assertRedirects(resp, "/admin/auth/learner/")
+
+        #invalid scenario
+        resp = c.get(reverse("award.badge", kwargs={'learner_id': self.learner.id, 'scenario_id': 99}), follow=True)
+        self.assertRedirects(resp, "/admin/auth/learner/")
+
+        bt = self.create_badgetemplate(
+            name="test badge",
+            description="test"
+        )
+        sc = self.create_gamification_scenario(
+            name="test scenario",
+            course=self.course,
+            module=self.module,
+            badge=bt,
+            event="TEST_EVENT",
+            award_type=1
+        )
+
+        #get
+        resp = c.get(reverse("award.badge", kwargs={'learner_id': self.learner.id, 'scenario_id': sc.id}))
+        self.assertEquals(resp.status_code, 200)
+
+        #invalid post
+        resp = c.post(reverse("award.badge", kwargs={'learner_id': self.learner.id, 'scenario_id': sc.id}),
+                      data={},
+                      follow=True)
+        self.assertRedirects(resp, "/admin/auth/learner/%s/" % self.learner.id)
+
+        #post first award
+        resp = c.post(reverse("award.badge", kwargs={'learner_id': self.learner.id, 'scenario_id': sc.id}),
+                      data={'award_yes': 'award_yes'},
+                      follow=True)
+        self.assertRedirects(resp, "/admin/auth/learner/%s/" % self.learner.id)
+        badge_exists = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, scenario=sc).exists()
+        self.assertEquals(badge_exists, True)
+
+        #post second award on type 1
+        resp = c.post(reverse("award.badge", kwargs={'learner_id': self.learner.id, 'scenario_id': sc.id}),
+                      data={'award_yes': 'award_yes'},
+                      follow=True)
+        self.assertRedirects(resp, "/admin/auth/learner/%s/" % self.learner.id)
+
+        #post second award on type 2
+        sc.award_type = 2
+        sc.save()
+        resp = c.post(reverse("award.badge", kwargs={'learner_id': self.learner.id, 'scenario_id': sc.id}),
+                      data={'award_yes': 'award_yes'},
+                      follow=True)
+        badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, scenario=sc).first()
+        self.assertRedirects(resp, "/admin/auth/learner/%s/" % self.learner.id)
+        self.assertEquals(badge.awardcount, 2)

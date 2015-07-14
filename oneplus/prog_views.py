@@ -7,6 +7,7 @@ from core.models import Participant, ParticipantQuestionAnswer, Class, Participa
 from gamification.models import GamificationScenario
 from oneplus.views import oneplus_state_required, oneplus_login_required, COUNTRYWIDE
 from oneplus.auth_views import resolve_http_method
+from django.contrib.auth.decorators import user_passes_test
 
 
 @oneplus_state_required
@@ -269,7 +270,6 @@ def leader(request, state, user):
             = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
 
-
         return render(
             request,
             "prog/leader.html",
@@ -374,6 +374,7 @@ def badges(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
+@user_passes_test(lambda u: u.is_staff)
 def award_badge(request, learner_id, scenario_id):
     try:
         participant = Participant.objects.get(learner__id=learner_id, is_active=True)
