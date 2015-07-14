@@ -5,7 +5,7 @@ from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mat
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
-from core.models import ParticipantQuestionAnswer, Participant
+from core.models import ParticipantQuestionAnswer, Participant, ParticipantRedoQuestionAnswer
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
     EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm
@@ -97,7 +97,8 @@ class TestingQuestionResource(resources.ModelResource):
 
 class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     list_display = ("name", "order", "module", "get_course", "description",
-                    "correct", "incorrect", "percentage_correct", "preview_link", "state")
+                    "correct", "incorrect", "percentage_correct", "redo_correct", "redo_incorrect",
+                    "redo_percentage_correct", "preview_link", "state")
     list_filter = ("module", "state")
     readonly_fields = ("name", "order")
     search_fields = ("name", "description")
@@ -149,6 +150,37 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
 
     percentage_correct.allow_tags = True
     percentage_correct.short_description = "Percentage Correct"
+
+    def redo_correct(self, question):
+        return ParticipantRedoQuestionAnswer.objects.filter(
+            question=question,
+            correct=True
+        ).count()
+    redo_correct.allow_tags = True
+    redo_correct.short_description = "Redo Correct"
+
+    def redo_incorrect(self, question):
+        return ParticipantRedoQuestionAnswer.objects.filter(
+            question=question,
+            correct=False
+        ).count()
+    redo_incorrect.allow_tags = True
+    redo_incorrect.short_description = "Redo Incorrect"
+
+    def redo_percentage_correct(self, question):
+        correct = ParticipantRedoQuestionAnswer.objects.filter(
+            question=question,
+            correct=True
+        ).count()
+        total = ParticipantRedoQuestionAnswer.objects.filter(
+            question=question
+        ).count()
+        if total > 0:
+            return 100 * correct / total
+        else:
+            return 0
+    redo_percentage_correct.allow_tags = True
+    redo_percentage_correct.short_description = "Redo Percentage Correct"
 
     def preview_link(self, question):
         return u'<a href="/preview/%s">Preview</a>' % question.id

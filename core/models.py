@@ -112,6 +112,17 @@ class Participant(models.Model):
         )
         answer.save()
 
+    def answer_redo(self, question, option):
+        # Create participant question answer
+        answer = ParticipantRedoQuestionAnswer(
+            participant=self,
+            question=question,
+            option_selected=option,
+            correct=option.correct,
+            answerdate=datetime.now()
+        )
+        answer.save()
+
     def can_take_event(self, event):
         event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
 
@@ -227,6 +238,23 @@ class ParticipantQuestionAnswer(models.Model):
     def delete(self):
         self.participant.recalculate_total_points()
         super(ParticipantQuestionAnswer, self).delete()
+
+    class Meta:
+        verbose_name = "Participant Question Response"
+        verbose_name_plural = "Participant Question Responses"
+
+
+class ParticipantRedoQuestionAnswer(models.Model):
+    participant = models.ForeignKey(Participant, verbose_name="Participant")
+    question = models.ForeignKey(TestingQuestion, verbose_name="Question")
+    option_selected = models.ForeignKey(
+        TestingQuestionOption, verbose_name="Selected")
+    correct = models.BooleanField("Correct")
+    answerdate = models.DateTimeField(
+        "Answer Date", null=True, blank=False, default=datetime.now())
+
+    def __str__(self):
+        return self.participant.learner.username
 
     class Meta:
         verbose_name = "Participant Question Response"
