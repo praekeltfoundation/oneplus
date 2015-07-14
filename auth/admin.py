@@ -17,7 +17,8 @@ from .forms import SystemAdministratorChangeForm, \
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
 from auth.filters import AirtimeFilter, ClassFilter, CourseFilter
-from core.models import TeacherClass, Participant
+from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant
+from gamification.models import GamificationScenario
 from communication.models import Message
 from datetime import datetime
 
@@ -277,6 +278,36 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     )
 
     actions = [send_sms, send_message]
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        all_scenarios = GamificationScenario.objects.all()
+        all_participant_badges = ParticipantBadgeTemplateRel.objects.filter(participant__learner__id=object_id,
+                                                                            participant__is_active=True)
+
+        badges_list = list()
+        count = 0
+        row = list()
+        for s in all_scenarios:
+            item = dict()
+            item['scenario'] = s
+            item['scenario_count'] = 0
+            for a in all_participant_badges:
+                if s == a.scenario:
+                    item['scenario_count'] = a.awardcount
+                    break
+            row.append(item)
+            count += 1
+
+            if count % 5 == 0:
+                badges_list.append(row)
+                row = []
+
+        if len(row) > 0:
+            badges_list.append(row)
+
+        extra_context = extra_context or {}
+        extra_context['scenario_list'] = badges_list
+        return super(LearnerAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
 
 
 class TeacherClassInline(admin.TabularInline):

@@ -51,6 +51,10 @@ class GamificationBadgeTemplate(models.Model):
 
 
 class GamificationScenario(models.Model):
+    AWARD_TYPE_CHOICES = (
+        (1, "Once"),
+        (2, "Multiple")
+    )
 
     """
     Gamification is one of the hardest problems to solve elegantly on this
@@ -65,6 +69,7 @@ class GamificationScenario(models.Model):
     module = models.ForeignKey(Module, null=True, blank=True)
     point = models.ForeignKey(GamificationPointBonus, null=True, blank=True)
     badge = models.ForeignKey(GamificationBadgeTemplate, null=True, blank=True)
+    award_type = models.PositiveIntegerField("Times awarded", choices=AWARD_TYPE_CHOICES, default=1)
 
     def __str__(self):
         return self.name
