@@ -2420,6 +2420,11 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.ontrack'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
+        #more than 10 answered
+        self.create_and_answer_questions(11, "name", datetime.now())
+        resp = self.client.get(reverse('prog.ontrack'))
+        self.assertEquals(resp.status_code, 200)
+
     def test_bloglist_screen(self):
         self.client.get(reverse(
             'auth.autologin',
