@@ -3055,7 +3055,11 @@ class GeneralTests(TestCase):
         new_participant.save()
 
         #GOLDEN EGG INACTIVE
-        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5)
+        golden_egg_badge = self.create_badgetemplate('golden egg')
+        golden_egg_point = self.create_gamification_point_bonus('golden egg', 5)
+        golden_egg_scenario = self.create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
+        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5,
+                                              badge=golden_egg_scenario)
 
         #set the golden egg number to 1
         self.client.get(reverse('learn.next'))
@@ -3086,7 +3090,7 @@ class GeneralTests(TestCase):
         self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
         new_participant = Participant.objects.filter(learner=new_learner).first()
 
-        self.assertEquals(6, new_participant.points)
+        self.assertEquals(11, new_participant.points)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, points=5).count()
         self.assertEquals(1, log)
 
@@ -3111,8 +3115,6 @@ class GeneralTests(TestCase):
         ParticipantQuestionAnswer.objects.filter(participant=new_participant,
                                                  question=q,
                                                  option_selected=q_o).delete()
-        new_participant.points = 0
-        new_participant.save()
 
         #TEST BADGE
         bt1 = GamificationBadgeTemplate.objects.get(name="Golden Egg")
@@ -3135,8 +3137,6 @@ class GeneralTests(TestCase):
             scenario=sc1
         ).count()
         self.assertEquals(cnt, 1)
-        # we are using the existing golden egg basge with no points
-        self.assertEquals(1, new_participant.points)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
         self.assertEquals(1, log)
         #check log
