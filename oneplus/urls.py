@@ -41,6 +41,9 @@ urlpatterns = [
     url(r"^redo$", oneplus.learn_views.redo, name="learn.redo"),
     url(r"^redo_right$", oneplus.learn_views.redo_right, name="learn.redo_right"),
     url(r"^redo_wrong$", oneplus.learn_views.redo_wrong, name="learn.redo_wrong"),
+    url(r"^sumit$", oneplus.learn_views.sumit, name="learn.sumit"),
+    url(r"^sumit_right$", oneplus.learn_views.sumit_right, name="learn.sumit_right"),
+    url(r"^sumit_wrong$", oneplus.learn_views.sumit_wrong, name="learn.sumit_wrong"),
     url(r"^discuss$", oneplus.learn_views.discuss, name="learn.discuss"),
     url(r"^preview/(?P<questionid>\d+)$",
         oneplus.learn_views.adminpreview,
@@ -56,6 +59,7 @@ urlpatterns = [
     url(r"^event_splash_page", oneplus.learn_views.event_splash_page, name="learn.event_splash_page"),
     url(r"^event_start_page", oneplus.learn_views.event_start_page, name="learn.event_start_page"),
     url(r"^event_end_page", oneplus.learn_views.event_end_page, name="learn.event_end_page"),
+    url(r"^sumit_end_page", oneplus.learn_views.sumit_end_page, name="learn.sumit_end_page"),
 
     # Communicate
     url(r"^inbox$", oneplus.com_views.inbox, name="com.inbox"),

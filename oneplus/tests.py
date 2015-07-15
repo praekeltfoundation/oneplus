@@ -8,7 +8,8 @@ from core.models import Participant, Class, Course, ParticipantQuestionAnswer, P
     ParticipantRedoQuestionAnswer
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
-    EventQuestionRel, EventSplashPage, EventStartPage, EventEndPage, EventQuestionAnswer, EventParticipantRel
+    EventQuestionRel, EventSplashPage, EventStartPage, EventEndPage, EventQuestionAnswer, EventParticipantRel, SUMit, \
+    SUMitEndPage
 from gamification.models import GamificationScenario, GamificationBadgeTemplate, GamificationPointBonus
 from auth.models import Learner, CustomUser
 from django.test.client import Client
@@ -128,6 +129,10 @@ class GeneralTests(TestCase):
         return Event.objects.create(name=name, course=course, activation_date=activation_date,
                                     deactivation_date=deactivation_date, **kwargs)
 
+    def create_sumit(self, name, course, activation_date, deactivation_date, **kwargs):
+        return SUMit.objects.create(name=name, course=course, activation_date=activation_date,
+                                    deactivation_date=deactivation_date, **kwargs)
+
     def create_event_start_page(self, event, header, paragraph):
         return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
 
@@ -226,7 +231,7 @@ class GeneralTests(TestCase):
         #with event active
         event_module = self.create_module("event_module", self.course, type=2)
         event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
-                                  datetime.now() + timedelta(days=1), number_sittings=2, event_points=5)
+                                  datetime.now() + timedelta(days=1), number_sittings=2, event_points=5, type=1)
         start_page = self.create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
         end_page = self.create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
         question_1 = self.create_test_question("question_1", event_module, state=3)
@@ -297,6 +302,18 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "redo today's incorrect answers")
+
+        # change event type to sumit
+        event.type = 0
+        event.save()
+
+        # test sumit homepage is loaded
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, event.name)
+
+        # test second visit to sumit homepage
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, event.name)
 
     def test_first_time(self):
         self.client.get(reverse(
@@ -566,6 +583,114 @@ class GeneralTests(TestCase):
 
         resp = self.client.get(reverse("learn.event_wrong"))
         self.assertRedirects(resp, "home")
+
+    def test_sumit(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #no event
+        resp = self.client.get(reverse('learn.sumit'))
+        self.assertRedirects(resp, "home")
+
+        #create event
+        event = self.create_sumit("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1))
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+
+        #no event questions
+        resp = self.client.get(reverse('learn.event'))
+        self.assertRedirects(resp, "home")
+
+        #add question to event
+        question = self.create_test_question("Event Question", self.module, difficulty=2, state=3)
+        correct_option = self.create_test_question_option("question_1_option_1", question)
+        self.create_test_question_option("question_1_option_2", question, correct=False)
+        self.create_event_question(event, question, 1)
+        question = self.create_test_question("Event Question 2", self.module, difficulty=2, state=3)
+        self.create_test_question_option("question_2_option_1", question)
+        incorrect_option = self.create_test_question_option("question_2_option_2", question, correct=False)
+        self.create_event_question(event, question, 2)
+        question = self.create_test_question("Event Question 3", self.module, difficulty=2, state=3)
+        correct_option_2 = self.create_test_question_option("question_3_option_1", question)
+        self.create_test_question_option("question_3_option_2", question, correct=False)
+        self.create_event_question(event, question, 3)
+        question = self.create_test_question("Event Question 4", self.module, difficulty=4, state=3)
+        correct_option_3 = self.create_test_question_option("question_4_option_1", question)
+        incorrect_option_3 = self.create_test_question_option("question_4_option_2", question, correct=False)
+        self.create_event_question(event, question, 1)
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit'))
+        self.assertEquals(resp.status_code, 200)
+
+        #no data in post
+        resp = self.client.post(reverse('learn.sumit'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #invalid option
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': 99},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #valid correct answer
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': correct_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+
+        #test event right post
+        resp = self.client.post(reverse("learn.sumit_right"))
+        self.assertEquals(resp.status_code, 200)
+
+        #valid incorrect answer
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': incorrect_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_wrong")
+
+        #test event right post
+        resp = self.client.post(reverse("learn.sumit_wrong"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': correct_option_2.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+
+        for i in range(1, 12):
+            question = self.create_test_question("Easy question %d" % i, self.module)
+            question_option = self.create_test_question_option("Option %d.1" % i, question, True)
+            EventQuestionRel.objects.create(event=event, question=question, order=i)
+            EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
+                                               question_option=question_option, correct=True, answer_date=datetime.now())
+
+        _learnerstate.sumit_level = 5
+        _learnerstate.sumit_question = 3
+        _learnerstate.save()
+
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': correct_option_3.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+        self.assertContains(resp, "Finish")
+
+        EventQuestionAnswer.objects.get(event=event, participant=self.participant, question_option=correct_option_3).\
+            delete()
+
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': incorrect_option_3.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_wrong")
+        self.assertContains(resp, "Finish")
 
     def test_redo(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -875,7 +1000,7 @@ class GeneralTests(TestCase):
 
         #create event
         event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
-                                  deactivation_date=datetime.now() + timedelta(days=1))
+                                  deactivation_date=datetime.now() + timedelta(days=1), type=1)
         splash_page = self.create_event_splash_page(event, 1, "Test Splash Page", "Test Paragraph")
         event_module = self.create_module("Event Module", self.course, type=2)
         question = self.create_test_question("Event Question", event_module, state=3)
@@ -894,6 +1019,17 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.event_splash_page'))
         self.assertRedirects(resp, "home")
 
+        event.type = 0
+        event.save()
+
+        resp = self.client.get(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, splash_page.header)
+
+        resp = self.client.post(reverse('learn.event_splash_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, splash_page.header)
+
     def test_event_start_page(self):
         self.client.get(
             reverse(
@@ -907,7 +1043,7 @@ class GeneralTests(TestCase):
 
         #create event
         event = self.create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
-                                  deactivation_date=datetime.now() + timedelta(days=1))
+                                  deactivation_date=datetime.now() + timedelta(days=1), type=1)
         start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
         event_module = self.create_module("Event Module", self.course, type=2)
         question = self.create_test_question("Event Question", event_module, state=3)
@@ -941,6 +1077,20 @@ class GeneralTests(TestCase):
         self.assertRedirects(resp, "event")
         event_participant_rel = EventParticipantRel.objects.get(event=event, participant=self.participant)
         self.assertEquals(event_participant_rel.sitting_number, 2)
+
+        event.deactivation_date = datetime.now()
+        event.save()
+
+        event = self.create_sumit("Test SUMit", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1), type=0)
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+        question = self.create_test_question("SUMit Question", event_module, state=3, difficulty=2)
+        self.create_event_question(event, question, 1)
+
+        resp = self.client.post(reverse("learn.event_start_page"),
+                                data={"event_start_button": "Get Started"}, follow=True)
+        self.assertRedirects(resp, "sumit")
+        self.assertContains(resp, "SUMit!")
 
     def test_event_end_page(self):
         self.client.get(
@@ -991,6 +1141,76 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Test End Page")
+
+    def test_sumit_end_page(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertRedirects(resp, "home")
+
+        sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit")
+        badge = GamificationScenario.objects.create(name="SUMit", badge=sumit_badge,
+                                                    module=self.module, course=self.course)
+
+        event = SUMit.objects.create(name="SUMit!", course=self.course, activation_date=datetime.now(),
+                                     deactivation_date=datetime.now() + timedelta(days=1), event_points=5, airtime=5,
+                                     event_badge=badge, type=0)
+        EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
+        for i in range(1, 16):
+            question = self.create_test_question("Easy question %d" % i, self.module)
+            question_option = self.create_test_question_option("Option %d.1" % i, question, True)
+            EventQuestionRel.objects.create(event=event, question=question, order=i)
+            EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
+                                               question_option=question_option, correct=True, answer_date=datetime.now())
+        SUMitEndPage.objects.create(event=event, header="Level 1 - 4", paragraph="Test", type=1)
+        SUMitEndPage.objects.create(event=event, header="Level 5", paragraph="Test", type=2)
+        SUMitEndPage.objects.create(event=event, header="Winner", paragraph="Test", type=3)
+
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+
+        if _learnerstate is None:
+            _learnerstate = LearnerState(participant=self.participant)
+
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+
+        pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=sumit_badge, scenario=badge,
+                                                          participant=self.participant)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Level 1 - 4")
+        self.assertIsNotNone(pbtr)
+
+        _learnerstate.sumit_level = 5
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+        event.event_badge = None
+        event.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+
+        _participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Winner")
+        self.assertEquals(_participant.points, 5)
+
+        eqa = EventQuestionAnswer.objects.filter(event=event, participant=_participant).first()
+        eqa.correct = False
+        eqa.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+
+        _participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Level 5")
 
     def test_report_question(self):
         self.client.get(
@@ -4694,6 +4914,8 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/content/testingquestion/")
         self.admin_page_test_helper(c, "/admin/content/goldenegg/")
         self.admin_page_test_helper(c, "/admin/content/event/")
+        self.admin_page_test_helper(c, "/admin/content/sumit/")
+        self.admin_page_test_helper(c, "/admin/content/sumitlevel/")
 
     def test_core_admin_pages_render(self):
         c = Client()
