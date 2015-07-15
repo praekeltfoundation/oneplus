@@ -975,18 +975,6 @@ def wrong(request, state, user):
 
 @oneplus_state_required
 @oneplus_login_required
-def discuss(request, state, user):
-    def get():
-        return render(request, "auth/discuss.html", {"state": state})
-
-    def post():
-        return render(request, "auth/discuss.html", {"state": state})
-
-    return resolve_http_method(request, [get, post])
-
-
-@oneplus_state_required
-@oneplus_login_required
 def event_splash_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,

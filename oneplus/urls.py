@@ -38,7 +38,6 @@ urlpatterns = [
     url(r"^event$", oneplus.learn_views.event, name="learn.event"),
     url(r"^event_right$", oneplus.learn_views.event_right, name="learn.event_right"),
     url(r"^event_wrong$", oneplus.learn_views.event_wrong, name="learn.event_wrong"),
-    url(r"^discuss$", oneplus.learn_views.discuss, name="learn.discuss"),
     url(r"^preview/(?P<questionid>\d+)$",
         oneplus.learn_views.adminpreview,
         name="learn.preview"),
