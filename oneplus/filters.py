@@ -163,8 +163,6 @@ def get_timeframe_range(value):
         # last week
         start = today - timedelta(days=dw, weeks=1)
         end = start + timedelta(6 - dw)
-
-
     elif value == "2":
         # this month
         start = today.replace(day=1)

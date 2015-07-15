@@ -1,12 +1,13 @@
 from __future__ import division
 from datetime import datetime, timedelta
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
 from auth.models import Learner
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
 from oneplus.views import oneplus_state_required, oneplus_login_required, COUNTRYWIDE
 from oneplus.auth_views import resolve_http_method
+from django.contrib.auth.decorators import user_passes_test
 
 
 @oneplus_state_required
@@ -271,7 +272,6 @@ def leader(request, state, user):
             = list([{"area": COUNTRYWIDE}]) \
             + list(Learner.objects.values("area").distinct().all())
 
-
         return render(
             request,
             "prog/leader.html",
@@ -348,11 +348,10 @@ def badges(request, state, user):
 
     # Link achieved badges
     for x in _badges:
-        if ParticipantBadgeTemplateRel.objects.filter(
-                participant=_participant,
-                badgetemplate=x
-        ).exists():
+        rel = ParticipantBadgeTemplateRel.objects.filter(participant=_participant, badgetemplate=x)
+        if rel.exists():
             x.achieved = True
+            x.count = rel.first().awardcount
 
     def get():
         return render(request, "prog/badges.html", {
@@ -373,5 +372,55 @@ def badges(request, state, user):
                 "participant": _participant
             }
         )
+
+    return resolve_http_method(request, [get, post])
+
+
+@user_passes_test(lambda u: u.is_staff)
+def award_badge(request, learner_id, scenario_id):
+    try:
+        participant = Participant.objects.get(learner__id=learner_id, is_active=True)
+    except Participant.DoesNotExist:
+        return redirect("/admin/auth/learner")
+
+    try:
+        scenario = GamificationScenario.objects.get(id=scenario_id)
+    except GamificationScenario.DoesNotExist:
+        return redirect("/admin/auth/learner")
+
+    awarding_scenario = ParticipantBadgeTemplateRel.objects.filter(participant=participant,
+                                                                   participant__is_active=True,
+                                                                   scenario=scenario).first()
+
+    allowed = True
+    if awarding_scenario:
+        if awarding_scenario.scenario.award_type == 1:
+            allowed = False
+
+    def get():
+        return render(request,
+                      "admin/auth/badge_award.html",
+                      {
+                          "allowed": allowed,
+                          "participant": participant,
+                          "scenario": scenario
+                      })
+
+    def post():
+        if "award_yes" in request.POST.keys():
+            if awarding_scenario:
+                if allowed:
+                    awarding_scenario.awardcount += 1
+                    awarding_scenario.save()
+                else:
+                    return redirect("/admin/auth/learner/%s" % participant.learner.id)
+            else:
+                ParticipantBadgeTemplateRel.objects.create(participant=participant,
+                                                           badgetemplate=scenario.badge,
+                                                           scenario=scenario,
+                                                           awarddate=datetime.now(),
+                                                           awardcount=1)
+
+        return redirect("/admin/auth/learner/%s" % participant.learner.id)
 
     return resolve_http_method(request, [get, post])
