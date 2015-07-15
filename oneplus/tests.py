@@ -1135,6 +1135,7 @@ class GeneralTests(TestCase):
         self.assertIsNotNone(pbtr)
 
         event.name = "Exam"
+        event.type = 2
         event.save()
 
         resp = self.client.get(reverse('learn.event_end_page'))
