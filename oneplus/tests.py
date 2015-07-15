@@ -2199,6 +2199,22 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, "Correct")
 
+        # Post empty
+        resp = c.post(
+            reverse('learn.preview', kwargs={'questionid': self.question.id}),
+            data={}, follow=True
+        )
+        self.assertEquals(resp.status_code, 200)
+
+        # Post a incorrect answer
+        option = self.create_test_question_option("wrong", self.question, False)
+        resp = c.post(
+            reverse('learn.preview', kwargs={'questionid': self.question.id}),
+            data={'answer': option.id}, follow=True
+        )
+
+        self.assertContains(resp, "Incorrect")
+
     def test_right_view_adminpreview(self):
 
         password = 'mypassword'
