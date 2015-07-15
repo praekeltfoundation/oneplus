@@ -4,7 +4,8 @@ import logging
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
+from core.models import Participant, Class, Course, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
+    ParticipantRedoQuestionAnswer
 from organisation.models import Organisation, School, Module, CourseModuleRel
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event,\
     EventQuestionRel, EventSplashPage, EventStartPage, EventEndPage, EventQuestionAnswer, EventParticipantRel, SUMit, \
@@ -286,6 +287,21 @@ class GeneralTests(TestCase):
 
         resp = self.client.get(reverse('learn.home'))
         self.assertContains(resp, "5</span><br/>POINTS")
+
+        for i in range(1, 15):
+            question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
+            option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+            ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                     option_selected=option, correct=True)
+
+        question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
+        option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question, correct=False)
+        ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                 option_selected=option, correct=False)
+
+        resp = self.client.get(reverse('learn.home'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "redo today's incorrect answers")
 
         # change event type to sumit
         event.type = 0
@@ -675,6 +691,111 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_wrong")
         self.assertContains(resp, "Finish")
+
+    def test_redo(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        resp = self.client.get(reverse("learn.redo"))
+        self.assertRedirects(resp, "home")
+
+        for i in range(1, 15):
+            question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
+            correct_option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+            ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                     option_selected=correct_option, correct=True)
+
+        question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
+        incorrect_option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question,
+                                                                correct=False)
+        correct_option = TestingQuestionOption.objects.create(name="Option %d.2" % 15, question=question, correct=True)
+        ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                 option_selected=incorrect_option, correct=False)
+
+        resp = self.client.post(reverse('learn.redo'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.redo'),
+                                data={'answer': 99},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse('learn.redo'),
+                                data={'answer': correct_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "redo_right")
+
+        resp = self.client.post(reverse("learn.redo_right"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(reverse("learn.redo_right"),
+                                data={"comment": "test"},
+                                follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+
+        disc = Discussion.objects.all().first()
+
+        resp = self.client.post(
+            reverse('learn.redo_right'),
+            data={
+                'reply': 'test',
+                "reply_button": disc.id
+            },
+            follow=True
+        )
+
+        resp = self.client.post(
+            reverse('learn.redo_right'),
+            data={'page': 1},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(Discussion.objects.all().count(), 2)
+
+        disc.delete()
+        ParticipantRedoQuestionAnswer.objects.filter(participant=self.participant, question=question).delete()
+
+        resp = self.client.post(reverse('learn.redo'),
+                                data={'answer': incorrect_option.id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "redo_wrong")
+
+        resp = self.client.post(reverse("learn.redo_wrong"))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('learn.redo_wrong'),
+            data={'comment': 'test'}, follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+        disc = Discussion.objects.all().first()
+
+        resp = self.client.post(
+            reverse('learn.redo_wrong'),
+            data={
+                'reply': 'test',
+                "reply_button": disc.id
+            },
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(Discussion.objects.all().count(), 2)
+
+        resp = self.client.post(
+            reverse('learn.redo_wrong'),
+            data={'page': 1},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
 
     def fake_update_all_perc_correct_answers():
         update_perc_correct_answers_worker('24hr', 1)
@@ -2400,7 +2521,6 @@ class GeneralTests(TestCase):
                 for y in range(0, counter+1):
                     all_particpants[counter].answer(question_list[y], question_option_list[y])
 
-
             #data for class leaderboard
             new_class = self.create_class('class_%s' % x, self.course)
             all_learners_classes.append(self.create_learner(self.school,
@@ -2512,10 +2632,16 @@ class GeneralTests(TestCase):
             reverse('auth.autologin',
                     kwargs={'token': self.learner.unique_token})
         )
+
         resp = self.client.get(reverse('prog.ontrack'))
         self.assertEquals(resp.status_code, 200)
 
         resp = self.client.post(reverse('prog.ontrack'), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        #more than 10 answered
+        self.create_and_answer_questions(11, "name", datetime.now())
+        resp = self.client.get(reverse('prog.ontrack'))
         self.assertEquals(resp.status_code, 200)
 
     def test_bloglist_screen(self):
@@ -3149,7 +3275,11 @@ class GeneralTests(TestCase):
         new_participant.save()
 
         #GOLDEN EGG INACTIVE
-        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5)
+        golden_egg_badge = self.create_badgetemplate('golden egg')
+        golden_egg_point = self.create_gamification_point_bonus('golden egg', 5)
+        golden_egg_scenario = self.create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
+        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5,
+                                              badge=golden_egg_scenario)
 
         #set the golden egg number to 1
         self.client.get(reverse('learn.next'))
@@ -3180,7 +3310,7 @@ class GeneralTests(TestCase):
         self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
         new_participant = Participant.objects.filter(learner=new_learner).first()
 
-        self.assertEquals(6, new_participant.points)
+        self.assertEquals(11, new_participant.points)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, points=5).count()
         self.assertEquals(1, log)
 
@@ -3205,8 +3335,6 @@ class GeneralTests(TestCase):
         ParticipantQuestionAnswer.objects.filter(participant=new_participant,
                                                  question=q,
                                                  option_selected=q_o).delete()
-        new_participant.points = 0
-        new_participant.save()
 
         #TEST BADGE
         bt1 = GamificationBadgeTemplate.objects.get(name="Golden Egg")
@@ -3229,8 +3357,6 @@ class GeneralTests(TestCase):
             scenario=sc1
         ).count()
         self.assertEquals(cnt, 1)
-        # we are using the existing golden egg basge with no points
-        self.assertEquals(1, new_participant.points)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
         self.assertEquals(1, log)
         #check log
