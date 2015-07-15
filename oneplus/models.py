@@ -3,7 +3,7 @@ from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer
 from datetime import datetime, timedelta, time
 from random import randint
-from content.models import GoldenEgg, EventQuestionAnswer, EventQuestionRel
+from content.models import GoldenEgg, EventQuestionAnswer, EventQuestionRel, SUMit
 from organisation.models import CourseModuleRel
 
 
@@ -17,6 +17,8 @@ class LearnerState(models.Model):
     )
     active_result = models.NullBooleanField()
     golden_egg_question = models.PositiveIntegerField(default=0)
+    sumit_level = models.PositiveIntegerField(default=0)
+    sumit_question = models.PositiveIntegerField(default=0)
     QUESTIONS_PER_DAY = 3
     MONDAY = 0
     FRIDAY = 4
@@ -56,10 +58,18 @@ class LearnerState(models.Model):
 
     def get_answers_this_week(self):
         # Get list of answered questions for this week, excluding today
-        return ParticipantQuestionAnswer.objects.filter(
-            participant=self.participant,
-            answerdate__range=self.get_week_range(),
-        ).distinct()
+        if (self.sumit_level == 0):
+            return ParticipantQuestionAnswer.objects.filter(
+                participant=self.participant,
+                answerdate__range=self.get_week_range(),
+            ).distinct()
+        else:
+            _sumit = SUMit.objects.filter(course=self.participant.classs.course,
+                                          activation_date__lte=datetime.now(),
+                                          deactivation_date__gt=datetime.now()).first()
+            return EventQuestionAnswer.objects.filter(participant=self.participant, event=_sumit,
+                                                      answer_date__range=self.get_week_range(),
+                                                      ).distinct()
 
     def get_unanswered(self):
         # Get list of answered questions
