@@ -12,8 +12,9 @@ from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
-    EventEndPage
-from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
+    EventEndPage, SUMitLevel, SUMit, SUMitEndPage
+from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
+    ParticipantRedoQuestionAnswer
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
@@ -30,6 +31,14 @@ from requests.sessions import session
 @oneplus_login_required
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
+
+    _start_of_week = date.today() - timedelta(date.today().weekday())
+    learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
+    if learnerstate is None:
+        learnerstate = LearnerState(participant=_participant)
+
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
@@ -40,19 +49,27 @@ def home(request, state, user):
 
     event_name = None
     first_sitting = True
+    sumit = None
     if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if allowed:
-            event_name = _event.name
-            if _event_participant_rel:
-                first_sitting = False
-
-    _start_of_week = date.today() - timedelta(date.today().weekday())
-    learnerstate = LearnerState.objects.filter(
-        participant=_participant
-    ).first()
-    if learnerstate is None:
-        learnerstate = LearnerState(participant=_participant)
+        if _event.type != 0:
+            allowed, _event_participant_rel = _participant.can_take_event(_event)
+            if allowed:
+                event_name = _event.name
+                if _event_participant_rel:
+                    first_sitting = False
+        else:
+            sumit = {}
+            sumit["name"] = _event.name
+            _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
+            if _sumit_level:
+                sumit["url"] = _sumit_level.image.url
+                sumit["level"] = _sumit_level.name
+            else:
+                learnerstate.sumit_level = 1
+                learnerstate.save()
+                _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
+                sumit["url"] = _sumit_level.image.url
+                sumit["level"] = _sumit_level.name
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -103,10 +120,17 @@ def home(request, state, user):
     # Force week day to be Monday, when Saturday or Sunday
     request.session["state"]["home_day"] = learnerstate.get_week_day()
 
-    request.session["state"]["home_tasks_today"] = ParticipantQuestionAnswer.objects.filter(
-        participant=_participant,
-        answerdate__gte=date.today()
-    ).count()
+    if not sumit:
+        request.session["state"]["home_tasks_today"] = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=date.today()
+        ).count()
+    else:
+        request.session["state"]["home_tasks_today"] = EventQuestionAnswer.objects.filter(
+            event=_event,
+            participant=_participant,
+            answer_date__gte=date.today()
+        ).count()
 
     request.session["state"]["home_tasks_week"] \
         = learnerstate.get_questions_answered_week()
@@ -114,16 +138,42 @@ def home(request, state, user):
     request.session["state"]["home_required_tasks"] \
         = learnerstate.get_total_questions()
 
-    request.session["state"]["home_tasks"] = ParticipantQuestionAnswer.objects.filter(
-        participant=_participant,
-        answerdate__gte=_start_of_week
-    ).count()
-    request.session["state"]["home_correct"] = ParticipantQuestionAnswer.objects.filter(
-        participant=_participant,
-        correct=True,
-        answerdate__gte=_start_of_week
-    ).count()
+    if not sumit:
+        request.session["state"]["home_tasks"] = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            answerdate__gte=_start_of_week
+        ).count()
+        request.session["state"]["home_correct"] = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant,
+            correct=True,
+            answerdate__gte=_start_of_week
+        ).count()
+    else:
+        request.session["state"]["home_tasks"] = EventQuestionAnswer.objects.filter(
+            event=_event,
+            participant=_participant,
+            answer_date__gte=_start_of_week
+        ).count()
+        request.session["state"]["home_correct"] = EventQuestionAnswer.objects.filter(
+            event=_event,
+            participant=_participant,
+            correct=True,
+            answer_date__gte=_start_of_week
+        ).count()
     request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
+
+    redo = None
+    if (request.session["state"]["home_tasks_week"] >= 15) or \
+            (request.session["state"]["home_tasks_today"] >= request.session["state"]["home_required_tasks"]):
+        correct = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant, correct=True).distinct().values('question')
+        redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
+            participant=_participant, correct=True).distinct().values('question')
+        answered = ParticipantQuestionAnswer.objects.filter(
+            participant=_participant).distinct().values('question')
+        questions = TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct).exclude(id__in=redo_correct)
+        if questions:
+            redo = True
 
     def get():
         _learner = Learner.objects.get(id=user['id'])
@@ -148,7 +198,9 @@ def home(request, state, user):
         return render(request, "learn/home.html", {"state": state,
                                                    "user": user,
                                                    "first_sitting": first_sitting,
-                                                   "event_name": event_name})
+                                                   "event_name": event_name,
+                                                   "redo": redo,
+                                                   "sumit": sumit})
 
     def post():
         if "take_event" in request.POST.keys():
@@ -200,12 +252,16 @@ def nextchallenge(request, state, user):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count() + 1
 
+    points = " - %d point question" % _learnerstate.active_question.points
+    if Setting.objects.get(key="SHOW_POINT_ALLOCATION").value != "True" or _learnerstate.active_question.points is None:
+        points = ""
+
     golden_egg = {}
 
     if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
             _learnerstate.golden_egg_question:
         golden_egg["question"] = True
-        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+        golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -215,13 +271,14 @@ def nextchallenge(request, state, user):
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
         if state['next_tasks_today'] > state["total_tasks_today"]:
-                    return redirect("learn.home")
+            return redirect("learn.home")
 
         return render(request, "learn/next.html", {
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "golden_egg": golden_egg
+            "golden_egg": golden_egg,
+            "points": points
         })
 
     def post():
@@ -305,14 +362,10 @@ def nextchallenge(request, state, user):
 
                 if last_5.count() == 5 \
                         and len([i for i in last_5 if i.correct]) == 5:
-                    last_5 = ParticipantQuestionAnswer.objects.filter(
-                        participant=_participant
-                    ).order_by("answerdate").reverse()[5:10]
-                    if last_5.count() == 0 or (last_5.count() == 5 and len([i for i in last_5 if i.correct]) == 5):
-                        _participant.award_scenario(
-                            "5_CORRECT_RUNNING",
-                            _learnerstate.active_question.module
-                        )
+                    _participant.award_scenario(
+                        "5_CORRECT_RUNNING",
+                        _learnerstate.active_question.module
+                    )
 
                 return redirect("learn.right")
 
@@ -320,6 +373,346 @@ def nextchallenge(request, state, user):
                 return redirect("learn.wrong")
         else:
             return redirect("learn.home")
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def redo(request, state, user):
+    # get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant__id=user["participant_id"]
+    ).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    # check if new question required then show question
+    _learnerstate.get_next_redo_question()
+
+    answered = ParticipantQuestionAnswer.objects.filter(
+        participant=_learnerstate.participant
+    ).distinct().values_list('question')
+    correct = ParticipantQuestionAnswer.objects.filter(
+        participant=_learnerstate.participant, correct=True
+    ).distinct().values_list('question')
+    questions = TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct)
+
+    if not questions:
+        return redirect("learn.home")
+
+    if _learnerstate.redo_question:
+        question_id = _learnerstate.redo_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+
+    def get():
+        return render(request, "learn/redo.html", {
+            "state": state,
+            "user": user,
+            "question": _learnerstate.redo_question,
+        })
+
+    def post():
+        request.session["state"]["report_sent"] = False
+
+        # answer provided
+        if "answer" in request.POST.keys():
+            _ans_id = request.POST["answer"]
+
+            options = _learnerstate.redo_question.testingquestionoption_set
+            try:
+                _option = options.get(pk=_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                return redirect("learn.redo")
+
+            _learnerstate.active_redo_result = _option.correct
+            _learnerstate.save()
+
+            # Answer question
+            _participant.answer_redo(_option.question, _option)
+
+            # Check for awards
+            if _option.correct:
+                return redirect("learn.redo_right")
+            else:
+                return redirect("learn.redo_wrong")
+        else:
+            return redirect("learn.home")
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def redo_right(request, state, user):
+    # get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
+
+    if _learnerstate.redo_question:
+        question_id = _learnerstate.redo_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+
+    questions = len(_learnerstate.get_redo_questions())
+
+    _usr = Learner.objects.get(pk=user["id"])
+    request.session["state"]["banned"] = _usr.is_banned()
+
+    def get():
+        if _learnerstate.active_redo_result:
+            # Max discussion page
+            request.session["state"]["discussion_page_max"] = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    moderated=True,
+                    reply=None
+                ).count()
+
+            # Discussion page?
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
+
+            # Messages for discussion page
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_right.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.redo_question,
+                    "messages": _messages,
+                    "questions": questions
+                }
+            )
+        else:
+            return HttpResponseRedirect("redo_wrong")
+
+    def post():
+        if _learnerstate.active_redo_result:
+            request.session["state"]["discussion_comment"] = False
+            request.session["state"]["discussion_responded_id"] = None
+            request.session["state"]["report_sent"] = False
+
+            # new comment created
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
+                _comment = request.POST["comment"]
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    reply=None,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_comment"] = True
+                request.session["state"]["discussion_response_id"] = None
+
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
+                _comment = request.POST["reply"]
+                _parent = Discussion.objects.get(
+                    pk=request.POST["reply_button"]
+                )
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    reply=_parent,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_responded_id"] \
+                    = request.session["state"]["discussion_response_id"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show more comments
+            elif "page" in request.POST.keys():
+                request.session["state"]["discussion_page"] += 2
+                if request.session["state"]["discussion_page"] \
+                        > request.session["state"]["discussion_page_max"]:
+                    request.session["state"]["discussion_page"] \
+                        = request.session["state"]["discussion_page_max"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show reply to comment comment
+            elif "comment_response_button" in request.POST.keys():
+                request.session["state"]["discussion_response_id"] \
+                    = request.POST["comment_response_button"]
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_right.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.redo_question,
+                    "messages": _messages,
+                }
+            )
+        else:
+            return HttpResponseRedirect("redo_wrong")
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def redo_wrong(request, state, user):
+    # get learner state
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _learnerstate = LearnerState.objects.filter(
+        participant=_participant
+    ).first()
+
+    if _learnerstate.redo_question:
+        question_id = _learnerstate.redo_question.id
+        request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
+                                                  + str(question_id) + "-->"
+    questions = len(_learnerstate.get_redo_questions())
+
+    _usr = Learner.objects.get(pk=user["id"])
+
+    request.session["state"]["banned"] = _usr.is_banned()
+
+    def get():
+        if not _learnerstate.active_redo_result:
+            request.session["state"]["discussion_page_max"] = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    moderated=True,
+                    reply=None
+                ).count()
+
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_wrong.html",
+                {"state": state,
+                 "user": user,
+                 "question": _learnerstate.redo_question,
+                 "messages": _messages,
+                 "questions": questions
+                 }
+            )
+        else:
+            return HttpResponseRedirect("redo_right")
+
+    def post():
+        if not _learnerstate.active_redo_result:
+            request.session["state"]["discussion_comment"] = False
+            request.session["state"]["discussion_responded_id"] = None
+            request.session["state"]["report_sent"] = False
+
+            # new comment created
+            if "comment" in request.POST.keys() and request.POST["comment"] != "":
+                _comment = request.POST["comment"]
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    reply=None,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_comment"] = True
+                request.session["state"]["discussion_response_id"] = None
+
+            elif "reply" in request.POST.keys() and request.POST["reply"] != "":
+                _comment = request.POST["reply"]
+                _parent = Discussion.objects.get(
+                    pk=request.POST["reply_button"]
+                )
+                _message = Discussion(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    reply=_parent,
+                    content=_comment,
+                    author=_usr,
+                    publishdate=datetime.now(),
+                    moderated=True
+                )
+                _message.save()
+                _content_profanity_check(_message)
+                request.session["state"]["discussion_responded_id"] \
+                    = request.session["state"]["discussion_response_id"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show more comments
+            elif "page" in request.POST.keys():
+                request.session["state"]["discussion_page"] += 2
+                if request.session["state"]["discussion_page"] \
+                        > request.session["state"]["discussion_page_max"]:
+                    request.session["state"]["discussion_page"] \
+                        = request.session["state"]["discussion_page_max"]
+                request.session["state"]["discussion_response_id"] = None
+
+            # show reply to comment comment
+            elif "comment_response_button" in request.POST.keys():
+                request.session["state"]["discussion_response_id"] \
+                    = request.POST["comment_response_button"]
+
+            _messages = \
+                Discussion.objects.filter(
+                    course=_participant.classs.course,
+                    question=_learnerstate.redo_question,
+                    moderated=True,
+                    reply=None
+                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            return render(
+                request,
+                "learn/redo_wrong.html",
+                {
+                    "state": state,
+                    "user": user,
+                    "question": _learnerstate.redo_question,
+                    "messages": _messages
+                }
+            )
+        else:
+            return HttpResponseRedirect("right")
 
     return resolve_http_method(request, [get, post])
 
@@ -342,7 +735,7 @@ def event(request, state, user):
     if not _event_question:
         return redirect("learn.home")
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event)\
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event) \
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
@@ -395,10 +788,10 @@ def event_right(request, state, user):
             del request.session['event_session']
         return redirect("learn.home")
 
-    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
+    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant) \
         .order_by("-answer_date").first().question
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event, ) \
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
@@ -434,10 +827,10 @@ def event_wrong(request, state, user):
             del request.session['event_session']
         return redirect("learn.home")
 
-    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant)\
+    _question = EventQuestionAnswer.objects.filter(event=_event, participant=_participant) \
         .order_by("-answer_date").first().question
 
-    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event,)\
+    _answered = EventQuestionAnswer.objects.filter(participant=_participant, event=_event, ) \
         .aggregate(Count('question'))['question__count']
     _total_questions = EventQuestionRel.objects.filter(event=_event).aggregate(Count('question'))['question__count']
 
@@ -451,6 +844,210 @@ def event_wrong(request, state, user):
                 "event_questions_answered": _answered,
                 "total_event_questions": _total_questions,
                 "question": _question,
+            }
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()
+                                  ).first()
+
+    if not _sumit:
+        return redirect("learn.home")
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    request.session["state"]["next_tasks_today"] = \
+        EventQuestionAnswer.objects.filter(
+            event=_sumit,
+            participant=_participant,
+            answer_date__gte=date.today()
+        ).distinct('participant', 'question').count() + 1
+
+    _question = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level, _learnerstate.sumit_question)
+
+    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit_question = _learnerstate.sumit_question
+
+    sumit = {}
+    sumit["level"] = sumit_level.name
+    for i in range(1, 4):
+        if i in range(1, sumit_question):
+            sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
+        else:
+            sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
+
+    if not _question:
+        return redirect("learn.home")
+
+    def get():
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+            return redirect("learn.home")
+
+        return render(
+            request,
+            "learn/sumit.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _question,
+                "sumit": sumit
+            }
+        )
+
+    def post():
+        if "answer" in request.POST.keys():
+            _event_ans_id = request.POST["answer"]
+
+            options = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level,
+                                                     _learnerstate.sumit_question).testingquestionoption_set
+            try:
+                _option = options.get(pk=_event_ans_id)
+            except TestingQuestionOption.DoesNotExist:
+                return get()
+
+            _participant.answer_event(_sumit, _option.question, _option)
+            state["total_tasks_today"] = _learnerstate.get_total_questions()
+
+            if _option.correct:
+                return redirect("learn.sumit_right")
+
+            return redirect("learn.sumit_wrong")
+
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit_right(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    _learnerstate.sumit_question += 1
+    _learnerstate.save()
+    if _learnerstate.sumit_question > 3:
+        _learnerstate.sumit_level += 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+    if _learnerstate.sumit_level > 5:
+        _learnerstate.sumit_level = 5
+        _learnerstate.save()
+
+    request.session["state"]["right_tasks_today"] = \
+        EventQuestionAnswer.objects.filter(event=_sumit,
+                                           participant=_participant, answer_date__gte=date.today()
+                                           ).distinct('participant', 'question').count()
+
+    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit_question = _learnerstate.sumit_question
+
+    _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant) \
+        .order_by("-answer_date").first().question
+
+    sumit = {}
+    sumit["level"] = sumit_level.name
+    for i in range(1, 4):
+        if i in range(1, sumit_question):
+            sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
+        else:
+            sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
+
+    num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
+    num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
+
+    sumit["finsihed"] = None
+    if num_sumit_questions == num_sumit_questions_answered:
+        sumit["finished"] = True
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_right.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _question,
+                "sumit": sumit
+            }
+        )
+
+    def post():
+        return get()
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit_wrong(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    request.session["state"]["right_tasks_today"] = \
+        EventQuestionAnswer.objects.filter(event=_sumit,
+                                           participant=_participant, answer_date__gte=date.today()
+                                           ).distinct('participant', 'question').count()
+
+    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit_question = _learnerstate.sumit_question
+
+    _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant) \
+        .order_by("-answer_date").first().question
+
+    sumit = {}
+    sumit["level"] = sumit_level.name
+    for i in range(1, 4):
+        if i in range(1, sumit_question):
+            sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
+        else:
+            sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
+
+    num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
+    num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
+
+    sumit["finsihed"] = None
+    if num_sumit_questions == num_sumit_questions_answered:
+        sumit["finished"] = True
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_wrong.html",
+            {
+                "state": state,
+                "user": user,
+                "question": _question,
+                "sumit": sumit
             }
         )
 
@@ -580,7 +1177,7 @@ def get_event_points_awarded(participant):
     all_events = EventParticipantRel.objects.filter(participant=participant)
     for e in all_events:
         if e.event.event_points:
-            total_event_questions = EventQuestionRel.objects.filter(event=e.event)\
+            total_event_questions = EventQuestionRel.objects.filter(event=e.event) \
                 .aggregate(Count('question'))['question__count']
             participant_answers = EventQuestionAnswer.objects.filter(event=e.event, participant=participant)
 
@@ -610,23 +1207,6 @@ def get_badge_awarded(participant):
         badgetemplate = None
 
     return badgetemplate, badgepoints,
-
-
-def ts_awarded(participant):
-    # Get current participant question answer
-    answer = ParticipantQuestionAnswer.objects.filter(
-        participant=participant,
-    ).latest('answerdate')
-
-    # Get question
-    question = answer.question
-
-    # Get points
-    if question.points is 0:
-        question.points = 1
-        question.save()
-
-    return question.points
 
 
 def get_golden_egg(participant):
@@ -695,7 +1275,7 @@ def right(request, state, user):
                     _participant.points += _golden_egg.badge.point.value
                     _participant.save()
 
-            golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+            golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
             GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
                                badge=_golden_egg.badge).save()
 
@@ -859,10 +1439,6 @@ def wrong(request, state, user):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
-    _event = Event.objects.filter(course=_participant.classs.course,
-                                  activation_date__lte=datetime.now(),
-                                  deactivation_date__gt=datetime.now()).first()
-
     def get():
         if not _learnerstate.active_result:
             request.session["state"]["discussion_page_max"] = \
@@ -979,27 +1555,20 @@ def wrong(request, state, user):
 
 @oneplus_state_required
 @oneplus_login_required
-def discuss(request, state, user):
-    def get():
-        return render(request, "auth/discuss.html", {"state": state})
-
-    def post():
-        return render(request, "auth/discuss.html", {"state": state})
-
-    return resolve_http_method(request, [get, post])
-
-
-@oneplus_state_required
-@oneplus_login_required
 def event_splash_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+
+    sumit = None
     if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if not allowed:
-            return redirect("learn.home")
+        if _event.type != 0:
+            allowed, _event_participant_rel = _participant.can_take_event(_event)
+            if not allowed:
+                return redirect("learn.home")
+        else:
+            sumit = {"name": _event.name}
     else:
         return redirect("learn.home")
 
@@ -1018,7 +1587,8 @@ def event_splash_page(request, state, user):
             {
                 "state": state,
                 "user": user,
-                "page": page
+                "page": page,
+                "sumit": sumit
             }
         )
 
@@ -1036,10 +1606,14 @@ def event_start_page(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
 
+    sumit = None
     if _event:
-        allowed, _event_participant_rel = _participant.can_take_event(_event)
-        if not allowed:
-            return redirect("learn.home")
+        if _event.type != 0:
+            allowed, _event_participant_rel = _participant.can_take_event(_event)
+            if not allowed:
+                return redirect("learn.home")
+        else:
+            sumit = True
     else:
         return redirect("learn.home")
 
@@ -1061,15 +1635,27 @@ def event_start_page(request, state, user):
 
     def post():
         if "event_start_button" in request.POST.keys():
-            if _event_participant_rel:
-                _event_participant_rel.sitting_number += 1
-                _event_participant_rel.save()
+            if not sumit:
+                if _event_participant_rel:
+                    _event_participant_rel.sitting_number += 1
+                    _event_participant_rel.save()
+                else:
+                    EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
+
+                request.session["event_session"] = True
+
+                return redirect("learn.event")
             else:
-                EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
+                _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
-            request.session["event_session"] = True
+                if _learnerstate is None:
+                    _learnerstate = LearnerState(participant=_participant)
 
-            return redirect("learn.event")
+                _learnerstate.sumit_level = 1
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+
+                return redirect("learn.sumit")
         else:
             return get()
 
@@ -1157,6 +1743,77 @@ def event_end_page(request, state, user):
                 "user": user,
                 "page": page,
                 "badge": badge,
+            }
+        )
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit_end_page(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
+    page = {}
+    sumit = {}
+
+    num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
+    num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
+
+    if num_sumit_questions == num_sumit_questions_answered:
+        if _learnerstate.sumit_level in range(1, 5):
+            end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
+        elif _learnerstate.sumit_level == 5:
+            num_sumit_questions_correct = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant,
+                                                                             correct=True).count()
+            if num_sumit_questions_correct == num_sumit_questions:
+                end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
+            else:
+                end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
+
+        sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
+        sumit["points"] = _sumit.event_points
+
+        page["header"] = end_page.header
+        page["message"] = end_page.paragraph
+
+        if _sumit.event_points:
+            _participant.points += _sumit.event_points
+            _participant.save()
+        if _sumit.airtime:
+            mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
+                                                                  % (_participant.learner.first_name,
+                                                                     _participant.learner.last_name,
+                                                                     _participant.learner.mobile,
+                                                                     _sumit.airtime), fail_silently=False)
+        if _sumit.event_badge:
+            module = CourseModuleRel.objects.filter(course=_sumit.course).first()
+            _participant.award_scenario(
+                _sumit.event_badge.event,
+                module
+            )
+    else:
+        return redirect("learn.home")
+    badge, badge_points = get_badge_awarded(_participant)
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_end_page.html",
+            {
+                "state": state,
+                "user": user,
+                "page": page,
+                "badge": badge,
+                "sumit": sumit
             }
         )
 

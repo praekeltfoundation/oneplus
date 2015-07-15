@@ -22,12 +22,14 @@ def ontrack(request, state, user):
     for m in _modules:
         _answers = _participant.participantquestionanswer_set.filter(
             question__module__id=m.id)
-        if _answers.count() < 10:
+        _redo_answers = _participant.participantquestionanswer_set.filter(
+            question__module__id=m.id)
+        if (_answers.count() + _redo_answers.count()) < 10:
             m.score = -1
         else:
-            m.score = _answers.filter(
-                correct=True
-            ).count() / _answers.count() * 100
+            correct = _answers.filter(correct=True).count() + _redo_answers.filter(correct=True).count()
+            total = _answers.count() + _redo_answers.count()
+            m.score = correct / total * 100
 
     def get():
         return render(
