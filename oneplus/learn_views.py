@@ -13,7 +13,7 @@ from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage, SUMitLevel, SUMit, SUMitEndPage
-from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, \
+from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
     ParticipantRedoQuestionAnswer
 from gamification.models import GamificationScenario
 from organisation.models import CourseModuleRel
@@ -252,12 +252,16 @@ def nextchallenge(request, state, user):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count() + 1
 
+    points = " - %d point question" % _learnerstate.active_question.points
+    if Setting.objects.get(key="SHOW_POINT_ALLOCATION").value != "True" or _learnerstate.active_question.points is None:
+        points = ""
+
     golden_egg = {}
 
     if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
             _learnerstate.golden_egg_question:
         golden_egg["question"] = True
-        golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+        golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -273,7 +277,8 @@ def nextchallenge(request, state, user):
             "state": state,
             "user": user,
             "question": _learnerstate.active_question,
-            "golden_egg": golden_egg
+            "golden_egg": golden_egg,
+            "points": points
         })
 
     def post():
@@ -1265,7 +1270,7 @@ def right(request, state, user):
                     _participant.points += _golden_egg.badge.point.value
                     _participant.save()
 
-            golden_egg["url"] = settings.GOLDEN_EGG_IMG_URL
+            golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
             GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
                                badge=_golden_egg.badge).save()
 
@@ -1539,18 +1544,6 @@ def wrong(request, state, user):
             )
         else:
             return HttpResponseRedirect("right")
-
-    return resolve_http_method(request, [get, post])
-
-
-@oneplus_state_required
-@oneplus_login_required
-def discuss(request, state, user):
-    def get():
-        return render(request, "auth/discuss.html", {"state": state})
-
-    def post():
-        return render(request, "auth/discuss.html", {"state": state})
 
     return resolve_http_method(request, [get, post])
 

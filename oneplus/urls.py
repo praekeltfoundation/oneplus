@@ -44,7 +44,6 @@ urlpatterns = [
     url(r"^sumit$", oneplus.learn_views.sumit, name="learn.sumit"),
     url(r"^sumit_right$", oneplus.learn_views.sumit_right, name="learn.sumit_right"),
     url(r"^sumit_wrong$", oneplus.learn_views.sumit_wrong, name="learn.sumit_wrong"),
-    url(r"^discuss$", oneplus.learn_views.discuss, name="learn.discuss"),
     url(r"^preview/(?P<questionid>\d+)$",
         oneplus.learn_views.adminpreview,
         name="learn.preview"),
