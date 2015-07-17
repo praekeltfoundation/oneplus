@@ -482,7 +482,7 @@ class SUMitEndPageInlineFormSet(forms.models.BaseInlineFormSet):
             count = 0
             count_level1_4 = 0
             count_level5 = 0
-            count_winner= 0
+            count_winner = 0
             for form in self.forms:
                 data = form.cleaned_data
                 if data.get('header') is not None and data.get('paragraph') is not None and not data.get('DELETE'):
@@ -502,6 +502,7 @@ class SUMitEndPageInlineFormSet(forms.models.BaseInlineFormSet):
 
     class Meta:
         model = SUMitEndPage
+
 
 class SUMitLevelForm(forms.ModelForm):
     def clean_order(self):

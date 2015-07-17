@@ -89,8 +89,7 @@ class LearnerResource(resources.ModelResource):
         if dry_run:
             rows = Learner.objects.filter(mobile=data[u'mobile']).count()
             if rows > 0:
-                raise Exception('mobile number %s has already been used'
-                    % (data[u'mobile']))
+                raise Exception('mobile number %s has already been used' % (data[u'mobile']))
         else:
             if not obj.mobile:
                 obj.mobile = data['username']
