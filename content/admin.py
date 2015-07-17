@@ -424,9 +424,12 @@ class SUMitAdmin(admin.ModelAdmin):
 
     def get_percent_complete_all(self, obj):
         total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
-        completed = len(EventQuestionAnswer.objects.values('participant').filter(correct=True).\
-            annotate(answered=Count('question_option')).values('participant').filter(answered=15))
-        return round((float(completed) / total_participants) * 100)
+        completed = len(EventQuestionAnswer.objects.values('participant').filter(correct=True).
+                        annotate(answered=Count('question_option')).values('participant').filter(answered=15))
+        if total_participants == 0:
+            return 0
+        else:
+            return round((float(completed) / total_participants) * 100)
     get_percent_complete_all.short_description = "% Complete All Questions"
 
     def get_percent_correct_easy(self, obj):
