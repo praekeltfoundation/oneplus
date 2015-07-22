@@ -34,7 +34,10 @@ class PostAdmin(SummernoteModelAdmin):
 class ChatMessageInline(admin.TabularInline):
     model = ChatMessage
     extra = 0
-    readonly_fields = ("author", "content", "publishdate")
+    fields = ("author", "content", "publishdate", "original_content", "moderated", "unmoderated_date",
+              "unmoderated_by", "response")
+    readonly_fields = ("author", "content", "publishdate", "original_content", "moderated", "unmoderated_date",
+                       "unmoderated_by", "response")
     ordering = ("publishdate",)
 
     def has_add_permission(self, request):
