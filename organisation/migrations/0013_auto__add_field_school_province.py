@@ -1,36 +1,23 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
-from django.db import models, IntegrityError, transaction
+from south.v2 import SchemaMigration
+from django.db import models
 
 
-class Migration(DataMigration):
-
-    def get_or_create(self, model, **kwargs):
-        try:
-            obj = model.objects.get(**kwargs)
-        except model.DoesNotExist:
-            obj = model(**kwargs)
-            obj.save()
-        return obj
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        # Note: Don't use "from appname.models import ModelName". 
-        # Use orm.ModelName to refer to models in this application,
-        # and orm['appname.ModelName'] for models in other applications.
-        provinces = ("Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "North West",
-                     "Northern Cape", "Western Cape")
-        organisation = self.get_or_create(orm.Organisation, name="One Plus")
-        organisation.save()
+        # Adding field 'School.province'
+        db.add_column(u'organisation_school', 'province',
+                      self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True),
+                      keep_default=False)
 
-        for province in provinces:
-            obj = self.get_or_create(orm.School, name=province, organisation=organisation)
-            obj.save()
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Deleting field 'School.province'
+        db.delete_column(u'organisation_school', 'province')
+
 
     models = {
         u'organisation.course': {
@@ -56,7 +43,8 @@ class Migration(DataMigration):
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'module_link': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
+            'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
         },
         u'organisation.organisation': {
             'Meta': {'object_name': 'Organisation'},
@@ -73,9 +61,9 @@ class Migration(DataMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'organisation': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Organisation']", 'null': 'True'}),
+            'province': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
         }
     }
 
     complete_apps = ['organisation']
-    symmetrical = True

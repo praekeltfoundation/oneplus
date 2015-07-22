@@ -1,15 +1,13 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
-from communication.utils import VumiSmsApi, get_autologin_link
-from auth.forms import SendSmsForm
+from communication.utils import VumiSmsApi
+from auth.forms import SendSmsForm, SendMessageForm
 from communication.tasks import bulk_send_all
 from django import template
-from core.models import Class
-from auth.models import LearnerView, SystemAdministrator, SchoolManager,\
-    CourseManager, CourseMentor, Teacher, Learner
+from auth.models import SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Teacher, Learner
 from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
@@ -18,8 +16,11 @@ from .forms import SystemAdministratorChangeForm, \
     TeacherCreationForm, TeacherChangeForm
 from core.models import ParticipantQuestionAnswer
 from auth.resources import LearnerResource, TeacherResource
-from auth.filters import AirtimeFilter, LearnerViewClassFilter, LearnerViewCourseFilter, ClassFilter, CourseFilter
-from core.models import TeacherClass
+from auth.filters import AirtimeFilter, ClassFilter, CourseFilter
+from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant
+from gamification.models import GamificationScenario
+from communication.models import Message
+from datetime import datetime
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -188,58 +189,54 @@ def send_sms(modeladmin, request, queryset):
         },
         context_instance=template.RequestContext(request)
     )
-send_sms.short_description = "Send sms to learners"
+send_sms.short_description = "Send SMS to selected learners"
 
 
-class LearnerViewAdmin(UserAdmin):
-    # The forms to add and change user instances
-    form = LearnerChangeForm
-    add_form = LearnerCreationForm
-    resource_class = LearnerResource
-    list_max_show_all = 1000
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ("username", "first_name", "last_name", "school",
-                    "area", "questions_completed", "questions_correct",
-                    "welcome_message_sent")
-    list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
-                   "welcome_message_sent", LearnerViewClassFilter, LearnerViewCourseFilter, AirtimeFilter)
-    search_fields = ("last_name", "first_name", "username")
-    ordering = ("country", "area", "last_name", "first_name", "last_login")
-    filter_horizontal = ()
-    readonly_fields = ("mobile",)
+def send_message(modeladmin, request, queryset):
+    form = None
 
-    fieldsets = (
-        ("Personal info", {"fields": ("first_name", "last_name",
-                                      "email", "mobile")}),
-        ("Access", {"fields": ("username", "password",
-                               "is_active", "unique_token")}),
-        ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
-        ("Region", {"fields": ("country", "area", "city",
-                               "school")}),
-        ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")})
+    if 'apply' in request.POST:
+        form = SendMessageForm(request.POST)
+
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            date = datetime.strptime(request.POST['publishdate_0'], '%Y-%m-%d')
+            t = datetime.strptime(request.POST['publishdate_1'], "%H:%M")
+            publish_date = datetime.combine(date, t.time())
+            message = form.cleaned_data["message"]
+
+            for learner in queryset:
+                part = Participant.objects.filter(learner=learner, is_active=True).first()
+                Message.objects.create(name=name, publishdate=publish_date, content=message, to_user=learner,
+                                       author=request.user, to_class=part.classs, course=part.classs.course)
+
+            successful = len(queryset)
+
+            return render_to_response(
+                'admin/auth/message_result.html',
+                {
+                    'redirect': request.get_full_path(),
+                    'success_num': successful,
+                },
+            )
+    if not form:
+        form = SendMessageForm(
+            initial={
+                '_selected_action': request.POST.getlist(
+                    admin.ACTION_CHECKBOX_NAME,
+                ),
+            }
+        )
+
+    return render_to_response(
+        'admin/auth/send_message.html',
+        {
+            'message_form': form,
+            'learners': queryset
+        },
+        context_instance=template.RequestContext(request)
     )
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
-    add_fieldsets = (
-        ("Personal info", {"fields": ("first_name", "last_name")}),
-        ("Access", {"fields": ("username", "password1",
-                               "password2")}),
-        ("Region", {"fields": ("country", "area", "school")})
-    )
-
-    actions = [send_sms]
-
-    def get_actions(self, request):
-        #Disable delete
-        actions = super(LearnerViewAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
-    def has_delete_permission(self, request, obj=None):
-        return False
+send_message.short_description = "Send Message to selected learners"
 
 
 class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
@@ -280,7 +277,37 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Region", {"fields": ("country", "area", "school")})
     )
 
-    actions = [send_sms]
+    actions = [send_sms, send_message]
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        all_scenarios = GamificationScenario.objects.all()
+        all_participant_badges = ParticipantBadgeTemplateRel.objects.filter(participant__learner__id=object_id,
+                                                                            participant__is_active=True)
+
+        badges_list = list()
+        count = 0
+        row = list()
+        for s in all_scenarios:
+            item = dict()
+            item['scenario'] = s
+            item['scenario_count'] = 0
+            for a in all_participant_badges:
+                if s == a.scenario:
+                    item['scenario_count'] = a.awardcount
+                    break
+            row.append(item)
+            count += 1
+
+            if count % 5 == 0:
+                badges_list.append(row)
+                row = []
+
+        if len(row) > 0:
+            badges_list.append(row)
+
+        extra_context = extra_context or {}
+        extra_context['scenario_list'] = badges_list
+        return super(LearnerAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
 
 
 class TeacherClassInline(admin.TabularInline):
@@ -366,6 +393,5 @@ admin.site.register(SystemAdministrator, SystemAdministratorAdmin)
 admin.site.register(SchoolManager, SchoolManagerAdmin)
 admin.site.register(CourseManager, CourseManagerAdmin)
 admin.site.register(CourseMentor, CourseMentorAdmin)
-admin.site.register(LearnerView, LearnerViewAdmin)
 admin.site.register(Learner, LearnerAdmin)
 admin.site.register(Teacher, TeacherAdmin)

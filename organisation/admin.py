@@ -40,7 +40,7 @@ class SchoolAdmin(admin.ModelAdmin):
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "organisation"]}),
+            {"fields": ["name", "description", "organisation", "province"]}),
         ("Contact Information", {"fields": ["website", "email"]}),
     ]
     ordering = ("organisation", "name")
@@ -83,10 +83,10 @@ class CourseAdmin(admin.ModelAdmin):
 
 
 class ModuleAdmin(admin.ModelAdmin):
-    list_display = ("name", "description", "order", "get_scenarios", "get_courses", "is_active")
+    list_display = ("name", "description", "order", "get_scenarios", "get_courses", "type", "is_active")
     search_fields = ("name", "description")
     fieldsets = [
-        (None, {"fields": ["name", "description", "module_link", "order", "is_active"]})
+        (None, {"fields": ["name", "description", "module_link", "order", "type", "is_active"]})
     ]
     ordering = ("name", "order")
 

@@ -4,6 +4,9 @@ from organisation.models import Module
 from django.core.urlresolvers import reverse
 from django.utils.html import remove_tags
 from mobileu.utils import format_content, format_option
+from django.db.models import Count
+from datetime import datetime
+from organisation.models import CourseModuleRel
 
 
 class LearningChapter(models.Model):
@@ -36,12 +39,13 @@ class LearningChapter(models.Model):
 
 class TestingQuestion(models.Model):
     name = models.CharField(
-        "Name", max_length=500, null=True, blank=False, unique=True)
+        "Name", max_length=500, null=True, blank=False, unique=True, default="Auto Generated")
     description = models.CharField("Description", max_length=500, blank=True)
-    order = models.PositiveIntegerField("Order", default=1)
+    order = models.PositiveIntegerField("Order", default=0)
     module = models.ForeignKey(Module, null=True, blank=False)
     question_content = models.TextField("Question", blank=True)
-    answer_content = models.TextField("Answer", blank=True)
+    answer_content = models.TextField("Fully Worked Solution", blank=True)
+    notes = models.TextField("Additional Notes", blank=True)
     difficulty = models.PositiveIntegerField(
         "Difficulty", choices=(
             (1, "Not Specified"),
@@ -90,9 +94,10 @@ class TestingQuestionOption(models.Model):
         max_length=500,
         null=True,
         blank=False,
-        unique=True)
+        unique=True,
+        default="Auto Generated")
     question = models.ForeignKey(TestingQuestion, null=True, blank=False)
-    order = models.PositiveIntegerField("Order", default=1)
+    order = models.PositiveIntegerField("Order", default=0)
     content = models.TextField("Content", blank=True)
     correct = models.BooleanField("Correct")
 
@@ -159,6 +164,7 @@ allowed_styles = [
     'width',
     'height']
 
+
 class Definition(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     definition = models.TextField(null=False, blank=False)
@@ -166,3 +172,228 @@ class Definition(models.Model):
     class Meta:
         verbose_name = "Definition"
         verbose_name_plural = "Definitions"
+
+
+class GoldenEgg(models.Model):
+    course = models.ForeignKey("organisation.Course", null=False, blank=False, verbose_name="Course")
+    classs = models.ForeignKey("core.Class", null=True, blank=True, verbose_name="Class")
+    active = models.BooleanField(default=False, verbose_name="Is Active")
+    point_value = models.PositiveIntegerField(null=True, blank=True, verbose_name="Points")
+    airtime = models.PositiveIntegerField(null=True, blank=True)
+    badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Golden Egg"
+        verbose_name_plural = "Golden Eggs"
+
+
+class GoldenEggRewardLog(models.Model):
+    participant = models.ForeignKey("core.Participant", null=False, blank=False)
+    award_date = models.DateTimeField(auto_now_add=True)
+    points = models.PositiveIntegerField(null=True, blank=True)
+    airtime = models.PositiveIntegerField(null=True, blank=True)
+    badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
+
+
+class Event(models.Model):
+    ONE = 1
+    MULTIPLE = 2
+    SITTINGS_CHOICES = (
+        (ONE, "One"),
+        (MULTIPLE, "Multiple")
+    )
+
+    TYPE_CHOICES = (
+        (1, "Spot Test"),
+        (2, "Exam")
+    )
+
+    name = models.CharField(max_length=50, unique=True)
+    course = models.ForeignKey("organisation.Course", null=False, blank=False)
+    activation_date = models.DateTimeField("Activate On", null=False, blank=False)
+    deactivation_date = models.DateTimeField("Deactivate On", null=False, blank=False)
+    number_sittings = models.PositiveIntegerField("Number of Sittings", choices=SITTINGS_CHOICES, default=ONE)
+    event_points = models.PositiveIntegerField("Event Points", null=True, blank=True)
+    airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
+    event_badge = models.ForeignKey("gamification.GamificationScenario",
+                                    related_name="event_badge", null=True, blank=True)
+    type = models.PositiveIntegerField("Type of Event", choices=TYPE_CHOICES, default=0)
+    end_processed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+    def get_next_event_question_rel(self, participant):
+        if self.is_active():
+            event_answers = EventQuestionAnswer.objects.filter(event=self, participant=participant) \
+                .aggregate(Count('question'))['question__count']
+
+            all_event_questions = EventQuestionRel.objects.filter(event=self)
+
+            total_event_questions = all_event_questions.aggregate(Count('question'))['question__count']
+            if event_answers < total_event_questions:
+                event_question_rel = EventQuestionRel.objects.filter(event=self, order=event_answers+1).first()
+                return event_question_rel
+
+        return None
+
+    def get_next_event_question(self, participant):
+        event_question_rel = self.get_next_event_question_rel(participant)
+        if event_question_rel:
+            return event_question_rel.question
+        else:
+            return None
+
+    def get_next_event_question_order(self, participant):
+        event_question_rel = self.get_next_event_question_rel(participant)
+        if event_question_rel:
+            return event_question_rel.order
+        else:
+            return None
+
+    def is_active(self):
+        return self.activation_date < datetime.now() < self.deactivation_date
+
+
+class EventStartPage(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
+
+
+class EventEndPage(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
+
+
+class EventSplashPage(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    order_number = models.PositiveIntegerField("Order", null=True, blank=False)
+    header = models.CharField("Header Text", max_length=50)
+    paragraph = models.TextField("Paragraph Text", max_length=500)
+
+
+class EventQuestionRel(models.Model):
+    order = models.PositiveIntegerField("Order", null=True, blank=False)
+    event = models.ForeignKey(Event, null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, limit_choices_to=dict(module__type=2, state=3), null=True,
+                                 blank=False)
+
+
+class EventQuestionAnswer(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    participant = models.ForeignKey("core.Participant", null=True, blank=False)
+    question = models.ForeignKey(TestingQuestion, null=True, blank=False)
+    question_option = models.ForeignKey(TestingQuestionOption, null=True, blank=False)
+    correct = models.BooleanField()
+    answer_date = models.DateTimeField("Answer Date", null=True, blank=False, auto_now_add=True)
+
+
+class EventParticipantRel(models.Model):
+    event = models.ForeignKey(Event, null=True, blank=False)
+    participant = models.ForeignKey("core.Participant", null=True, blank=False)
+    sitting_number = models.PositiveIntegerField(null=True, blank=False)
+    results_received = models.BooleanField(default=False)
+
+
+class SUMit(Event):
+    pass
+
+    def get_questions(self):
+        event_question_rel = EventQuestionRel.objects.filter(event=self)
+        if not event_question_rel:
+            modules = CourseModuleRel.objects.filter(course=self.course)
+            easy_questions = TestingQuestion.objects.filter(module__in=modules,
+                                                            difficulty=2).order_by("?")[:15]
+            normal_questions = TestingQuestion.objects.filter(module__in=modules,
+                                                              difficulty=3).order_by("?")[:11]
+            advanced_questions = TestingQuestion.objects.filter(module__in=modules,
+                                                                difficulty=4).order_by("?")[:5]
+            order = 1
+            for question in easy_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+            order = 1
+            for question in normal_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+            order = 1
+            for question in advanced_questions:
+                EventQuestionRel.objects.create(order=order, question=question, event=self)
+                order += 1
+
+    def get_next_sumit_question(self, participant, level, question):
+        if self.is_active():
+            self.get_questions()
+            difficulty = SUMitLevel.objects.values("question_%d" % question).get(order=level).values()[0]
+            answered = EventQuestionAnswer.objects.filter(participant=participant, event=self,
+                                                          question__difficulty=difficulty).\
+                aggregate(Count('question'))['question__count']
+            return EventQuestionRel.objects.filter(event=self, order=answered+1,
+                                                   question__difficulty=difficulty).first().question
+        return None
+
+    class Meta:
+        verbose_name = "SUMit!"
+        verbose_name_plural = "SUMit!"
+
+
+class SUMitEndPage(EventEndPage):
+    TYPE_CHOICES = (
+        (1, "Level 1-4"),
+        (2, "Level 5"),
+        (3, "Winner")
+    )
+
+    type = models.PositiveIntegerField(choices=TYPE_CHOICES)
+
+
+class SUMitLevel(models.Model):
+    DIFFICULTY_CHOICES = (
+        (2, "Easy"),
+        (3, "Normal"),
+        (4, "Advanced")
+    )
+    order = models.PositiveIntegerField(
+        "Order",
+        validators=[MaxValueValidator(5)],
+        default=0,
+        blank=False,
+        null=False
+    )
+    name = models.CharField("Name", max_length=50)
+    question_1 = models.PositiveIntegerField(
+        "Question 1",
+        choices=DIFFICULTY_CHOICES,
+        default=0,
+        blank=False,
+        null=False
+    )
+    question_2 = models.PositiveIntegerField(
+        "Question 2",
+        choices=DIFFICULTY_CHOICES,
+        default=0,
+        blank=False,
+        null=False
+    )
+    question_3 = models.PositiveIntegerField(
+        "Question 3",
+        choices=DIFFICULTY_CHOICES,
+        default=0,
+        blank=False,
+        null=False
+    )
+    image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def image_(self):
+        return '<a href="/media/{0}"><img src="/media/{0}"></a>'.format(
+            self.image)
+    image_.allow_tags = True
+
+    class Meta:
+        verbose_name = "SUMit! Level"
+        verbose_name_plural = "SUMit! Levels"
