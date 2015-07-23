@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
-    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel
+    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
+    Definition
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -424,9 +425,12 @@ class SUMitAdmin(admin.ModelAdmin):
 
     def get_percent_complete_all(self, obj):
         total_participants = Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
-        completed = len(EventQuestionAnswer.objects.values('participant').filter(correct=True).\
-            annotate(answered=Count('question_option')).values('participant').filter(answered=15))
-        return round((float(completed) / total_participants) * 100)
+        completed = len(EventQuestionAnswer.objects.values('participant').filter(correct=True).
+                        annotate(answered=Count('question_option')).values('participant').filter(answered=15))
+        if total_participants == 0:
+            return 0
+        else:
+            return round((float(completed) / total_participants) * 100)
     get_percent_complete_all.short_description = "% Complete All Questions"
 
     def get_percent_correct_easy(self, obj):
@@ -494,6 +498,7 @@ admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
+admin.site.register(Definition)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(SUMit, SUMitAdmin)

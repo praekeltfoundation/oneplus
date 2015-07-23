@@ -8,6 +8,7 @@ from datetime import datetime
 from django.core.mail import mail_managers
 from .models import SmsQueue
 
+
 @app.task
 def update_metric(name, value, metric_type):
     sender = HttpApiSender(

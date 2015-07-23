@@ -165,6 +165,15 @@ allowed_styles = [
     'height']
 
 
+class Definition(models.Model):
+    name = models.CharField(max_length=255, null=False, blank=False)
+    definition = models.TextField(null=False, blank=False)
+
+    class Meta:
+        verbose_name = "Definition"
+        verbose_name_plural = "Definitions"
+
+
 class GoldenEgg(models.Model):
     course = models.ForeignKey("organisation.Course", null=False, blank=False, verbose_name="Course")
     classs = models.ForeignKey("core.Class", null=True, blank=True, verbose_name="Class")
