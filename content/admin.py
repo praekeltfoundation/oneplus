@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
-    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel
+    EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
+    Definition
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -494,6 +495,7 @@ admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
+admin.site.register(Definition)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(SUMit, SUMitAdmin)
