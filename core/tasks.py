@@ -2,6 +2,7 @@ from djcelery import celery
 from datetime import datetime, timedelta
 from core.models import BadgeAwardLog, Setting
 from django.core.mail import EmailMultiAlternatives
+from django.db.models import Count
 
 
 @celery.task
@@ -23,7 +24,7 @@ def weekly_badge_email():
     html_content += "<th>Badge Count</th></tr>"
     for result in results:
         html_content += "<tr><td>%s %s</td>" % (result["participant_badge_rel__participant__learner__first_name"],
-                                               result["participant_badge_rel__participant__learner__last_name"])
+                                                result["participant_badge_rel__participant__learner__last_name"])
         html_content += "<td>%s</td>" % result["participant_badge_rel__scenario__name"]
         html_content += "<td>%s</td></tr>" % result["count"]
 

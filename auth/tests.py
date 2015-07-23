@@ -22,7 +22,7 @@ class TestAuth(TestCase):
 
     def create_module(self, name, course, **kwargs):
         module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course,module=module)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
         module.save()
         rel.save()
         return module
