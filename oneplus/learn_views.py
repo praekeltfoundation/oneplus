@@ -163,17 +163,23 @@ def home(request, state, user):
     request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
 
     redo = None
-    if (request.session["state"]["home_tasks_week"] >= 15) or \
-            (request.session["state"]["home_tasks_today"] >= request.session["state"]["home_required_tasks"]):
-        correct = ParticipantQuestionAnswer.objects.filter(
-            participant=_participant, correct=True).distinct().values('question')
-        redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
-            participant=_participant, correct=True).distinct().values('question')
-        answered = ParticipantQuestionAnswer.objects.filter(
-            participant=_participant).distinct().values('question')
-        questions = TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct).exclude(id__in=redo_correct)
-        if questions:
-            redo = True
+    redo_active = Setting.get_setting("REPEATING_QUESTIONS_ACTIVE")
+
+    if redo_active and redo_active == "true":
+        if (request.session["state"]["home_tasks_week"] >= 15) or \
+                (request.session["state"]["home_tasks_today"] >= request.session["state"]["home_required_tasks"]):
+            correct = ParticipantQuestionAnswer.objects.filter(
+                participant=_participant, correct=True).distinct().values('question')
+            redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
+                participant=_participant, correct=True).distinct().values('question')
+            answered = ParticipantQuestionAnswer.objects.filter(
+                participant=_participant).distinct().values('question')
+            questions = TestingQuestion.objects.filter(id__in=answered).\
+                exclude(id__in=correct).\
+                exclude(id__in=redo_correct)
+
+            if questions:
+                redo = True
 
     def get():
         _learner = Learner.objects.get(id=user['id'])
