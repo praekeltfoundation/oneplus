@@ -6,7 +6,7 @@ from django.test.runner import DiscoverRunner
 from datetime import datetime
 from auth.models import Learner
 from organisation.models import Course, Module, School, Organisation, CourseModuleRel
-from core.models import Participant, Class, ParticipantBadgeTemplateRel, ParticipantQuestionAnswer
+from core.models import Participant, Class, ParticipantBadgeTemplateRel, ParticipantQuestionAnswer, Setting
 from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption
 import tablib
@@ -425,3 +425,13 @@ class TestMessage(TestCase):
         count2 = percentage_question_answered_correctly(self.question)
         self.assertEqual(count, 1)
         self.assertEqual(count2, 50)
+
+
+class TestSettingMethods(TestCase):
+    def test_find_setting(self):
+        setting = Setting.objects.create(key="TEST1", value="TestValue")
+
+        self.assertIsNone(Setting.get_setting("TEST2"))
+        result = Setting.get_setting("TEST1")
+        self.assertIsNotNone(result)
+        self.assertEquals(result, setting.value)
