@@ -244,11 +244,11 @@ MANAGERS = (
     ('Jane', 'info@oneplus.co.za'),
 )
 
-MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
+MATHML_URL = 'http://mathml.p16n.org/'
 
 ADMIN_REORDER = (
-    ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Learners - Import/Export",
-              "Teachers", "School Managers", "System Administrators")),
+    ("Auth", ("Course Managers", "Course Mentors", "Groups", "Learners", "Teachers", "School Managers",
+              "System Administrators")),
 )
 
 GOLDEN_EGG_IMG_URL = "media/img/GoldenEgg.png"
@@ -257,6 +257,7 @@ GRADE_10_COURSE_NAME = "One Plus Grade 10"
 GRADE_11_COURSE_NAME = "One Plus Grade 11"
 GRADE_10_OPEN_CLASS_NAME = "Grade 10 - Open Class"
 GRADE_11_OPEN_CLASS_NAME = "Grade 11 - Open Class"
+OPEN_SCHOOL = "Open School"
 
 try:
     from local_settings import *

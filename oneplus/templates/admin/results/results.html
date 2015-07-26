@@ -1,0 +1,113 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Results | OnePlus site admin{% endblock %}
+
+<!-- BREADCRUMBS -->
+{% block breadcrumbs %}
+    {% if not is_popup %}
+        <ul>
+            <li><a href="/admin/">Home</a></li>
+            <li>Results</li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
+{% load static %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static "css/results.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/sapphire.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/sapphire-theme.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "js/d3.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/strain.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/sapphire.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/results.js" %}"></script>
+    <script type="text/javascript">
+        _state = {{ state.id }};
+        _course = {{ course.id }};
+        _activity_data_active = {{ activity_results.activity.active|safe }};
+        _activity_data_inactive = {{ activity_results.activity.inactive|safe }};
+        _question_data_total = {{ activity_results.questions.total|safe }};
+        _question_data_correct = {{ activity_results.questions.correct|safe }};
+        _question_data_incorrect = {{ activity_results.questions.incorrect|safe }};
+    </script>
+{% endblock %}
+
+{% block content_title %}
+    <h1>{{ course.name }}</h1>
+{% endblock %}
+
+{% block content %}
+    <form enctype="multipart/form-data" action="" method="post" name="result_form">
+        {% csrf_token %}
+        <input type="hidden" id="state" name="state" value="{{ state.id }}">
+        <a class="result-button-{% if state.id == 1 %}selected{% else %}active{% endif %}" onclick="ChangeMode(1);">Activity</a>
+        <a class="result-button-{% if state.id == 2 %}selected{% else %}active{% endif %}" onclick="ChangeMode(2);">Question Results</a>
+        <a class="result-button-{% if state.id == 3 %}selected{% else %}active{% endif %}" onclick="ChangeMode(3);">Class Results</a>
+        <br><br>
+        <div id="grp-content-container">
+            <fieldset class="grp-module ">
+                <h2 class="grp-collapse-handler header-large">
+                    {% if state.id == 1 %}
+                        {{ state.name }}
+                    {% elif state.id == 2 %}
+                        <select name="module_filter" onchange="ModuleFilterChanged()">
+                            {% for module in modules %}
+                                <option value="{{ module.id }}" {% if module.selected %}selected{% endif %}>{{ module.name }}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif state.id == 3 %}
+                        {{ state.name }}
+                    {% endif %}
+                    <select class="right" name="timeframe_filter" onchange="TimeframeChanged()">
+                        {% for timeframe in timeframes %}
+                            <option value="{{ timeframe.id }}" {% if timeframe.selected %}selected{% endif %}>{{ timeframe.name }}</option>
+                        {% endfor %}
+                    </select>
+                </h2>
+            </fieldset>
+            {% if state.id == 1 %}
+                <div class="readable-bg">
+                    <div class="sapphire">
+                        <div class="result-box">
+                            <div id="d3-activity"></div>
+                        </div>
+                    </div>
+                    <div class="sapphire">
+                        <div class="result-box">
+                            <div id="d3-qa"></div>
+                        </div>
+                    </div>
+                </div>
+            {% elif state.id == 2 %}
+                <div class="result-container">
+                    {% for result in module_results %}
+                        <div class="result-block result-block-border">
+                            <p class="result-text-large">{{ result.large }}</p>
+                            <p class="result-text-small">{{ result.small }}</p>
+                            <p class="result-text-name">{{ result.name|safe }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif state.id == 3 %}
+                {% for class in class_results %}
+                    <div class="result-container">
+                        <div class="result-block result-header">
+                            <p class="result-text-header">{{ class.name }}</p>
+                        </div>
+                        {% for result in class.results %}
+                            <div class="result-block result-block-border">
+                                <p class="result-text-large">{{ result.large }}</p>
+                                <p class="result-text-small">{{ result.small }}</p>
+                                <p class="result-text-name">{{ result.name }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </form>
+{% endblock %}
