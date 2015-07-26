@@ -132,10 +132,16 @@ class Participant(models.Model):
             total_questions = EventQuestionRel.objects.filter(event=event).\
                 aggregate(Count('question'))['question__count']
 
-            if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
-                return None, event_participant_rel
+            if event.type != 0:
+                if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
+                    return None, event_participant_rel
+                else:
+                    return True, event_participant_rel
             else:
-                return True, event_participant_rel
+                if answered < 15:
+                    return None, event_participant_rel
+                else:
+                    return True, event_participant_rel
         return True, None
 
     # Probably to be used in migrations
