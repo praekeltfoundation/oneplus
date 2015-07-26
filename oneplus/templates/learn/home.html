@@ -25,7 +25,7 @@
     {% if sumit %}
         <div class="center-font content">
             <span class="large-font center-font">{{ sumit.name }}</span>
-            <span class="text center-font"><p>Current level: {{ sumit.level }}</p>></span>
+            <span class="text center-font"><p>Current level: {{ sumit.level }}</p></span>
             <span class="badge-award"><img class="badge-img" src="{{ sumit.url }}"></span>
         </div>
     {% endif %}
@@ -42,9 +42,9 @@
 
     {% if not state.questions_complete %}
         {% if state.home_tasks_week >= 15 %}
-            <p class="green-front large-font">This week's revision complete. Come back Monday for more.</p>
+            <p class="green-front large-font">This week's revision complete. Come back Monday for more{% if redo %} or <a class="redo" href="redo">redo today's incorrect answers</a>{% endif %}.</p>
         {% elif state.home_tasks_today >= state.home_required_tasks %}
-            <p class="green-front large-font">Today's revision complete. Come back tomorrow for more.</p>
+            <p class="green-front large-font">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="redo" href="redo">redo today's incorrect answers</a>{% endif %}.</p>
         {% else %}
             {% if not sumit %}
                 <a class="button green-back grey-front" href="next">Go on Take the Challenge</a>
