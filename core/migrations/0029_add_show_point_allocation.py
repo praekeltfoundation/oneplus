@@ -1,26 +1,21 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import SchemaMigration
+from south.v2 import DataMigration
 from django.db import models
 
 
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Adding model 'BadgeAwardLog'
-        db.create_table(u'core_badgeawardlog', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('participant_badge_rel', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.ParticipantBadgeTemplateRel'], null=True)),
-            ('award_date', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal(u'core', ['BadgeAwardLog'])
-
+        "Write your forwards methods here."
+        # Note: Don't use "from appname.models import ModelName". 
+        # Use orm.ModelName to refer to models in this application,
+        # and orm['appname.ModelName'] for models in other applications.
+        orm.Setting.objects.create(key="SHOW_POINT_ALLOCATION", value="True")
 
     def backwards(self, orm):
-        # Deleting model 'BadgeAwardLog'
-        db.delete_table(u'core_badgeawardlog')
-
+        "Write your backwards methods here."
 
     models = {
         u'auth.customuser': {
@@ -106,8 +101,9 @@ class Migration(SchemaMigration):
             'difficulty': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'module': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Module']", 'null': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            'name': ('django.db.models.fields.CharField', [], {'default': "'Auto Generated'", 'max_length': '500', 'unique': 'True', 'null': 'True'}),
+            'notes': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'points': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'question_content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'state': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
@@ -118,8 +114,8 @@ class Migration(SchemaMigration):
             'content': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'correct': ('django.db.models.fields.BooleanField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
-            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
+            'name': ('django.db.models.fields.CharField', [], {'default': "'Auto Generated'", 'max_length': '500', 'unique': 'True', 'null': 'True'}),
+            'order': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
             'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']", 'null': 'True'})
         },
         u'contenttypes.contenttype': {
@@ -129,12 +125,6 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'core.badgeawardlog': {
-            'Meta': {'object_name': 'BadgeAwardLog'},
-            'award_date': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'participant_badge_rel': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.ParticipantBadgeTemplateRel']", 'null': 'True'})
-        },
         u'core.class': {
             'Meta': {'object_name': 'Class'},
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
@@ -143,6 +133,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
+            'province': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'startdate': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'})
         },
@@ -160,7 +151,7 @@ class Migration(SchemaMigration):
         u'core.participantbadgetemplaterel': {
             'Meta': {'object_name': 'ParticipantBadgeTemplateRel'},
             'awardcount': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 25, 0, 0)', 'null': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 7, 22, 0, 0)', 'null': 'True'}),
             'badgetemplate': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
@@ -168,7 +159,7 @@ class Migration(SchemaMigration):
         },
         u'core.participantpointbonusrel': {
             'Meta': {'object_name': 'ParticipantPointBonusRel'},
-            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 25, 0, 0)', 'null': 'True', 'blank': 'True'}),
+            'awarddate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 7, 22, 0, 0)', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
             'pointbonus': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationPointBonus']"}),
@@ -176,7 +167,16 @@ class Migration(SchemaMigration):
         },
         u'core.participantquestionanswer': {
             'Meta': {'object_name': 'ParticipantQuestionAnswer'},
-            'answerdate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 6, 25, 0, 0)', 'null': 'True'}),
+            'answerdate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 7, 22, 0, 0)', 'null': 'True', 'db_index': 'True'}),
+            'correct': ('django.db.models.fields.BooleanField', [], {'db_index': 'True'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'option_selected': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestionOption']"}),
+            'participant': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['core.Participant']"}),
+            'question': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestion']"})
+        },
+        u'core.participantredoquestionanswer': {
+            'Meta': {'object_name': 'ParticipantRedoQuestionAnswer'},
+            'answerdate': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2015, 7, 22, 0, 0)', 'null': 'True'}),
             'correct': ('django.db.models.fields.BooleanField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'option_selected': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['content.TestingQuestionOption']"}),
@@ -200,7 +200,6 @@ class Migration(SchemaMigration):
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'multiple': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'order': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
         },
@@ -214,6 +213,7 @@ class Migration(SchemaMigration):
         },
         u'gamification.gamificationscenario': {
             'Meta': {'object_name': 'GamificationScenario'},
+            'award_type': ('django.db.models.fields.PositiveIntegerField', [], {'default': '1'}),
             'badge': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gamification.GamificationBadgeTemplate']", 'null': 'True', 'blank': 'True'}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Course']", 'null': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'blank': 'True'}),
@@ -264,8 +264,10 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '500', 'unique': 'True', 'null': 'True'}),
             'organisation': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['organisation.Organisation']", 'null': 'True'}),
+            'province': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'website': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
         }
     }
 
     complete_apps = ['core']
+    symmetrical = True

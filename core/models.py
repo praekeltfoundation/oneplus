@@ -270,3 +270,12 @@ class ParticipantRedoQuestionAnswer(models.Model):
 class Setting(models.Model):
     key = models.CharField("Key", max_length=50, blank=False, unique=True)
     value = models.TextField("Value", max_length=100, blank=False)
+
+    @staticmethod
+    def get_setting(key):
+        setting = Setting.objects.filter(key__exact=key).first()
+
+        if setting:
+            return setting.value
+        else:
+            return None
