@@ -1300,8 +1300,8 @@ def event_start_page(request, state, user):
 
     sumit = None
     if _event:
+        allowed, _event_participant_rel = _participant.can_take_event(_event)
         if _event.type != 0:
-            allowed, _event_participant_rel = _participant.can_take_event(_event)
             if not allowed:
                 return redirect("learn.home")
         else:
@@ -1327,13 +1327,13 @@ def event_start_page(request, state, user):
 
     def post():
         if "event_start_button" in request.POST.keys():
-            if not sumit:
-                if _event_participant_rel:
-                    _event_participant_rel.sitting_number += 1
-                    _event_participant_rel.save()
-                else:
-                    EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
+            if _event_participant_rel:
+                _event_participant_rel.sitting_number += 1
+                _event_participant_rel.save()
+            else:
+                EventParticipantRel.objects.create(participant=_participant, event=_event, sitting_number=1)
 
+            if not sumit:
                 request.session["event_session"] = True
 
                 return redirect("learn.event")
@@ -1343,9 +1343,10 @@ def event_start_page(request, state, user):
                 if _learnerstate is None:
                     _learnerstate = LearnerState(participant=_participant)
 
-                _learnerstate.sumit_level = 1
-                _learnerstate.sumit_question = 1
-                _learnerstate.save()
+                if _learnerstate.sumit_level <= 1:
+                    _learnerstate.sumit_level = 1
+                    _learnerstate.sumit_question = 1
+                    _learnerstate.save()
 
                 return redirect("learn.sumit")
         else:
@@ -1492,6 +1493,10 @@ def sumit_end_page(request, state, user):
                 _sumit.event_badge.event,
                 module
             )
+
+        _learnerstate.sumit_level = 0
+        _learnerstate.sumit_question = 0
+        _learnerstate.save()
     else:
         return redirect("learn.home")
     badge, badge_points = get_badge_awarded(_participant)
