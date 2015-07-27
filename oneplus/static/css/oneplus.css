@@ -570,3 +570,7 @@ ul.bullets{
     list-style-type: disc;
     padding-left: 10px;
 }
+
+.padding-bottom {
+     padding-bottom: 5px;
+ }
