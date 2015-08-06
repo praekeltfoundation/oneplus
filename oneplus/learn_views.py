@@ -1620,6 +1620,16 @@ def event_start_page(request, state, user):
                 return redirect("learn.home")
         else:
             sumit = True
+            _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+            if _learnerstate is None:
+                _learnerstate = LearnerState(participant=_participant)
+
+            if _learnerstate.sumit_level <= 1:
+                _learnerstate.sumit_level = 1
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+
     else:
         return redirect("learn.home")
 
