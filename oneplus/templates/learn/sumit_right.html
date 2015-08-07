@@ -6,7 +6,7 @@
 {% block content %}
     {% load humanize %}
 
-    <div class="text heading green-back darkgrey-front center-font"><li class="icon ontrack"></li><p>SUMit!</p></div>
+    <div class="text heading darkgrey-front center-font {% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-back {% elif sumit.level == 'Foothills' %} yellow-back {% elif sumit.level == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit!</p></div>
 
     {% if sumit %}
         <div class="sumit_content">
@@ -25,7 +25,7 @@
     {% autoescape off %}
         <div class="content narrow white-back darkgrey-front">
             <div class="pad-bottom">
-                <div class="xlarge-font center-font pad-bottom">
+                <div class="xlarge-font center-font pad-bottom pad-top">
                     Correct
                 </div>
                 {% if not preview %}

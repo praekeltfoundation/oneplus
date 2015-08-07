@@ -6,7 +6,7 @@
 {% block content %}
    {% load humanize %}
 
-    <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>SUMit!</p></div>
+        <div class="text heading darkgrey-front center-font {% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-back {% elif sumit.level == 'Foothills' %} yellow-back {% elif sumit.level == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit!</p></div>
 
     {% if sumit %}
         <div class="sumit_content">
@@ -26,7 +26,7 @@
         <div class="content narrow white-back darkgrey-front">
             <div class="pad-bottom">
 
-                <div class="xlarge-font center-font pad-bottom">Incorrect</div>
+                <div class="xlarge-font center-font pad-bottom  pad-top">Incorrect</div>
                 <div class="large-font center-font">Unfortunately that is not the answer</div>
                 {% if question.textbook_link %}
                     <a href="{{  question.textbook_link  }}">

@@ -8,25 +8,33 @@
     {% if state.home_tasks_today < state.home_required_tasks %}
         {% if not state.questions_complete %}
             {% if sumit %}
-                <div class="text heading grey-back"><p>Hello {{ user.name }}. It's {{ sumit.name }}, are you ready?</p></div>
+                <div class="text heading grey-back"><p>Hello {{ user.name }}. It's SUMit! Week, are you ready?</p></div>
             {% else %}
                 <div class="text heading grey-back"><p>Hello {{ user.name }}. Ready to take the challenge?</p></div>
             {% endif %}
         {% endif %}
     {% endif %}
-    <div class="dayheading">
-        <div class="text {% if state.home_day == 0 %} present {% elif state.home_day > 0 %} past {% elif state.home_day < 0 %} future {% endif %}"><p>1<br/>DAY</p></div>
-        <div class="text {% if state.home_day == 1 %} present {% elif state.home_day > 1 %} past {% elif state.home_day < 1 %} future {% endif %}"><p>2<br/>DAY</p></div>
-        <div class="text {% if state.home_day == 2 %} present {% elif state.home_day > 2 %} past {% elif state.home_day < 2 %} future {% endif %}"><p>3<br/>DAY</p></div>
-        <div class="text {% if state.home_day == 3 %} present {% elif state.home_day > 3 %} past {% elif state.home_day < 3 %} future {% endif %}"><p>4<br/>DAY</p></div>
-        <div class="text {% if state.home_day == 4 %} present {% elif state.home_day > 4 %} past {% elif state.home_day < 4 %} future {% endif %}"><p>5<br/>DAY</p></div>
-    </div>
+    {%  if not sumit %}
+        <div class="dayheading">
+            <div class="text {% if state.home_day == 0 %} present {% elif state.home_day > 0 %} past {% elif state.home_day < 0 %} future {% endif %}"><p>1<br/>DAY</p></div>
+            <div class="text {% if state.home_day == 1 %} present {% elif state.home_day > 1 %} past {% elif state.home_day < 1 %} future {% endif %}"><p>2<br/>DAY</p></div>
+            <div class="text {% if state.home_day == 2 %} present {% elif state.home_day > 2 %} past {% elif state.home_day < 2 %} future {% endif %}"><p>3<br/>DAY</p></div>
+            <div class="text {% if state.home_day == 3 %} present {% elif state.home_day > 3 %} past {% elif state.home_day < 3 %} future {% endif %}"><p>4<br/>DAY</p></div>
+            <div class="text {% if state.home_day == 4 %} present {% elif state.home_day > 4 %} past {% elif state.home_day < 4 %} future {% endif %}"><p>5<br/>DAY</p></div>
+        </div>
+    {% endif %}
 
     {% if sumit %}
-        <div class="center-font content">
-            <span class="large-font center-font">{{ sumit.name }}</span>
-            <span class="text center-font"><p>Current level: {{ sumit.level }}</p></span>
-            <span class="badge-award"><img class="badge-img" src="{{ sumit.url }}"></span>
+        <div class="center-font content darkgrey-back">
+            <div class="pad-bottom"><span class="large-font">SUMit! Week</span></div>
+            <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
+            <div>
+                <span class="text-line">
+                    <p>Current level:
+                        <b class="{% if sumit.level == 'Basecamp' %} green-front {% elif sumit.level == 'Foothills' %} yellow-front {% elif sumit.level == 'Cliffs' %} purple-front {% else %} cyan-front {% endif %}">{{ sumit.level }}</b>
+                    </p>
+                </span>
+            </div>
         </div>
     {% endif %}
 
@@ -46,7 +54,11 @@
         {% elif state.home_tasks_today >= state.home_required_tasks %}
             <p class="green-front large-font">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="redo" href="redo">redo today's incorrect answers</a>{% endif %}.</p>
         {% else %}
-            <a class="button green-back grey-front" href="next">Go on Take the Challenge</a>
+            {% if not sumit %}
+                <a class="button green-back grey-front" href="next">Go on Take the Challenge</a>
+            {% else %}
+                <a class="button green-back grey-front" href="sumit">Start SUMit!</a>
+            {% endif %}
         {%  endif %}
     {% else %}
          <p class="green-front large-font">You've finished all of the OnePlus questions!
@@ -67,7 +79,6 @@
             </div>
         </form>
     {% endif %}
-
 
     <div class="weeksummary">
         <div class="text badge" onclick="window.location='/badges'">
