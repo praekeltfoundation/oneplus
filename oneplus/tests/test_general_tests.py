@@ -1205,6 +1205,10 @@ class GeneralTests(TestCase):
         eqa.correct = False
         eqa.save()
 
+        _learnerstate.sumit_level = 5
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
         resp = self.client.get(reverse('learn.sumit_end_page'))
 
         _participant = Participant.objects.get(id=self.participant.id)

@@ -59,6 +59,7 @@ def home(request, state, user):
                     first_sitting = False
         else:
             sumit = {}
+            event_name = _event.name
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
             if _sumit_level:
                 sumit["url"] = _sumit_level.image.url
