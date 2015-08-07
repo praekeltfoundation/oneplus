@@ -112,6 +112,17 @@ class Participant(models.Model):
         )
         answer.save()
 
+    def answer_redo(self, question, option):
+        # Create participant question answer
+        answer = ParticipantRedoQuestionAnswer(
+            participant=self,
+            question=question,
+            option_selected=option,
+            correct=option.correct,
+            answerdate=datetime.now()
+        )
+        answer.save()
+
     def can_take_event(self, event):
         event_participant_rel = EventParticipantRel.objects.filter(event=event, participant=self).first()
 
@@ -121,10 +132,16 @@ class Participant(models.Model):
             total_questions = EventQuestionRel.objects.filter(event=event).\
                 aggregate(Count('question'))['question__count']
 
-            if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
-                return None, event_participant_rel
+            if event.type != 0:
+                if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
+                    return None, event_participant_rel
+                else:
+                    return True, event_participant_rel
             else:
-                return True, event_participant_rel
+                if answered < 15:
+                    return None, event_participant_rel
+                else:
+                    return True, event_participant_rel
         return True, None
 
     # Probably to be used in migrations
@@ -132,13 +149,21 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
-        events = EventParticipantRel.objects.filter(participant=self, results_received=True).\
-            exclude(event__event_points=None)
+        events = EventParticipantRel.objects.filter(
+            participant=self,
+            results_received=True)
+        badges = ParticipantBadgeTemplateRel.objects.filter(
+            participant=self
+        )
+
         points = 0
         for answer in answers:
             points += answer.question.points
         for event in events:
             points += event.event.event_points
+        for badge in badges:
+            if badge.scenario.point:
+                points += badge.scenario.point.value
         self.points = points
         self.save()
         return points
@@ -158,6 +183,19 @@ class Participant(models.Model):
                         participant=self, badgetemplate=scenario.badge,
                         scenario=scenario, awarddate=datetime.now())
                     b.save()
+                    if scenario.point:
+                        ParticipantPointBonusRel(participant=self, scenario=scenario,
+                                                 pointbonus=scenario.point, awarddate=datetime.now()).save()
+                    BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
+                elif scenario.award_type == 2:
+                    b = template_rels.first()
+                    b.awardcount += 1
+                    b.awarddate = datetime.now()
+                    b.save()
+                    if scenario.point:
+                        ParticipantPointBonusRel(participant=self, scenario=scenario,
+                                                 pointbonus=scenario.point, awarddate=datetime.now()).save()
+                    BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
 
         # Recalculate total points - not entirely sure that this should be here.
         self.points = self.recalculate_total_points()
@@ -183,6 +221,12 @@ class ParticipantBadgeTemplateRel(models.Model):
     scenario = models.ForeignKey(GamificationScenario)
     awarddate = models.DateTimeField(
         "Award Date", null=True, blank=False, default=datetime.now())
+    awardcount = models.PositiveIntegerField(default=1)
+
+
+class BadgeAwardLog(models.Model):
+    participant_badge_rel = models.ForeignKey(ParticipantBadgeTemplateRel, blank=False, null=True)
+    award_date = models.DateTimeField(auto_now_add=True)
 
 
 class ParticipantQuestionAnswer(models.Model):
@@ -206,6 +250,32 @@ class ParticipantQuestionAnswer(models.Model):
         verbose_name_plural = "Participant Question Responses"
 
 
+class ParticipantRedoQuestionAnswer(models.Model):
+    participant = models.ForeignKey(Participant, verbose_name="Participant")
+    question = models.ForeignKey(TestingQuestion, verbose_name="Question")
+    option_selected = models.ForeignKey(
+        TestingQuestionOption, verbose_name="Selected")
+    correct = models.BooleanField("Correct")
+    answerdate = models.DateTimeField(
+        "Answer Date", null=True, blank=False, default=datetime.now())
+
+    def __str__(self):
+        return self.participant.learner.username
+
+    class Meta:
+        verbose_name = "Participant Question Response"
+        verbose_name_plural = "Participant Question Responses"
+
+
 class Setting(models.Model):
     key = models.CharField("Key", max_length=50, blank=False, unique=True)
     value = models.TextField("Value", max_length=100, blank=False)
+
+    @staticmethod
+    def get_setting(key):
+        setting = Setting.objects.filter(key__exact=key).first()
+
+        if setting:
+            return setting.value
+        else:
+            return None

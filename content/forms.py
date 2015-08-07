@@ -4,7 +4,8 @@ import os
 import shutil
 
 from django import forms
-from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event
+from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage, SUMit
+from gamification.models import GamificationScenario
 import requests
 from django.conf import settings
 from core.models import Class
@@ -130,18 +131,19 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
     def save(self, commit=True):
         options = super(TestingQuestionFormSet, self).save(commit=False)
-        question = options[0].question
-        for option in options:
-            if option.order == 0:
-                option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
-            if option.name == "Auto Generated":
-                option.name = "%s Option %s" % (question, option.order)
-            option.save()
+        if options:
+            question = options[0].question
+            for option in options:
+                if option.order == 0:
+                    option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
+                if option.name == "Auto Generated":
+                    option.name = "%s Option %s" % (question, option.order)
+                option.save()
 
-        if len(options) < 2:
-            order = TestingQuestionOption.objects.filter(question=question).count() + 1
-            name = "%s Option %s" % (question, order)
-            TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
+            if len(options) < 2:
+                order = TestingQuestionOption.objects.filter(question=question).count() + 1
+                name = "%s Option %s" % (question, order)
+                TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
 
 
 def process_mathml_content(_content, _source, _source_id):
@@ -468,3 +470,44 @@ class EventQuestionRelInline(forms.models.BaseInlineFormSet):
                 if page.get('order') != count:
                     raise forms.ValidationError({'name': ["Order number's must start with 1 and increment by 1 for "
                                                           "each questions added.", ]})
+
+
+class SUMitEndPageInlineFormSet(forms.models.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super(SUMitEndPageInlineFormSet, self).__init__(*args, **kwargs)
+        self.initial = [{'type': '1'}, {'type': '2'}, {'type': '3'}]
+
+    def clean(self):
+        super(SUMitEndPageInlineFormSet, self).clean()
+        if not hasattr(self.form, 'cleaned_data'):
+            count = 0
+            count_level1_4 = 0
+            count_level5 = 0
+            count_winner = 0
+            for form in self.forms:
+                data = form.cleaned_data
+                if data.get('header') is not None and data.get('paragraph') is not None and not data.get('DELETE'):
+                    count += 1
+                if data.get('type') == 1:
+                    count_level1_4 += 1
+                if data.get('type') == 2:
+                    count_level5 += 1
+                if data.get('type') == 3:
+                    count_winner += 1
+
+            if count == 0:
+                raise forms.ValidationError({'name': ['You must create one end page']})
+
+            if count_level1_4 != 1 and count_level5 != 1 and count_winner != 1:
+                raise forms.ValidationError({'name': ['You must create one of each']})
+
+    class Meta:
+        model = SUMitEndPage
+
+
+class SUMitLevelForm(forms.ModelForm):
+    def clean_order(self):
+        order = self.data.get("order")
+        if 1 < order < 5:
+            raise forms.ValidationError("Order must be between 1 and 5")
+        return order
