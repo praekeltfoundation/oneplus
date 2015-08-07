@@ -27,6 +27,7 @@ input[type=submit], input[type=text], input[type=password] {
 .red-front { color: #e4263e; }
 .orange-front { color: #f55d2c; }
 .yellow-front { color: #e4c52f; }
+.black-front { color: #000000; }
 
 .white-back { background-color: #ffffff; }
 .darkgrey-back { background-color: #191919; }
@@ -101,8 +102,6 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     width: 100%;
 
 }
-
-
 
 .header .menu-login {
     float:right;
@@ -317,24 +316,55 @@ p a { display: inline;}
 }
 
 .sumit_content {
-    padding: 40px 0px 40px 0px;
+    padding: 10px 0px 0px;
 }
 
 .sumit {
-    position:relative;
+    position: relative;
+    text-align: center;
     width: 100%;
-    text-align: center
+    margin-bottom: -30px;
  }
 
 .sumit_line {
-    border-top: 8px solid black;
+    border-top: 5px solid rgb(0, 0, 0);
     display: block;
     height: 1px;
     content: " ";
     width: 100%;
-    left: 0;
-    top: 30px;
-    position: relative
+    left: 0px;
+    position: relative;
+    bottom: -30px;
+}
+
+.sumitheading {
+    height: 40px;
+    width: 100%;
+    background-color: #333333;
+}
+
+.sumitheading div {
+    position: relative;
+    height: 40px;
+    width: 25%;
+    text-align: center;
+    float:left;
+}
+
+.basecamp {
+    border-bottom: solid 2px #28e690;
+}
+
+.foothills {
+    border-bottom: solid 2px #e4c52f;
+}
+
+.cliffs {
+    border-bottom: solid 2px #b848c9;
+}
+
+.peak {
+    border-bottom: solid 2px #46bbe1;
 }
 
 .drop-relative {

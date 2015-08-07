@@ -6,17 +6,16 @@
 {% block content %}
 {% load humanize %}
 
-<div class="content narrow white-back darkgrey-front">
-    <div class="pad-bottom">
+    <div class="content narrow darkgrey-back white-front">
+        <div class="pad-bottom">
 
-        <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
-        <div class="large-font center-font">{{ page.message }}</div>
+            <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
+            <div class="large-font center-font">{{ page.message }}</div>
 
-        <form action="#" method="post" class="pad-bottom">{% csrf_token %}
-            <input type="submit" name="event_start_button" class="button green-back grey-front" value="Get Started"/>
-        </form>
+            <form action="#" method="post" class="pad-bottom">{% csrf_token %}
+                <input type="submit" name="event_start_button" class="button green-back grey-front" value="Start"/>
+            </form>
+        </div>
     </div>
-</div>
-
 
 {% endblock %}

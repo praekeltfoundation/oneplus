@@ -6,17 +6,16 @@
 {% block content %}
 {% load humanize %}
 
-<div class="content narrow white-back darkgrey-front">
+<div class="content center-font narrow darkgrey-front {% if page.event_type == 0 %} green-back {% elif page.event_type == 1 %} yellow-back {% else %} cyan-back {% endif %} white-back ">
     <div class="pad-bottom">
 
+        <div><img src="{% if page.event_type == 0 %} media/img/OP_Badge_SUMit.png {% elif page.event_type == 1 %} media/img/OP_Badge_SpotTest.png {% else %} media/img/OP_Badge_Exam.png {% endif %}"></div>
         <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
         <div class="large-font center-font"><p>{{ page.message }}</p></div>
 
-        {% if not sumit %}
-            <a class="button green-back grey-front drop-relative" href="event_start_page">Take It!</a>
-            <a href="home"><div class="center-font">Skip to your normal daily challenge</div></a>
-        {% else %}
-            <a class="button green-back grey-front drop-relative" href="event_start_page">Start {{ sumit.name }}</a>
+        <a class="button white-back grey-front drop-relative" href="event_start_page">Take It!</a>
+        {%  if page.event_type != 0 %}
+            <a href="home"><div class="center-font darkgrey-front">Skip this</div></a>
         {% endif %}
     </div>
 </div>

@@ -59,7 +59,6 @@ def home(request, state, user):
                     first_sitting = False
         else:
             sumit = {}
-            sumit["name"] = _event.name
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
             if _sumit_level:
                 sumit["url"] = _sumit_level.image.url
@@ -889,7 +888,8 @@ def sumit(request, state, user):
     sumit_question = _learnerstate.sumit_question
 
     sumit = {}
-    sumit["level"] = sumit_level.name
+    sumit["name"] = sumit_level.name
+    sumit["level"] = sumit_level.order
     for i in range(1, 4):
         if i in range(1, sumit_question):
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
@@ -1566,15 +1566,11 @@ def event_splash_page(request, state, user):
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
-
-    sumit = None
     if _event:
         if _event.type != 0:
             allowed, _event_participant_rel = _participant.can_take_event(_event)
             if not allowed:
                 return redirect("learn.home")
-        else:
-            sumit = {"name": _event.name}
     else:
         return redirect("learn.home")
 
@@ -1585,6 +1581,7 @@ def event_splash_page(request, state, user):
     _splash_page = splash_pages[random_splash_page]
     page["header"] = _splash_page.header
     page["message"] = _splash_page.paragraph
+    page["event_type"] = _event.type
 
     def get():
         return render(
@@ -1593,8 +1590,7 @@ def event_splash_page(request, state, user):
             {
                 "state": state,
                 "user": user,
-                "page": page,
-                "sumit": sumit
+                "page": page
             }
         )
 
