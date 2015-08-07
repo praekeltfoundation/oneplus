@@ -173,8 +173,8 @@ def home(request, state, user):
                 participant=_participant, correct=True).distinct().values('question')
             answered = ParticipantQuestionAnswer.objects.filter(
                 participant=_participant).distinct().values('question')
-            questions = TestingQuestion.objects.filter(id__in=answered).\
-                exclude(id__in=correct).\
+            questions = TestingQuestion.objects.filter(id__in=answered). \
+                exclude(id__in=correct). \
                 exclude(id__in=redo_correct)
 
             if questions:
@@ -929,6 +929,16 @@ def sumit(request, state, user):
             _participant.answer_event(_sumit, _option.question, _option)
             state["total_tasks_today"] = _learnerstate.get_total_questions()
 
+            _learnerstate.sumit_question += 1
+            _learnerstate.save()
+            if _learnerstate.sumit_question > 3:
+                _learnerstate.sumit_level += 1
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+            if _learnerstate.sumit_level > 5:
+                _learnerstate.sumit_level = 5
+                _learnerstate.save()
+
             if _option.correct:
                 return redirect("learn.sumit_right")
 
@@ -952,15 +962,8 @@ def sumit_right(request, state, user):
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
-    _learnerstate.sumit_question += 1
-    _learnerstate.save()
-    if _learnerstate.sumit_question > 3:
-        _learnerstate.sumit_level += 1
-        _learnerstate.sumit_question = 1
-        _learnerstate.save()
-    if _learnerstate.sumit_level > 5:
-        _learnerstate.sumit_level = 5
-        _learnerstate.save()
+    _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant) \
+        .order_by("-answer_date").first().question
 
     request.session["state"]["right_tasks_today"] = \
         EventQuestionAnswer.objects.filter(event=_sumit,
@@ -969,9 +972,6 @@ def sumit_right(request, state, user):
 
     sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
     sumit_question = _learnerstate.sumit_question
-
-    _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant) \
-        .order_by("-answer_date").first().question
 
     sumit = {}
     sumit["level"] = sumit_level.name
@@ -1865,7 +1865,7 @@ def report_question(request, state, user, questionid, frm):
 
     def post():
         if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                "fix" in request.POST.keys() and request.POST["fix"] != "":
+                        "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]
