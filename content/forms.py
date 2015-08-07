@@ -131,18 +131,19 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 
     def save(self, commit=True):
         options = super(TestingQuestionFormSet, self).save(commit=False)
-        question = options[0].question
-        for option in options:
-            if option.order == 0:
-                option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
-            if option.name == "Auto Generated":
-                option.name = "%s Option %s" % (question, option.order)
-            option.save()
+        if options:
+            question = options[0].question
+            for option in options:
+                if option.order == 0:
+                    option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
+                if option.name == "Auto Generated":
+                    option.name = "%s Option %s" % (question, option.order)
+                option.save()
 
-        if len(options) < 2:
-            order = TestingQuestionOption.objects.filter(question=question).count() + 1
-            name = "%s Option %s" % (question, order)
-            TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
+            if len(options) < 2:
+                order = TestingQuestionOption.objects.filter(question=question).count() + 1
+                name = "%s Option %s" % (question, order)
+                TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
 
 
 def process_mathml_content(_content, _source, _source_id):
