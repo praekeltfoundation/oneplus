@@ -27,6 +27,7 @@ input[type=submit], input[type=text], input[type=password] {
 .red-front { color: #e4263e; }
 .orange-front { color: #f55d2c; }
 .yellow-front { color: #e4c52f; }
+.black-front { color: #000000; }
 
 .white-back { background-color: #ffffff; }
 .darkgrey-back { background-color: #191919; }
@@ -101,8 +102,6 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     width: 100%;
 
 }
-
-
 
 .header .menu-login {
     float:right;
@@ -316,6 +315,58 @@ p a { display: inline;}
     margin-top: 22px;
 }
 
+.sumit_content {
+    padding: 10px 0px 0px;
+}
+
+.sumit {
+    position: relative;
+    text-align: center;
+    width: 100%;
+    margin-bottom: -30px;
+ }
+
+.sumit_line {
+    border-top: 5px solid rgb(0, 0, 0);
+    display: block;
+    height: 1px;
+    content: " ";
+    width: 100%;
+    left: 0px;
+    position: relative;
+    bottom: -30px;
+}
+
+.sumitheading {
+    height: 40px;
+    width: 100%;
+    background-color: #333333;
+}
+
+.sumitheading div {
+    position: relative;
+    height: 40px;
+    width: 25%;
+    text-align: center;
+    float:left;
+}
+
+.basecamp {
+    border-bottom: solid 2px #28e690;
+}
+
+.foothills {
+    border-bottom: solid 2px #e4c52f;
+}
+
+.cliffs {
+    border-bottom: solid 2px #b848c9;
+}
+
+.peak {
+    border-bottom: solid 2px #46bbe1;
+}
+
 .drop-relative {
     position:relative;
     line-height: 35px;
@@ -512,6 +563,19 @@ li.down_red {
     margin-right: 1em;
 }
 
+.badge-counter{
+    border-radius: 100%;
+    height: 25px;
+    width: 25px !important;
+    text-align: center;
+    line-height: 25px;
+    border: 1px solid black;
+    position: relative;
+    left: 50px;
+    top: 20px;
+    margin-top: 0px !important;
+}
+
 
 /*
 .comment > button{
@@ -569,6 +633,13 @@ li.down_red {
 ul.bullets{
     list-style-type: disc;
     padding-left: 10px;
+}
+
+.redo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #e3643a;
+    text-decoration: underline;
 }
 
 .padding-bottom {
