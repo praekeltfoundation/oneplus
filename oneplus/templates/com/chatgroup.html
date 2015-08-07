@@ -12,7 +12,9 @@
     <div class="menu">
     {% for grp in groups %}
         <div class="item-large grey-back white-front">
-            <h1 class="white-front bold-font">{{ grp.name }}</h1>
+            <a href="chat/{{ grp.id }}">
+                <h1 class="white-front large-font">{{ grp.name }}</h1>
+            </a>
             <div><span class="white-front bold-font">{{ grp.last_message.author.first_name }}</span> <span class="lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</span></div>
             <p class="white-front">{{ grp.last_message.content }}</p>
             <a href="chat/{{ grp.id }}" class="blue-front">See more Comments ></a>
