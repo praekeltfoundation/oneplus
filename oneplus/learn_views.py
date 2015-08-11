@@ -1580,7 +1580,6 @@ def event_splash_page(request, state, user):
     random_splash_page = randint(1, num_splash_pages) - 1
     _splash_page = splash_pages[random_splash_page]
     page["header"] = _splash_page.header
-    print _splash_page.paragraph
     page["message"] = _splash_page.paragraph
     page["event_type"] = _event.type
 
