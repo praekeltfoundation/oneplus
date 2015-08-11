@@ -137,11 +137,13 @@ class Mathml(models.Model):
     TESTING_QUESTION_QUESTION = 0
     TESTING_QUESTION_ANSWER = 1
     TESTING_QUESTION_OPTION = 2
+    TESTING_QUESTION_NOTES = 3
 
     SOURCE_CHOICES = (
         (TESTING_QUESTION_QUESTION, 'tq_q'),
         (TESTING_QUESTION_ANSWER, 'tq_a'),
         (TESTING_QUESTION_OPTION, 'tq_o'),
+        (TESTING_QUESTION_NOTES, 'tq_n'),
     )
 
     mathml_content = models.TextField(null=False, blank=False)
