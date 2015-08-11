@@ -65,6 +65,46 @@ class TestContent(TestCase):
         # check if any not rendered mathml has ben rendered
         self.assertEquals(not_rendered, rendered)
 
+    def test_create_test_question(self):
+        question_content = "solve this equation <mml:math xmlns:mml='http://www.w3.org/1998/Math/MathML'>" \
+                           "<mml:msup>" \
+                           "<mml:mi>x</mml:mi>" \
+                           "<mml:mn>2</mml:mn>" \
+                           "<mml:mo>+</mml:mo>" \
+                           "<mml:mi>y</mml:mi>" \
+                           "<mml:mn>2</mml:mn>" \
+                           "</mml:msup>" \
+                           "</mml:math>"
+
+        answer_content = "<mml:math xmlns:mml='http://www.w3.org/1998/Math/MathML' display='block'>" \
+                         "<mml:msup>" \
+                         "<mml:mi>x</mml:mi>" \
+                         "<mml:mn>2</mml:mn>" \
+                         "<mml:mo>+</mml:mo>" \
+                         "<mml:mi>y</mml:mi>" \
+                         "<mml:mn>2</mml:mn>" \
+                         "</mml:msup>" \
+                         "</mml:math>"
+
+        testing_question = self.create_test_question('question222', self.module,
+                                                     question_content=question_content,
+                                                     answer_content=answer_content)
+
+        #self.assertNotEquals(testing_question.question_content, question_content)
+        #self.assertNotEquals(testing_question.answer_content, answer_content)
+
+        content = process_mathml_content(question_content, 0, testing_question.id)
+
+        #does the question content contain the img tag
+        self.assertNotEquals(testing_question.question_content, content)
+
+        not_rendered = Mathml.objects.filter(rendered=False).count()
+        render_mathml()
+        rendered = Mathml.objects.filter(rendered=False).count()
+
+        # check if any not rendered mathml has ben rendered
+        self.assertEquals(not_rendered, rendered)
+
     def test_linebreaks(self):
         content = "<p>heading</p><p>content</p>"
 

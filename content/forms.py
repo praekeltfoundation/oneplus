@@ -54,10 +54,25 @@ class TestingQuestionCreateForm(forms.ModelForm):
         testing_question.save()
 
         question_content = self.cleaned_data.get("question_content")
-        testing_question.question_content = process_mathml_content(question_content, 0, testing_question.id)
+        testing_question.question_content = process_mathml_content(
+            question_content,
+            Mathml.TESTING_QUESTION_QUESTION,
+            testing_question.id
+        )
 
         answer_content = self.cleaned_data.get("answer_content")
-        testing_question.answer_content = process_mathml_content(answer_content, 1, testing_question.id)
+        testing_question.answer_content = process_mathml_content(
+            answer_content,
+            Mathml.TESTING_QUESTION_ANSWER,
+            testing_question.id
+        )
+
+        notes = self.cleaned_data.get("notes")
+        testing_question.notes = process_mathml_content(
+            notes,
+            Mathml.TESTING_QUESTION_NOTES,
+            testing_question.id
+        )
 
         testing_question.save()
 
@@ -87,7 +102,11 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
         question_option.save()
 
         option_content = self.cleaned_data.get("content")
-        question_option.content = process_mathml_content(option_content, 2, question_option.id)
+        question_option.content = process_mathml_content(
+            option_content,
+            Mathml.TESTING_QUESTION_OPTION,
+            question_option.id
+        )
 
         question_option.save()
 
@@ -149,10 +168,11 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 def process_mathml_content(_content, _source, _source_id):
     _content = convert_to_tags(_content)
 
-    mathml = re.findall("<math.*?>.*?</math>", _content)
+    pattern = "<.*?[:]*math.*?>.*?</.*?[:]*math>"
+    mathml = re.findall(pattern, _content)
 
     for m in mathml:
-        _content = re.sub("<math.*?>.*?</math>", process_mathml_tag(m, _source, _source_id), _content, count=1)
+        _content = re.sub(pattern, process_mathml_tag(m, _source, _source_id), _content, count=1)
 
     return _content
 
