@@ -11,7 +11,7 @@
 
         <div><img src="{% if page.event_type == 0 %} media/img/OP_Badge_SUMit.png {% elif page.event_type == 1 %} media/img/OP_Badge_SpotTest.png {% else %} media/img/OP_Badge_Exam.png {% endif %}"></div>
         <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
-        <div class="large-font center-font"><p>{{ page.message }}</p></div>
+        <div><p class="large-font center-font">{{ page.message }}</p></div>
 
         <a class="button white-back grey-front drop-relative" href="event_start_page">Take It!</a>
         {%  if page.event_type != 0 %}
