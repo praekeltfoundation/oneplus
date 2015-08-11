@@ -2,7 +2,7 @@ from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
-    Definition
+    Definition, GoldenEggRewardLog
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -265,6 +265,17 @@ class GoldenEggAdmin(SummernoteModelAdmin):
     get_reward_value.short_description = "Reward Value"
 
 
+class GoldenEggRewardLogAdmin(SummernoteModelAdmin):
+    list_display = ("get_learner", "award_date", "points", "badge", "airtime")
+    list_filter = ("participant__learner__first_name", "participant__learner__last_name", "award_date")
+
+    def get_learner(self, goldenEggRewardLog):
+        return goldenEggRewardLog.participant.learner.first_name + " " + \
+               goldenEggRewardLog.participant.learner.last_name
+
+    get_learner.short_description = "Learner"
+
+
 class EventSplashPageInline(admin.TabularInline):
     model = EventSplashPage
     extra = 1
@@ -500,6 +511,7 @@ admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
 admin.site.register(Definition)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
+admin.site.register(GoldenEggRewardLog, GoldenEggRewardLogAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(SUMit, SUMitAdmin)
 admin.site.register(SUMitLevel, SUMitLevelAdmin)

@@ -196,6 +196,10 @@ class GoldenEggRewardLog(models.Model):
     airtime = models.PositiveIntegerField(null=True, blank=True)
     badge = models.ForeignKey("gamification.GamificationScenario", null=True, blank=True)
 
+    class Meta:
+        verbose_name = "Golden Egg Reward Log"
+        verbose_name_plural = "Golden Egg Reward Logs"
+
 
 class Event(models.Model):
     ONE = 1
