@@ -930,17 +930,16 @@ def sumit(request, state, user):
             _participant.answer_event(_sumit, _option.question, _option)
             state["total_tasks_today"] = _learnerstate.get_total_questions()
 
-            _learnerstate.sumit_question += 1
-            _learnerstate.save()
-            if _learnerstate.sumit_question > 3:
-                _learnerstate.sumit_level += 1
-                _learnerstate.sumit_question = 1
-                _learnerstate.save()
-            if _learnerstate.sumit_level > 5:
-                _learnerstate.sumit_level = 5
-                _learnerstate.save()
-
             if _option.correct:
+                _learnerstate.sumit_question += 1
+                _learnerstate.save()
+                if _learnerstate.sumit_question > 3:
+                    _learnerstate.sumit_level += 1
+                    _learnerstate.sumit_question = 1
+                    _learnerstate.save()
+                if _learnerstate.sumit_level > 5:
+                    _learnerstate.sumit_level = 5
+                    _learnerstate.save()
                 return redirect("learn.sumit_right")
 
             return redirect("learn.sumit_wrong")

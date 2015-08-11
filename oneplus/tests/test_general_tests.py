@@ -284,6 +284,18 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertContains(resp, "5</span><br/>POINTS")
 
+        # change event type to sumit
+        event.type = 0
+        event.save()
+
+        # test sumit homepage is loaded
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, 'Start SUMit!')
+
+        # test second visit to sumit homepage
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, 'Start SUMit!')
+
         for i in range(1, 15):
             question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
             option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
@@ -300,18 +312,6 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "redo today's incorrect answers")
-
-        # change event type to sumit
-        event.type = 0
-        event.save()
-
-        # test sumit homepage is loaded
-        resp = self.client.get(reverse('learn.home'))
-        self.assertContains(resp, event.name)
-
-        # test second visit to sumit homepage
-        resp = self.client.get(reverse('learn.home'))
-        self.assertContains(resp, event.name)
 
     def test_first_time(self):
         self.client.get(reverse(

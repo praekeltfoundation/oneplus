@@ -67,7 +67,7 @@
 
     </div>
 
-    {% if event_name %}
+    {% if event_name and not sumit %}
         <form name="event" action="#" method="post">
             {% csrf_token %}
             <div class="content">
