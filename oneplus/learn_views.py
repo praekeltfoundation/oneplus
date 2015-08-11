@@ -51,8 +51,8 @@ def home(request, state, user):
     first_sitting = True
     sumit = None
     if _event:
+        allowed, _event_participant_rel = _participant.can_take_event(_event)
         if _event.type != 0:
-            allowed, _event_participant_rel = _participant.can_take_event(_event)
             if allowed:
                 event_name = _event.name
                 if _event_participant_rel:
