@@ -340,7 +340,7 @@ class SUMit(Event):
             next_question = EventQuestionRel.objects.filter(event=self,
                                                             order=answered+1,
                                                             question__difficulty=difficulty,
-                                                            state=3).first()
+                                                            question__state=3).first()
             if next_question:
                 return next_question.question
             else:
