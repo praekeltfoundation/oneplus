@@ -67,13 +67,18 @@ class TestingQuestion(models.Model):
         max_length=500,
         blank=True,
         null=True)
+
+    INCOMPLETE = 1
+    REVIEW_READY = 2
+    PUBLISHED = 3
+
     state = models.PositiveIntegerField("State",
                                         choices=(
-                                            (1, "Incomplete"),
-                                            (2, "Ready for Review"),
-                                            (3, "Published")
+                                            (INCOMPLETE, "Incomplete"),
+                                            (REVIEW_READY, "Ready for Review"),
+                                            (PUBLISHED, "Published")
                                         ),
-                                        default=1)
+                                        default=INCOMPLETE)
 
     def __str__(self):
         return self.name
@@ -340,7 +345,7 @@ class SUMit(Event):
             next_question = EventQuestionRel.objects.filter(event=self,
                                                             order=answered+1,
                                                             question__difficulty=difficulty,
-                                                            state=3).first()
+                                                            question__state=TestingQuestion.PUBLISHED).first()
             if next_question:
                 return next_question.question
             else:
