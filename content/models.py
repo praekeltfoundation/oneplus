@@ -7,6 +7,7 @@ from mobileu.utils import format_content, format_option
 from django.db.models import Count
 from datetime import datetime
 from organisation.models import CourseModuleRel
+from django.core.mail import mail_managers
 
 
 class LearningChapter(models.Model):
@@ -336,8 +337,19 @@ class SUMit(Event):
             answered = EventQuestionAnswer.objects.filter(participant=participant, event=self,
                                                           question__difficulty=difficulty).\
                 aggregate(Count('question'))['question__count']
-            return EventQuestionRel.objects.filter(event=self, order=answered+1,
-                                                   question__difficulty=difficulty).first().question
+            next_question = EventQuestionRel.objects.filter(event=self,
+                                                            order=answered+1,
+                                                            question__difficulty=difficulty,
+                                                            state=3).first()
+            if next_question:
+                return next_question.question
+            else:
+                # inform oneplus about summit not having enough questions
+                subject = "".join(['%s SUMit! - NOT ENOUGH QUESTIONS' % self.name])
+                message = "".join(['%s SUMit! does not have enough questions with %s difficulty.' %
+                                   (self.name, difficulty)])
+                mail_managers(subject=subject, message=message, fail_silently=False)
+
         return None
 
     class Meta:
