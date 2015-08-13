@@ -110,7 +110,7 @@ class ParticipantAdmin(admin.ModelAdmin):
         ParticipantFirstNameFilter,
         ParticipantLastNameFilter,
         ParticipantMobileFilter)
-    search_fields = ("learner",)
+    search_fields = ("learner__first_name", "learner__last_name")
     inlines = [ParticipantPointInline, ]
     form = ParticipantCreationForm
     add_form = ParticipantCreationForm
