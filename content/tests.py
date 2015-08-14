@@ -1,8 +1,9 @@
 from celery.bin.celery import control
 from django.test import TestCase
-from content.models import TestingQuestion, Mathml
+from content.models import TestingQuestion, Mathml, SUMit
 from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text
 from organisation.models import Course, Module, CourseModuleRel
+from mock import patch
 
 
 class TestContent(TestCase):
@@ -24,6 +25,7 @@ class TestContent(TestCase):
         self.course = self.create_course()
         self.module = self.create_module('module', self.course)
         self.question = self.create_test_question('question', self.module)
+        self.fake_mail_msg = ""
 
     def test_create_test_question(self):
         question_content = "solve this equation <math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
@@ -161,5 +163,23 @@ class TestContent(TestCase):
         expected_output = "text &lt;math&gt;x&lt;/math&gt; more text"
         output = convert_to_text(content)
         self.assertEquals(output, expected_output, "They are not equal")
+
+    @patch("content.models.mail_managers")
+    def test_sumit_create_questions(self, mocked_mail_manages):
+        s = SUMit()
+        s.course = self.course
+        s.name = "Test"
+        q = self.create_test_question(
+            'question2',
+            self.module,
+            difficulty=TestingQuestion.DIFF_EASY,
+            state=TestingQuestion.PUBLISHED
+        )
+        s.get_questions()
+        mocked_mail_manages.assert_called_once_with(
+            subject="Test SUMit! - NOT ENOUGH QUESTIONS",
+            message="Test SUMit! does not have enough questions. \nEasy Difficulty requires 14 questions"
+                    "\nNormal Difficulty requires 11 questions\nAdvanced Difficulty requires 5 questions",
+            fail_silently=False)
 
     #TODO def test_render_mathml(self):
