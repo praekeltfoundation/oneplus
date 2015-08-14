@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-mobileu',
-    version='1.1.7',
+    version='1.1.8',
     packages=find_packages(),
     install_requires=[
         'Django==1.6.5',
@@ -19,6 +19,7 @@ setup(
         'go_http==0.1.1',
         'django_bleach',
         'beautifulsoup4',
+        'mock==1.0.1',
     ],
     url='www.praekelt.co.za',
     license='',

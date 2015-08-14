@@ -39,6 +39,18 @@ class LearningChapter(models.Model):
 
 
 class TestingQuestion(models.Model):
+
+    # Question States
+    INCOMPLETE = 1
+    REVIEW_READY = 2
+    PUBLISHED = 3
+
+    # Question Difficulty
+    DIFF_NONE = 1
+    DIFF_EASY = 2
+    DIFF_NORMAL = 3
+    DIFF_ADVANCED = 4
+
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True, default="Auto Generated")
     description = models.CharField("Description", max_length=500, blank=True)
@@ -49,10 +61,10 @@ class TestingQuestion(models.Model):
     notes = models.TextField("Additional Notes", blank=True)
     difficulty = models.PositiveIntegerField(
         "Difficulty", choices=(
-            (1, "Not Specified"),
-            (2, "Easy"),
-            (3, "Normal"),
-            (4, "Advanced")
+            (DIFF_NONE, "Not Specified"),
+            (DIFF_EASY, "Easy"),
+            (DIFF_NORMAL, "Normal"),
+            (DIFF_ADVANCED, "Advanced")
         ),
         default=1)
     points = models.PositiveIntegerField(
@@ -67,10 +79,6 @@ class TestingQuestion(models.Model):
         max_length=500,
         blank=True,
         null=True)
-
-    INCOMPLETE = 1
-    REVIEW_READY = 2
-    PUBLISHED = 3
 
     state = models.PositiveIntegerField("State",
                                         choices=(
@@ -313,31 +321,82 @@ class SUMit(Event):
     pass
 
     def get_questions(self):
+
         event_question_rel = EventQuestionRel.objects.filter(event=self)
+
         if not event_question_rel:
             modules = CourseModuleRel.objects.filter(course=self.course)
-            easy_questions = TestingQuestion.objects.filter(module__in=modules,
-                                                            difficulty=2).order_by("?")[:15]
-            normal_questions = TestingQuestion.objects.filter(module__in=modules,
-                                                              difficulty=3).order_by("?")[:11]
-            advanced_questions = TestingQuestion.objects.filter(module__in=modules,
-                                                                difficulty=4).order_by("?")[:5]
+
+            easy_questions = TestingQuestion.objects.\
+                filter(
+                    module__in=modules,
+                    difficulty=TestingQuestion.DIFF_EASY,
+                    state=TestingQuestion.PUBLISHED
+                ).order_by("?")[:15]
+
+            normal_questions = TestingQuestion.objects.\
+                filter(
+                    module__in=modules,
+                    difficulty=TestingQuestion.DIFF_NORMAL,
+                    state=TestingQuestion.PUBLISHED
+                ).order_by("?")[:11]
+
+            advanced_questions = TestingQuestion.objects.\
+                filter(
+                    module__in=modules,
+                    difficulty=TestingQuestion.DIFF_ADVANCED,
+                    state=TestingQuestion.PUBLISHED
+                ).order_by("?")[:5]
+
+            ec = easy_questions.count()
+            nc = normal_questions.count()
+            ac = advanced_questions.count()
+
+            # don't populate EventQuestionRel if we don't have enough questions
+            if ec != 15 and nc != 11 and ac != 5:
+                # inform oneplus about summit not having enough questions
+                subject = "".join(['%s SUMit! - NOT ENOUGH QUESTIONS' % self.name])
+                easy = ""
+                normal = ""
+                adv = ""
+
+                if ec != 15:
+                    easy = "\nEasy Difficulty requires %s questions" % (15 - ec)
+
+                if nc != 11:
+                    normal = "\nNormal Difficulty requires %s questions" % (11 - nc)
+
+                if ac != 5:
+                    adv = "\nAdvanced Difficulty requires %s questions" % (5 - ac)
+
+                message = "".join(["%s SUMit! does not have enough questions. %s%s%s" % (self.name, easy, normal, adv)])
+                mail_managers(subject=subject, message=message, fail_silently=False)
+
+                return
+
             order = 1
+
             for question in easy_questions:
                 EventQuestionRel.objects.create(order=order, question=question, event=self)
                 order += 1
+
             order = 1
+
             for question in normal_questions:
                 EventQuestionRel.objects.create(order=order, question=question, event=self)
                 order += 1
+
             order = 1
+
             for question in advanced_questions:
                 EventQuestionRel.objects.create(order=order, question=question, event=self)
                 order += 1
 
     def get_next_sumit_question(self, participant, level, question):
         if self.is_active():
+
             self.get_questions()
+
             difficulty = SUMitLevel.objects.values("question_%d" % question).get(order=level).values()[0]
             answered = EventQuestionAnswer.objects.filter(participant=participant, event=self,
                                                           question__difficulty=difficulty).\
