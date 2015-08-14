@@ -175,11 +175,23 @@ class TestContent(TestCase):
             difficulty=TestingQuestion.DIFF_EASY,
             state=TestingQuestion.PUBLISHED
         )
+        q2 = self.create_test_question(
+            'question3',
+            self.module,
+            difficulty=TestingQuestion.DIFF_NORMAL,
+            state=TestingQuestion.PUBLISHED
+        )
+        q3 = self.create_test_question(
+            'question4',
+            self.module,
+            difficulty=TestingQuestion.DIFF_ADVANCED,
+            state=TestingQuestion.PUBLISHED
+        )
         s.get_questions()
         mocked_mail_manages.assert_called_once_with(
             subject="Test SUMit! - NOT ENOUGH QUESTIONS",
             message="Test SUMit! does not have enough questions. \nEasy Difficulty requires 14 questions"
-                    "\nNormal Difficulty requires 11 questions\nAdvanced Difficulty requires 5 questions",
+                    "\nNormal Difficulty requires 10 questions\nAdvanced Difficulty requires 4 questions",
             fail_silently=False)
 
     #TODO def test_render_mathml(self):
