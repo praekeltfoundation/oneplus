@@ -20,6 +20,7 @@ setup(
         'django_bleach',
         'beautifulsoup4',
         'mock==1.0.1',
+        'coverage',
     ],
     url='www.praekelt.co.za',
     license='',
