@@ -353,7 +353,7 @@ class SUMit(Event):
             ac = advanced_questions.count()
 
             # don't populate EventQuestionRel if we don't have enough questions
-            if ec != 15 and nc != 11 and ac != 5:
+            if ec != 15 or nc != 11 or ac != 5:
                 # inform oneplus about summit not having enough questions
                 subject = "".join(['%s SUMit! - NOT ENOUGH QUESTIONS' % self.name])
                 easy = ""
