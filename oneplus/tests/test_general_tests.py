@@ -2624,6 +2624,8 @@ class GeneralTests(TestCase):
         )
 
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
+        # this test fails sometimes adding this as debug to assist finding the problem when it does fail
+        print resp
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "class_20")
         self.assertContains(resp, "13th place")
