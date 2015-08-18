@@ -131,7 +131,8 @@ class DiscussionAdmin(admin.ModelAdmin):
 class MessageAdmin(SummernoteModelAdmin):
     list_display = ("get_name", "get_content", "get_class", "author", "direction", "publishdate", 'get_response')
     list_filter = ("direction", "responded")
-    search_fields = ("name", )
+    search_fields = ("name", "description", "author__username", "author__first_name", "author__last_name",
+                     "author__mobile", )
 
     def get_name(self, obj):
         return u'<a href="/message/%s">%s</a>' % (obj.id, obj.name)
