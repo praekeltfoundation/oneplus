@@ -302,7 +302,6 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.post('/message_response/%s' % msg.id,
                       data={
-                          'title': '',
                           'publishdate_0': '',
                           'publishdate_1': '',
                           'content': ''
@@ -311,7 +310,6 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.post('/message_response/%s' % msg.id,
                       data={
-                          'title': '',
                           'publishdate_0': '2015-33-33',
                           'publishdate_1': '99:99:99',
                           'content': ''
@@ -325,7 +323,6 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.post('/message_response/%s' % msg.id,
                       data={
-                          'title': 'test',
                           'publishdate_0': '2014-01-01',
                           'publishdate_1': '00:00:00',
                           'content': '<p>Test</p>'
@@ -879,6 +876,7 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/content/testingquestionoption/")
         self.admin_page_test_helper(c, "/admin/content/testingquestion/")
         self.admin_page_test_helper(c, "/admin/content/goldenegg/")
+        self.admin_page_test_helper(c, "/admin/content/goldeneggrewardlog/")
         self.admin_page_test_helper(c, "/admin/content/event/")
         self.admin_page_test_helper(c, "/admin/content/sumit/")
         self.admin_page_test_helper(c, "/admin/content/sumitlevel/")
