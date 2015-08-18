@@ -107,25 +107,6 @@
                 <div class="grp-row grp-cells-1">
                     <div class="l-2c-fluid l-d-4">
                         <div class="c-1">
-                            <label class="required">Title</label>
-                        </div>
-                        <div class="c-2">
-                            {% if ro %}
-                                <label>{{ response.title }}</label>
-                            {% else %}
-                                <input class="vTextField" id="id_title" maxlength="50" name="title" type="text" value="{{ v_title }}">
-                                {% if title_error %}
-                                    <ul class="errorlist">
-                                        <li>This field is required.</li>
-                                    </ul>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="grp-row grp-cells-1">
-                    <div class="l-2c-fluid l-d-4">
-                        <div class="c-1">
                             <label class="required" >Publish Date</label>
                         </div>
                         <div class="c-2">
