@@ -281,29 +281,24 @@ def message_response(request, msg):
 
     def post():
 
-        title_error = False
         dt_error = False
         content_error = False
-        title = None
         date = None
         time = None
         content = None
 
-        title_error, title = validate_title(request.POST)
         dt_error, date, time, dt = validate_publish_date_and_time(request.POST)
         content_error, content = validate_content(request.POST)
 
-        if title_error or dt_error or content_error:
+        if dt_error or content_error:
             return render(
                 request=request,
                 template_name='misc/message_response.html',
                 dictionary={
                     'msg': db_msg,
                     'participant': db_participant,
-                    'title_error': title_error,
                     'dt_error': dt_error,
                     'content_error': content_error,
-                    'v_title': title,
                     'v_date': date,
                     'v_time': time,
                     'v_content': content
@@ -312,7 +307,6 @@ def message_response(request, msg):
         else:
             Message.objects.create(
                 name=gen_username(request.user),
-                description=title,
                 course=db_participant.classs.course,
                 to_class=db_participant.classs,
                 to_user=db_participant.learner,
