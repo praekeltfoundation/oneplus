@@ -599,24 +599,31 @@ class GeneralTests(TestCase):
         self.assertRedirects(resp, "home")
 
         #add question to event
-        question = self.create_test_question("Event Question", self.module, difficulty=2, state=3)
-        correct_option = self.create_test_question_option("question_1_option_1", question)
-        self.create_test_question_option("question_1_option_2", question, correct=False)
-        self.create_event_question(event, question, 1)
-        question = self.create_test_question("Event Question 2", self.module, difficulty=2, state=3)
-        self.create_test_question_option("question_2_option_1", question)
-        incorrect_option = self.create_test_question_option("question_2_option_2", question, correct=False)
-        self.create_event_question(event, question, 2)
-        question = self.create_test_question("Event Question 3", self.module, difficulty=2, state=3)
-        correct_option_2 = self.create_test_question_option("question_3_option_1", question)
-        self.create_test_question_option("question_3_option_2", question, correct=False)
-        self.create_event_question(event, question, 3)
-        question = self.create_test_question("Event Question 4", self.module, difficulty=4, state=3)
-        correct_option_3 = self.create_test_question_option("question_4_option_1", question)
-        incorrect_option_3 = self.create_test_question_option("question_4_option_2", question, correct=False)
-        self.create_event_question(event, question, 1)
-        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        easy_options = dict()
+        for i in range(1, 15):
+            question = self.create_test_question("e_q_%d" % i, self.module, difficulty=2, state=3)
+            correct_option = self.create_test_question_option("e_q_o_%d_c" % i, question)
+            incorrect_option = self.create_test_question_option("e_q_o_%d_i" % i, question, correct=False)
+            easy_options['%d' % i] = {'c': correct_option, 'i': incorrect_option}
+            self.create_event_question(event, question, i)
 
+        normal_options = dict()
+        for i in range(1, 11):
+            question = self.create_test_question("n_q_%d" % i, self.module, difficulty=3, state=3)
+            correct_option = self.create_test_question_option("n_q_o_%d_c" % i, question)
+            incorrect_option = self.create_test_question_option("n_q_o_%d_i" % i, question, correct=False)
+            normal_options['%d' % i] = {'c': correct_option, 'i': incorrect_option}
+            self.create_event_question(event, question, i)
+
+        advanced_options = dict()
+        for i in range(1, 5):
+            question = self.create_test_question("a_q_%d" % i, self.module, difficulty=4, state=3)
+            correct_option = self.create_test_question_option("a_q_o_%d_c" % i, question)
+            incorrect_option = self.create_test_question_option("a_q_o_%d_i" % i, question, correct=False)
+            advanced_options['%d' % i] = {'c': correct_option, 'i': incorrect_option}
+            self.create_event_question(event, question, i)
+
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         _learnerstate.sumit_level = 1
         _learnerstate.sumit_question = 1
         _learnerstate.save()
@@ -634,12 +641,18 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
 
+        #VALID ANSWERS
+        count = 1
+
         #valid correct answer
         resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': correct_option.id},
+                                data={'answer': easy_options['%d' % count]['c'].id},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 2)
+        count += 1
 
         #test event right post
         resp = self.client.post(reverse("learn.sumit_right"))
@@ -647,44 +660,111 @@ class GeneralTests(TestCase):
 
         #valid incorrect answer
         resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': incorrect_option.id},
+                                data={'answer': easy_options['%d' % count]['i'].id},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_wrong")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 1)
+        count += 1
 
         #test event right post
         resp = self.client.post(reverse("learn.sumit_wrong"))
         self.assertEquals(resp.status_code, 200)
 
+        #correct
         resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': correct_option_2.id},
+                                data={'answer': easy_options['%d' % count]['c'].id},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 2)
+        count += 1
 
-        for i in range(1, 12):
+        #correct
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': easy_options['%d' % count]['c'].id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 3)
+        count += 1
+
+        #incorrect
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': easy_options['%d' % count]['i'].id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_wrong")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 1)
+        count += 1
+
+        #correct
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': easy_options['%d' % count]['c'].id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 2)
+        count += 1
+
+        #correct
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': easy_options['%d' % count]['c'].id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 3)
+        count += 1
+
+        #correct
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': easy_options['%d' % count]['c'].id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_right")
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        self.assertEquals(_learnerstate.sumit_question, 1)
+        self.assertEquals(_learnerstate.sumit_level, 2)
+
+        #reset
+        EventQuestionAnswer.objects.filter(event=event).delete()
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+        for i in range(1, 15):
             question = self.create_test_question("Easy question %d" % i, self.module)
             question_option = self.create_test_question_option("Option %d.1" % i, question, True)
             EventQuestionRel.objects.create(event=event, question=question, order=i)
             EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
-                                               question_option=question_option, correct=True, answer_date=datetime.now())
-
+                                               question_option=question_option, correct=True,
+                                               answer_date=datetime.now())
         _learnerstate.sumit_level = 5
         _learnerstate.sumit_question = 3
         _learnerstate.save()
+        count = 1
 
+        #correct
         resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': correct_option_3.id},
+                                data={'answer': advanced_options['%d' % count]['c'].id},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
+        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertRedirects(resp, "sumit_right")
         self.assertContains(resp, "Finish")
 
-        EventQuestionAnswer.objects.get(event=event, participant=self.participant, question_option=correct_option_3).\
-            delete()
+        EventQuestionAnswer.objects.get(event=event, participant=self.participant,
+                                        question_option=advanced_options['%d' % count]['c']).delete()
 
         resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': incorrect_option_3.id},
+                                data={'answer': advanced_options['%d' % count]['i'].id},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_wrong")
@@ -698,7 +778,8 @@ class GeneralTests(TestCase):
 
         for i in range(1, 15):
             question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
-            correct_option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+            correct_option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question,
+                                                                  correct=True)
             ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
                                                      option_selected=correct_option, correct=True)
 
