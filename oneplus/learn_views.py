@@ -66,6 +66,7 @@ def home(request, state, user):
                 sumit["level"] = _sumit_level.name
             else:
                 learnerstate.sumit_level = 1
+                learnerstate.sumit_question = 1
                 learnerstate.save()
                 _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
                 sumit["url"] = _sumit_level.image.url
@@ -872,9 +873,6 @@ def sumit(request, state, user):
         return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
-
-    if _learnerstate is None:
-        _learnerstate = LearnerState(participant=_participant)
 
     request.session["state"]["next_tasks_today"] = \
         EventQuestionAnswer.objects.filter(
@@ -1864,8 +1862,8 @@ def report_question(request, state, user, questionid, frm):
         )
 
     def post():
-        if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                        "fix" in request.POST.keys() and request.POST["fix"] != "":
+        if "issue" in request.POST.keys() and request.POST["issue"] != "" \
+                and "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]
