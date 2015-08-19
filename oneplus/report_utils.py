@@ -6,7 +6,8 @@ from datetime import datetime
 
 def get_csv_report(question_list, file_name, columns=None):
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="%s_%s.csv"' % (file_name, datetime.now().date().strftime('%Y_%m_%d'))
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.csv"' % \
+                                      (file_name, datetime.now().date().strftime('%Y_%m_%d'))
     writer = csv.writer(response)
 
     if columns is not None:
@@ -20,7 +21,8 @@ def get_csv_report(question_list, file_name, columns=None):
 def get_xls_report(question_list, file_name, columns=None):
     workbook = list_to_workbook(question_list, columns)
     response = HttpResponse(mimetype='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="%s_%s.xls"' % (file_name, datetime.now().date().strftime('%Y_%m_%d'))
+    response['Content-Disposition'] = 'attachment; filename="%s_%s.xls"' % \
+                                      (file_name, datetime.now().date().strftime('%Y_%m_%d'))
     workbook.save(response)
     return response
 
@@ -48,8 +50,9 @@ def list_to_workbook(object_list, columns, header_style=None, default_style=None
         cell_style_map = CELL_STYLE_MAP
 
     if columns is not None:
-        for y, column in enumerate(columns):
-            sheet.write(0, y, column, header_style)
+        for x, row in enumerate(columns):
+            for y, column in enumerate(row):
+                sheet.write(x, y, column, header_style)
 
         start_x = 1
     else:
@@ -57,6 +60,6 @@ def list_to_workbook(object_list, columns, header_style=None, default_style=None
 
     for x, obj in enumerate(object_list, start=start_x):
         for y, column in enumerate(obj):
-            sheet.write(x, y, obj[y], default_style)
+            sheet.write(x, y, column, default_style)
 
     return workbook
