@@ -265,11 +265,10 @@ def nextchallenge(request, state, user):
     golden_egg = {}
 
     if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
-            _learnerstate.golden_egg_question and \
-            (_learnerstate.get_week_day()*3 <= _learnerstate.golden_egg_question <
-            ((_learnerstate.get_week_day()+1)*3)):
-        golden_egg["question"] = True
-        golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
+            _learnerstate.golden_egg_question and get_golden_egg(_participant):
+        if (_learnerstate.golden_egg_question // 3) == _learnerstate.get_week_day():
+            golden_egg["question"] = True
+            golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
