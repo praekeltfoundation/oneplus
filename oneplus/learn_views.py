@@ -60,16 +60,19 @@ def home(request, state, user):
         else:
             sumit = {}
             event_name = _event.name
+            if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists():
+                learnerstate.sumit_question = 1
+                learnerstate.sumit_level = 1
+                learnerstate.save()
+
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
-            if _sumit_level:
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
-            else:
+            if not _sumit_level:
                 learnerstate.sumit_level = 1
                 learnerstate.save()
                 _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
+
+            sumit["url"] = _sumit_level.image.url
+            sumit["level"] = _sumit_level.name
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -874,7 +877,11 @@ def sumit(request, state, user):
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
     if _learnerstate is None:
-        _learnerstate = LearnerState(participant=_participant)
+        _learnerstate = LearnerState(participant=_participant, sumit_level=1, sumit_question=1)
+    elif not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists():
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question=1
+        _learnerstate.save()
 
     request.session["state"]["next_tasks_today"] = \
         EventQuestionAnswer.objects.filter(
