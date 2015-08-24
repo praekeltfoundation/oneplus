@@ -22,7 +22,7 @@ from oneplus.utils import update_metric
 from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
-from django.db.models import Count
+from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
 from requests.sessions import session
 
@@ -60,17 +60,20 @@ def home(request, state, user):
         else:
             sumit = {}
             event_name = _event.name
+            if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists():
+                learnerstate.sumit_question = 1
+                learnerstate.sumit_level = 1
+                learnerstate.save()
+
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
-            if _sumit_level:
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
-            else:
+            if not _sumit_level:
                 learnerstate.sumit_level = 1
                 learnerstate.sumit_question = 1
                 learnerstate.save()
                 _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
+
+            sumit["url"] = _sumit_level.image.url
+            sumit["level"] = _sumit_level.name
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -873,6 +876,13 @@ def sumit(request, state, user):
         return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant, sumit_level=1, sumit_question=1)
+    elif not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists():
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
 
     request.session["state"]["next_tasks_today"] = \
         EventQuestionAnswer.objects.filter(
@@ -1775,6 +1785,7 @@ def sumit_end_page(request, state, user):
 
     page = {}
     sumit = {}
+    sumit["points"] = 0
 
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
@@ -1787,18 +1798,22 @@ def sumit_end_page(request, state, user):
                                                                              correct=True).count()
             if num_sumit_questions_correct == num_sumit_questions:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
+
+                if _sumit.event_point:
+                    sumit["points"] = _sumit.event_points
+                    _participant.points += _sumit.event_points
+                    _participant.save()
             else:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
 
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
-        sumit["points"] = _sumit.event_points
+        points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
+            .aggregate(Sum='question__points')['question__points__sum']
+        sumit["points"] += points
 
         page["header"] = end_page.header
         page["message"] = end_page.paragraph
 
-        if _sumit.event_points:
-            _participant.points += _sumit.event_points
-            _participant.save()
         if _sumit.airtime:
             mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
                                                                   % (_participant.learner.first_name,
