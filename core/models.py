@@ -69,21 +69,33 @@ class Participant(models.Model):
         return self.learner.first_name
 
     # Get the scenarios
-    def get_scenarios(self, event, module):
+    def get_scenarios(self, event, module, special_rule=False):
         scenarios = GamificationScenario.objects.filter(
             event=event,
             course=self.classs.course,
             module=module)
 
-        if scenarios.count() >= 1:
+        if scenarios.count() > 0:
             return scenarios
         else:
             #Fall back to a default rule
-            return GamificationScenario.objects.filter(
+            scenarios = GamificationScenario.objects.filter(
                 event=event,
                 course=self.classs.course,
                 module=None
             )
+
+            if scenarios.count() > 0:
+                return scenarios
+            else:
+                if special_rule:
+                    return GamificationScenario.objects.filter(
+                        event=event,
+                        course=None,
+                        module=None
+                    )
+                else:
+                    return scenarios
 
     def answer(self, question, option):
         # Create participant question answer
@@ -169,10 +181,11 @@ class Participant(models.Model):
         return points
 
     # Scenario's only apply to badges
-    def award_scenario(self, event, module):
+    def award_scenario(self, event, module, special_rule=False):
 
         # Use scenarios for badges only
-        scenarios = self.get_scenarios(event, module)
+        scenarios = self.get_scenarios(event, module, special_rule=special_rule)
+
         for scenario in scenarios:
             # Badges may only be awarded once
             if scenario.badge is not None:

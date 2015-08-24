@@ -223,9 +223,12 @@ class Event(models.Model):
         (MULTIPLE, "Multiple")
     )
 
+    ET_SPOT_TEST = 1
+    ET_EXAM = 2
+
     TYPE_CHOICES = (
-        (1, "Spot Test"),
-        (2, "Exam")
+        (ET_SPOT_TEST, "Spot Test"),
+        (ET_EXAM, "Exam")
     )
 
     name = models.CharField(max_length=50, unique=True)
