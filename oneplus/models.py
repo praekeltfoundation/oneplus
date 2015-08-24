@@ -99,7 +99,7 @@ class LearnerState(models.Model):
 
     def get_questions_answered_week(self):
         answer = len(self.get_answers_this_week()) \
-                 + self.get_num_questions_answered_today()
+            + self.get_num_questions_answered_today()
 
         if self.is_training_week():
             answer += len(self.get_training_questions())
@@ -109,7 +109,7 @@ class LearnerState(models.Model):
     def check_monday_after_training(self, total_answered):
         week_day = self.today().weekday()
         return week_day == self.MONDAY \
-               and total_answered <= self.QUESTIONS_PER_DAY
+            and total_answered <= self.QUESTIONS_PER_DAY
 
     def get_training_questions(self):
         answered = ParticipantQuestionAnswer.objects.filter(
