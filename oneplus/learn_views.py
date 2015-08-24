@@ -880,7 +880,7 @@ def sumit(request, state, user):
         _learnerstate = LearnerState(participant=_participant, sumit_level=1, sumit_question=1)
     elif not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists():
         _learnerstate.sumit_level = 1
-        _learnerstate.sumit_question=1
+        _learnerstate.sumit_question = 1
         _learnerstate.save()
 
     request.session["state"]["next_tasks_today"] = \
