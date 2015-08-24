@@ -939,8 +939,10 @@ def sumit(request, state, user):
                     _learnerstate.sumit_level = 5
                     _learnerstate.save()
                 return redirect("learn.sumit_right")
-
-            return redirect("learn.sumit_wrong")
+            else:
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+                return redirect("learn.sumit_wrong")
 
         return get()
 
@@ -971,7 +973,7 @@ def sumit_right(request, state, user):
     sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
     sumit_question = _learnerstate.sumit_question
 
-    sumit = {}
+    sumit = dict()
     sumit["level"] = sumit_level.name
     for i in range(1, 4):
         if i in range(1, sumit_question):
@@ -982,7 +984,7 @@ def sumit_right(request, state, user):
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
-    sumit["finsihed"] = None
+    sumit["finished"] = None
     if num_sumit_questions == num_sumit_questions_answered:
         sumit["finished"] = True
 
