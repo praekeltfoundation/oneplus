@@ -1,8 +1,15 @@
 from celery.bin.celery import control
 from django.test import TestCase
-from content.models import TestingQuestion, Mathml, SUMit
+from content.models import TestingQuestion, Mathml, SUMit, Event, TestingQuestionOption, EventQuestionRel, \
+    EventQuestionAnswer
 from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text
-from organisation.models import Course, Module, CourseModuleRel
+from organisation.models import Course, Module, CourseModuleRel, School, Organisation
+from auth.models import Learner
+from core.models import Participant, Class, ParticipantBadgeTemplateRel
+from gamification.models import GamificationScenario
+from content.tasks import end_event_processing_body
+from datetime import datetime
+
 from mock import patch
 
 
@@ -18,14 +25,51 @@ class TestContent(TestCase):
         rel.save()
         return module
 
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
     def create_test_question(self, name, module, **kwargs):
         return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+
+    def create_test_question_option(self, name, question, correct=True):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=correct)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(
+            name=name,
+            organisation=organisation,
+            **kwargs)
+
+    def create_learner(self, school, **kwargs):
+        return Learner.objects.create(school=school, **kwargs)
+
+    def create_participant(self, learner, classs, **kwargs):
+        return Participant.objects.create(
+            learner=learner,
+            classs=classs,
+            **kwargs)
 
     def setUp(self):
         self.course = self.create_course()
         self.module = self.create_module('module', self.course)
+        self.classs = self.create_class('class name', self.course)
         self.question = self.create_test_question('question', self.module)
         self.fake_mail_msg = ""
+        self.organisation = self.create_organisation()
+        self.school = self.create_school('school name', self.organisation)
+        self.learner = self.create_learner(
+            self.school,
+            mobile="+27123456789",
+            country="country")
+        self.participant = self.create_participant(
+            self.learner,
+            self.classs,
+            datejoined=datetime.now()
+        )
 
     def test_create_test_question(self):
         question_content = "solve this equation <math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
@@ -195,3 +239,218 @@ class TestContent(TestCase):
             fail_silently=False)
 
     #TODO def test_render_mathml(self):
+
+    def create_eov_event(self):
+        return Event.objects.create(
+            name="Test Event",
+            course=self.course,
+            activation_date=datetime(2015, 8, 3, 1, 0, 0),
+            deactivation_date=datetime(2015, 8, 9, 23, 59, 59),
+            number_sittings=Event.MULTIPLE,
+            event_points=10,
+            type=Event.ET_EXAM,
+        )
+
+    def test_end_of_event_task_no_events(self):
+        self.assertEquals(Event.objects.all().count(), 0)
+
+        # Test empty run doesn't crash it
+        end_event_processing_body()
+
+    def test_end_of_event_task_event_with_no_answers(self):
+        e = self.create_eov_event()
+        self.assertEquals(Event.objects.all().count(), 1)
+
+        end_event_processing_body()
+
+        e = Event.objects.get(pk=e.pk)
+
+        # event got processed
+        self.assertEquals(e.end_processed, True)
+
+        # check that it doesn't crash
+        end_event_processing_body()
+
+    def answer_event_question(self, event, question, question_option, correct, answer_date, participant):
+        return EventQuestionAnswer.objects.create(
+            event=event,
+            participant=participant,
+            question=question,
+            question_option=question_option,
+            correct=correct,
+            answer_date=answer_date
+        )
+
+    def test_end_of_event_task_event_with_answers(self):
+        e = self.create_eov_event()
+        self.assertEquals(Event.objects.all().count(), 1)
+
+        q = self.create_test_question(
+            'question2',
+            self.module,
+            difficulty=TestingQuestion.DIFF_EASY,
+            state=TestingQuestion.PUBLISHED,
+        )
+
+        qo = self.create_test_question_option(name="q2_o1", question=q)
+
+        eqr = EventQuestionRel.objects.create(order=1, event=e, question=q)
+        self.answer_event_question(event=e, question=q, question_option=qo, correct=True, answer_date=datetime.now(),
+                                   participant=self.participant)
+
+        end_event_processing_body()
+
+        e = Event.objects.get(pk=e.pk)
+
+        # event got processed
+        self.assertEquals(e.end_processed, True)
+
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+        # check that it doesn't crash
+        end_event_processing_body()
+
+        # ensure no double awarding took place on the second run
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+    def test_end_of_event_task_event_with_answers_for_multiple_learners_both_awarded(self):
+        e = self.create_eov_event()
+        self.assertEquals(Event.objects.all().count(), 1)
+
+        self.learner2 = self.create_learner(
+            self.school,
+            mobile="+27123456781",
+            country="country",
+            username="+27123456781",
+        )
+
+        self.participant2 = self.create_participant(
+            self.learner2,
+            self.classs,
+            datejoined=datetime.now()
+        )
+
+        q = self.create_test_question(
+            'question3',
+            self.module,
+            difficulty=TestingQuestion.DIFF_EASY,
+            state=TestingQuestion.PUBLISHED,
+        )
+
+        qo = self.create_test_question_option(name="q3_o1", question=q)
+
+        eqr = EventQuestionRel.objects.create(order=1, event=e, question=q)
+        self.answer_event_question(event=e, question=q, question_option=qo, correct=True, answer_date=datetime.now(),
+                                   participant=self.participant)
+        self.answer_event_question(event=e, question=q, question_option=qo, correct=True, answer_date=datetime.now(),
+                                   participant=self.participant2)
+
+        end_event_processing_body()
+
+        e = Event.objects.get(pk=e.pk)
+
+        # event got processed
+        self.assertEquals(e.end_processed, True)
+
+        # participant 1 got awarded the badge
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+        # participant 2 got awarded the badge
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant2, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+        # check that it doesn't crash
+        end_event_processing_body()
+
+        # ensure no double awarding took place on the second run
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant2, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+    def test_end_of_event_task_event_with_answers_for_multiple_learners_first_awarded(self):
+        e = self.create_eov_event()
+        self.assertEquals(Event.objects.all().count(), 1)
+
+        self.learner2 = self.create_learner(
+            self.school,
+            mobile="+27123456781",
+            country="country",
+            username="+27123456781"
+        )
+
+        self.participant2 = self.create_participant(
+            self.learner2,
+            self.classs,
+            datejoined=datetime.now()
+        )
+
+        q = self.create_test_question(
+            'question3',
+            self.module,
+            difficulty=TestingQuestion.DIFF_EASY,
+            state=TestingQuestion.PUBLISHED,
+        )
+
+        qo = self.create_test_question_option(name="q3_o1", question=q)
+
+        eqr = EventQuestionRel.objects.create(order=1, event=e, question=q)
+        self.answer_event_question(event=e, question=q, question_option=qo, correct=True, answer_date=datetime.now(),
+                                   participant=self.participant)
+        self.answer_event_question(event=e, question=q, question_option=qo, correct=False, answer_date=datetime.now(),
+                                   participant=self.participant2)
+
+        end_event_processing_body()
+
+        e = Event.objects.get(pk=e.pk)
+
+        # event got processed
+        self.assertEquals(e.end_processed, True)
+
+        # participant 1 got awarded the badge
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+        # participant 2 got awarded the badge
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant2, badgetemplate__name="Exam Champ")
+
+        self.assertEquals(awarded_badge.count(), 0)
+
+        # check that it doesn't crash
+        end_event_processing_body()
+
+        # ensure no double awarding took place on the second run
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant, badgetemplate__name="Exam Champ")
+
+        self.assertIsNotNone(awarded_badge)
+        self.assertEquals(awarded_badge.count(), 1)
+        self.assertEquals(awarded_badge[0].awardcount, 1)
+
+        awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant2, badgetemplate__name="Exam Champ")
+
+        self.assertEquals(awarded_badge.count(), 0)

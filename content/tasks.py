@@ -16,24 +16,38 @@ def render_mathml_content():
 
 @celery.task
 def end_event_processing():
-    events = Event.objects.filter(deactivation_date__gt=datetime.now(), end_processed=False)
+    end_event_processing_body()
+
+
+# function to assist with testing
+def today():
+    return datetime.now()
+
+
+def end_event_processing_body():
+    events = Event.objects.filter(deactivation_date__lt=today(), end_processed=False)
+    scenarios = {
+        Event.ET_SPOT_TEST: "SPOT_TEST_CHAMP",
+        Event.ET_EXAM: "EXAM_CHAMP"
+    }
+
     for event in events:
         scores = EventQuestionAnswer.objects.filter(event=event, correct=True).values("participant") \
             .order_by("-score").annotate(score=Count("pk"))
+        if scores:
+            winner_ids = [scores[0]["participant"]]
+            index = 0
+            score_size = len(scores)
+            if score_size > 1:
+                while index + 1 < score_size and scores[index]["score"] == scores[index + 1]["score"]:
+                    winner_ids.append(scores[index + 1]["participant"])
+                    index += 1
 
-        winner_ids = [scores[0]["participant"]]
-        index = 0
-        while scores[index]["score"] == scores[index + 1]["score"]:
-            winner_ids.append(scores[index + 1]["participant"])
-            index += 1
-        winners = Participant.objects.filter(id__in=winner_ids)
+            winners = Participant.objects.filter(id__in=winner_ids)
+            module = CourseModuleRel.objects.filter(course=event.course).first()
 
-        module = CourseModuleRel.objects.filter(course=event.course).first()
-        if event.type == 1:
             for winner in winners:
-                winner.award_scenario("SPOT_TEST_CHAMP", module)
-        elif event.type == 2:
-            for winner in winners:
-                winner.award_scenario("EXAM_CHAMP", module)
+                winner.award_scenario(scenarios[event.type], module, special_rule=True)
+
         event.end_processed = True
         event.save()
