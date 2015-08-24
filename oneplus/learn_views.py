@@ -66,6 +66,7 @@ def home(request, state, user):
                 sumit["level"] = _sumit_level.name
             else:
                 learnerstate.sumit_level = 1
+                learnerstate.sumit_question = 1
                 learnerstate.save()
                 _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
                 sumit["url"] = _sumit_level.image.url
@@ -874,9 +875,6 @@ def sumit(request, state, user):
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
-    if _learnerstate is None:
-        _learnerstate = LearnerState(participant=_participant)
-
     request.session["state"]["next_tasks_today"] = \
         EventQuestionAnswer.objects.filter(
             event=_sumit,
@@ -942,8 +940,10 @@ def sumit(request, state, user):
                     _learnerstate.sumit_level = 5
                     _learnerstate.save()
                 return redirect("learn.sumit_right")
-
-            return redirect("learn.sumit_wrong")
+            else:
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+                return redirect("learn.sumit_wrong")
 
         return get()
 
@@ -974,7 +974,7 @@ def sumit_right(request, state, user):
     sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
     sumit_question = _learnerstate.sumit_question
 
-    sumit = {}
+    sumit = dict()
     sumit["level"] = sumit_level.name
     for i in range(1, 4):
         if i in range(1, sumit_question):
@@ -985,7 +985,7 @@ def sumit_right(request, state, user):
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
-    sumit["finsihed"] = None
+    sumit["finished"] = None
     if num_sumit_questions == num_sumit_questions_answered:
         sumit["finished"] = True
 
@@ -1865,8 +1865,8 @@ def report_question(request, state, user, questionid, frm):
         )
 
     def post():
-        if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                        "fix" in request.POST.keys() and request.POST["fix"] != "":
+        if "issue" in request.POST.keys() and request.POST["issue"] != "" \
+                and "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]
