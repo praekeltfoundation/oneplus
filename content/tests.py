@@ -1,16 +1,16 @@
-from celery.bin.celery import control
-from django.test import TestCase
 from content.models import TestingQuestion, Mathml, SUMit, Event, TestingQuestionOption, EventQuestionRel, \
     EventQuestionAnswer
 from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text
 from organisation.models import Course, Module, CourseModuleRel, School, Organisation
 from auth.models import Learner
 from core.models import Participant, Class, ParticipantBadgeTemplateRel
-from gamification.models import GamificationScenario
 from content.tasks import end_event_processing_body
-from datetime import datetime
 
+from django.test import TestCase
+from datetime import datetime
 from mock import patch
+from django.conf import settings
+import os
 
 
 class TestContent(TestCase):
@@ -71,8 +71,42 @@ class TestContent(TestCase):
             datejoined=datetime.now()
         )
 
+    def create_test_question_helper(self, q_content, a_content, index):
+        old_path = settings.MEDIA_ROOT
+        settings.MEDIA_ROOT = "/tmp/"
+
+        question_content = "Please solve the following mess: %s" % q_content
+        answer_content = "<div><strong>This is the answer: </strong><div>%s" % a_content
+
+        testing_question = self.create_test_question("question_%d" % index, self.module,
+                                                     question_content=question_content,
+                                                     answer_content=answer_content)
+
+        content = process_mathml_content(question_content, 0, testing_question.id)
+
+        #does the question content contain the img tag
+        self.assertNotEquals(testing_question.question_content, content)
+
+        not_rendered = Mathml.objects.filter(rendered=False, source_id=testing_question.id).count()
+        render_mathml()
+        rendered = Mathml.objects.filter(rendered=True, source_id=testing_question.id).count()
+
+        # check if any not rendered mathml has been rendered
+        self.assertEquals(not_rendered, rendered)
+
+        m = Mathml.objects.filter(source_id=testing_question.id)
+        self.assertEquals(m.count(), 1)
+        self.assertEquals(m[0].rendered, True)
+
+        # Test extraction
+        self.assertEquals(convert_to_tags(m[0].mathml_content), q_content)
+
+        settings.MEDIA_ROOT = old_path
+
     def test_create_test_question(self):
-        question_content = "solve this equation <math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
+
+        # normal mathml content
+        question_content = "<math xmlns='http://www.w3.org/1998/Math/MathML' display='block'>" \
                            "<msup>" \
                            "<mi>x</mi>" \
                            "<mn>2</mn>" \
@@ -92,27 +126,10 @@ class TestContent(TestCase):
                          "</msup>" \
                          "</math>"
 
-        testing_question = self.create_test_question('question2', self.module,
-                                                     question_content=question_content,
-                                                     answer_content=answer_content)
+        self.create_test_question_helper(question_content, answer_content, 1)
 
-        #self.assertNotEquals(testing_question.question_content, question_content)
-        #self.assertNotEquals(testing_question.answer_content, answer_content)
-
-        content = process_mathml_content(question_content, 0, testing_question.id)
-
-        #does the question content contain the img tag
-        self.assertNotEquals(testing_question.question_content, content)
-
-        not_rendered = Mathml.objects.filter(rendered=False).count()
-        render_mathml()
-        rendered = Mathml.objects.filter(rendered=False).count()
-
-        # check if any not rendered mathml has ben rendered
-        self.assertEquals(not_rendered, rendered)
-
-    def test_create_test_question(self):
-        question_content = "solve this equation <mml:math xmlns:mml='http://www.w3.org/1998/Math/MathML'>" \
+        # namespaced mathml tags
+        question_content = "<mml:math xmlns:mml='http://www.w3.org/1998/Math/MathML'>" \
                            "<mml:msup>" \
                            "<mml:mi>x</mml:mi>" \
                            "<mml:mn>2</mml:mn>" \
@@ -132,24 +149,7 @@ class TestContent(TestCase):
                          "</mml:msup>" \
                          "</mml:math>"
 
-        testing_question = self.create_test_question('question222', self.module,
-                                                     question_content=question_content,
-                                                     answer_content=answer_content)
-
-        #self.assertNotEquals(testing_question.question_content, question_content)
-        #self.assertNotEquals(testing_question.answer_content, answer_content)
-
-        content = process_mathml_content(question_content, 0, testing_question.id)
-
-        #does the question content contain the img tag
-        self.assertNotEquals(testing_question.question_content, content)
-
-        not_rendered = Mathml.objects.filter(rendered=False).count()
-        render_mathml()
-        rendered = Mathml.objects.filter(rendered=False).count()
-
-        # check if any not rendered mathml has ben rendered
-        self.assertEquals(not_rendered, rendered)
+        self.create_test_question_helper(question_content, answer_content, 2)
 
     def test_linebreaks(self):
         content = "<p>heading</p><p>content</p>"

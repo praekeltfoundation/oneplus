@@ -168,7 +168,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
 def process_mathml_content(_content, _source, _source_id):
     _content = convert_to_tags(_content)
 
-    pattern = "<.*?[:]*math.*?>.*?</.*?[:]*math>"
+    pattern = "<[a-zA-Z0-9]*[:]*math.*?>.*?</[a-zA-Z0-9]*[:]*math>"
     mathml = re.findall(pattern, _content)
 
     for m in mathml:
@@ -181,9 +181,6 @@ def process_mathml_tag(_content, _source, _source_id):
     image_format = 'PNG'
 
     directory = settings.MEDIA_ROOT
-
-    # if not os.path.exists(directory):
-    # os.makedirs(directory)
 
     unique_filename = str(uuid.uuid4()) + '.' + image_format.lower()
 
@@ -231,9 +228,9 @@ def convert_to_text(_content):
 
 def render_mathml():
     url = settings.MATHML_URL
-    max_size = 200
+    max_size = 300
     image_format = 'PNG'
-    quality = 1
+    quality = 3
     directory = settings.MEDIA_ROOT
 
     # get all the mathml objects that have not been rendered
@@ -258,8 +255,7 @@ def render_mathml():
                 continue
 
         # get the mathml content
-        content = nr.mathml_content
-
+        content = convert_to_tags(nr.mathml_content)
         values = {'mathml': content,
                   'max_size': max_size,
                   'image_format': image_format,
