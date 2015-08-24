@@ -2,6 +2,7 @@ import re
 import uuid
 import os
 import shutil
+import logging
 
 from django import forms
 from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage, SUMit
@@ -11,6 +12,9 @@ from django.conf import settings
 from core.models import Class
 from organisation.models import Course
 from datetime import datetime
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class TestingQuestionCreateForm(forms.ModelForm):
@@ -237,22 +241,28 @@ def render_mathml():
     not_rendered = Mathml.objects.filter(rendered=False)
 
     for nr in not_rendered:
-        # 0 - question 1 - answer
-        if nr.source == 0 or nr.source == 1:
-            # check if the source still exists (testing question)
-            if TestingQuestion.objects.filter(id=nr.source_id).count() == 0:
-                # delete image and record as the source doesn't exists anymore
-                if os.path.isfile(directory + nr.filename):
-                    os.remove(directory + nr.filename)
-                nr.delete()
-                continue
-        else:
-            # else is 2 - option
-            if TestingQuestionOption.objects.filter(id=nr.source_id).count() == 0:
-                if os.path.isfile(directory + nr.filename):
-                    os.remove(directory + nr.filename)
-                nr.delete()
-                continue
+        try:
+            # 0 - question 1 - answer
+            if nr.source == 0 or nr.source == 1:
+                # check if the source still exists (testing question)
+                if TestingQuestion.objects.filter(id=nr.source_id).count() == 0:
+                    # delete image and record as the source doesn't exists anymore
+                    if os.path.isfile(directory + nr.filename):
+                        os.remove(directory + nr.filename)
+                    nr.delete()
+                    continue
+            else:
+                # else is 2 - option
+                if TestingQuestionOption.objects.filter(id=nr.source_id).count() == 0:
+                    if os.path.isfile(directory + nr.filename):
+                        os.remove(directory + nr.filename)
+                    nr.delete()
+                    continue
+        except Exception as ex:
+            logger.warning("Error while cleaning mathml %s of source %s. Reason: %s"
+                           % (nr.filename, nr.source_id, ex.message))
+            # error while trying to clean-up
+            continue
 
         # get the mathml content
         content = convert_to_tags(nr.mathml_content)
@@ -261,31 +271,35 @@ def render_mathml():
                   'image_format': image_format,
                   'quality': quality}
 
-        # request mathml to be processed into an image
-        r = requests.post(url, data=values, stream=True)
+        try:
+            # request mathml to be processed into an image
+            r = requests.post(url, data=values, stream=True)
 
-        # if successful replace the image
-        if r.status_code == 200:
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+            # if successful replace the image
+            if r.status_code == 200:
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
 
-            unique_filename = nr.filename
+                unique_filename = nr.filename
 
-            # file exists remove it
-            if os.path.isfile(directory + unique_filename):
-                os.remove(directory + unique_filename)
+                # file exists remove it
+                if os.path.isfile(directory + unique_filename):
+                    os.remove(directory + unique_filename)
 
-            # save the new rendered image with the right filename
-            with open(directory + unique_filename, 'wb') as f:
-                r.raw.decode_content = True
-                shutil.copyfileobj(r.raw, f)
+                # save the new rendered image with the right filename
+                with open(directory + unique_filename, 'wb') as f:
+                    r.raw.decode_content = True
+                    shutil.copyfileobj(r.raw, f)
 
-            nr.rendered = True
-            nr.error = ""
-            nr.save()
-        else:
-            nr.error = r.text
-            nr.save()
+                nr.rendered = True
+                nr.error = ""
+                nr.save()
+            else:
+                nr.error = r.text
+                nr.save()
+        except Exception as ex:
+            logger.warning("Error while posting/processing request for mathml %s of source %s. Reason: %s"
+                           % (nr.filename, nr.source_id, ex.message))
 
 
 class GoldenEggCreateForm(forms.ModelForm):
