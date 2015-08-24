@@ -904,10 +904,9 @@ def sumit(request, state, user):
         return redirect("learn.home")
 
     def get():
-        #todo remove this
-        # state["total_tasks_today"] = _learnerstate.get_total_questions()
-        # if state['next_tasks_today'] > state["total_tasks_today"]:
-        #     return redirect("learn.home")
+        state["total_tasks_today"] = _learnerstate.get_total_questions()
+        if state['next_tasks_today'] > state["total_tasks_today"]:
+            return redirect("learn.home")
 
         return render(
             request,
@@ -964,9 +963,6 @@ def sumit_right(request, state, user):
                                   deactivation_date__gt=datetime.now()).first()
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
-
-    if _learnerstate is None:
-        _learnerstate = LearnerState(participant=_participant)
 
     _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant) \
         .order_by("-answer_date").first().question
@@ -1789,9 +1785,6 @@ def sumit_end_page(request, state, user):
         return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
-
-    if _learnerstate is None:
-        _learnerstate = LearnerState(participant=_participant)
 
     page = {}
     sumit = dict()
