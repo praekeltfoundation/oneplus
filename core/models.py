@@ -123,6 +123,10 @@ class Participant(models.Model):
             correct=option.correct
         )
         answer.save()
+        # Award points to participant
+        if option.correct:
+            self.points += question.points
+            self.save()
 
     def answer_redo(self, question, option):
         # Create participant question answer
