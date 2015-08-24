@@ -6,7 +6,7 @@
 {% block content %}
     {% load humanize %}
 
-    <div class="text heading darkgrey-front center-font {% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-back {% elif sumit.level == 'Foothills' %} yellow-back {% elif sumit.level == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit!</p></div>
+    <div class="text heading darkgrey-front center-font no-padding {% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-back {% elif sumit.level == 'Foothills' %} yellow-back {% elif sumit.level == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit!</p></div>
 
     {% if sumit %}
         <div class="sumit_content">

@@ -58,19 +58,16 @@ def home(request, state, user):
                 if _event_participant_rel:
                     first_sitting = False
         else:
-            sumit = {}
-            event_name = _event.name
-            _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
-            if _sumit_level:
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
-            else:
+            if not EventParticipantRel.objects.filter(event=_event, participant=_participant).exists():
                 learnerstate.sumit_level = 1
                 learnerstate.sumit_question = 1
                 learnerstate.save()
-                _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
+
+            sumit = {}
+            event_name = _event.name
+            _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
+            sumit["url"] = _sumit_level.image.url
+            sumit["level"] = _sumit_level.name
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -874,6 +871,14 @@ def sumit(request, state, user):
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
+    if not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists():
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+    if not EventParticipantRel.objects.filter(event=_sumit, participant=_participant).exists():
+        EventParticipantRel.objects.create(participant=_participant, event=_sumit, sitting_number=1)
+
     request.session["state"]["next_tasks_today"] = \
         EventQuestionAnswer.objects.filter(
             event=_sumit,
@@ -899,9 +904,10 @@ def sumit(request, state, user):
         return redirect("learn.home")
 
     def get():
-        state["total_tasks_today"] = _learnerstate.get_total_questions()
-        if state['next_tasks_today'] > state["total_tasks_today"]:
-            return redirect("learn.home")
+        #todo remove this
+        # state["total_tasks_today"] = _learnerstate.get_total_questions()
+        # if state['next_tasks_today'] > state["total_tasks_today"]:
+        #     return redirect("learn.home")
 
         return render(
             request,
@@ -939,6 +945,9 @@ def sumit(request, state, user):
                     _learnerstate.sumit_level = 5
                     _learnerstate.save()
                 return redirect("learn.sumit_right")
+            else:
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
 
             return redirect("learn.sumit_wrong")
 
@@ -973,8 +982,12 @@ def sumit_right(request, state, user):
 
     sumit = {}
     sumit["level"] = sumit_level.name
+    temp_sumit_question = sumit_question
+    if temp_sumit_question == 1:
+        temp_sumit_question = 4
+
     for i in range(1, 4):
-        if i in range(1, sumit_question):
+        if i in range(1, temp_sumit_question):
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
         else:
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
@@ -1768,13 +1781,21 @@ def sumit_end_page(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
 
+    if not _sumit:
+        return redirect("learn.home")
+
+    rel = EventParticipantRel.objects.filter(event=_sumit, participant=_participant).first()
+
+    if rel.results_received:
+        return redirect("learn.home")
+
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
     page = {}
-    sumit = {}
+    sumit = dict()
     sumit["points"] = 0
 
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
@@ -1783,22 +1804,25 @@ def sumit_end_page(request, state, user):
     if num_sumit_questions == num_sumit_questions_answered:
         if _learnerstate.sumit_level in range(1, 5):
             end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
+            winner = False
         elif _learnerstate.sumit_level == 5:
             num_sumit_questions_correct = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant,
                                                                              correct=True).count()
             if num_sumit_questions_correct == num_sumit_questions:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
+                winner = True
 
-                if _sumit.event_point:
+                if _sumit.event_points:
                     sumit["points"] = _sumit.event_points
                     _participant.points += _sumit.event_points
                     _participant.save()
             else:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
+                winner = False
 
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
-            .aggregate(Sum='question__points')['question__points__sum']
+            .aggregate(Sum('question__points'))['question__points__sum']
         sumit["points"] += points
 
         page["header"] = end_page.header
@@ -1810,6 +1834,8 @@ def sumit_end_page(request, state, user):
                                                                      _participant.learner.last_name,
                                                                      _participant.learner.mobile,
                                                                      _sumit.airtime), fail_silently=False)
+            sumit["airtime"] = _sumit.airtime
+
         if _sumit.event_badge:
             module = CourseModuleRel.objects.filter(course=_sumit.course).first()
             _participant.award_scenario(
@@ -1817,12 +1843,28 @@ def sumit_end_page(request, state, user):
                 module
             )
 
-        _learnerstate.sumit_level = 0
-        _learnerstate.sumit_question = 0
-        _learnerstate.save()
+        if sumit["level"] == 'Summit':
+            front = "white-front"
+            back = "darkgrey-back"
+        elif sumit["level"] == "Peak":
+            front = "darkgrey-front"
+            back = "cyan-back"
+        elif sumit["level"] == "Cliffs":
+            front = "darkgrey-front"
+            back = "purple-back"
+        elif sumit["level"] == "Foothills":
+            front = "darkgrey-front"
+            back = "yellow-back"
+        else:
+            front = "darkgrey-front"
+            back = "green-back"
+
     else:
         return redirect("learn.home")
     badge, badge_points = get_badge_awarded(_participant)
+
+    rel.results_received = True
+    rel.save()
 
     def get():
         return render(
@@ -1833,7 +1875,10 @@ def sumit_end_page(request, state, user):
                 "user": user,
                 "page": page,
                 "badge": badge,
-                "sumit": sumit
+                "sumit": sumit,
+                "front": front,
+                "back": back,
+                "winner": winner
             }
         )
 

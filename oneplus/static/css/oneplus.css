@@ -645,3 +645,7 @@ ul.bullets{
 .padding-bottom {
      padding-bottom: 5px;
  }
+
+.no-padding {
+    padding: 0px !important;
+}
