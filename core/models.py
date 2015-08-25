@@ -190,7 +190,7 @@ class Participant(models.Model):
                 continue
         for event in events:
             try:
-                sumit = SUMit.objects.get(id=sumit_answer.event.id)
+                sumit = SUMit.objects.get(id=event.event.id)
                 if isinstance(sumit, SUMit) and event.winner is True and event.event.event_points:
                         points += event.event.event_points
             except SUMit.DoesNotExist:
