@@ -572,7 +572,7 @@ class GeneralTests(TestCase):
     def test_sumit(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
-        #no event
+        #no sumit
         resp = self.client.get(reverse('learn.sumit'))
         self.assertRedirects(resp, "home")
 
@@ -589,11 +589,11 @@ class GeneralTests(TestCase):
         SUMitEndPage.objects.create(event=event, header="Level 5", paragraph="Test", type=2)
         SUMitEndPage.objects.create(event=event, header="Winner", paragraph="Test", type=3)
 
-        #no event questions
-        resp = self.client.get(reverse('learn.event'))
+        #no sumit questions
+        resp = self.client.get(reverse('learn.sumit'))
         self.assertRedirects(resp, "home")
 
-        #add question to event
+        #add question to sumit
         easy_options = dict()
         for i in range(1, 15):
             question = self.create_test_question("e_q_%d" % i, self.module, difficulty=2, state=3)
@@ -854,12 +854,25 @@ class GeneralTests(TestCase):
         rel.results_received = False
         rel.save()
 
-        _learnerstate.sumit_level = 4
+        _learnerstate.sumit_level = 3
         _learnerstate.save()
 
         resp = self.client.get(reverse('learn.sumit_end_page'))
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, 'Peak')
+        self.assertContains(resp, 'Cliffs')
+
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 1
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Basecamp')
 
     def test_redo(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))

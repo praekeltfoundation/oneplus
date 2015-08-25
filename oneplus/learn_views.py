@@ -872,6 +872,9 @@ def sumit(request, state, user):
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
+
     if not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists():
         _learnerstate.sumit_level = 1
         _learnerstate.sumit_question = 1
@@ -889,6 +892,9 @@ def sumit(request, state, user):
 
     _question = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level, _learnerstate.sumit_question)
 
+    if not _question:
+        return redirect("learn.home")
+
     sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
     sumit_question = _learnerstate.sumit_question
 
@@ -901,8 +907,7 @@ def sumit(request, state, user):
         else:
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
 
-    if not _question:
-        return redirect("learn.home")
+
 
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
@@ -964,6 +969,8 @@ def sumit_right(request, state, user):
                                   deactivation_date__gt=datetime.now()).first()
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+    if _learnerstate is None:
+        _learnerstate = LearnerState(participant=_participant)
 
     _question = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant) \
         .order_by("-answer_date").first().question
