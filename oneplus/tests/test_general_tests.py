@@ -578,9 +578,10 @@ class GeneralTests(TestCase):
         self.assertRedirects(resp, "home")
 
         #create event
-        sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit")
-        badge = GamificationScenario.objects.create(name="SUMit", badge=sumit_badge,
-                                                    module=self.module, course=self.course)
+        sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit Badge")
+        gamification_point = GamificationPointBonus.objects.create(name="Sumit Points", value=10)
+        badge = GamificationScenario.objects.create(name="SUMit Scenario", badge=sumit_badge,
+                                                    module=self.module, course=self.course, point=gamification_point)
         event = self.create_sumit("SUMit!", self.course, activation_date=datetime.now() - timedelta(days=1),
                                   deactivation_date=datetime.now() + timedelta(days=1), event_points=10, airtime=5,
                                   event_badge=badge, type=0)
@@ -824,6 +825,7 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.sumit_end_page'))
         self.assertContains(resp, "Congratulations!")
         points += event.event_points
+        points += gamification_point.value
         participant = Participant.objects.get(id=self.participant.id)
         self.assertEquals(participant.points, points)
         pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=sumit_badge, scenario=badge,
