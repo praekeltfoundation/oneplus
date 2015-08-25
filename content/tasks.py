@@ -48,6 +48,7 @@ def end_event_processing_body():
 
             for winner in winners:
                 winner.award_scenario(scenarios[event.type], module, special_rule=True)
+                EventParticipantRel.objects.filter(event=event, participant__id__in=winner_ids).update(winner=True)
 
         event.end_processed = True
         event.save()
