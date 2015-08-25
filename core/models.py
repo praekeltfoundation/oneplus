@@ -7,7 +7,7 @@ from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
-    EventQuestionRel, SUMit
+    EventQuestionRel, SUMit, Event
 from django.db.models import Count
 
 
@@ -181,8 +181,12 @@ class Participant(models.Model):
         for answer in answers:
             points += answer.question.points
         for sumit_answer in sumit_answers:
-            if isinstance(sumit_answer.event, SUMit):
-                points += sumit_answer.question.points
+            try:
+                sumit = SUMit.objects.get(id=sumit_answer.event.id)
+                if isinstance(sumit, SUMit):
+                    points += sumit_answer.question.points
+            except SUMit.DoesNotExist:
+                continue
         for event in events:
             points += event.event.event_points
             if event.winner and event.event.event_points:
