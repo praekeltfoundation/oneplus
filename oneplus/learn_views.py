@@ -1784,6 +1784,9 @@ def sumit_end_page(request, state, user):
     if rel.results_received:
         return redirect("learn.home")
 
+    rel.results_received = True
+    rel.save()
+
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
     page = {}
@@ -1803,6 +1806,7 @@ def sumit_end_page(request, state, user):
             if num_sumit_questions_correct == num_sumit_questions:
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
                 winner = True
+                rel.winner = True
 
                 if _sumit.event_points:
                     sumit["points"] = _sumit.event_points
@@ -1854,9 +1858,6 @@ def sumit_end_page(request, state, user):
     else:
         return redirect("learn.home")
     badge, badge_points = get_badge_awarded(_participant)
-
-    rel.results_received = True
-    rel.save()
 
     def get():
         return render(

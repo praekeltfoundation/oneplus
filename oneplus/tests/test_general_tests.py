@@ -582,7 +582,7 @@ class GeneralTests(TestCase):
         badge = GamificationScenario.objects.create(name="SUMit", badge=sumit_badge,
                                                     module=self.module, course=self.course)
         event = self.create_sumit("SUMit!", self.course, activation_date=datetime.now() - timedelta(days=1),
-                                  deactivation_date=datetime.now() + timedelta(days=1), event_points=15, airtime=5,
+                                  deactivation_date=datetime.now() + timedelta(days=1), event_points=10, airtime=5,
                                   event_badge=badge, type=0)
         start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
         SUMitEndPage.objects.create(event=event, header="Level 1 - 4", paragraph="Test", type=1)
@@ -825,7 +825,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Congratulations!")
         points += event.event_points
         participant = Participant.objects.get(id=self.participant.id)
-        # self.assertEquals(participant.points, points)
+        self.assertEquals(participant.points, points)
         pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=sumit_badge, scenario=badge,
                                                           participant=self.participant)
         self.assertIsNotNone(pbtr)
