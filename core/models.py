@@ -162,47 +162,45 @@ class Participant(models.Model):
                     return True, event_participant_rel
         return True, None
 
-    # # Probably to be used in migrations
-    # def recalculate_total_points(self):
-    #     answers = ParticipantQuestionAnswer.objects.filter(
-    #         participant=self,
-    #         correct=True)
-    #     sumit_answers = EventQuestionAnswer.objects.filter(
-    #         participant=self,
-    #         correct=True)
-    #     events = EventParticipantRel.objects.filter(
-    #         participant=self,
-    #         results_received=True)
-    #     badges = ParticipantBadgeTemplateRel.objects.filter(
-    #         participant=self
-    #     )
-    #     golden_egg = GoldenEggRewardLog.objects.filter(participant=self).exclude(points__isnull=True)
-    #
-    #     points = 0
-    #     for answer in answers:
-    #         points += answer.question.points
-    #     for sumit_answer in sumit_answers:
-    #         try:
-    #             sumit = SUMit.objects.get(id=sumit_answer.event.id)
-    #             if isinstance(sumit, SUMit):
-    #                 points += sumit_answer.question.points
-    #         except SUMit.DoesNotExist:
-    #             continue
-    #     for event in events:
-    #         print event.winner
-    #         if event.winner is True and event.event.event_points:
-    #             points += event.event.event_points
-    #             # points += event.event.event_points
-    #     for badge in badges:
-    #         if badge.scenario.point:
-    #             points += badge.scenario.point.value
-    #     for egg in golden_egg:
-    #         points += egg.points
-    #
-    #     print self.points
-    #     self.points = points
-    #     self.save()
-    #     return points
+    # Probably to be used in migrations
+    def recalculate_total_points(self):
+        answers = ParticipantQuestionAnswer.objects.filter(
+            participant=self,
+            correct=True)
+        sumit_answers = EventQuestionAnswer.objects.filter(
+            participant=self,
+            correct=True)
+        events = EventParticipantRel.objects.filter(
+            participant=self,
+            results_received=True)
+        badges = ParticipantBadgeTemplateRel.objects.filter(
+            participant=self
+        )
+        golden_egg = GoldenEggRewardLog.objects.filter(participant=self).exclude(points__isnull=True)
+
+        points = 0
+        for answer in answers:
+            points += answer.question.points
+        for sumit_answer in sumit_answers:
+            try:
+                sumit = SUMit.objects.get(id=sumit_answer.event.id)
+                if isinstance(sumit, SUMit):
+                    points += sumit_answer.question.points
+            except SUMit.DoesNotExist:
+                continue
+        for event in events:
+            if event.winner is True and event.event.event_points:
+                points += event.event.event_points
+                # points += event.event.event_points
+        for badge in badges:
+            if badge.scenario.point:
+                points += badge.scenario.point.value
+        for egg in golden_egg:
+            points += egg.points
+
+        self.points = points
+        self.save()
+        return points
 
     # Scenario's only apply to badges
     def award_scenario(self, event, module, special_rule=False):
