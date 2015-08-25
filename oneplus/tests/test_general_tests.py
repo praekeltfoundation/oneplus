@@ -1964,6 +1964,9 @@ class GeneralTests(TestCase):
             kwargs={'token': new_learner.unique_token})
         )
 
+        ten = 10
+        gpb1 = self.create_gamification_point_bonus("Point Bonus", ten)
+
         # create the badges we want to win
         bt1 = self.create_badgetemplate(
             name="1st Correct",
@@ -1991,6 +1994,7 @@ class GeneralTests(TestCase):
             module=self.module,
             badge=bt1,
             event="1_CORRECT",
+            point=gpb1
         )
 
         sc2 = self.create_gamification_scenario(
@@ -2033,6 +2037,9 @@ class GeneralTests(TestCase):
             participant=new_participant,
             correct=True
         ).count()
+
+        participant = Participant.objects.get(id=new_participant.id)
+        self.assertEquals(participant.points, ten + fifteen)
 
         self.assertEquals(fifteen, _total_correct)
 

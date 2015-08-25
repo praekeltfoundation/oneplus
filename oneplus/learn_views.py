@@ -1807,6 +1807,7 @@ def sumit_end_page(request, state, user):
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
                 winner = True
                 rel.winner = True
+                rel.save()
 
                 if _sumit.event_points:
                     sumit["points"] = _sumit.event_points
