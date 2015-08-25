@@ -7,7 +7,7 @@ from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
-    EventQuestionRel
+    EventQuestionRel, SUMit
 from django.db.models import Count
 
 
@@ -123,10 +123,12 @@ class Participant(models.Model):
             correct=option.correct
         )
         answer.save()
-        # Award points to participant
-        if option.correct:
-            self.points += question.points
-            self.save()
+
+        # Award points to participant if it's sumit
+        if isinstance(event, SUMit):
+            if option.correct:
+                self.points += question.points
+                self.save()
 
     def answer_redo(self, question, option):
         # Create participant question answer
@@ -165,6 +167,9 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
+        sumit_answers = EventQuestionAnswer.objects.filter(
+            participant=self,
+            correct=True)
         events = EventParticipantRel.objects.filter(
             participant=self,
             results_received=True)
@@ -175,8 +180,13 @@ class Participant(models.Model):
         points = 0
         for answer in answers:
             points += answer.question.points
+        for sumit_answer in sumit_answers:
+            if isinstance(sumit_answer.event, SUMit):
+                points += sumit_answer.question.points
         for event in events:
             points += event.event.event_points
+            if event.winner and event.event.event_points:
+                points += event.event.event_points
         for badge in badges:
             if badge.scenario.point:
                 points += badge.scenario.point.value
