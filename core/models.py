@@ -162,7 +162,7 @@ class Participant(models.Model):
                     return True, event_participant_rel
         return True, None
 
-    # Probably to be used in migrations
+    # # Probably to be used in migrations
     def recalculate_total_points(self):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
@@ -189,9 +189,12 @@ class Participant(models.Model):
             except SUMit.DoesNotExist:
                 continue
         for event in events:
-            if event.winner is True and event.event.event_points:
+            try:
+                sumit = SUMit.objects.get(id=sumit_answer.event.id)
+                if isinstance(sumit, SUMit) and event.winner is True and event.event.event_points:
+                        points += event.event.event_points
+            except SUMit.DoesNotExist:
                 points += event.event.event_points
-                # points += event.event.event_points
         for badge in badges:
             if badge.scenario.point:
                 points += badge.scenario.point.value
@@ -221,7 +224,7 @@ class Participant(models.Model):
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
                                                  pointbonus=scenario.point, awarddate=datetime.now()).save()
-                        self.points += scenario.point.value
+                        # self.points += scenario.point.value
                     BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
                 elif scenario.award_type == 2:
                     b = template_rels.first()
@@ -231,11 +234,11 @@ class Participant(models.Model):
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
                                                  pointbonus=scenario.point, awarddate=datetime.now()).save()
-                        self.points += scenario.point.value
+                        # self.points += scenario.point.value
                     BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
 
         # Recalculate total points - not entirely sure that this should be here.
-        # self.points = self.recalculate_total_points()
+        self.points = self.recalculate_total_points()
 
         self.save()
 
