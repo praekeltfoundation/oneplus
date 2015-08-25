@@ -4,8 +4,7 @@ import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
-    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitEndPage, GoldenEggRewardLog, \
-    GoldenEgg
+    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitEndPage
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
     ParticipantBadgeTemplateRel, Setting
 from django.conf import settings
@@ -2617,14 +2616,14 @@ class GeneralTests(TestCase):
             all_particpants.append(self.create_participant(all_learners[counter],
                                                            test_class, datejoined=datetime.now()))
 
-            if counter < 5:
-                for y in range(0, counter+1):
-                    all_particpants[counter].answer(question_list[y], question_option_list[y])
+            for y in range(0, counter+1):
+                all_particpants[y].answer(question_list[y], question_option_list[y])
+                all_particpants[y].answer(question_list[y], question_option_list[y])
 
             #data for class leaderboard
             new_class = self.create_class('class_%s' % x, self.course)
             all_learners_classes.append(self.create_learner(self.school,
-                                                            first_name="test_%s" % x,
+                                                            first_name="test_b_%s" % x,
                                                             username="08612345%s" % x,
                                                             mobile="08612345%s" % x,
                                                             unique_token='abc%s' % x,
@@ -2634,19 +2633,25 @@ class GeneralTests(TestCase):
             all_particpants_classes.append(self.create_participant(all_learners_classes[counter],
                                                                    new_class, datejoined=datetime.now()))
 
+            for y in range(0, counter+1):
+                all_particpants_classes[y].answer(question_list[y], question_option_list[y])
+
             counter += 1
 
         self.client.get(
             reverse('auth.autologin',
                     kwargs={'token': "20"})
         )
+
         resp = self.client.get(reverse('prog.leader'))
         self.assertEquals(resp.status_code, 200)
 
         resp = self.client.post(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
+        # overall leaderboard is overall in class, not over all classes
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_20")
         self.assertContains(resp, "11th place")
@@ -2678,7 +2683,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "5th place")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2686,7 +2691,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "5th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2694,7 +2699,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "5th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2704,22 +2709,27 @@ class GeneralTests(TestCase):
                     kwargs={'token': "abc20"})
         )
 
+        for p in Participant.objects.all().order_by("-points"):
+            print p.learner.first_name, "-", p.classs.name, "-", p.points
+
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
-        # this test fails sometimes adding this as debug to assist finding the problem when it does fail
         print resp
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "class_20")
-        self.assertContains(resp, "13th place")
+        self.assertContains(resp, "12th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
 
-        all_particpants_classes[counter-1].answer(question, question_option)
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': "abc16"})
+        )
 
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class_20")
-        self.assertContains(resp, "2nd place")
+        self.assertContains(resp, "class_16")
+        self.assertContains(resp, "8th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
@@ -2728,6 +2738,42 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         resp = self.client.post(reverse('prog.leader'), data={'region': 'region'}, follow=True)
         self.assertEquals(resp.status_code, 200)
+
+    def test_leaderboard_with_almost_no_results(self):
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': self.learner.unique_token})
+        )
+
+        resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "class name")
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "3 Month Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
+        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "Overall Leaderboard")
+        self.assertContains(resp, "2 Week Leaderboard")
+        self.assertContains(resp, "Class Leaderboard")
+
 
     def test_ontrack_screen(self):
         self.client.get(
@@ -3342,123 +3388,3 @@ class GeneralTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "Your number has been changed to 0721478529")
         self.assertContains(resp, "Your email has been changed to asdf@asdf.com.")
-
-    def test_golden_egg(self):
-        new_learner = self.create_learner(
-            self.school,
-            username="+27761234567",
-            mobile="+27761234567",
-            unique_token='123456789',
-            unique_token_expiry=datetime.now() + timedelta(days=30))
-
-        new_participant = self.create_participant(new_learner, self.classs, datejoined=datetime.now())
-
-        q = self.create_test_question('question_1', module=self.module, state=3)
-        q_o = self.create_test_question_option('question_option_1', q)
-
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': new_learner.unique_token})
-        )
-
-        #GOLDEN EGG DOESN'T EXIST
-        self.client.get(reverse('learn.next'))
-        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
-        new_participant = Participant.objects.filter(learner=new_learner).first()
-
-        self.assertEquals(1, new_participant.points)
-        log = GoldenEggRewardLog.objects.filter(participant=new_participant).count()
-        self.assertEquals(0, log)
-
-        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
-                                                 question=q,
-                                                 option_selected=q_o).delete()
-        new_participant.points = 0
-        new_participant.save()
-
-        #GOLDEN EGG INACTIVE
-        golden_egg_badge = self.create_badgetemplate('golden egg')
-        golden_egg_point = self.create_gamification_point_bonus('golden egg', 5)
-        golden_egg_scenario = self.create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
-        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5,
-                                              badge=golden_egg_scenario)
-
-        #set the golden egg number to 1
-        self.client.get(reverse('learn.next'))
-        state = LearnerState.objects.filter(participant=new_participant).first()
-        state.golden_egg_question = 1
-        state.save()
-        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
-        new_participant = Participant.objects.filter(learner=new_learner).first()
-
-        self.assertEquals(1, new_participant.points)
-        log = GoldenEggRewardLog.objects.filter(participant=new_participant).count()
-        self.assertEquals(0, log)
-
-        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
-                                                 question=q,
-                                                 option_selected=q_o).delete()
-        new_participant.points = 0
-        new_participant.save()
-
-        #GOLDEN EGG ACTIVE - TEST POINTS
-        golden_egg.active = True
-        golden_egg.save()
-
-        self.client.get(reverse('learn.next'))
-        state = LearnerState.objects.filter(participant=new_participant).first()
-        state.golden_egg_question = 1
-        state.save()
-        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
-        new_participant = Participant.objects.filter(learner=new_learner).first()
-
-        self.assertEquals(11, new_participant.points)
-        log = GoldenEggRewardLog.objects.filter(participant=new_participant, points=5).count()
-        self.assertEquals(1, log)
-
-        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
-                                                 question=q,
-                                                 option_selected=q_o).delete()
-
-        #TEST AIRTIME
-        golden_egg.point_value = None
-        golden_egg.airtime = 5
-        golden_egg.save()
-
-        self.client.get(reverse('learn.next'))
-        state = LearnerState.objects.filter(participant=new_participant).first()
-        state.golden_egg_question = 1
-        state.save()
-        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
-
-        log = GoldenEggRewardLog.objects.filter(participant=new_participant, airtime=5).count()
-        self.assertEquals(1, log)
-
-        ParticipantQuestionAnswer.objects.filter(participant=new_participant,
-                                                 question=q,
-                                                 option_selected=q_o).delete()
-
-        #TEST BADGE
-        bt1 = GamificationBadgeTemplate.objects.get(name="Golden Egg")
-        sc1 = GamificationScenario.objects.get(name="Golden Egg")
-
-        golden_egg.airtime = None
-        golden_egg.badge = sc1
-        golden_egg.save()
-
-        self.client.get(reverse('learn.next'))
-        state = LearnerState.objects.filter(participant=new_participant).first()
-        state.golden_egg_question = 1
-        state.save()
-        self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
-        new_participant = Participant.objects.filter(learner=new_learner).first()
-
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt1,
-            scenario=sc1
-        ).count()
-        self.assertEquals(cnt, 1)
-        log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=sc1).count()
-        self.assertEquals(1, log)
-        #check log
