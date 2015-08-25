@@ -2617,14 +2617,14 @@ class GeneralTests(TestCase):
             all_particpants.append(self.create_participant(all_learners[counter],
                                                            test_class, datejoined=datetime.now()))
 
-            if counter < 5:
-                for y in range(0, counter+1):
-                    all_particpants[counter].answer(question_list[y], question_option_list[y])
+            for y in range(0, counter+1):
+                all_particpants[y].answer(question_list[y], question_option_list[y])
+                all_particpants[y].answer(question_list[y], question_option_list[y])
 
             #data for class leaderboard
             new_class = self.create_class('class_%s' % x, self.course)
             all_learners_classes.append(self.create_learner(self.school,
-                                                            first_name="test_%s" % x,
+                                                            first_name="test_b_%s" % x,
                                                             username="08612345%s" % x,
                                                             mobile="08612345%s" % x,
                                                             unique_token='abc%s' % x,
@@ -2634,19 +2634,25 @@ class GeneralTests(TestCase):
             all_particpants_classes.append(self.create_participant(all_learners_classes[counter],
                                                                    new_class, datejoined=datetime.now()))
 
+            for y in range(0, counter+1):
+                all_particpants_classes[y].answer(question_list[y], question_option_list[y])
+
             counter += 1
 
         self.client.get(
             reverse('auth.autologin',
                     kwargs={'token': "20"})
         )
+
         resp = self.client.get(reverse('prog.leader'))
         self.assertEquals(resp.status_code, 200)
 
         resp = self.client.post(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
+        # overall leaderboard is overall in class, not over all classes
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_20")
         self.assertContains(resp, "11th place")
@@ -2678,7 +2684,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "5th place")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2686,7 +2692,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "5th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2694,7 +2700,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "1st place")
+        self.assertContains(resp, "5th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
@@ -2705,21 +2711,22 @@ class GeneralTests(TestCase):
         )
 
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
-        # this test fails sometimes adding this as debug to assist finding the problem when it does fail
-        print resp
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "class_20")
-        self.assertContains(resp, "13th place")
+        self.assertContains(resp, "12th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
 
-        all_particpants_classes[counter-1].answer(question, question_option)
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': "abc16"})
+        )
 
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class_20")
-        self.assertContains(resp, "2nd place")
+        self.assertContains(resp, "class_16")
+        self.assertContains(resp, "8th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
