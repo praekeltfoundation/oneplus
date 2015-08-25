@@ -210,7 +210,13 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 }
 
 .content {
-    padding: 40px 44px 40px 44px;
+    padding: 1em 0.5em;
+}
+
+@media (min-width: 30em) {
+    .content {
+        padding: 3em
+    }
 }
 
 .content.narrow {
@@ -239,11 +245,12 @@ p a { display: inline;}
     margin-right:-25px;
 }
 
-
 .dayheading {
     height: 40px;
     width: 100%;
     background-color: #333333;
+    display: -webkit-flex;
+    display: flex;
 }
 
 .dayheading div {
@@ -276,8 +283,9 @@ p a { display: inline;}
     height: 70px;
     width: 100%;
     background-color: #333333;
-    overflow: hidden;
     border-top: solid 1px #232323;
+    display: -webkit-flex;
+    display: flex;
 }
 
 .weeksummary > div > div {
