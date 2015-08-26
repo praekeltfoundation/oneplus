@@ -15,17 +15,13 @@
 
 <div class="header">
 
-    <div class="menu-wrapper">
-            {% if user.name %}
-                    <a href="/menu" class="menu {% if state.menu_visible %}active{% endif %}" ></a>
+    {% if user.name %}
+        <a href="/menu" class="menu" ></a>
+    {% else %}
+        <a href="login" class="menu-login green-front">Sign In</a>
+    {% endif %}
 
-            {% else %}
-                <a href="login" class="menu-login green-front">Sign In</a>
-            {% endif %}
-    </div>
-
-    <a href="/home"><div class="logo">
-    </div></a>
+    <a href="/home" class="logo"></a>
 </div>
 
 
