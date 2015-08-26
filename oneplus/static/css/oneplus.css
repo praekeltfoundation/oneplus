@@ -96,47 +96,57 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     height: 50px;
     line-height: 50px;
     background-color: #3a3a3a;
-    background-image: url("../img/logo.png");
-    background-repeat: no-repeat;
-    background-position: 50% 50%;
     width: 100%;
-
-}
-
-.header .menu-login {
-    float:right;
-    margin: 0px 17px 0px 0px;
-    padding: 0px;
 }
 
 .header a {
     padding: 0px;
 }
 
+.header .menu-login {
+    float:left;
+    margin: 0px 0px 0px 5px;
+    padding: 0px;
+    width: 45px;
+}
+
 .header .logo {
     height: 50px;
     overflow: hidden;
+    background-image: url("../img/logo.png");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
 }
 
-.header .menu-wrapper {
-    height: 50px;
-    float: right;
-
-}
-
-.menu-wrapper a{
-   padding: 0px;
-
-}
 .header .menu {
     height: 50px;
-    width: 50px;
+    width: 27px;
     background-color: #3a3a3a;
     border: none;
-    float:right;
+    float:left;
     background-image: url("../img/menu.png");
     background-repeat: no-repeat;
-    background-position: 17px 18px;
+    background-position: 5px 18px;
+}
+
+@media (min-width: 30em) {
+    .header .menu-login {
+        float:left;
+        margin: 0px 0px 0px 17px;
+        padding: 0px;
+        width: 50px;
+    }
+
+    .header .menu {
+        height: 50px;
+        width: 50px;
+        background-color: #3a3a3a;
+        border: none;
+        float:left;
+        background-image: url("../img/menu.png");
+        background-repeat: no-repeat;
+        background-position: 17px 18px;
+    }
 }
 
 .header .active {
@@ -210,7 +220,13 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 }
 
 .content {
-    padding: 40px 44px 40px 44px;
+    padding: 1em 0.5em;
+}
+
+@media (min-width: 30em) {
+    .content {
+        padding: 3em
+    }
 }
 
 .content.narrow {
@@ -239,11 +255,12 @@ p a { display: inline;}
     margin-right:-25px;
 }
 
-
 .dayheading {
     height: 40px;
     width: 100%;
     background-color: #333333;
+    display: -webkit-flex;
+    display: flex;
 }
 
 .dayheading div {
@@ -276,8 +293,9 @@ p a { display: inline;}
     height: 70px;
     width: 100%;
     background-color: #333333;
-    overflow: hidden;
     border-top: solid 1px #232323;
+    display: -webkit-flex;
+    display: flex;
 }
 
 .weeksummary > div > div {
@@ -645,3 +663,7 @@ ul.bullets{
 .padding-bottom {
      padding-bottom: 5px;
  }
+
+.no-padding {
+    padding: 0px !important;
+}
