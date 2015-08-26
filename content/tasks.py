@@ -25,7 +25,13 @@ def today():
 
 
 def end_event_processing_body():
-    events = Event.objects.filter(deactivation_date__lt=today(), end_processed=False)
+    # Only get exams and spot tests
+    events = Event.objects.filter(
+        deactivation_date__lt=today(),
+        end_processed=False,
+        type__in=[Event.ET_EXAM, Event.ET_SPOT_TEST]
+    )
+
     scenarios = {
         Event.ET_SPOT_TEST: "SPOT_TEST_CHAMP",
         Event.ET_EXAM: "EXAM_CHAMP"
