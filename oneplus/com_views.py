@@ -156,7 +156,7 @@ def inbox_send(request, state, user):
             _message.save()
 
             try:
-                # Send email to info@oneplus.co.za
+                # Send email to info@dig-it.co.za
                 mail_managers(
                     subject=subject,
                     message=_comment,

@@ -2544,7 +2544,7 @@ class GeneralTests(TestCase):
             follow=True
         )
 
-        self.assertContains(resp, "OnePlus is currently in test phase")
+        self.assertContains(resp, "dig-it is currently in test phase")
 
         learner = Learner.objects.create_user(
             username="+27231231231",

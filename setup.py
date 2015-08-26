@@ -14,7 +14,7 @@ setup(
     license='',
     author='praekelt',
     author_email='info@praekelt.co.za',
-    description='OnePlus is a gamified mobile maths challenge portal for '
+    description='dig-it is a gamified mobile maths challenge portal for '
                 'High School learners. It is built on the MobileU MOOC '
                 'platform'
 )
