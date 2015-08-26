@@ -7,7 +7,7 @@ from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
-    EventQuestionRel, SUMit, GoldenEggRewardLog
+    EventQuestionRel, GoldenEggRewardLog, Event
 from django.db.models import Count
 
 
@@ -125,10 +125,9 @@ class Participant(models.Model):
         answer.save()
 
         # Award points to participant if it's sumit
-        if isinstance(event, SUMit):
-            if option.correct:
-                self.points += question.points
-                self.save()
+        if event.type == Event.ET_SUMIT and option.correct:
+            self.points += question.points
+            self.save()
 
     def answer_redo(self, question, option):
         # Create participant question answer
@@ -168,8 +167,9 @@ class Participant(models.Model):
             participant=self,
             correct=True)
         sumit_answers = EventQuestionAnswer.objects.filter(
+            event__type=Event.ET_SUMIT,
             participant=self,
-            correct=True)
+            correct=True).exclude(event__event_points__isnull=True)
         events = EventParticipantRel.objects.filter(
             participant=self,
             results_received=True)
@@ -182,18 +182,11 @@ class Participant(models.Model):
         for answer in answers:
             points += answer.question.points
         for sumit_answer in sumit_answers:
-            try:
-                sumit = SUMit.objects.get(id=sumit_answer.event.id)
-                if isinstance(sumit, SUMit):
-                    points += sumit_answer.question.points
-            except SUMit.DoesNotExist:
-                continue
+                points += sumit_answer.question.points
         for event in events:
-            try:
-                sumit = SUMit.objects.get(id=event.event.id)
-                if isinstance(sumit, SUMit) and event.winner is True and event.event.event_points:
-                        points += event.event.event_points
-            except SUMit.DoesNotExist:
+            if event.event.type == Event.ET_SUMIT and event.winner is True and event.event.event_points:
+                points += event.event.event_points
+            else:
                 points += event.event.event_points
         for badge in badges:
             if badge.scenario.point:
