@@ -346,6 +346,12 @@ def badges(request, state, user):
         .filter(course=_course).prefetch_related("badge").order_by('badge__order')
     _badges = [scenario.badge for scenario in _allscenarios]
 
+    # There are badges not linked to course or module, like Spot Test Champ, Exam Champ, etc.
+    # this fetches them and allows the user to see them.
+    _otherscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
+        .filter(course__isnull=True, module__isnull=True).prefetch_related("badge").order_by('badge__order')
+    _badges += [scenario.badge for scenario in _otherscenarios]
+
     # Link achieved badges
     for x in _badges:
         rel = ParticipantBadgeTemplateRel.objects.filter(participant=_participant, badgetemplate=x)
