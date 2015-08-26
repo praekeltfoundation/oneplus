@@ -6,67 +6,44 @@
 {% block content %}
 {% load humanize %}
 
-<div class="content narrow white-back darkgrey-front">
-    <div class="pad-bottom">
-
-        <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
-        <div class="large-font center-font">You made it to:</div>
-        <div class="xlarge-font center-font pad-bottom">{{ sumit.level }}</div>
-        <div class="large-font center-font">And earned:</div>
-        <div class="xlarge-font center-font pad-bottom">{{ sumit.points }} points</div>
-        <div class="large-font center-font">{{ page.message }}</div>
-
-        {% if badge %}
-            <div class="badge-layout">
-                {% if badge.image %}
-                    <span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>
-                {% endif %}
-                <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
-            </div>
-        {% endif %}
-
-        <div class="sumitheading">
-            <div class="text basecamp green-front"><p>Basecamp</p></div>
-            <div class="text {% if level_name != 'Basecamp' %} foothills yellow-front {% else %} lightgrey-front {% endif %}"><p>Foothills</p></div>
-            <div class="text {% if level_name != 'Basecamp' or level_name != 'Foothills' %} cliffs purple-front {% else %} lightgrey-front {% endif %} "><p>Cliffs</p></div>
-            <div class="text {% if level_name == 'Peak' or level_name == 'Summit' %} peak cyan-front {% else %} lightgrey-front {% endif %}"><p>Peak</p></div>
+<div class="sumitheading">
+    <div class="text basecamp green-front"><p>Basecamp</p></div>
+    <div class="text {% if level != 'Basecamp' %} foothills yellow-front {% else %} lightgrey-front {% endif %}"><p>Foothills</p></div>
+    <div class="text {% if level != 'Basecamp' or sumit.level != 'Foothills' %} cliffs purple-front {% else %} lightgrey-front {% endif %} "><p>Cliffs</p></div>
+    <div class="text {% if level == 'Peak' or sumit.level == 'Summit' %} peak cyan-front {% else %} lightgrey-front {% endif %}"><p>Peak</p></div>
+</div>
+<div class="content narrow center-font {{ front }} {{ back }}">
+    {% if sumit.level != "Summit" or not winner %}
+        <div class="content">
+            {% if sumit.level != 'Summit' %}
+                <p><span class="large-font">You made it to the <span class="white-front large-font"> {{ sumit.level }}</span> and won {{ sumit.points }} points.</span></p>
+                <p><span>Well done on your effort in the SUMit challenge. Keep revising so next time you can SUMit! the mountain.</span></p>
+                <a class="button white-back darkgrey-front" href="home">Done</a>
+            {% else %}
+                <p><span class="large-font white-front">You made it to the <span class="green-front large-font"> {{ sumit.level }}</span> and won {{ sumit.points }} points.</span></p>
+                <p><span class="white-front">Well done on your effort in the SUMit challenge. Keep revising so next time you can SUMit! the mountain.</span></p>
+                <a class="button green-back darkgrey-front" href="home">Done</a>
+            {% endif %}
         </div>
-
-        {% if level_name != "Summit" and not winner%}
-            <div class="content center-font {% if level_name == 'Basecamp' %} green-back {% elif level_name == 'Foothills' %} yellow-back {% elif level_name == 'Cliffs' %} purple-back {% elif level_name == 'Peak' %} cyan-back {% else %} darkgrey-back white-front {% endif %}">
-                {% if level_name != 'Summit' %}
-                    <p>
-                        <span class="xlarge-font black-front">
-                            You made it to the <em class="white-front">{{ sumit.level_name }}</em> and won {{ sumit.points }} points.
-                        </span>
-                    </p>
-                    <p><span class="black-front">Well done on your effort in the SUMit challenge.</span></p>
-                    <p><span class="black-front">Keep revising so next time you can SUMit! the mountain.</span></p>
-
-                    <a class="button white-back" href="home">Done</a>
-                {% else %}
-                    <p>
-                        <span class="xlarge-font white-front">
-                            You made it to the <em class="cyan-front">{{ sumit.level_name }}</em> and won {{ sumit.points }} points.
-                        </span>
-                    </p>
-                    <p><span class="white-front">Well done on your effort in the SUMit challenge.</span></p>
-                    <p><span class="white-front">Keep revising so next time you can SUMit! the mountain.</span></p>
-
-                    <a class="button green-back" href="home">Done</a>
-                {% endif %}
-            </div>
-        {% else %}
-            <p><span class="xlarge-font white-front">Congratulations!</span></p>
-            <p><span class="white-front">You have climbed the mountain and won 150 points.</span></p>
-            <p><span class="white-front">
-                Congratulations on winning the SUMit! challenge. You have also won a share of {{ amount }} airtime - we'll sms you on Monday
-                with the actual amount. Make sure to come back next week for the usual daily challenge.
+    {% else %}
+        <div class="white-front">
+            <p><span class="large-font no">Congratulations! You have climbed the mountain and won {{ sumit.points }} points.</span></p>
+            <p><span>
+                Congratulations on winning the SUMit! challenge. {% if sumit.airtime %} You have also won a share of {{ sumit.airtime }} airtime - we'll sms you on Monday
+                with the actual amount. {% endif %}Make sure to come back next week for the usual daily challenge.
             </span></p>
+            <a class="button green-back darkgrey-front" href="home">Done</a>
+        </div>
+    {% endif %}
 
-            <a class="button green-end" href="home">Done</a>
-        {% endif %}
-    </div>
+    {% if badge %}
+        <div class="badge-layout">
+            {% if badge.image %}
+                <span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>
+            {% endif %}
+            <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
+        </div>
+    {% endif %}
 </div>
 
 

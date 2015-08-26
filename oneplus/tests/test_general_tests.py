@@ -283,18 +283,6 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.home'))
         self.assertContains(resp, "5</span><br/>POINTS")
 
-        # change event type to sumit
-        event.type = 0
-        event.save()
-
-        # test sumit homepage is loaded
-        resp = self.client.get(reverse('learn.home'))
-        self.assertContains(resp, 'Start SUMit!')
-
-        # test second visit to sumit homepage
-        resp = self.client.get(reverse('learn.home'))
-        self.assertContains(resp, 'Start SUMit!')
-
         for i in range(1, 15):
             question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
             option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
@@ -584,20 +572,31 @@ class GeneralTests(TestCase):
     def test_sumit(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
-        #no event
+        #no sumit
         resp = self.client.get(reverse('learn.sumit'))
         self.assertRedirects(resp, "home")
 
-        #create event
-        event = self.create_sumit("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
-                                  deactivation_date=datetime.now() + timedelta(days=1))
-        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
-
-        #no event questions
-        resp = self.client.get(reverse('learn.event'))
+        resp = self.client.get(reverse('learn.sumit_end_page'))
         self.assertRedirects(resp, "home")
 
-        #add question to event
+        #create event
+        sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit Badge")
+        gamification_point = GamificationPointBonus.objects.create(name="Sumit Points", value=10)
+        badge = GamificationScenario.objects.create(name="SUMit Scenario", badge=sumit_badge,
+                                                    module=self.module, course=self.course, point=gamification_point)
+        event = self.create_sumit("SUMit!", self.course, activation_date=datetime.now() - timedelta(days=1),
+                                  deactivation_date=datetime.now() + timedelta(days=1), event_points=10, airtime=5,
+                                  event_badge=badge, type=0)
+        start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
+        SUMitEndPage.objects.create(event=event, header="Level 1 - 4", paragraph="Test", type=1)
+        SUMitEndPage.objects.create(event=event, header="Level 5", paragraph="Test", type=2)
+        SUMitEndPage.objects.create(event=event, header="Winner", paragraph="Test", type=3)
+
+        #no sumit questions
+        resp = self.client.get(reverse('learn.sumit'))
+        self.assertRedirects(resp, "home")
+
+        #add question to sumit
         easy_options = dict()
         for i in range(1, 15):
             question = self.create_test_question("e_q_%d" % i, self.module, difficulty=2, state=3)
@@ -615,17 +614,12 @@ class GeneralTests(TestCase):
             self.create_event_question(event, question, i)
 
         advanced_options = dict()
-        for i in range(1, 5):
+        for i in range(1, 6):
             question = self.create_test_question("a_q_%d" % i, self.module, difficulty=4, state=3)
             correct_option = self.create_test_question_option("a_q_o_%d_c" % i, question)
             incorrect_option = self.create_test_question_option("a_q_o_%d_i" % i, question, correct=False)
             advanced_options['%d' % i] = {'c': correct_option, 'i': incorrect_option}
             self.create_event_question(event, question, i)
-
-        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
-        _learnerstate.sumit_level = 1
-        _learnerstate.sumit_question = 1
-        _learnerstate.save()
 
         resp = self.client.get(reverse('learn.sumit'))
         self.assertEquals(resp.status_code, 200)
@@ -642,6 +636,9 @@ class GeneralTests(TestCase):
 
         #VALID ANSWERS
         count = 1
+        points = 0
+        self.participant.points = 0
+        self.participant.save()
 
         #valid correct answer
         resp = self.client.post(reverse('learn.sumit'),
@@ -651,8 +648,10 @@ class GeneralTests(TestCase):
         self.assertRedirects(resp, "sumit_right")
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 2)
+        points += 1
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         count += 1
-
         #test event right post
         resp = self.client.post(reverse("learn.sumit_right"))
         self.assertEquals(resp.status_code, 200)
@@ -663,11 +662,12 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_wrong")
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 1)
         count += 1
-
-        #test event right post
+        #test event wrong post
         resp = self.client.post(reverse("learn.sumit_wrong"))
         self.assertEquals(resp.status_code, 200)
 
@@ -677,6 +677,9 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        points += 1
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 2)
         count += 1
@@ -687,6 +690,9 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        points += 1
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 3)
         count += 1
@@ -697,6 +703,8 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_wrong")
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 1)
         count += 1
@@ -707,6 +715,9 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        points += 1
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 2)
         count += 1
@@ -717,6 +728,9 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        points += 1
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 3)
         count += 1
@@ -727,6 +741,9 @@ class GeneralTests(TestCase):
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_right")
+        points += 1
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 1)
         self.assertEquals(_learnerstate.sumit_level, 2)
@@ -737,37 +754,163 @@ class GeneralTests(TestCase):
         _learnerstate.sumit_level = 1
         _learnerstate.sumit_question = 1
         _learnerstate.save()
-
-        for i in range(1, 15):
-            question = self.create_test_question("Easy question %d" % i, self.module)
-            question_option = self.create_test_question_option("Option %d.1" % i, question, True)
-            EventQuestionRel.objects.create(event=event, question=question, order=i)
-            EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
-                                               question_option=question_option, correct=True,
-                                               answer_date=datetime.now())
-        _learnerstate.sumit_level = 5
-        _learnerstate.sumit_question = 3
-        _learnerstate.save()
+        self.participant.points = 0
+        self.participant.save()
+        points = 0
         count = 1
 
-        #correct
-        resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': advanced_options['%d' % count]['c'].id},
-                                follow=True)
-        self.assertEquals(resp.status_code, 200)
-        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
-        self.assertRedirects(resp, "sumit_right")
+        for i in range(1, 5):
+            #Easy Questions
+            resp = self.client.post(reverse('learn.sumit'),
+                                    data={'answer': easy_options['%d' % count]['c'].id},
+                                    follow=True)
+            self.assertEquals(resp.status_code, 200)
+            self.assertRedirects(resp, "sumit_right")
+            points += 1
+            participant = Participant.objects.get(id=self.participant.id)
+            self.assertEquals(participant.points, points)
+            _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+            count += 1
+            if count <= 3:
+                self.assertEquals(_learnerstate.sumit_level, 1)
+            else:
+                self.assertEquals(_learnerstate.sumit_level, 2)
+            # self.assertEquals(_learnerstate.sumit_question, count)
+
+        #reset count
+        count = 1
+
+        for i in range(1, 7):
+            #Normal Questions
+            resp = self.client.post(reverse('learn.sumit'),
+                                    data={'answer': normal_options['%d' % count]['c'].id},
+                                    follow=True)
+            self.assertEquals(resp.status_code, 200)
+            self.assertRedirects(resp, "sumit_right")
+            points += 1
+            participant = Participant.objects.get(id=self.participant.id)
+            self.assertEquals(participant.points, points)
+            _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+            count += 1
+            if count <= 2:
+                self.assertEquals(_learnerstate.sumit_level, 2)
+            elif count <= 5:
+                self.assertEquals(_learnerstate.sumit_level, 3)
+            else:
+                self.assertEquals(_learnerstate.sumit_level, 4)
+            # self.assertEquals(_learnerstate.sumit_question, count)
+
+        #reset count
+        count = 1
+
+        #go to end page before all the questions are answered
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertRedirects(resp, "home")
+
+        for i in range(1, 6):
+            #Advanced Questions
+            resp = self.client.post(reverse('learn.sumit'),
+                                    data={'answer': advanced_options['%d' % count]['c'].id},
+                                    follow=True)
+            self.assertEquals(resp.status_code, 200)
+            self.assertRedirects(resp, "sumit_right")
+            points += 1
+            participant = Participant.objects.get(id=self.participant.id)
+            self.assertEquals(participant.points, points)
+            _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
+            count += 1
+            if count <= 2:
+                self.assertEquals(_learnerstate.sumit_level, 4)
+            else:
+                self.assertEquals(_learnerstate.sumit_level, 5)
+            # self.assertEquals(_learnerstate.sumit_question, count)
+
         self.assertContains(resp, "Finish")
 
-        EventQuestionAnswer.objects.get(event=event, participant=self.participant,
-                                        question_option=advanced_options['%d' % count]['c']).delete()
+        #go to end page
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        print resp
+        self.assertContains(resp, "Congratulations!")
+        points += event.event_points
+        points += gamification_point.value
+        participant = Participant.objects.get(id=self.participant.id)
+        self.assertEquals(participant.points, points)
+        pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=sumit_badge, scenario=badge,
+                                                          participant=self.participant)
+        self.assertIsNotNone(pbtr)
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertRedirects(resp, "home")
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        last_question = EventQuestionAnswer.objects.filter(event=event, participant=self.participant,
+                                                           question_option=advanced_options['5']['c']).first().delete()
 
         resp = self.client.post(reverse('learn.sumit'),
-                                data={'answer': advanced_options['%d' % count]['i'].id},
+                                data={'answer': advanced_options['5']['i'].id},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertRedirects(resp, "sumit_wrong")
-        self.assertContains(resp, "Finish")
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Summit')
+
+        #answered all the question
+        resp = self.client.get(reverse('learn.sumit'))
+        self.assertRedirects(resp, "home")
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 4
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Peak')
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 3
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Cliffs')
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 2
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Foothills')
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 1
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Basecamp')
 
     def test_redo(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -1220,80 +1363,6 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Test End Page")
-
-    def test_sumit_end_page(self):
-        self.client.get(
-            reverse(
-                'auth.autologin',
-                kwargs={'token': self.learner.unique_token})
-        )
-
-        resp = self.client.get(reverse('learn.sumit_end_page'))
-        self.assertRedirects(resp, "home")
-
-        sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit")
-        badge = GamificationScenario.objects.create(name="SUMit", badge=sumit_badge,
-                                                    module=self.module, course=self.course)
-
-        event = SUMit.objects.create(name="SUMit!", course=self.course, activation_date=datetime.now(),
-                                     deactivation_date=datetime.now() + timedelta(days=1), event_points=5, airtime=5,
-                                     event_badge=badge, type=0)
-        EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
-        for i in range(1, 16):
-            question = self.create_test_question("Easy question %d" % i, self.module)
-            question_option = self.create_test_question_option("Option %d.1" % i, question, True)
-            EventQuestionRel.objects.create(event=event, question=question, order=i)
-            EventQuestionAnswer.objects.create(event=event, participant=self.participant, question=question,
-                                               question_option=question_option, correct=True, answer_date=datetime.now())
-        SUMitEndPage.objects.create(event=event, header="Level 1 - 4", paragraph="Test", type=1)
-        SUMitEndPage.objects.create(event=event, header="Level 5", paragraph="Test", type=2)
-        SUMitEndPage.objects.create(event=event, header="Winner", paragraph="Test", type=3)
-
-        _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
-
-        if _learnerstate is None:
-            _learnerstate = LearnerState(participant=self.participant)
-
-        _learnerstate.sumit_level = 1
-        _learnerstate.sumit_question = 1
-        _learnerstate.save()
-
-        resp = self.client.get(reverse('learn.sumit_end_page'))
-
-        pbtr = ParticipantBadgeTemplateRel.objects.filter(badgetemplate=sumit_badge, scenario=badge,
-                                                          participant=self.participant)
-
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Level 1 - 4")
-        self.assertIsNotNone(pbtr)
-
-        _learnerstate.sumit_level = 5
-        _learnerstate.sumit_question = 1
-        _learnerstate.save()
-
-        event.event_badge = None
-        event.save()
-
-        resp = self.client.get(reverse('learn.sumit_end_page'))
-
-        _participant = Participant.objects.get(id=self.participant.id)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Winner")
-        self.assertEquals(_participant.points, 5)
-
-        eqa = EventQuestionAnswer.objects.filter(event=event, participant=_participant).first()
-        eqa.correct = False
-        eqa.save()
-
-        _learnerstate.sumit_level = 5
-        _learnerstate.sumit_question = 1
-        _learnerstate.save()
-
-        resp = self.client.get(reverse('learn.sumit_end_page'))
-
-        _participant = Participant.objects.get(id=self.participant.id)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Level 5")
 
     def test_report_question(self):
         self.client.get(
@@ -1945,6 +2014,9 @@ class GeneralTests(TestCase):
             kwargs={'token': new_learner.unique_token})
         )
 
+        ten = 10
+        gpb1 = self.create_gamification_point_bonus("Point Bonus", ten)
+
         # create the badges we want to win
         bt1 = self.create_badgetemplate(
             name="1st Correct",
@@ -1972,6 +2044,7 @@ class GeneralTests(TestCase):
             module=self.module,
             badge=bt1,
             event="1_CORRECT",
+            point=gpb1
         )
 
         sc2 = self.create_gamification_scenario(
@@ -2014,6 +2087,9 @@ class GeneralTests(TestCase):
             participant=new_participant,
             correct=True
         ).count()
+
+        participant = Participant.objects.get(id=new_participant.id)
+        self.assertEquals(participant.points, ten + fifteen)
 
         self.assertEquals(fifteen, _total_correct)
 
