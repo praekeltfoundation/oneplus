@@ -11,6 +11,10 @@ from content.models import TestingQuestion, TestingQuestionOption, EventParticip
 from django.db.models import Count
 
 
+def today():
+    return datetime.now()
+
+
 class Class(models.Model):
 
     """
@@ -104,7 +108,7 @@ class Participant(models.Model):
             question=question,
             option_selected=option,
             correct=option.correct,
-            answerdate=datetime.now()
+            answerdate=today()
         )
         answer.save()
 
@@ -136,7 +140,7 @@ class Participant(models.Model):
             question=question,
             option_selected=option,
             correct=option.correct,
-            answerdate=datetime.now()
+            answerdate=today()
         )
         answer.save()
 
@@ -212,23 +216,23 @@ class Participant(models.Model):
                 if not template_rels.exists():
                     b = ParticipantBadgeTemplateRel(
                         participant=self, badgetemplate=scenario.badge,
-                        scenario=scenario, awarddate=datetime.now())
+                        scenario=scenario, awarddate=today())
                     b.save()
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
-                                                 pointbonus=scenario.point, awarddate=datetime.now()).save()
+                                                 pointbonus=scenario.point, awarddate=today()).save()
                         # self.points += scenario.point.value
-                    BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
+                    BadgeAwardLog(participant_badge_rel=b, award_date=today()).save()
                 elif scenario.award_type == 2:
                     b = template_rels.first()
                     b.awardcount += 1
-                    b.awarddate = datetime.now()
+                    b.awarddate = today()
                     b.save()
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
-                                                 pointbonus=scenario.point, awarddate=datetime.now()).save()
+                                                 pointbonus=scenario.point, awarddate=today()).save()
                         # self.points += scenario.point.value
-                    BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
+                    BadgeAwardLog(participant_badge_rel=b, award_date=today()).save()
 
         # Recalculate total points - not entirely sure that this should be here.
         self.points = self.recalculate_total_points()
@@ -245,7 +249,7 @@ class ParticipantPointBonusRel(models.Model):
     pointbonus = models.ForeignKey(GamificationPointBonus)
     scenario = models.ForeignKey(GamificationScenario)
     awarddate = models.DateTimeField("Award Date", null=True, blank=True,
-                                     default=datetime.now())
+                                     default=today())
 
 
 class ParticipantBadgeTemplateRel(models.Model):
@@ -253,7 +257,7 @@ class ParticipantBadgeTemplateRel(models.Model):
     badgetemplate = models.ForeignKey(GamificationBadgeTemplate)
     scenario = models.ForeignKey(GamificationScenario)
     awarddate = models.DateTimeField(
-        "Award Date", null=True, blank=False, default=datetime.now())
+        "Award Date", null=True, blank=False, default=today())
     awardcount = models.PositiveIntegerField(default=1)
 
 
@@ -269,7 +273,7 @@ class ParticipantQuestionAnswer(models.Model):
         TestingQuestionOption, verbose_name="Selected")
     correct = models.BooleanField("Correct", db_index=True)
     answerdate = models.DateTimeField(
-        "Answer Date", null=True, blank=False, default=datetime.now(), db_index=True)
+        "Answer Date", null=True, blank=False, default=today(), db_index=True)
 
     def __str__(self):
         return self.participant.learner.username
@@ -290,7 +294,7 @@ class ParticipantRedoQuestionAnswer(models.Model):
         TestingQuestionOption, verbose_name="Selected")
     correct = models.BooleanField("Correct")
     answerdate = models.DateTimeField(
-        "Answer Date", null=True, blank=False, default=datetime.now())
+        "Answer Date", null=True, blank=False, default=today())
 
     def __str__(self):
         return self.participant.learner.username
