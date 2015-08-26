@@ -123,10 +123,10 @@ class LearnerStateTest(TestCase):
         week_range = self.learner_state.get_week_range()
 
         # Begin: Monday the 18th of August
-        self.assertEquals(week_range[0], datetime(2014, 8, 18, 0, 0))
+        self.assertEquals(week_range[0], datetime(2014, 8, 18).date())
 
         # End: Friday the 22nd of August
-        self.assertEquals(week_range[1], datetime(2014, 8, 23, 0, 0))
+        self.assertEquals(week_range[1], datetime(2014, 8, 23).date())
 
     def test_get_number_questions(self):
         # returns required - answered * questions per day(3)
