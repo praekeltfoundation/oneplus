@@ -1333,7 +1333,7 @@ class GeneralTests(TestCase):
 
         event = Event.objects.create(name="Spot Test event", course=self.course, activation_date=datetime.now(),
                                      deactivation_date=datetime.now() + timedelta(days=1), event_points=5, airtime=5,
-                                     event_badge=badge)
+                                     event_badge=badge, type=Event.ET_SPOT_TEST)
         for i in range(1, 6):
             EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
         question = self.create_test_question("Event question", self.module)
