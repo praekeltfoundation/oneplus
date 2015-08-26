@@ -9,6 +9,7 @@ from django.db.models import Q, Count
 from organisation.models import School
 from django.contrib.admin.sites import AdminSite
 from .filters import *
+from oneplus.models import LearnerState
 
 AdminSite.index_template = 'admin/my_index.html'
 
@@ -209,5 +210,12 @@ class OnePlusLearnerAdmin(LearnerAdmin):
 
         return qs
 
+
+class LearnerStateAdmin(admin.ModelAdmin):
+    list_display = ("participant", "active_question", "active_result", "redo_question", "active_redo_result",
+                    "golden_egg_question", "sumit_level", "sumit_question")
+
+
 admin.site.unregister(Learner)
 admin.site.register(Learner, OnePlusLearnerAdmin)
+admin.site.register(LearnerState, LearnerStateAdmin)
