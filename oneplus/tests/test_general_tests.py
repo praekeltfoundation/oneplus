@@ -439,7 +439,7 @@ class GeneralTests(TestCase):
         #no questions
         resp = self.client.get(reverse('learn.next'), follow=True)
         self.assertRedirects(resp, "home", status_code=302, target_status_code=200)
-        self.assertContains(resp, "ONEPLUS | WELCOME")
+        self.assertContains(resp, "DIG-IT | WELCOME")
 
         #with question
         question1 = self.create_test_question(
@@ -598,7 +598,7 @@ class GeneralTests(TestCase):
 
         #add question to sumit
         easy_options = dict()
-        for i in range(1, 15):
+        for i in range(1, 16):
             question = self.create_test_question("e_q_%d" % i, self.module, difficulty=2, state=3)
             correct_option = self.create_test_question_option("e_q_o_%d_c" % i, question)
             incorrect_option = self.create_test_question_option("e_q_o_%d_i" % i, question, correct=False)
@@ -606,7 +606,7 @@ class GeneralTests(TestCase):
             self.create_event_question(event, question, i)
 
         normal_options = dict()
-        for i in range(1, 11):
+        for i in range(1, 12):
             question = self.create_test_question("n_q_%d" % i, self.module, difficulty=3, state=3)
             correct_option = self.create_test_question_option("n_q_o_%d_c" % i, question)
             incorrect_option = self.create_test_question_option("n_q_o_%d_i" % i, question, correct=False)
@@ -829,7 +829,6 @@ class GeneralTests(TestCase):
 
         #go to end page
         resp = self.client.get(reverse('learn.sumit_end_page'))
-        print resp
         self.assertContains(resp, "Congratulations!")
         points += event.event_points
         points += gamification_point.value
@@ -2544,7 +2543,7 @@ class GeneralTests(TestCase):
             follow=True
         )
 
-        self.assertContains(resp, "OnePlus is currently in test phase")
+        self.assertContains(resp, "dig-it is currently in test phase")
 
         learner = Learner.objects.create_user(
             username="+27231231231",
@@ -2660,6 +2659,7 @@ class GeneralTests(TestCase):
     def test_leaderboard_screen(self):
         question_list = list()
         question_option_list = list()
+        question_option_wrong_list = list()
 
         for x in range(0, 11):
             question = self.create_test_question('question_%s' % x,
@@ -2667,9 +2667,11 @@ class GeneralTests(TestCase):
                                                  question_content='test question',
                                                  state=3)
             question_option = self.create_test_question_option('question_option_%s' % x, question)
+            question_wrong_option = self.create_test_question_option('question_option_w_%s' % x, question, False)
 
             question_list.append(question)
             question_option_list.append(question_option)
+            question_option_wrong_list.append(question_wrong_option)
 
         all_learners_classes = []
         all_particpants_classes = []
@@ -2710,9 +2712,15 @@ class GeneralTests(TestCase):
                                                                    new_class, datejoined=datetime.now()))
 
             for y in range(0, counter+1):
-                all_particpants_classes[y].answer(question_list[y], question_option_list[y])
+                all_particpants_classes[y].answer(question_list[y], question_option_wrong_list[y])
+
+            all_particpants_classes[counter].answer(question_list[counter], question_option_list[counter])
+            all_particpants_classes[counter].answer(question_list[counter], question_option_list[counter])
+            all_particpants_classes[counter].answer(question_list[counter], question_option_wrong_list[counter])
+            all_particpants_classes[counter].answer(question_list[counter], question_option_wrong_list[counter])
 
             counter += 1
+
 
         self.client.get(
             reverse('auth.autologin',
@@ -2782,16 +2790,12 @@ class GeneralTests(TestCase):
 
         self.client.get(
             reverse('auth.autologin',
-                    kwargs={'token': "abc20"})
+                    kwargs={'token': "abc10"})
         )
 
-        for p in Participant.objects.all().order_by("-points"):
-            print p.learner.first_name, "-", p.classs.name, "-", p.points
-
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
-        print resp
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class_20")
+        self.assertContains(resp, "class_10")
         self.assertContains(resp, "12th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
@@ -2805,7 +2809,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "class_16")
-        self.assertContains(resp, "8th place")
+        self.assertContains(resp, "6th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
@@ -2980,7 +2984,7 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('reports.home'))
-        self.assertContains(resp, 'ONEPLUS')
+        self.assertContains(resp, 'DIG-IT')
 
     def test_report_learner(self):
         def make_content(ftype, region=None):
@@ -3147,7 +3151,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('auth.signup'), data={'no': "Not interested right now"}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "<title>ONEPLUS | HELLO</title>")
+        self.assertContains(resp, "<title>DIG-IT | HELLO</title>")
 
     def test_validate_mobile(self):
         v_mobile_1 = "0721234567"

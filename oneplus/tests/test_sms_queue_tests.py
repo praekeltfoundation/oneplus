@@ -142,7 +142,7 @@ class SMSQueueTest(TestCase):
         self.assertEquals(resp.status_code, 200)
         count = SmsQueue.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 9)
-        self.assertContains(resp, "<title>Select Queued Sms to change | OnePlus site admin</title>")
+        self.assertContains(resp, "<title>Select Queued Sms to change | dig-it site admin</title>")
 
         resp = c.get(reverse('com.add_sms'))
         self.assertEquals(resp.status_code, 200)
