@@ -223,6 +223,7 @@ class Event(models.Model):
         (MULTIPLE, "Multiple")
     )
 
+    ET_SUMIT = 0
     ET_SPOT_TEST = 1
     ET_EXAM = 2
 
@@ -322,7 +323,6 @@ class EventParticipantRel(models.Model):
 
 
 class SUMit(Event):
-    pass
 
     def get_questions(self):
 
