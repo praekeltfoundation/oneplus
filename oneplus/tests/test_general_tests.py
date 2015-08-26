@@ -2659,6 +2659,7 @@ class GeneralTests(TestCase):
     def test_leaderboard_screen(self):
         question_list = list()
         question_option_list = list()
+        question_option_wrong_list = list()
 
         for x in range(0, 11):
             question = self.create_test_question('question_%s' % x,
@@ -2666,9 +2667,11 @@ class GeneralTests(TestCase):
                                                  question_content='test question',
                                                  state=3)
             question_option = self.create_test_question_option('question_option_%s' % x, question)
+            question_wrong_option = self.create_test_question_option('question_option_w_%s' % x, question, False)
 
             question_list.append(question)
             question_option_list.append(question_option)
+            question_option_wrong_list.append(question_wrong_option)
 
         all_learners_classes = []
         all_particpants_classes = []
@@ -2709,9 +2712,15 @@ class GeneralTests(TestCase):
                                                                    new_class, datejoined=datetime.now()))
 
             for y in range(0, counter+1):
-                all_particpants_classes[y].answer(question_list[y], question_option_list[y])
+                all_particpants_classes[y].answer(question_list[y], question_option_wrong_list[y])
+
+            all_particpants_classes[counter].answer(question_list[counter], question_option_list[counter])
+            all_particpants_classes[counter].answer(question_list[counter], question_option_list[counter])
+            all_particpants_classes[counter].answer(question_list[counter], question_option_wrong_list[counter])
+            all_particpants_classes[counter].answer(question_list[counter], question_option_wrong_list[counter])
 
             counter += 1
+
 
         self.client.get(
             reverse('auth.autologin',
@@ -2781,16 +2790,12 @@ class GeneralTests(TestCase):
 
         self.client.get(
             reverse('auth.autologin',
-                    kwargs={'token': "abc20"})
+                    kwargs={'token': "abc10"})
         )
 
-        for p in Participant.objects.all().order_by("-points"):
-            print p.learner.first_name, "-", p.classs.name, "-", p.points
-
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
-        print resp
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class_20")
+        self.assertContains(resp, "class_10")
         self.assertContains(resp, "12th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
@@ -2804,7 +2809,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "class_16")
-        self.assertContains(resp, "8th place")
+        self.assertContains(resp, "6th place")
         self.assertContains(resp, "Overall Leaderboard")
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "3 Month Leaderboard")
