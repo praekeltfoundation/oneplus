@@ -907,8 +907,6 @@ def sumit(request, state, user):
         else:
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
 
-
-
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
         if state['next_tasks_today'] > state["total_tasks_today"]:
@@ -1047,10 +1045,7 @@ def sumit_wrong(request, state, user):
     sumit = {}
     sumit["level"] = sumit_level.name
     for i in range(1, 4):
-        if i in range(1, sumit_question):
-            sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
-        else:
-            sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
+        sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
 
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
@@ -1801,9 +1796,6 @@ def sumit_end_page(request, state, user):
     if rel.results_received:
         return redirect("learn.home")
 
-    rel.results_received = True
-    rel.save()
-
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
     page = {}
@@ -1814,6 +1806,7 @@ def sumit_end_page(request, state, user):
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
     if num_sumit_questions == num_sumit_questions_answered:
+
         if _learnerstate.sumit_level in range(1, 5):
             end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
             winner = False
@@ -1834,6 +1827,9 @@ def sumit_end_page(request, state, user):
                 end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
                 winner = False
 
+        rel.results_received = True
+        rel.save()
+        
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
             .aggregate(Sum('question__points'))['question__points__sum']
