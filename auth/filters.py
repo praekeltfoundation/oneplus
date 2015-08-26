@@ -6,6 +6,10 @@ from organisation.models import Course
 from core.models import Participant, ParticipantQuestionAnswer, Class
 
 
+def today():
+    return datetime.now()
+
+
 class CourseFilter(admin.SimpleListFilter):
     title = _('Course')
     parameter_name = 'id'
@@ -38,11 +42,12 @@ class AirtimeFilter(admin.SimpleListFilter):
     title = _('Airtime')
     parameter_name = 'name'
 
-    def get_date_range(self):
-        today = datetime.today()
-        start = today - timedelta(days=today.weekday(), weeks=1)
+    @staticmethod
+    def get_date_range():
+        date = today()
+        start = date - timedelta(days=date.weekday(), weeks=1)
         start = start.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = start + timedelta(days=7)
+        end = start + timedelta(days=6)
         end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
         return [start, end]
 
