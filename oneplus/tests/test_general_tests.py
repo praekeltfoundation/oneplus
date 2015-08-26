@@ -598,7 +598,7 @@ class GeneralTests(TestCase):
 
         #add question to sumit
         easy_options = dict()
-        for i in range(1, 15):
+        for i in range(1, 16):
             question = self.create_test_question("e_q_%d" % i, self.module, difficulty=2, state=3)
             correct_option = self.create_test_question_option("e_q_o_%d_c" % i, question)
             incorrect_option = self.create_test_question_option("e_q_o_%d_i" % i, question, correct=False)
@@ -606,7 +606,7 @@ class GeneralTests(TestCase):
             self.create_event_question(event, question, i)
 
         normal_options = dict()
-        for i in range(1, 11):
+        for i in range(1, 12):
             question = self.create_test_question("n_q_%d" % i, self.module, difficulty=3, state=3)
             correct_option = self.create_test_question_option("n_q_o_%d_c" % i, question)
             incorrect_option = self.create_test_question_option("n_q_o_%d_i" % i, question, correct=False)
@@ -829,7 +829,6 @@ class GeneralTests(TestCase):
 
         #go to end page
         resp = self.client.get(reverse('learn.sumit_end_page'))
-        print resp
         self.assertContains(resp, "Congratulations!")
         points += event.event_points
         points += gamification_point.value
