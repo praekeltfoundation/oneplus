@@ -358,7 +358,7 @@ class SUMit(Event):
 
             # don't populate EventQuestionRel if we don't have enough questions
             if ec != 15 or nc != 11 or ac != 5:
-                # inform oneplus about summit not having enough questions
+                # inform digit about summit not having enough questions
                 subject = "".join(['%s SUMit! - NOT ENOUGH QUESTIONS' % self.name])
                 easy = ""
                 normal = ""
@@ -412,7 +412,7 @@ class SUMit(Event):
             if next_question:
                 return next_question.question
             else:
-                # inform oneplus about summit not having enough questions
+                # inform dig-it about summit not having enough questions
                 subject = "".join(['%s SUMit! - NOT ENOUGH QUESTIONS' % self.name])
                 message = "".join(['%s SUMit! does not have enough questions with %s difficulty.' %
                                    (self.name, difficulty)])
