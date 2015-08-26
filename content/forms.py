@@ -541,3 +541,36 @@ class SUMitLevelForm(forms.ModelForm):
         if 1 < order < 5:
             raise forms.ValidationError("Order must be between 1 and 5")
         return order
+
+
+class SUMitForm(forms.ModelForm):
+
+    def clean(self):
+        data = self.cleaned_data
+        if data.get('event_points') is None and data.get('airtime') is None and data.get('event_badge') is None:
+            msg = u"One award must be awarded."
+            self._errors["event_points"] = self.error_class([msg])
+            self._errors["airtime"] = self.error_class([msg])
+            self._errors["event_badge"] = self.error_class([msg])
+
+        if data.get('activation_date'):
+            if data.get('activation_date') < datetime.now():
+                msg = u"Invalid date selected."
+                self._errors["activation_date"] = self.error_class([msg])
+        else:
+            msg = u"Select a valid date."
+            self._errors["activation_date"] = self.error_class([msg])
+
+        if not data.get('deactivation_date'):
+            msg = u"Invalid date selected."
+            self._errors["deactivation_date"] = self.error_class([msg])
+        else:
+            if data.get('deactivation_date') < datetime.now() or \
+                    data.get('deactivation_date') < data.get('activation_date'):
+                msg = u"Select a valid date."
+                self._errors["deactivation_date"] = self.error_class([msg])
+
+        return data
+
+    class Meta:
+        model = Event
