@@ -30,11 +30,11 @@ def weekly_badge_email():
 
     html_content += "</table></body></html>"
 
-    subject = "OnePlus Weekly Badge Earners %s - %s" % (week_range.date(), datetime.now().date())
+    subject = "dig-it Weekly Badge Earners %s - %s" % (week_range.date(), datetime.now().date())
     to = Setting.objects.get(key="WEEKLY_BADGE_EMAIL").value
-    from_email = "info@oneplus.co.za"
+    from_email = "info@dig-it.co.za"
 
-    text_content = 'This email contains a list of all the OnePlus learners that earned badges this week.'
+    text_content = 'This email contains a list of all the dig-it learners that earned badges this week.'
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
