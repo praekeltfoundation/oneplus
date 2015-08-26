@@ -576,6 +576,9 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.sumit'))
         self.assertRedirects(resp, "home")
 
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertRedirects(resp, "home")
+
         #create event
         sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit Badge")
         gamification_point = GamificationPointBonus.objects.create(name="Sumit Points", value=10)
@@ -800,6 +803,10 @@ class GeneralTests(TestCase):
         #reset count
         count = 1
 
+        #go to end page before all the questions are answered
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertRedirects(resp, "home")
+
         for i in range(1, 6):
             #Advanced Questions
             resp = self.client.post(reverse('learn.sumit'),
@@ -822,6 +829,7 @@ class GeneralTests(TestCase):
 
         #go to end page
         resp = self.client.get(reverse('learn.sumit_end_page'))
+        print resp
         self.assertContains(resp, "Congratulations!")
         points += event.event_points
         points += gamification_point.value
@@ -840,14 +848,33 @@ class GeneralTests(TestCase):
         rel.save()
 
         last_question = EventQuestionAnswer.objects.filter(event=event, participant=self.participant,
-                                                           question_option=advanced_options['5']['c']).first()
-        last_question.question_option = advanced_options['5']['i']
-        last_question.correct = False
-        last_question.save()
+                                                           question_option=advanced_options['5']['c']).first().delete()
+
+        resp = self.client.post(reverse('learn.sumit'),
+                                data={'answer': advanced_options['5']['i'].id},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+        self.assertRedirects(resp, "sumit_wrong")
 
         resp = self.client.get(reverse('learn.sumit_end_page'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'Summit')
+
+        #answered all the question
+        resp = self.client.get(reverse('learn.sumit'))
+        self.assertRedirects(resp, "home")
+
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 4
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Peak')
 
         #reset result_recieved
         rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
@@ -861,6 +888,17 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'Cliffs')
 
+        #reset result_recieved
+        rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
+        rel.results_received = False
+        rel.save()
+
+        _learnerstate.sumit_level = 2
+        _learnerstate.save()
+
+        resp = self.client.get(reverse('learn.sumit_end_page'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'Foothills')
 
         #reset result_recieved
         rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
