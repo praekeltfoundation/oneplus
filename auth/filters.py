@@ -41,7 +41,9 @@ class AirtimeFilter(admin.SimpleListFilter):
     def get_date_range(self):
         today = datetime.today()
         start = today - timedelta(days=today.weekday(), weeks=1)
+        start = start.replace(hour=0, minute=0, second=0, microsecond=0)
         end = start + timedelta(days=7)
+        end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
         return [start, end]
 
     def get_learner_ids(self):
