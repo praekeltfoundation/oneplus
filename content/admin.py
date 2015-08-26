@@ -504,12 +504,19 @@ class SUMitLevelAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
+
+class DefinitionAdmin(admin.ModelAdmin):
+    list_display = ("name", "definition")
+    ordering = ["name"]
+    search_fields = ("name", "definition")
+
+
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
 admin.site.register(TestingQuestionOption, TestingQuestionOptionAdmin)
 admin.site.register(Mathml, MathmlAdmin)
-admin.site.register(Definition)
+admin.site.register(Definition, DefinitionAdmin)
 admin.site.register(GoldenEgg, GoldenEggAdmin)
 admin.site.register(GoldenEggRewardLog, GoldenEggRewardLogAdmin)
 admin.site.register(Event, EventAdmin)
