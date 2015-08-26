@@ -185,7 +185,7 @@ def set_learner_password(learner):
 
 
 def send_welcome_sms(learner, password):
-    # sms the learner their OnePlus password
+    # sms the learner their dig-it password
     sms_message = Setting.objects.get(key="WELCOME_SMS")
     learner.generate_unique_token()
     token = learner.unique_token
@@ -260,7 +260,7 @@ def signup_form(request):
             password = set_learner_password(new_learner)
             send_welcome_sms(new_learner, password)
 
-            # inform oneplus about the new learner
+            # inform dig-it about the new learner
             subject = "".join(['New student registered'])
             message = "".join([
                 new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
@@ -362,7 +362,7 @@ def smspassword(request, state):
                 learner.password = make_password(password)
 
                 # Message
-                message = "Your new password for OnePlus is '|password|' " \
+                message = "Your new password for dig-it is '|password|' " \
                           "or use the following link to login: |autologin|"
 
                 # Generate autologin link
