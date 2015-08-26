@@ -439,7 +439,7 @@ class GeneralTests(TestCase):
         #no questions
         resp = self.client.get(reverse('learn.next'), follow=True)
         self.assertRedirects(resp, "home", status_code=302, target_status_code=200)
-        self.assertContains(resp, "ONEPLUS | WELCOME")
+        self.assertContains(resp, "DIG-IT | WELCOME")
 
         #with question
         question1 = self.create_test_question(
@@ -2979,7 +2979,7 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('reports.home'))
-        self.assertContains(resp, 'ONEPLUS')
+        self.assertContains(resp, 'DIG-IT')
 
     def test_report_learner(self):
         def make_content(ftype, region=None):
@@ -3146,7 +3146,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('auth.signup'), data={'no': "Not interested right now"}, follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "<title>ONEPLUS | HELLO</title>")
+        self.assertContains(resp, "<title>DIG-IT | HELLO</title>")
 
     def test_validate_mobile(self):
         v_mobile_1 = "0721234567"
