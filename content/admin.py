@@ -9,7 +9,7 @@ from import_export import fields
 from core.models import ParticipantQuestionAnswer, Participant, ParticipantRedoQuestionAnswer
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
-    EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm
+    EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm, SUMitForm
 from organisation.models import Course
 from django.db.models import Count
 from datetime import datetime
@@ -410,9 +410,9 @@ class SUMitAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "event_points",
                            "airtime", "event_badge"]})]
-    inlines = (EventSplashPageInline, EventStartPageInline, SUMitEndPageInline)
-    form = EventForm
-    add_form = EventForm
+    inlines = (EventSplashPageInline, EventStartPageInline)
+    form = SUMitForm
+    add_form = SUMitForm
 
     def get_total_users(self, obj):
         return Participant.objects.filter(classs__course=obj.course).aggregate(Count('id'))['id__count']
