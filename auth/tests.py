@@ -10,6 +10,8 @@ from gamification.models import (GamificationBadgeTemplate,
 from content.models import TestingQuestion, TestingQuestionOption
 from communication.models import Ban
 from auth.stats import *
+from auth.filters import AirtimeFilter
+from mock import patch
 
 
 class TestAuth(TestCase):
@@ -156,3 +158,12 @@ class TestAuth(TestCase):
         )
 
         self.assertEquals(self.learner.is_banned(), True)
+
+    @patch('auth.filters.today')
+    def test_airtime_filter_date_range(self, mock_today):
+        mock_today.return_value = datetime(2015, 8, 12, 11, 14, 11, 123412)
+        r = AirtimeFilter.get_date_range()
+        start = datetime(2015, 8, 3, 0, 0, 0, 0)
+        end = datetime(2015, 8, 9, 23, 59, 59, 999999)
+        self.assertEquals(r[0], start)
+        self.assertEquals(r[1], end)
