@@ -318,6 +318,7 @@ class EventParticipantRel(models.Model):
     participant = models.ForeignKey("core.Participant", null=True, blank=False)
     sitting_number = models.PositiveIntegerField(null=True, blank=False)
     results_received = models.BooleanField(default=False)
+    winner = models.BooleanField(default=False)
 
 
 class SUMit(Event):

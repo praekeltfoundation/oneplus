@@ -148,7 +148,7 @@ GRAPPELLI_ADMIN_TITLE = "MobileU"
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 
-MATHML_URL = 'http://prd-mathml.za.prk-host.net/'
+MATHML_URL = 'http://mathml.p16n.org/'
 
 try:
     from production_settings import *

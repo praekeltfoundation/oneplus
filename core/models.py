@@ -7,7 +7,7 @@ from auth.models import Learner, Teacher
 from gamification.models import \
     GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
 from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
-    EventQuestionRel
+    EventQuestionRel, SUMit, GoldenEggRewardLog
 from django.db.models import Count
 
 
@@ -124,6 +124,12 @@ class Participant(models.Model):
         )
         answer.save()
 
+        # Award points to participant if it's sumit
+        if isinstance(event, SUMit):
+            if option.correct:
+                self.points += question.points
+                self.save()
+
     def answer_redo(self, question, option):
         # Create participant question answer
         answer = ParticipantRedoQuestionAnswer(
@@ -156,9 +162,12 @@ class Participant(models.Model):
                     return True, event_participant_rel
         return True, None
 
-    # Probably to be used in migrations
+    # # Probably to be used in migrations
     def recalculate_total_points(self):
         answers = ParticipantQuestionAnswer.objects.filter(
+            participant=self,
+            correct=True)
+        sumit_answers = EventQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
         events = EventParticipantRel.objects.filter(
@@ -167,15 +176,31 @@ class Participant(models.Model):
         badges = ParticipantBadgeTemplateRel.objects.filter(
             participant=self
         )
+        golden_egg = GoldenEggRewardLog.objects.filter(participant=self).exclude(points__isnull=True)
 
         points = 0
         for answer in answers:
             points += answer.question.points
+        for sumit_answer in sumit_answers:
+            try:
+                sumit = SUMit.objects.get(id=sumit_answer.event.id)
+                if isinstance(sumit, SUMit):
+                    points += sumit_answer.question.points
+            except SUMit.DoesNotExist:
+                continue
         for event in events:
-            points += event.event.event_points
+            try:
+                sumit = SUMit.objects.get(id=event.event.id)
+                if isinstance(sumit, SUMit) and event.winner is True and event.event.event_points:
+                        points += event.event.event_points
+            except SUMit.DoesNotExist:
+                points += event.event.event_points
         for badge in badges:
             if badge.scenario.point:
                 points += badge.scenario.point.value
+        for egg in golden_egg:
+            points += egg.points
+
         self.points = points
         self.save()
         return points
@@ -199,6 +224,7 @@ class Participant(models.Model):
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
                                                  pointbonus=scenario.point, awarddate=datetime.now()).save()
+                        # self.points += scenario.point.value
                     BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
                 elif scenario.award_type == 2:
                     b = template_rels.first()
@@ -208,6 +234,7 @@ class Participant(models.Model):
                     if scenario.point:
                         ParticipantPointBonusRel(participant=self, scenario=scenario,
                                                  pointbonus=scenario.point, awarddate=datetime.now()).save()
+                        # self.points += scenario.point.value
                     BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
 
         # Recalculate total points - not entirely sure that this should be here.
