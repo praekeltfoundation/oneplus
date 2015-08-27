@@ -1272,7 +1272,8 @@ def right(request, state, user):
         #     golden_egg_question = 7 Only Wednesday
         if ((_learnerstate.golden_egg_question - 1) // 3) == _learnerstate.get_week_day():
             _golden_egg = get_golden_egg(_participant)
-            if _golden_egg:
+            if _golden_egg and "won_golden_egg" not in state:
+                state["won_golden_egg"] = True
                 if _golden_egg.point_value:
                     golden_egg["message"] = "You've won this week's Golden Egg and %d points." % _golden_egg.point_value
                     _participant.points += _golden_egg.point_value

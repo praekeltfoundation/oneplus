@@ -12,6 +12,7 @@ from go_http.tests.test_send import RecordingHandler
 from mock import patch
 from oneplus.models import LearnerState
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
+from oneplus.tasks import reset_golden_egg_states
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -124,10 +125,7 @@ class GoldenEggTest(TestCase):
         q = self.create_test_question('question_1', module=self.module, state=3)
         q_o = self.create_test_question_option('question_option_1', q)
 
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': new_learner.unique_token})
-        )
+        self.client.get(reverse('auth.autologin', kwargs={'token': new_learner.unique_token}))
 
         # GOLDEN EGG DOESN'T EXIST
         self.client.get(reverse('learn.next'))
@@ -228,6 +226,8 @@ class GoldenEggTest(TestCase):
         new_participant.save()
 
         # TEST AIRTIME
+        self.client.get('/signout')
+        self.client.get(reverse('auth.autologin', kwargs={'token': new_learner.unique_token}))
         golden_egg.point_value = None
         golden_egg.airtime = 5
         golden_egg.save()
@@ -257,6 +257,8 @@ class GoldenEggTest(TestCase):
         GoldenEggRewardLog.objects.filter(participant=new_participant).delete()
 
         # TEST BADGE
+        self.client.get('/signout')
+        self.client.get(reverse('auth.autologin', kwargs={'token': new_learner.unique_token}))
         golden_egg.airtime = None
         golden_egg.badge = golden_egg_scenario
         golden_egg.save()
@@ -289,3 +291,12 @@ class GoldenEggTest(TestCase):
         self.assertEquals(cnt, 1)
         log = GoldenEggRewardLog.objects.filter(participant=new_participant, badge=golden_egg_scenario).count()
         self.assertEquals(1, log)
+
+        # Test Reset Task
+        cnt = LearnerState.objects.filter(golden_egg_question__gt=0).count()
+        self.assertEquals(1,cnt)
+
+        reset_golden_egg_states()
+
+        cnt = LearnerState.objects.filter(golden_egg_question__gt=0).count()
+        self.assertEquals(0,cnt)
