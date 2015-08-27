@@ -32,9 +32,17 @@
                     {% if sumit.finished %}
                         <a class="button green-back grey-front drop" href="sumit_end_page">Finish</a>
                     {% elif state.right_tasks_today >= state.total_tasks_today %}
-                        <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        {% if level_up %}
+                            <a class="button green-back grey-front drop" href="sumit_level_up">Done For Today</a>
+                        {% else %}
+                            <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        {% endif %}
                     {% else %}
-                        <a class="button green-back grey-front drop" href="sumit">Next Question</a>
+                        {% if level_up %}
+                            <a class="button green-back grey-front drop" href="sumit_level_up">Next Question</a>
+                        {% else %}
+                            <a class="button green-back grey-front drop" href="sumit">Next Question</a>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             </div>
