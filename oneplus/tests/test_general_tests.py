@@ -932,10 +932,10 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'Basecamp')
 
         # test state reset
-        cnt = LearnerState.objects.filter(sumit_question__gte=0).count()
+        cnt = LearnerState.objects.filter(sumit_question__gt=0).count()
         self.assertEquals(1, cnt)
         reset_learner_states()
-        cnt = LearnerState.objects.filter(sumit_question__gte=0).count()
+        cnt = LearnerState.objects.filter(sumit_question__gt=0).count()
         self.assertEquals(0, cnt)
 
     def test_redo(self):
