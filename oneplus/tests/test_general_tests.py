@@ -1793,7 +1793,7 @@ class GeneralTests(TestCase):
         answered = list(learnerstate.get_answers_this_week().order_by("question"))
 
         self.assertListEqual(answered, answers)
-        self.assertListEqual(learnerstate.get_week_range(), [monday, tuesday])
+        self.assertListEqual(learnerstate.get_week_range(), [monday.date(), tuesday.date()])
 
         # Should have 1 question from Monday and 3 from Tuesday, thus 4
         self.assertEquals(learnerstate.get_total_questions(), 4)

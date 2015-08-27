@@ -182,7 +182,9 @@ class GoldenEggTest(TestCase):
             mock_get_week_day.return_value = LearnerState.MONDAY
             with patch("oneplus.learn_views.LearnerState.today") as mock_today:
                 mock_today.return_value = datetime(2015, 8, 24, 1, 0, 0)
-                self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+                with patch("core.models.today") as mock_today2:
+                    mock_today2.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                    self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
 
         new_participant = Participant.objects.filter(learner=new_learner).first()
 
@@ -208,7 +210,9 @@ class GoldenEggTest(TestCase):
             mock_get_week_day.return_value = LearnerState.MONDAY + 1
             with patch("oneplus.learn_views.LearnerState.today") as mock_today:
                 mock_today.return_value = datetime(2015, 8, 18, 1, 0, 0)
-                self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+                with patch("core.models.today") as mock_today2:
+                    mock_today2.return_value = datetime(2015, 8, 18, 1, 0, 0)
+                    self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
 
         new_participant = Participant.objects.get(learner=new_learner)
 
@@ -237,7 +241,9 @@ class GoldenEggTest(TestCase):
             mock_get_week_day.return_value = LearnerState.MONDAY
             with patch("oneplus.learn_views.LearnerState.today") as mock_today:
                 mock_today.return_value = datetime(2015, 8, 24, 1, 0, 0)
-                self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+                with patch("core.models.today") as mock_today2:
+                    mock_today2.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                    self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
 
         new_participant = Participant.objects.get(learner=new_learner)
 
@@ -267,7 +273,9 @@ class GoldenEggTest(TestCase):
             mock_get_week_day.return_value = LearnerState.MONDAY
             with patch("oneplus.learn_views.LearnerState.today") as mock_today:
                 mock_today.return_value = datetime(2015, 8, 24, 1, 0, 0)
-                self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+                with patch("core.models.today") as mock_today2:
+                    mock_today2.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                    self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
 
         new_participant = Participant.objects.filter(learner=new_learner).first()
 

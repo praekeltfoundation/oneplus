@@ -1326,7 +1326,7 @@ def right(request, state, user):
     request.session["state"]["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
     golden_egg = {}
 
-    if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
+    if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today()) == \
             _learnerstate.golden_egg_question and get_golden_egg(_participant):
         # ensure the question was answered on the allocated bucket day, 3 days per bucket
         # ie. golden_egg_question = 1 Only Monday
