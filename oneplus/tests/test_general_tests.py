@@ -579,6 +579,9 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.sumit_end_page'))
         self.assertRedirects(resp, "home")
 
+        resp = self.client.get(reverse('learn.sumit_level_up'))
+        self.assertRedirects(resp, "home")
+
         #create event
         sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit Badge")
         gamification_point = GamificationPointBonus.objects.create(name="Sumit Points", value=10)
@@ -591,6 +594,9 @@ class GeneralTests(TestCase):
         SUMitEndPage.objects.create(event=event, header="Level 1 - 4", paragraph="Test", type=1)
         SUMitEndPage.objects.create(event=event, header="Level 5", paragraph="Test", type=2)
         SUMitEndPage.objects.create(event=event, header="Winner", paragraph="Test", type=3)
+
+        resp = self.client.get(reverse('learn.sumit_level_up'))
+        self.assertRedirects(resp, "home")
 
         #no sumit questions
         resp = self.client.get(reverse('learn.sumit'))
@@ -747,6 +753,8 @@ class GeneralTests(TestCase):
         _learnerstate = LearnerState.objects.filter(participant__id=self.participant.id).first()
         self.assertEquals(_learnerstate.sumit_question, 1)
         self.assertEquals(_learnerstate.sumit_level, 2)
+        resp = self.client.get(reverse('learn.sumit_level_up'))
+        self.assertEquals(resp.status_code, 200)
 
         #reset
         EventQuestionAnswer.objects.filter(event=event).delete()
@@ -758,6 +766,7 @@ class GeneralTests(TestCase):
         self.participant.save()
         points = 0
         count = 1
+        total_counter = 0
 
         for i in range(1, 5):
             #Easy Questions
@@ -775,7 +784,11 @@ class GeneralTests(TestCase):
                 self.assertEquals(_learnerstate.sumit_level, 1)
             else:
                 self.assertEquals(_learnerstate.sumit_level, 2)
-            # self.assertEquals(_learnerstate.sumit_question, count)
+
+            total_counter += 1
+            if (total_counter % 3) == 0:
+                resp = self.client.get(reverse('learn.sumit_level_up'))
+                self.assertEquals(resp.status_code, 200)
 
         #reset count
         count = 1
@@ -798,7 +811,11 @@ class GeneralTests(TestCase):
                 self.assertEquals(_learnerstate.sumit_level, 3)
             else:
                 self.assertEquals(_learnerstate.sumit_level, 4)
-            # self.assertEquals(_learnerstate.sumit_question, count)
+
+            total_counter += 1
+            if (total_counter % 3) == 0:
+                resp = self.client.get(reverse('learn.sumit_level_up'))
+                self.assertEquals(resp.status_code, 200)
 
         #reset count
         count = 1
@@ -823,9 +840,11 @@ class GeneralTests(TestCase):
                 self.assertEquals(_learnerstate.sumit_level, 4)
             else:
                 self.assertEquals(_learnerstate.sumit_level, 5)
-            # self.assertEquals(_learnerstate.sumit_question, count)
 
-        self.assertContains(resp, "Finish")
+            total_counter += 1
+            if (total_counter % 3) == 0:
+                resp = self.client.get(reverse('learn.sumit_level_up'))
+                self.assertEquals(resp.status_code, 200)
 
         #go to end page
         resp = self.client.get(reverse('learn.sumit_end_page'))

@@ -1,0 +1,18 @@
+{% extends "core/main.html" %}
+{% load bleach_tags %}
+{% load oneplus_extras %}
+{% block title %}LEVEL UP{% endblock %}
+
+{% block content %}
+    {% load humanize %}
+
+    <div class="text heading darkgrey-front center-font no-padding {{ previous_level.back_colour }}"><p>SUMit!</p></div>
+
+    {% autoescape off %}
+        <div class="content white-front grey-back">
+            <p class="xlarge-font center-font">Congratulations!</p>
+            <p class="large-font center-font">You have conquered the <span class="large-font {{ previous_level.front_colour }}">{{ previous_level.name }}</span> and moved up a level to the <span class="large-font {{ next_level.colour }}">{{ next_level.name }}</span>.</p>
+            <a class="button green-back grey-front" href="sumit">Continue</a>
+        </div>
+    {% endautoescape %}
+{% endblock %}

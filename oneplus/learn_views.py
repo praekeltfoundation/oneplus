@@ -58,7 +58,7 @@ def home(request, state, user):
                 if _event_participant_rel:
                     first_sitting = False
         else:
-            if not EventParticipantRel.objects.filter(event=_event, participant=_participant).exists():
+            if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists():
                 learnerstate.sumit_level = 1
                 learnerstate.sumit_question = 1
                 learnerstate.save()
@@ -1000,6 +1000,10 @@ def sumit_right(request, state, user):
     if num_sumit_questions == num_sumit_questions_answered:
         sumit["finished"] = True
 
+    level_up = False
+    if temp_sumit_question == 4 and sumit["finished"] is None:
+        level_up = True
+
     def get():
         return render(
             request,
@@ -1008,7 +1012,8 @@ def sumit_right(request, state, user):
                 "state": state,
                 "user": user,
                 "question": _question,
-                "sumit": sumit
+                "sumit": sumit,
+                "level_up": level_up
             }
         )
 
@@ -1016,6 +1021,62 @@ def sumit_right(request, state, user):
         return get()
 
     return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+@oneplus_login_required
+def sumit_level_up(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    if not _sumit:
+        return redirect("learn.home")
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+    if _learnerstate is None:
+        return redirect("learn.home")
+
+    if _learnerstate.sumit_question != 1 and _learnerstate.sumit_level not in range(2, 4):
+        return redirect("learn.home")
+
+    previous_level = dict()
+    next_level = dict()
+
+    previous_level["name"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level - 1).name
+    next_level["name"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
+
+    if _learnerstate.sumit_level == 2:
+        previous_level["front_colour"] = "green-front"
+        previous_level["back_colour"] = "green-back"
+        next_level["colour"] = "yellow-front"
+    elif _learnerstate.sumit_level == 3:
+        previous_level["front_colour"] = "yellow-front"
+        previous_level["back_colour"] = "yellow-back"
+        next_level["colour"] = "purple-front"
+    elif _learnerstate.sumit_level == 4:
+        previous_level["front_colour"] = "purple-front"
+        previous_level["back_colour"] = "purple-back"
+        next_level["colour"] = "cyan-front"
+    elif _learnerstate.sumit_level == 5:
+        previous_level["front_colour"] = "cyan-front"
+        previous_level["back_colour"] = "cyan-back"
+        next_level["colour"] = "green-front"
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_level_up.html",
+            {
+                "state": state,
+                "user": user,
+                "previous_level": previous_level,
+                "next_level": next_level,
+            }
+        )
+
+    return resolve_http_method(request, [get])
 
 
 @oneplus_state_required
