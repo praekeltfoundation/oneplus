@@ -108,6 +108,7 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     margin: 0px 0px 0px 5px;
     padding: 0px;
     width: 45px;
+    position: absolute;
 }
 
 .header .logo {
