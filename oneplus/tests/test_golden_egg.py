@@ -12,7 +12,7 @@ from go_http.tests.test_send import RecordingHandler
 from mock import patch
 from oneplus.models import LearnerState
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
-from oneplus.tasks import reset_golden_egg_states
+from oneplus.tasks import reset_learner_states
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -296,7 +296,7 @@ class GoldenEggTest(TestCase):
         cnt = LearnerState.objects.filter(golden_egg_question__gt=0).count()
         self.assertEquals(1,cnt)
 
-        reset_golden_egg_states()
+        reset_learner_states()
 
         cnt = LearnerState.objects.filter(golden_egg_question__gt=0).count()
         self.assertEquals(0,cnt)
