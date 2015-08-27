@@ -301,8 +301,14 @@ class EventSplashPage(models.Model):
 class EventQuestionRel(models.Model):
     order = models.PositiveIntegerField("Order", null=True, blank=False)
     event = models.ForeignKey(Event, null=True, blank=False)
-    question = models.ForeignKey(TestingQuestion, limit_choices_to=dict(module__type=2, state=3), null=True,
+    question = models.ForeignKey(TestingQuestion,
+                                 limit_choices_to=dict(module__type=2, state=3),
+                                 null=True,
                                  blank=False)
+
+    class Meta:
+        verbose_name = "Event Question Relation"
+        verbose_name_plural = "Event Question Relations"
 
 
 class EventQuestionAnswer(models.Model):
@@ -313,6 +319,10 @@ class EventQuestionAnswer(models.Model):
     correct = models.BooleanField()
     answer_date = models.DateTimeField("Answer Date", null=True, blank=False, auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Event Question Answer"
+        verbose_name_plural = "Event Question Answers"
+
 
 class EventParticipantRel(models.Model):
     event = models.ForeignKey(Event, null=True, blank=False)
@@ -320,6 +330,10 @@ class EventParticipantRel(models.Model):
     sitting_number = models.PositiveIntegerField(null=True, blank=False)
     results_received = models.BooleanField(default=False)
     winner = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Event Participant Relation"
+        verbose_name_plural = "Event Participant Relations"
 
 
 class SUMit(Event):

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
-    Definition, GoldenEggRewardLog
+    Definition, GoldenEggRewardLog, EventParticipantRel
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -511,6 +511,24 @@ class DefinitionAdmin(admin.ModelAdmin):
     search_fields = ("name", "definition")
 
 
+class EventQuestionRelAdmin(admin.ModelAdmin):
+    list_display = ("order", "event", "question")
+    ordering = ["event__name", "order"]
+    search_fields = ("event__name",)
+
+
+class EventQuestionAnswerAdmin(admin.ModelAdmin):
+    list_display = ("event", "participant", "question", "question_option", "correct", "answer_date")
+    ordering = ["event__name", "answer_date"]
+    search_fields = ("event__name", "participant__learner__first_name", "participant__learner__last_name")
+
+
+class EventParticipantRelAdmin(admin.ModelAdmin):
+    list_display = ("event", "participant", "sitting_number", "results_received", "winner")
+    ordering = ["event__name", "participant__learner__last_name"]
+    search_fields = ("event__name", "participant__learner__first_name", "participant__learner__last_name")
+
+
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
@@ -522,3 +540,6 @@ admin.site.register(GoldenEggRewardLog, GoldenEggRewardLogAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(SUMit, SUMitAdmin)
 admin.site.register(SUMitLevel, SUMitLevelAdmin)
+admin.site.register(EventQuestionRel, EventQuestionRelAdmin)
+admin.site.register(EventQuestionAnswer, EventQuestionAnswerAdmin)
+admin.site.register(EventParticipantRel, EventParticipantRelAdmin)
