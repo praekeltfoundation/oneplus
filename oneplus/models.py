@@ -40,7 +40,7 @@ class LearnerState(models.Model):
         today = self.today()
         start = today - timedelta(days=today.weekday())
         end = today
-        return [start, end]
+        return [start.date(), end.date()]
 
     def get_number_questions(self, answered_count, week_day):
         required_count = (week_day + 1) * self.QUESTIONS_PER_DAY
@@ -58,11 +58,14 @@ class LearnerState(models.Model):
         return week_day
 
     def get_num_questions_answered_today(self):
-        # Get list of answered questions for this week
+        # Get list of answered questions for today
+        start = self.today().replace(hour=0, minute=0, second=0, microsecond=0)
+        end = (start + timedelta(days=1)).replace(hour=23, minute=59, second=59, microsecond=999999)
+
         return ParticipantQuestionAnswer.objects.filter(
             participant=self.participant,
-            answerdate__gte=self.today(),
-            answerdate__lte=self.today() + timedelta(days=1)).count()
+            answerdate__gte=start,
+            answerdate__lte=end).count()
 
     def get_answers_this_week(self):
         # Get list of answered questions for this week, excluding today
