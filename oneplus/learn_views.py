@@ -58,7 +58,9 @@ def home(request, state, user):
                 if _event_participant_rel:
                     first_sitting = False
         else:
-            if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists():
+            if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists() or \
+                    learnerstate.sumit_level not in range(1, 6) or \
+                    learnerstate.sumit_question not in range(1, 4):
                 learnerstate.sumit_level = 1
                 learnerstate.sumit_question = 1
                 learnerstate.save()
@@ -875,7 +877,9 @@ def sumit(request, state, user):
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
-    if not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists():
+    if not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists() or \
+            _learnerstate.sumit_level not in range(1, 6) or \
+            _learnerstate.sumit_question not in range(1, 4):
         _learnerstate.sumit_level = 1
         _learnerstate.sumit_question = 1
         _learnerstate.save()
@@ -978,14 +982,17 @@ def sumit_right(request, state, user):
                                            participant=_participant, answer_date__gte=date.today()
                                            ).distinct('participant', 'question').count()
 
-    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit = dict()
     sumit_question = _learnerstate.sumit_question
 
-    sumit = dict()
-    sumit["level"] = sumit_level.name
     temp_sumit_question = sumit_question
     if temp_sumit_question == 1:
         temp_sumit_question = 4
+        sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level-1)
+    else:
+        sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+
+    sumit["level"] = sumit_level.name
 
     for i in range(1, 4):
         if i in range(1, temp_sumit_question):

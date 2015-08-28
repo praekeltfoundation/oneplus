@@ -8,9 +8,9 @@
 
 <div class="sumitheading">
     <div class="text basecamp green-front"><p>Basecamp</p></div>
-    <div class="text {% if level != 'Basecamp' %} foothills yellow-front {% else %} lightgrey-front {% endif %}"><p>Foothills</p></div>
-    <div class="text {% if level != 'Basecamp' or sumit.level != 'Foothills' %} cliffs purple-front {% else %} lightgrey-front {% endif %} "><p>Cliffs</p></div>
-    <div class="text {% if level == 'Peak' or sumit.level == 'Summit' %} peak cyan-front {% else %} lightgrey-front {% endif %}"><p>Peak</p></div>
+    <div class="text {% if sumit.level != 'Basecamp' %} foothills yellow-front {% else %} lightgrey-front {% endif %}"><p>Foothills</p></div>
+    <div class="text {% if sumit.level != 'Basecamp' and sumit.level != 'Foothills' %} cliffs purple-front {% else %} lightgrey-front {% endif %} "><p>Cliffs</p></div>
+    <div class="text {% if sumit.level == 'Peak' or sumit.level == 'Summit' %} peak cyan-front {% else %} lightgrey-front {% endif %}"><p>Peak</p></div>
 </div>
 <div class="content narrow center-font {{ front }} {{ back }}">
     {% if sumit.level != "Summit" or not winner %}
