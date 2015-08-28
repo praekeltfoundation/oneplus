@@ -1,7 +1,7 @@
 from __future__ import division
 from django.shortcuts import render
 from django.contrib.auth import authenticate, logout
-from .forms import SmsPasswordForm
+from .forms import SmsPasswordForm, SmsResetPasswordForm
 from django.core.mail import mail_managers
 from oneplus.forms import LoginForm
 from .views import *
@@ -659,5 +659,138 @@ def autologin(request, token):
 
     def post():
         return HttpResponseRedirect("/")
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+def sms_reset_password_link(request):
+    def get():
+        return render(
+            request,
+            "auth/sms_reset_password.html",
+            {
+                "state": state,
+                "form": SmsPasswordForm()
+            }
+        )
+
+    def post():
+        form = SmsPasswordForm(request.POST)
+        if form.is_valid():
+            #  Initialize vumigo sms
+            vumi = VumiSmsApi()
+
+            try:
+                # Lookup user
+                learner = Learner.objects.get(username=form.cleaned_data["msisdn"])
+
+                # Generate reset password link
+                learner.generate_reset_password_token()
+
+                # Message
+                message = "Use the following link to reset your password: %s" % learner.pass_reset_token
+
+                sms, sent = vumi.send(
+                    learner.username,
+                    message=message,
+                    autologin=None
+                )
+
+                if sent:
+                    message = "Link has been SMSed to you."
+                    success = True
+                else:
+                    message = "Oops! Something went wrong! " \
+                              "Please try enter your number again or "
+
+                    success = False
+                learner.save()
+
+                return render(
+                    request,
+                    "auth/sms_reset_password.html",
+                    {
+                        "state": state,
+                        "sent": True,
+                        "message": message,
+                        "success": success
+                    }
+                )
+
+            except ObjectDoesNotExist:
+                return HttpResponseRedirect("getconnected")
+
+            return render(request, "auth/smspassword.html", {"state": state})
+        else:
+            form = SmsPasswordForm()
+
+        return render(
+            request,
+            "auth/smspassword.html",
+            {"state": state, "form": form}
+        )
+
+    return resolve_http_method(request, [get, post])
+
+
+def reset_password(request, token):
+    # Get user based on token + expiry date
+    user = CustomUser.objects.filter(
+        pass_reset_token=token,
+        pass_reset_token_expiry=datetime.now()
+    ).first()
+    if not user:
+        return HttpResponseRedirect("/")
+
+    def get():
+        return render(
+            request,
+            "auth/reset_pasword.html",
+            {
+                "name": user.first_name,
+                "form": SmsResetPasswordForm()
+            }
+        )
+
+    def post():
+        form = SmsResetPasswordForm(request.POST)
+        changed = False
+        error = None
+
+        if form.is_valid():
+            password = form.cleaned_data["password"]
+            password_2 = form.cleaned_data["password_2"]
+
+            if password == password_2:
+                #save new password
+                user.password = make_password(password)
+                user.save()
+                changed = True
+            else:
+                error = "Passwords do not match."
+
+            return render(
+                request,
+                "auth/reset_pasword.html",
+                {
+                    "name": user.first_name,
+                    "form": SmsResetPasswordForm(),
+                    "changed": changed,
+                    "error": error
+                }
+            )
+
+        error = "Please type in the new password."
+        return render(
+            request,
+            "auth/reset_pasword.html",
+            {
+                "name": user.first_name,
+                "form": SmsResetPasswordForm(),
+                "changed": changed,
+                "error": error
+            }
+        )
 
     return resolve_http_method(request, [get, post])
