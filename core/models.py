@@ -159,7 +159,7 @@ class Participant(models.Model):
                 else:
                     return True, event_participant_rel
             else:
-                if answered < 15:
+                if answered <= 15:
                     return None, event_participant_rel
                 else:
                     return True, event_participant_rel
