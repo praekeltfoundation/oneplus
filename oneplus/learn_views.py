@@ -59,7 +59,7 @@ def home(request, state, user):
                     first_sitting = False
         else:
             if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists() or \
-                    learnerstate.sumit_level not in range(1, 6) and \
+                    learnerstate.sumit_level not in range(1, 6) or \
                     learnerstate.sumit_question not in range(1, 4):
                 learnerstate.sumit_level = 1
                 learnerstate.sumit_question = 1
