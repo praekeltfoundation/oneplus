@@ -12,7 +12,7 @@ from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
-    EventEndPage, SUMitLevel, SUMit, SUMitEndPage
+    EventEndPage, SUMitLevel, SUMit
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
     ParticipantRedoQuestionAnswer
 from gamification.models import GamificationScenario
@@ -1781,9 +1781,6 @@ def event_end_page(request, state, user):
                                                                     correct=True).count()
         percentage = _num_questions_correct / _num_event_questions * 100
 
-        end_page = EventEndPage.objects.filter(event=_event).first()
-        page["header"] = end_page.header
-        page["message"] = end_page.paragraph
         page["percentage"] = round(percentage)
 
         if _event.event_points:
@@ -1870,13 +1867,11 @@ def sumit_end_page(request, state, user):
     if num_sumit_questions == num_sumit_questions_answered:
 
         if _learnerstate.sumit_level in range(1, 5):
-            end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
             winner = False
         elif _learnerstate.sumit_level == 5:
             num_sumit_questions_correct = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant,
                                                                              correct=True).count()
             if num_sumit_questions_correct == num_sumit_questions:
-                end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
                 winner = True
                 rel.winner = True
                 rel.save()
@@ -1886,7 +1881,6 @@ def sumit_end_page(request, state, user):
                     _participant.points += _sumit.event_points
                     _participant.save()
             else:
-                end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
                 winner = False
 
         rel.results_received = True
@@ -1896,9 +1890,6 @@ def sumit_end_page(request, state, user):
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
             .aggregate(Sum('question__points'))['question__points__sum']
         sumit["points"] += points
-
-        page["header"] = end_page.header
-        page["message"] = end_page.paragraph
 
         if _sumit.airtime:
             mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
