@@ -1879,7 +1879,8 @@ def sumit_end_page(request, state, user):
                 if _sumit.event_points:
                     sumit["points"] = _sumit.event_points
                     _participant.points += _sumit.event_points
-                    _participant.save()
+                    rel.results_received = True
+                    rel.save()
 
                 if _sumit.airtime:
                     mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
@@ -1895,6 +1896,7 @@ def sumit_end_page(request, state, user):
                         _sumit.event_badge.event,
                         module
                     )
+                _participant.save()
             else:
                 winner = False
 
