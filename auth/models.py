@@ -38,6 +38,19 @@ class CustomUser(AbstractUser):
         blank=True
     )
 
+    pass_reset_token = models.CharField(
+        verbose_name="Password Reset Token",
+        max_length=500,
+        blank=True,
+        null=True
+    )
+
+    pass_reset_token_expiry = models.DateTimeField(
+        verbose_name="Password Reset Token Expiry",
+        null=True,
+        blank=True
+    )
+
     def generate_valid_token(self):
         # Base 64 encode from random uuid bytes and make url safe
         self.unique_token = ''.join(
@@ -57,6 +70,26 @@ class CustomUser(AbstractUser):
             while CustomUser.objects.filter(
                     unique_token=self.unique_token).exists():
                 self.generate_valid_token()
+
+    def generate_valid_reset_token(self):
+        # Base 64 encode from random uuid bytes and make url safe
+        self.pass_reset_token = ''.join(
+            random.choice(
+                string.ascii_letters +
+                string.digits) for i in range(8))
+
+        # Calculate expiry date
+        self.pass_reset_token_expiry = datetime.now() + timedelta(hour=1)
+
+    def generate_reset_password_token(self):
+        # Check if reset password token needs regenerating
+        if self.pass_reset_token_expiry is None \
+                or timezone.now() > self.pass_reset_token_expiry:
+            # Check uniqueness on generation
+            self.generate_valid_reset_token()
+            while CustomUser.objects.filter(
+                    pass_reset_token=self.pass_reset_token).exists():
+                self.generate_valid_reset_token()
 
     def get_display_name(self):
         if self.first_name:
