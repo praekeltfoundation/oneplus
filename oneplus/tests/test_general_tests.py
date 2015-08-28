@@ -4,7 +4,7 @@ import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
-    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitEndPage
+    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
     ParticipantBadgeTemplateRel, Setting
 from django.conf import settings
@@ -279,7 +279,6 @@ class GeneralTests(TestCase):
 
         resp = self.client.get(reverse('learn.event_end_page'))
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, end_page.header)
 
         resp = self.client.get(reverse('learn.home'))
         self.assertContains(resp, "5</span><br/>POINTS")
@@ -592,9 +591,6 @@ class GeneralTests(TestCase):
                                   deactivation_date=datetime.now() + timedelta(days=1), event_points=10, airtime=5,
                                   event_badge=badge, type=0)
         start_page = self.create_event_start_page(event, "Test Start Page", "Test Paragraph")
-        SUMitEndPage.objects.create(event=event, header="Level 1 - 4", paragraph="Test", type=1)
-        SUMitEndPage.objects.create(event=event, header="Level 5", paragraph="Test", type=2)
-        SUMitEndPage.objects.create(event=event, header="Winner", paragraph="Test", type=3)
 
         resp = self.client.get(reverse('learn.sumit_level_up'))
         self.assertRedirects(resp, "home")
@@ -1377,7 +1373,6 @@ class GeneralTests(TestCase):
 
         _participant = Participant.objects.get(id=self.participant.id)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test End Page")
         self.assertEquals(_participant.points, 5)
         self.assertIsNotNone(pbtr)
 
@@ -1388,7 +1383,6 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.event_end_page'))
 
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Test End Page")
 
     def test_report_question(self):
         self.client.get(
