@@ -978,14 +978,17 @@ def sumit_right(request, state, user):
                                            participant=_participant, answer_date__gte=date.today()
                                            ).distinct('participant', 'question').count()
 
-    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit = dict()
     sumit_question = _learnerstate.sumit_question
 
-    sumit = dict()
-    sumit["level"] = sumit_level.name
     temp_sumit_question = sumit_question
     if temp_sumit_question == 1:
         temp_sumit_question = 4
+        sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level-1)
+    else:
+        sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+
+    sumit["level"] = sumit_level.name
 
     for i in range(1, 4):
         if i in range(1, temp_sumit_question):
