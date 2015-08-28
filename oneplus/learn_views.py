@@ -1879,7 +1879,24 @@ def sumit_end_page(request, state, user):
                 if _sumit.event_points:
                     sumit["points"] = _sumit.event_points
                     _participant.points += _sumit.event_points
-                    _participant.save()
+                    rel.results_received = True
+                    rel.save()
+
+                if _sumit.airtime:
+                    mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
+                                                                          % (_participant.learner.first_name,
+                                                                             _participant.learner.last_name,
+                                                                             _participant.learner.mobile,
+                                                                             _sumit.airtime), fail_silently=False)
+                    sumit["airtime"] = _sumit.airtime
+
+                if _sumit.event_badge:
+                    module = CourseModuleRel.objects.filter(course=_sumit.course).first()
+                    _participant.award_scenario(
+                        _sumit.event_badge.event,
+                        module
+                    )
+                _participant.save()
             else:
                 winner = False
 
@@ -1890,21 +1907,6 @@ def sumit_end_page(request, state, user):
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
             .aggregate(Sum('question__points'))['question__points__sum']
         sumit["points"] += points
-
-        if _sumit.airtime:
-            mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
-                                                                  % (_participant.learner.first_name,
-                                                                     _participant.learner.last_name,
-                                                                     _participant.learner.mobile,
-                                                                     _sumit.airtime), fail_silently=False)
-            sumit["airtime"] = _sumit.airtime
-
-        if _sumit.event_badge:
-            module = CourseModuleRel.objects.filter(course=_sumit.course).first()
-            _participant.award_scenario(
-                _sumit.event_badge.event,
-                module
-            )
 
         if sumit["level"] == 'Summit':
             front = "white-front"
