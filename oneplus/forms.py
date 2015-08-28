@@ -15,7 +15,7 @@ class SmsPasswordForm(forms.Form):
     msisdn = forms.CharField(label="Phone Number")
 
 
-class ResetPassword(forms.Form):
+class ResetPasswordForm(forms.Form):
     password = forms.CharField(
         label="New Password",
         widget=forms.PasswordInput

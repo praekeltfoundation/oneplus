@@ -1,7 +1,7 @@
 from __future__ import division
 from django.shortcuts import render
 from django.contrib.auth import authenticate, logout
-from .forms import SmsPasswordForm, SmsResetPasswordForm
+from .forms import SmsPasswordForm, ResetPasswordForm
 from django.core.mail import mail_managers
 from oneplus.forms import LoginForm
 from .views import *
@@ -664,11 +664,11 @@ def autologin(request, token):
 
 
 @oneplus_state_required
-def sms_reset_password_link(request):
+def sms_reset_password_link(request, state):
     def get():
         return render(
             request,
-            "auth/sms_reset_password.html",
+            "auth/sms_password_reset.html",
             {
                 "state": state,
                 "form": SmsPasswordForm()
@@ -709,7 +709,7 @@ def sms_reset_password_link(request):
 
                 return render(
                     request,
-                    "auth/sms_reset_password.html",
+                    "auth/sms_password_reset.html",
                     {
                         "state": state,
                         "sent": True,
@@ -721,14 +721,17 @@ def sms_reset_password_link(request):
             except ObjectDoesNotExist:
                 return HttpResponseRedirect("getconnected")
 
-            return render(request, "auth/smspassword.html", {"state": state})
+            return render(request, "auth/sms_password_reset.html", {"state": state})
         else:
             form = SmsPasswordForm()
 
         return render(
             request,
-            "auth/smspassword.html",
-            {"state": state, "form": form}
+            "auth/sms_password_reset.html",
+            {
+                "state": state,
+                "form": form
+            }
         )
 
     return resolve_http_method(request, [get, post])
@@ -749,12 +752,12 @@ def reset_password(request, token):
             "auth/reset_pasword.html",
             {
                 "name": user.first_name,
-                "form": SmsResetPasswordForm()
+                "form": ResetPasswordForm()
             }
         )
 
     def post():
-        form = SmsResetPasswordForm(request.POST)
+        form = ResetPasswordForm(request.POST)
         changed = False
         error = None
 
@@ -775,7 +778,7 @@ def reset_password(request, token):
                 "auth/reset_pasword.html",
                 {
                     "name": user.first_name,
-                    "form": SmsResetPasswordForm(),
+                    "form": ResetPasswordForm(),
                     "changed": changed,
                     "error": error
                 }
@@ -787,7 +790,7 @@ def reset_password(request, token):
             "auth/reset_pasword.html",
             {
                 "name": user.first_name,
-                "form": SmsResetPasswordForm(),
+                "form": ResetPasswordForm(),
                 "changed": changed,
                 "error": error
             }
