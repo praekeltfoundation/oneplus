@@ -23,6 +23,7 @@ from oneplus.templatetags.oneplus_extras import format_content, format_option
 from oneplus.validators import validate_mobile
 from oneplus.views import get_week_day
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
+from oneplus.tasks import reset_learner_states
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -929,6 +930,13 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.sumit_end_page'))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'Basecamp')
+
+        # test state reset
+        cnt = LearnerState.objects.filter(sumit_question__gt=0).count()
+        self.assertEquals(1, cnt)
+        reset_learner_states()
+        cnt = LearnerState.objects.filter(sumit_question__gt=0).count()
+        self.assertEquals(0, cnt)
 
     def test_redo(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))

@@ -47,9 +47,9 @@ def update_all_perc_correct_answers():
 
 
 @task
-def reset_golden_egg():
-    reset_golden_egg_states()
+def reset_learner_states_task():
+    reset_learner_states()
 
 
-def reset_golden_egg_states():
-    LearnerState.objects.all().update(golden_egg_question=0)
+def reset_learner_states():
+    LearnerState.objects.all().update(golden_egg_question=0, sumit_level=0, sumit_question=0)
