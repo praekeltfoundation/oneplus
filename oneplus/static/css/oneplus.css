@@ -371,6 +371,10 @@ p a { display: inline;}
     float:left;
 }
 
+.highlight {
+    margin: 0px 1px;
+}
+
 .basecamp {
     border-bottom: solid 2px #28e690;
 }
