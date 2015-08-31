@@ -151,6 +151,63 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     }
 }
 
+.sumit-img {
+    height: 32px;
+    width: 32px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.sumit {
+    position: relative;
+    text-align: center;
+    width: 100%;
+    margin-bottom: -18px;
+ }
+
+.sumit-img:not(:last-child) {
+    margin-right: 5px;
+}
+
+.sumit_line {
+    border-top: 5px solid rgb(0, 0, 0);
+    display: block;
+    height: 1px;
+    content: " ";
+    width: 100%;
+    left: 0px;
+    position: relative;
+    bottom: -19px;
+}
+
+@media (min-width: 30em) {
+    .sumit-img {
+        height: 64px;
+        width: 64px;
+        vertical-align: middle;
+        display: inline-block;
+        margin-right: 1em;
+    }
+
+    .sumit_line {
+        border-top: 5px solid rgb(0, 0, 0);
+        display: block;
+        height: 1px;
+        content: " ";
+        width: 100%;
+        left: 0px;
+        position: relative;
+        bottom: -34px;
+    }
+
+    .sumit {
+        position: relative;
+        text-align: center;
+        width: 100%;
+        margin-bottom: -35px;
+     }
+}
+
 .header .active {
     background-color: #2a2a2a;
 }
@@ -337,24 +394,6 @@ p a { display: inline;}
 
 .sumit_content {
     padding: 10px 0px 0px;
-}
-
-.sumit {
-    position: relative;
-    text-align: center;
-    width: 100%;
-    margin-bottom: -30px;
- }
-
-.sumit_line {
-    border-top: 5px solid rgb(0, 0, 0);
-    display: block;
-    height: 1px;
-    content: " ";
-    width: 100%;
-    left: 0px;
-    position: relative;
-    bottom: -30px;
 }
 
 .sumitheading {
