@@ -32,7 +32,7 @@ def weekly_badge_email():
 
     subject = "dig-it Weekly Badge Earners %s - %s" % (week_range.date(), datetime.now().date())
     to = Setting.objects.get(key="WEEKLY_BADGE_EMAIL").value
-    from_email = "info@dig-it.co.za"
+    from_email = "info@dig-it.me"
 
     text_content = 'This email contains a list of all the dig-it learners that earned badges this week.'
     msg = EmailMultiAlternatives(subject, text_content, from_email, [to])

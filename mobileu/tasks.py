@@ -160,7 +160,7 @@ def send_teacher_reports():
     month = last_month.strftime("%B")
     subject = "dig-it report %s" % month
     message = "Please find attached reports of your dig-it classes for %s." % month
-    from_email = "info@dig-it.co.za"
+    from_email = "info@dig-it.me"
     for teacher in all_teachers_list:
         email = EmailMessage(subject, message, from_email, [teacher['email']])
         #attach all the reports for this teacher
