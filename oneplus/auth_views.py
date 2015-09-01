@@ -633,17 +633,19 @@ def sms_reset_password_link(request):
                     }
                 )
 
-            except ObjectDoesNotExist:
-                return HttpResponseRedirect("getconnected")
+            except Learner.DoesNotExist:
+                message = "The number you have entered is not registered."
 
         else:
+            message = "Please enter your mobile number."
             form = SmsPasswordForm()
 
         return render(
             request,
             "auth/sms_password_reset.html",
             {
-                "form": form
+                "form": form,
+                "message": message
             }
         )
 

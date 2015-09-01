@@ -1603,6 +1603,7 @@ class GeneralTests(TestCase):
             follow=True
         )
         self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Please enter your mobile number.")
 
         # incorrect msisdn
         resp = self.client.post(
@@ -1614,6 +1615,7 @@ class GeneralTests(TestCase):
             follow=True
         )
         self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "The number you have entered is not registered.")
 
         # correct msisdn
         resp = self.client.post(
@@ -1625,6 +1627,7 @@ class GeneralTests(TestCase):
             follow=True
         )
         self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Link has been SMSed to you.")
 
     def test_reset_password(self):
         new_learner = self.create_learner(
