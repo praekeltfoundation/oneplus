@@ -115,6 +115,10 @@ class TestingQuestionDifficulty(models.Model):
 
     value = models.IntegerField("Points")
 
+    class Meta:
+        verbose_name = "Testing Question Difficulty"
+        verbose_name_plural = "Testing Question Difficulties"
+
 
 class TestingQuestionOption(models.Model):
     name = models.CharField(
