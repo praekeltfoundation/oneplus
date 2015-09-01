@@ -3,12 +3,12 @@ import uuid
 import os
 import shutil
 import logging
+import requests
 
 from django import forms
-from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage, SUMit
-from gamification.models import GamificationScenario
-import requests
+from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage
 from django.conf import settings
+from django.db.models import Max
 from core.models import Class
 from organisation.models import Course
 from datetime import datetime
@@ -152,19 +152,32 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
         if correct_selected is False:
             raise forms.ValidationError({'correct': ['One correct answer is required.', ]})
 
+    def get_order(self, question):
+        results = TestingQuestionOption.objects.filter(question=question).aggregate(Max("order"))
+
+        if results and "order__max" in results and results["order__max"]:
+            max_order = results["order__max"]
+            max_order += 1
+        else:
+            max_order = 1
+
+        return max_order
+
     def save(self, commit=True):
         options = super(TestingQuestionFormSet, self).save(commit=False)
         if options:
             question = options[0].question
+            existing_options = TestingQuestionOption.objects.filter(question=question).count()
+
             for option in options:
                 if option.order == 0:
-                    option.order = TestingQuestionOption.objects.filter(question=question).count() + 1
+                    option.order = self.get_order(question)
                 if option.name == "Auto Generated":
                     option.name = "%s Option %s" % (question, option.order)
                 option.save()
 
-            if len(options) < 2:
-                order = TestingQuestionOption.objects.filter(question=question).count() + 1
+            if (len(options) + existing_options) < 2:
+                order = self.get_order(question)
                 name = "%s Option %s" % (question, order)
                 TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
 
