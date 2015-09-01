@@ -6,7 +6,8 @@ import logging
 import requests
 
 from django import forms
-from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage
+from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage,\
+    TestingQuestionDifficulty
 from django.conf import settings
 from django.db.models import Max
 from core.models import Class
@@ -77,6 +78,10 @@ class TestingQuestionCreateForm(forms.ModelForm):
             Mathml.TESTING_QUESTION_NOTES,
             testing_question.id
         )
+
+        if testing_question.difficulty != TestingQuestion.DIFF_NONE:
+            points = TestingQuestionDifficulty.objects.get(key=testing_question.difficulty).value
+            testing_question.points = points
 
         testing_question.save()
 

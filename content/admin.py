@@ -101,7 +101,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
                     "correct", "incorrect", "percentage_correct", "redo_correct", "redo_incorrect",
                     "redo_percentage_correct", "preview_link", "state")
     list_filter = ("module", "state")
-    readonly_fields = ("name", "order")
+    readonly_fields = ("name", "order", "points")
     search_fields = ("name", "description")
 
     form = TestingQuestionCreateForm

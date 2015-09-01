@@ -66,7 +66,7 @@ class TestingQuestion(models.Model):
             (DIFF_NORMAL, "Normal"),
             (DIFF_ADVANCED, "Advanced")
         ),
-        default=1)
+        default=DIFF_NONE)
     points = models.PositiveIntegerField(
         "Points",
         validators=[MaxValueValidator(500)],
