@@ -79,7 +79,7 @@ class CustomUser(AbstractUser):
                 string.digits) for i in range(8))
 
         # Calculate expiry date
-        self.pass_reset_token_expiry = datetime.now() + timedelta(hour=1)
+        self.pass_reset_token_expiry = datetime.now() + timedelta(hours=1)
 
     def generate_reset_password_token(self):
         # Check if reset password token needs regenerating
