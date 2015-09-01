@@ -238,10 +238,10 @@ USE_TZ = False
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = '25'
-SERVER_EMAIL = 'info@dig-it.co.za'
+SERVER_EMAIL = 'info@dig-it.me'
 EMAIL_SUBJECT_PREFIX = '[DIG-IT] '
 MANAGERS = (
-    ('Jane', 'info@dig-it.co.za'),
+    ('Jane', 'info@dig-it.me'),
 )
 
 MATHML_URL = 'http://mathml.p16n.org/'
