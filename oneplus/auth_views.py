@@ -335,84 +335,6 @@ def signout(request, state):
 
 
 @oneplus_state_required
-def smspassword(request, state):
-    def get():
-        return render(
-            request,
-            "auth/smspassword.html",
-            {
-                "state": state,
-                "form": SmsPasswordForm()
-            }
-        )
-
-    def post():
-        form = SmsPasswordForm(request.POST)
-        if form.is_valid():
-            #  Initialize vumigo sms
-            vumi = VumiSmsApi()
-
-            try:
-                # Lookup user
-                learner = Learner.objects\
-                    .get(username=form.cleaned_data["msisdn"])
-
-                # Generate password
-                password = koremutake.encode(randint(10000, 100000))
-                learner.password = make_password(password)
-
-                # Message
-                message = "Your new password for dig-it is '|password|' " \
-                          "or use the following link to login: |autologin|"
-
-                # Generate autologin link
-                learner.generate_unique_token()
-
-                sms, sent = vumi.send(
-                    learner.username,
-                    message=message,
-                    password=password,
-                    autologin=get_autologin_link(learner.unique_token)
-                )
-
-                if sent:
-                    message = "Your new password has been SMSed to you. "
-                    success = True
-                else:
-                    message = "Oops! Something went wrong! " \
-                              "Please try enter your number again or "
-
-                    success = False
-                learner.save()
-
-                return render(
-                    request,
-                    "auth/smspassword.html",
-                    {
-                        "state": state,
-                        "sent": True,
-                        "message": message,
-                        "success": success
-                    }
-                )
-
-            except ObjectDoesNotExist:
-                return HttpResponseRedirect("getconnected")
-
-            return render(request, "auth/smspassword.html", {"state": state})
-        else:
-            form = SmsPasswordForm()
-
-        return render(
-            request,
-            "auth/smspassword.html",
-            {"state": state, "form": form}
-        )
-
-    return resolve_http_method(request, [get, post])
-
-
-@oneplus_state_required
 def getconnected(request, state):
     def get():
         exists = False
@@ -663,14 +585,12 @@ def autologin(request, token):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-def sms_reset_password_link(request, state):
+def sms_reset_password_link(request):
     def get():
         return render(
             request,
             "auth/sms_password_reset.html",
             {
-                "state": state,
                 "form": SmsPasswordForm()
             }
         )
@@ -691,11 +611,7 @@ def sms_reset_password_link(request, state):
                 # Message
                 message = "Use the following link to reset your password: %s" % learner.pass_reset_token
 
-                sms, sent = vumi.send(
-                    learner.username,
-                    message=message,
-                    autologin=None
-                )
+                sms, sent = vumi.send(learner.mobile, message, None, None)
 
                 if sent:
                     message = "Link has been SMSed to you."
@@ -711,7 +627,6 @@ def sms_reset_password_link(request, state):
                     request,
                     "auth/sms_password_reset.html",
                     {
-                        "state": state,
                         "sent": True,
                         "message": message,
                         "success": success
@@ -721,7 +636,6 @@ def sms_reset_password_link(request, state):
             except ObjectDoesNotExist:
                 return HttpResponseRedirect("getconnected")
 
-            return render(request, "auth/sms_password_reset.html", {"state": state})
         else:
             form = SmsPasswordForm()
 
@@ -729,7 +643,6 @@ def sms_reset_password_link(request, state):
             request,
             "auth/sms_password_reset.html",
             {
-                "state": state,
                 "form": form
             }
         )
@@ -741,7 +654,7 @@ def reset_password(request, token):
     # Get user based on token + expiry date
     user = CustomUser.objects.filter(
         pass_reset_token=token,
-        pass_reset_token_expiry=datetime.now()
+        pass_reset_token_expiry__gte=datetime.now()
     ).first()
     if not user:
         return HttpResponseRedirect("/")
@@ -749,7 +662,7 @@ def reset_password(request, token):
     def get():
         return render(
             request,
-            "auth/reset_pasword.html",
+            "auth/reset_password.html",
             {
                 "name": user.first_name,
                 "form": ResetPasswordForm()
@@ -759,7 +672,7 @@ def reset_password(request, token):
     def post():
         form = ResetPasswordForm(request.POST)
         changed = False
-        error = None
+        message = None
 
         if form.is_valid():
             password = form.cleaned_data["password"]
@@ -770,29 +683,30 @@ def reset_password(request, token):
                 user.password = make_password(password)
                 user.save()
                 changed = True
+                message = "Password changed."
             else:
-                error = "Passwords do not match."
+                message = "Passwords do not match."
 
             return render(
                 request,
-                "auth/reset_pasword.html",
+                "auth/reset_password.html",
                 {
                     "name": user.first_name,
                     "form": ResetPasswordForm(),
                     "changed": changed,
-                    "error": error
+                    "message": message
                 }
             )
 
-        error = "Please type in the new password."
+        error = "Please enter your new password."
         return render(
             request,
-            "auth/reset_pasword.html",
+            "auth/reset_password.html",
             {
                 "name": user.first_name,
                 "form": ResetPasswordForm(),
                 "changed": changed,
-                "error": error
+                "message": message
             }
         )
 

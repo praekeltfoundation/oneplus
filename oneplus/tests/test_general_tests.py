@@ -1589,46 +1589,93 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
-    def test_smspassword_get(self):
-        resp = self.client.get(reverse('auth.smspassword'), follow=True)
+    def test_sms_reset_link(self):
+        resp = self.client.get(reverse('auth.sms_reset_password'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    def test_smspassword_post(self):
         # invalid form
         resp = self.client.post(
-            reverse('auth.smspassword'),
+            reverse('auth.sms_reset_password'),
             {
-                'msisdn': '+2712345678',
+                'msisdn': '',
 
             },
             follow=True
         )
-
         self.assertEqual(resp.status_code, 200)
 
         # incorrect msisdn
         resp = self.client.post(
-            reverse('auth.smspassword'),
+            reverse('auth.sms_reset_password'),
             {
                 'msisdn': '+2712345678',
 
             },
             follow=True
         )
-
         self.assertEqual(resp.status_code, 200)
 
         # correct msisdn
         resp = self.client.post(
-            reverse('auth.smspassword'),
+            reverse('auth.sms_reset_password'),
             {
-                'msisdn': '+27123456789'
+                'msisdn': '%s' % self.learner.mobile
 
             },
             follow=True
         )
-
         self.assertEqual(resp.status_code, 200)
+
+    def test_reset_password(self):
+        new_learner = self.create_learner(
+            self.school,
+            username="0701234567",
+            mobile="0701234567")
+
+        new_participant = self.create_participant(
+            new_learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        resp = self.client.get(reverse('auth.reset_password', kwargs={'token': 'abc'}))
+        self.assertRedirects(resp, "/")
+
+        new_learner.pass_reset_token = "abc"
+        new_learner.pass_reset_token_expiry = datetime.now() + timedelta(days=1)
+        new_learner.save()
+
+        resp = self.client.get(reverse('auth.reset_password', kwargs={'token': '%s' % new_learner.pass_reset_token}))
+        self.assertEquals(resp.status_code, 200)
+
+        #invalid form
+        resp = self.client.post(reverse('auth.reset_password', kwargs={'token': '%s' % new_learner.pass_reset_token}),
+                                data={})
+        self.assertContains(resp, "Please enter your new password")
+
+        #passwords not matching
+        resp = self.client.post(reverse('auth.reset_password', kwargs={'token': '%s' % new_learner.pass_reset_token}),
+                                data={
+                                    "password": '123',
+                                    "password_2": '23'
+                                })
+        self.assertContains(resp, "Passwords do not match")
+
+        password = "12345"
+        resp = self.client.post(reverse('auth.reset_password', kwargs={'token': '%s' % new_learner.pass_reset_token}),
+                                data={
+                                    "password": password,
+                                    "password_2": password
+                                })
+        self.assertContains(resp, "Password changed")
+
+        resp = self.client.post(
+            reverse('auth.login'),
+            data={
+                'username': new_learner.username,
+                'password': password},
+            follow=True
+        )
+        self.assertContains(resp, "WELCOME")
 
     def test_inbox_send(self):
         self.client.get(reverse('auth.autologin',
@@ -2742,7 +2789,6 @@ class GeneralTests(TestCase):
 
             counter += 1
 
-
         self.client.get(
             reverse('auth.autologin',
                     kwargs={'token': "20"})
@@ -2875,7 +2921,6 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "2 Week Leaderboard")
         self.assertContains(resp, "Class Leaderboard")
 
-
     def test_ontrack_screen(self):
         self.client.get(
             reverse('auth.autologin',
@@ -2910,10 +2955,6 @@ class GeneralTests(TestCase):
             follow=True
         )
 
-        self.assertEquals(resp.status_code, 200)
-
-    def test_smspassword_get2(self):
-        resp = self.client.get(reverse('auth.smspassword'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
     def test_bloghero_screen(self):
