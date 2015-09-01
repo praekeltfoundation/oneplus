@@ -220,19 +220,19 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
 class TestingQuestionDifficultyAdmin(SummernoteModelAdmin):
     list_display = ("name", "value")
     readonly_fields = ("name", )
+    fieldsets = [
+        (None, {"fields": ["name", "question", "order"]}),
+        ("Content", {"fields": ["content", "correct"]})
+    ]
 
 
 class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_display = ("question", "order", "name")
     list_filter = ("question",)
     readonly_fields = ("name", "order")
-    search_fields = ("name",)
-    form = TestingQuestionOptionCreateForm
     fieldsets = [
-        (None, {"fields": ["name", "question", "order"]}),
-        ("Content", {"fields": ["content", "correct"]})
+        (None, {"fields": ["name", "value"]}),
     ]
-    ordering = ("question", "order", "name",)
 
 
 class MathmlAdmin(SummernoteModelAdmin):
