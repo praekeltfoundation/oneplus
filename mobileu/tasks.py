@@ -52,7 +52,8 @@ def send_teacher_reports():
             if all_time_ans_num != 0:
                 all_time_cor_num = all_time_cor_num / all_time_ans_num * 100
 
-            last_month_ans_set = all_time_ans_set.filter(answerdate__month=last_month.month)
+            last_month_ans_set = all_time_ans_set.filter(answerdate__year=last_month.year,
+                                                         answerdate__month=last_month.month)
             last_month_ans_num = last_month_ans_set.aggregate(Count('id'))['id__count']
 
             last_month_cor_num = last_month_ans_set.filter(correct=True)\
@@ -98,7 +99,8 @@ def send_teacher_reports():
             if answered_all_time.aggregate(Count('id'))['id__count'] != 0:
                 correct_all_time = answered_all_time.filter(correct=True).aggregate(Count('id'))['id__count'] \
                     / answered_all_time.aggregate(Count('id'))['id__count'] * 100
-                answered_last_month = answered_all_time.filter(answerdate__month=last_month.month)
+                answered_last_month = answered_all_time.filter(answerdate__year=last_month.year,
+                                                               answerdate__month=last_month.month)
                 if answered_last_month.aggregate(Count('id'))['id__count'] != 0:
                     correct_last_month = answered_last_month.filter(correct=True).aggregate(Count('id'))['id__count'] \
                         / answered_last_month.aggregate(Count('id'))['id__count'] * 100
