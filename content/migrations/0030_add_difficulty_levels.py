@@ -14,8 +14,8 @@ class Migration(DataMigration):
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
         orm.TestingQuestionDifficulty.objects.create(key=TestingQuestion.DIFF_EASY, name="EASY", value=1)
-        orm.TestingQuestionDifficulty.objects.create(key=TestingQuestion.DIFF_NORMAL, name="NORMAL", value=1)
-        orm.TestingQuestionDifficulty.objects.create(key=TestingQuestion.DIFF_ADVANCED, name="ADVANCED", value=1)
+        orm.TestingQuestionDifficulty.objects.create(key=TestingQuestion.DIFF_NORMAL, name="NORMAL", value=2)
+        orm.TestingQuestionDifficulty.objects.create(key=TestingQuestion.DIFF_ADVANCED, name="ADVANCED", value=3)
 
     def backwards(self, orm):
         "Write your backwards methods here."
