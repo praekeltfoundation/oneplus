@@ -162,7 +162,7 @@ def contact(request, state, user):
                 "Contact: " + _contact,
                 _comment,
             ])
-            # Send email to info@dig-it.co.za
+            # Send email to info@dig-it.me
             mail_managers(
                 subject='Contact Us Message - ' + _contact,
                 message=message,
