@@ -13,3 +13,15 @@ class LoginForm(forms.Form):
 
 class SmsPasswordForm(forms.Form):
     msisdn = forms.CharField(label="Phone Number")
+
+
+class ResetPasswordForm(forms.Form):
+    password = forms.CharField(
+        label="New Password",
+        widget=forms.PasswordInput
+    )
+
+    password_2 = forms.CharField(
+        label="Confirm Password",
+        widget=forms.PasswordInput
+    )
