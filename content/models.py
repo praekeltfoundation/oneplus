@@ -66,7 +66,7 @@ class TestingQuestion(models.Model):
             (DIFF_NORMAL, "Normal"),
             (DIFF_ADVANCED, "Advanced")
         ),
-        default=1)
+        default=DIFF_NONE)
     points = models.PositiveIntegerField(
         "Points",
         validators=[MaxValueValidator(500)],
@@ -100,6 +100,20 @@ class TestingQuestion(models.Model):
         verbose_name = "Test Question"
         verbose_name_plural = "Test Questions"
         ordering = ['name']
+
+
+class TestingQuestionDifficulty(models.Model):
+    key = models.PositiveIntegerField(null=False,
+                                      blank=False,
+                                      unique=True)
+
+    name = models.CharField("Difficulty",
+                            max_length=20,
+                            null=False,
+                            blank=False,
+                            unique=True)
+
+    value = models.IntegerField("Points")
 
 
 class TestingQuestionOption(models.Model):

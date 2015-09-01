@@ -2,7 +2,7 @@ from django.contrib import admin
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
-    Definition, GoldenEggRewardLog, EventParticipantRel
+    Definition, GoldenEggRewardLog, EventParticipantRel, TestingQuestionDifficulty
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
@@ -101,7 +101,7 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
                     "correct", "incorrect", "percentage_correct", "redo_correct", "redo_incorrect",
                     "redo_percentage_correct", "preview_link", "state")
     list_filter = ("module", "state")
-    readonly_fields = ("name", "order")
+    readonly_fields = ("name", "order", "points")
     search_fields = ("name", "description")
 
     form = TestingQuestionCreateForm
@@ -215,6 +215,11 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
     ]
     inlines = (TestingQuestionOptionInline,)
     resource_class = TestingQuestionResource
+
+
+class TestingQuestionDifficultyAdmin(SummernoteModelAdmin):
+    list_display = ("name", "value")
+    readonly_fields = ("name", )
 
 
 class TestingQuestionOptionAdmin(SummernoteModelAdmin):
@@ -543,3 +548,4 @@ admin.site.register(SUMitLevel, SUMitLevelAdmin)
 admin.site.register(EventQuestionRel, EventQuestionRelAdmin)
 admin.site.register(EventQuestionAnswer, EventQuestionAnswerAdmin)
 admin.site.register(EventParticipantRel, EventParticipantRelAdmin)
+admin.site.register(TestingQuestionDifficulty, TestingQuestionDifficultyAdmin)
