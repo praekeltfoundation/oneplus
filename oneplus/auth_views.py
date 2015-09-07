@@ -609,7 +609,7 @@ def sms_reset_password_link(request):
                 learner.generate_reset_password_token()
 
                 # Message
-                message = "Use the following link to reset your password: http://www.dig-it.co.za/r/%s" % \
+                message = "Use the following link to reset your password: http://www.dig-it.me/r/%s" % \
                           learner.pass_reset_token
 
                 sms, sent = vumi.send(learner.mobile, message, None, None)
