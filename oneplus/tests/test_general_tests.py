@@ -142,9 +142,6 @@ class GeneralTests(TestCase):
     def create_event_question(self, event, question, order):
         return EventQuestionRel.objects.create(event=event, question=question, order=order)
 
-    def fake_mail_managers(subject, message, fail_silently):
-        pass
-
     def setUp(self):
 
         self.course = self.create_course()
@@ -200,8 +197,8 @@ class GeneralTests(TestCase):
         # check active question
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
-    @patch("django.core.mail.mail_managers", fake_mail_managers)
-    def test_home(self):
+    @patch("django.core.mail.mail_managers")
+    def test_home(self, mock_mail_managers):
         self.client.get(reverse(
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
@@ -1046,8 +1043,7 @@ class GeneralTests(TestCase):
         update_perc_correct_answers_worker('7days', 7)
         update_perc_correct_answers_worker('32days', 32)
 
-    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay',
-           side_effect=fake_update_all_perc_correct_answers)
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
     def test_answer_correct_nextchallenge(self, mock_task):
         self.client.get(
             reverse('auth.autologin',
@@ -2540,8 +2536,8 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('misc.about'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    @patch("django.core.mail.mail_managers", fake_mail_managers)
-    def test_contact_screen(self):
+    @patch("django.core.mail.mail_managers")
+    def test_contact_screen(self, mock_mail_managers):
         resp = self.client.get(reverse('misc.contact'))
         self.assertEquals(resp.status_code, 200)
 
@@ -2559,7 +2555,56 @@ class GeneralTests(TestCase):
                 "school": "Test School",
             }
         )
+
         self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
+
+    @patch("django.core.mail.mail_managers")
+    def test_contact_screen_with_failure(self, mock_mail_managers):
+        mock_mail_managers.side_effect = KeyError('e')
+
+        resp = self.client.post(
+            reverse("misc.contact"),
+            follow=True,
+            data={
+                "fname": "Test",
+                "sname": "test",
+                "contact": "0123456789",
+                "comment": "test",
+                "school": "Test School",
+            }
+        )
+
+        self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
+
+        mock_mail_managers.assert_called_once_with(
+            fail_silently=False,
+            message=u'First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789\ntest',
+            subject=u'Contact Us Message - 0123456789'
+        )
+
+    @patch("django.core.mail.mail_managers")
+    def test_contact_screen_with_failure_and_bad_data(self, mock_mail_managers):
+        mock_mail_managers.side_effect = KeyError('e')
+
+        resp = self.client.post(
+            reverse("misc.contact"),
+            follow=True,
+            data={
+                "fname": "Test",
+                "sname": "test",
+                "contact": "0123456789\n0123456789\n0123456789",
+                "comment": "test",
+                "school": "Test School",
+            }
+        )
+
+        self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
+
+        mock_mail_managers.assert_called_(
+            fail_silently=False,
+            message=u"First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789 0123456789 0123456789\ntest",
+            subject=u"Contact Us Message - 0123456789 0123456789 0123456789"
+        )
 
     def test_get_week_day(self):
         day = get_week_day()
@@ -3247,8 +3292,8 @@ class GeneralTests(TestCase):
         i_mobile_4 = validate_mobile(i_mobile_4)
         self.assertEquals(i_mobile_4, None)
 
-    @patch("django.core.mail.mail_managers", fake_mail_managers)
-    def test_signup_form(self):
+    @patch("django.core.mail.mail_managers")
+    def test_signup_form(self, mock_mail_managers):
         province_school = School.objects.get(name="Open School")
         resp = self.client.get(reverse('auth.signup_form'))
         self.assertEqual(resp.status_code, 200)
