@@ -197,105 +197,105 @@ class GeneralTests(TestCase):
         # check active question
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
-    @patch("django.core.mail.mail_managers")
-    def test_home(self, mock_mail_managers):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
+    def test_home(self):
+        with patch("django.core.mail.mail_managers") as mock_mail_managers:
+            self.client.get(reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+            )
 
-        #no questions
-        resp = self.client.get(reverse('learn.home'))
-        self.assertEquals(resp.status_code, 200)
+            #no questions
+            resp = self.client.get(reverse('learn.home'))
+            self.assertEquals(resp.status_code, 200)
 
-        #with questions
-        self.create_test_question('question1', self.module, state=3)
-        LearnerState.objects.create(
-            participant=self.participant,
-            active_question=None,
-        )
-        resp = self.client.get(reverse('learn.home'))
-        self.assertEquals(resp.status_code, 200)
+            #with questions
+            self.create_test_question('question1', self.module, state=3)
+            LearnerState.objects.create(
+                participant=self.participant,
+                active_question=None,
+            )
+            resp = self.client.get(reverse('learn.home'))
+            self.assertEquals(resp.status_code, 200)
 
-        #post with no event
-        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
-        self.assertEquals(resp.status_code, 200)
+            #post with no event
+            resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+            self.assertEquals(resp.status_code, 200)
 
-        #with event active
-        event_module = self.create_module("event_module", self.course, type=2)
-        event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
-                                  datetime.now() + timedelta(days=1), number_sittings=2, event_points=5, type=1)
-        start_page = self.create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
-        end_page = self.create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
-        question_1 = self.create_test_question("question_1", event_module, state=3)
-        question_option_1 = self.create_test_question_option("question_1_option", question_1)
-        self.create_event_question(event, question_1, 1)
-        question_2 = self.create_test_question("question_2", event_module, state=3)
-        question_option_2 = self.create_test_question_option("question_2_option", question_2)
-        self.create_event_question(event, question_2, 2)
+            #with event active
+            event_module = self.create_module("event_module", self.course, type=2)
+            event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
+                                      datetime.now() + timedelta(days=1), number_sittings=2, event_points=5, type=1)
+            start_page = self.create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
+            end_page = self.create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
+            question_1 = self.create_test_question("question_1", event_module, state=3)
+            question_option_1 = self.create_test_question_option("question_1_option", question_1)
+            self.create_event_question(event, question_1, 1)
+            question_2 = self.create_test_question("question_2", event_module, state=3)
+            question_option_2 = self.create_test_question_option("question_2_option", question_2)
+            self.create_event_question(event, question_2, 2)
 
-        resp = self.client.get(reverse('learn.home'))
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Take the %s" % event.name)
+            resp = self.client.get(reverse('learn.home'))
+            self.assertEquals(resp.status_code, 200)
+            self.assertContains(resp, "Take the %s" % event.name)
 
-        #no data in post
-        resp = self.client.post(reverse('learn.home'), follow=True)
-        self.assertEquals(resp.status_code, 200)
+            #no data in post
+            resp = self.client.post(reverse('learn.home'), follow=True)
+            self.assertEquals(resp.status_code, 200)
 
-        #take event
-        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
-        self.assertRedirects(resp, "event_start_page")
-        self.assertContains(resp, start_page.header)
+            #take event
+            resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+            self.assertRedirects(resp, "event_start_page")
+            self.assertContains(resp, start_page.header)
 
-        #go to event_start_page
-        resp = self.client.post(reverse("learn.event_start_page"),
-                                data={"event_start_button": "Get Started"}, follow=True)
-        self.assertRedirects(resp, "event")
+            #go to event_start_page
+            resp = self.client.post(reverse("learn.event_start_page"),
+                                    data={"event_start_button": "Get Started"}, follow=True)
+            self.assertRedirects(resp, "event")
 
-        #valid correct answer
-        resp = self.client.post(reverse('learn.event'),
-                                data={'answer': question_option_1.id},
-                                follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertRedirects(resp, "event_right")
+            #valid correct answer
+            resp = self.client.post(reverse('learn.event'),
+                                    data={'answer': question_option_1.id},
+                                    follow=True)
+            self.assertEquals(resp.status_code, 200)
+            self.assertRedirects(resp, "event_right")
 
-        resp = self.client.get(reverse('learn.home'))
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Finish %s" % event.name)
+            resp = self.client.get(reverse('learn.home'))
+            self.assertEquals(resp.status_code, 200)
+            self.assertContains(resp, "Finish %s" % event.name)
 
-        #take event the second time
-        resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
-        self.assertRedirects(resp, "event")
+            #take event the second time
+            resp = self.client.post(reverse('learn.home'), data={"take_event": "event"}, follow=True)
+            self.assertRedirects(resp, "event")
 
-        #valid correct answer
-        resp = self.client.post(reverse('learn.event'),
-                                data={'answer': question_option_2.id},
-                                follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertRedirects(resp, "event_right")
+            #valid correct answer
+            resp = self.client.post(reverse('learn.event'),
+                                    data={'answer': question_option_2.id},
+                                    follow=True)
+            self.assertEquals(resp.status_code, 200)
+            self.assertRedirects(resp, "event_right")
 
-        resp = self.client.get(reverse('learn.event_end_page'))
-        self.assertEquals(resp.status_code, 200)
+            resp = self.client.get(reverse('learn.event_end_page'))
+            self.assertEquals(resp.status_code, 200)
 
-        resp = self.client.get(reverse('learn.home'))
-        self.assertContains(resp, "5</span><br/>POINTS")
+            resp = self.client.get(reverse('learn.home'))
+            self.assertContains(resp, "5</span><br/>POINTS")
 
-        for i in range(1, 15):
-            question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
-            option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+            for i in range(1, 15):
+                question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
+                option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question, correct=True)
+                ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
+                                                         option_selected=option, correct=True)
+
+            question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
+            option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question, correct=False)
             ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
-                                                     option_selected=option, correct=True)
+                                                     option_selected=option, correct=False)
 
-        question = TestingQuestion.objects.create(name="Question %d" % 15, module=self.module)
-        option = TestingQuestionOption.objects.create(name="Option %d.1" % 15, question=question, correct=False)
-        ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
-                                                 option_selected=option, correct=False)
+            Setting.objects.create(key="REPEATING_QUESTIONS_ACTIVE", value="true")
 
-        Setting.objects.create(key="REPEATING_QUESTIONS_ACTIVE", value="true")
-
-        resp = self.client.get(reverse('learn.home'))
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "redo today's incorrect answers")
+            resp = self.client.get(reverse('learn.home'))
+            self.assertEquals(resp.status_code, 200)
+            self.assertContains(resp, "redo today's incorrect answers")
 
     def test_first_time(self):
         self.client.get(reverse(
@@ -2536,8 +2536,7 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('misc.about'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    @patch("django.core.mail.mail_managers")
-    def test_contact_screen(self, mock_mail_managers):
+    def test_contact_screen(self):
         resp = self.client.get(reverse('misc.contact'))
         self.assertEquals(resp.status_code, 200)
 
@@ -2558,53 +2557,29 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
 
-    @patch("django.core.mail.mail_managers")
-    def test_contact_screen_with_failure(self, mock_mail_managers):
-        mock_mail_managers.side_effect = KeyError('e')
+    def test_contact_screen_with_failure_and_bad_data(self):
+        with patch("django.core.mail.mail_managers") as mock_mail_managers:
+            mock_mail_managers.side_effect = KeyError('e')
 
-        resp = self.client.post(
-            reverse("misc.contact"),
-            follow=True,
-            data={
-                "fname": "Test",
-                "sname": "test",
-                "contact": "0123456789",
-                "comment": "test",
-                "school": "Test School",
-            }
-        )
+            resp = self.client.post(
+                reverse("misc.contact"),
+                follow=True,
+                data={
+                    "fname": "Test",
+                    "sname": "test",
+                    "contact": "0123456789\n0123456789\n0123456789",
+                    "comment": "test",
+                    "school": "Test School",
+                }
+            )
 
-        self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
+            self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
 
-        mock_mail_managers.assert_called_once_with(
-            fail_silently=False,
-            message=u'First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789\ntest',
-            subject=u'Contact Us Message - 0123456789'
-        )
-
-    @patch("django.core.mail.mail_managers")
-    def test_contact_screen_with_failure_and_bad_data(self, mock_mail_managers):
-        mock_mail_managers.side_effect = KeyError('e')
-
-        resp = self.client.post(
-            reverse("misc.contact"),
-            follow=True,
-            data={
-                "fname": "Test",
-                "sname": "test",
-                "contact": "0123456789\n0123456789\n0123456789",
-                "comment": "test",
-                "school": "Test School",
-            }
-        )
-
-        self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
-
-        mock_mail_managers.assert_called_(
-            fail_silently=False,
-            message=u"First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789 0123456789 0123456789\ntest",
-            subject=u"Contact Us Message - 0123456789 0123456789 0123456789"
-        )
+            mock_mail_managers.assert_called_(
+                fail_silently=False,
+                message=u"First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789 0123456789 0123456789\ntest",
+                subject=u"Contact Us Message - 0123456789 0123456789 0123456789"
+            )
 
     def test_get_week_day(self):
         day = get_week_day()
@@ -3292,185 +3267,185 @@ class GeneralTests(TestCase):
         i_mobile_4 = validate_mobile(i_mobile_4)
         self.assertEquals(i_mobile_4, None)
 
-    @patch("django.core.mail.mail_managers")
-    def test_signup_form(self, mock_mail_managers):
-        province_school = School.objects.get(name="Open School")
-        resp = self.client.get(reverse('auth.signup_form'))
-        self.assertEqual(resp.status_code, 200)
+    def test_signup_form(self):
+        with patch("django.core.mail.mail_managers") as mock_mail_managers:
+            province_school = School.objects.get(name="Open School")
+            resp = self.client.get(reverse('auth.signup_form'))
+            self.assertEqual(resp.status_code, 200)
 
-        # no data given
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={},
-                                follow=True)
-        self.assertContains(resp, "This must be completed", count=6)
+            # no data given
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={},
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=6)
 
-        # invalid cellphone, grade and province
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': self.learner.first_name,
-                                    'surname': self.learner.last_name,
-                                    'cellphone': '12345',
-                                    'grade': 'Grade 12',
-                                    'province': 'Wrong province name',
-                                    'enrolled': 0,
-                                },
-                                follow=True)
-        self.assertContains(resp, "Enter a valid cellphone number")
-        self.assertContains(resp, "Select your grade")
-        self.assertContains(resp, "Select your province")
+            # invalid cellphone, grade and province
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': self.learner.first_name,
+                                        'surname': self.learner.last_name,
+                                        'cellphone': '12345',
+                                        'grade': 'Grade 12',
+                                        'province': 'Wrong province name',
+                                        'enrolled': 0,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Enter a valid cellphone number")
+            self.assertContains(resp, "Select your grade")
+            self.assertContains(resp, "Select your province")
 
-        # registered cellphone
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': "Bob",
-                                    'surname': "Bobby",
-                                    'cellphone': self.learner.mobile,
-                                    'grade': 'Grade 10',
-                                    'province': 'Gauteng',
-                                    'enrolled': 0
-                                },
-                                follow=True)
-        self.assertContains(resp, "This number has already been registered.")
+            # registered cellphone
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Bob",
+                                        'surname': "Bobby",
+                                        'cellphone': self.learner.mobile,
+                                        'grade': 'Grade 10',
+                                        'province': 'Gauteng',
+                                        'enrolled': 0
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "This number has already been registered.")
 
-        # valid - enrolled
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': "Bob",
-                                    'surname': "Bobby",
-                                    'cellphone': '0729876543',
-                                    'province': 'Gauteng',
-                                    'grade': 'Grade 10',
-                                    'enrolled': 0,
-                                },
-                                follow=True)
-        self.assertContains(resp, 'Bob')
-        self.assertContains(resp, 'Bobby')
-        self.assertContains(resp, '0729876543')
-        self.assertContains(resp, 'Gauteng')
-        self.assertContains(resp, 'Grade 10')
-        self.assertContains(resp, '0')
+            # valid - enrolled
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Bob",
+                                        'surname': "Bobby",
+                                        'cellphone': '0729876543',
+                                        'province': 'Gauteng',
+                                        'grade': 'Grade 10',
+                                        'enrolled': 0,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, 'Bob')
+            self.assertContains(resp, 'Bobby')
+            self.assertContains(resp, '0729876543')
+            self.assertContains(resp, 'Gauteng')
+            self.assertContains(resp, 'Grade 10')
+            self.assertContains(resp, '0')
 
-        #get request
-        resp = self.client.get(reverse('auth.signup_form_promath'), follow=True)
-        self.assertContains(resp, "Sign Up")
+            #get request
+            resp = self.client.get(reverse('auth.signup_form_promath'), follow=True)
+            self.assertContains(resp, "Sign Up")
 
-        #no data
-        resp = self.client.post(reverse('auth.signup_form_promath'), follow=True)
-        self.assertContains(resp, "Sign Up")
+            #no data
+            resp = self.client.post(reverse('auth.signup_form_promath'), follow=True)
+            self.assertContains(resp, "Sign Up")
 
-        #no school and class
-        resp = self.client.post(reverse('auth.signup_form_promath'),
-                                data={
-                                    'first_name': "Bob",
-                                    'surname': "Bobby",
-                                    'cellphone': '0729876543',
-                                    'province': 'Gauteng',
-                                    'grade': 'Grade 10',
-                                    'enrolled': 0,
-                                },
-                                follow=True)
-        self.assertContains(resp, "This must be completed", count=2)
+            #no school and class
+            resp = self.client.post(reverse('auth.signup_form_promath'),
+                                    data={
+                                        'first_name': "Bob",
+                                        'surname': "Bobby",
+                                        'cellphone': '0729876543',
+                                        'province': 'Gauteng',
+                                        'grade': 'Grade 10',
+                                        'enrolled': 0,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=2)
 
-        #invalid school and class
-        resp = self.client.post(reverse('auth.signup_form_promath'),
-                                data={
-                                    'first_name': "Bob",
-                                    'surname': "Bobby",
-                                    'cellphone': '0729876543',
-                                    'province': 'Gauteng',
-                                    'grade': 'Grade 10',
-                                    'enrolled': 0,
-                                    'school': 999,
-                                    'classs': 999
-                                },
-                                follow=True)
-        self.assertContains(resp, "Select your school")
-        self.assertContains(resp, "Select your class")
+            #invalid school and class
+            resp = self.client.post(reverse('auth.signup_form_promath'),
+                                    data={
+                                        'first_name': "Bob",
+                                        'surname': "Bobby",
+                                        'cellphone': '0729876543',
+                                        'province': 'Gauteng',
+                                        'grade': 'Grade 10',
+                                        'enrolled': 0,
+                                        'school': 999,
+                                        'classs': 999
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Select your school")
+            self.assertContains(resp, "Select your class")
 
-        #valid data
-        resp = self.client.post(reverse('auth.signup_form_promath'),
-                                data={
-                                    'first_name': "Bob",
-                                    'surname': "Bobby",
-                                    'cellphone': '0729876543',
-                                    'province': 'Gauteng',
-                                    'grade': 'Grade 10',
-                                    'enrolled': 0,
-                                    'school': self.school.id,
-                                    'classs': self.classs.id
-                                },
-                                follow=True)
-        self.assertContains(resp, "Thank you")
-        new_learner = Learner.objects.get(username='0729876543')
-        self.assertEquals('Bob', new_learner.first_name)
+            #valid data
+            resp = self.client.post(reverse('auth.signup_form_promath'),
+                                    data={
+                                        'first_name': "Bob",
+                                        'surname': "Bobby",
+                                        'cellphone': '0729876543',
+                                        'province': 'Gauteng',
+                                        'grade': 'Grade 10',
+                                        'enrolled': 0,
+                                        'school': self.school.id,
+                                        'classs': self.classs.id
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729876543')
+            self.assertEquals('Bob', new_learner.first_name)
 
-        # valid - not enrolled - grade 10 - no open class created
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': "Koos",
-                                    'surname': "Botha",
-                                    'cellphone': '0729876540',
-                                    'grade': 'Grade 10',
-                                    'province': "Gauteng",
-                                    'enrolled': 1,
-                                },
-                                follow=True)
-        self.assertContains(resp, "Thank you")
-        new_learner = Learner.objects.get(username='0729876540')
-        self.assertEquals('Koos', new_learner.first_name)
+            # valid - not enrolled - grade 10 - no open class created
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Koos",
+                                        'surname': "Botha",
+                                        'cellphone': '0729876540',
+                                        'grade': 'Grade 10',
+                                        'province': "Gauteng",
+                                        'enrolled': 1,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729876540')
+            self.assertEquals('Koos', new_learner.first_name)
 
-        try:
-            School.objects.get(name=settings.OPEN_SCHOOL).delete()
-        except School.DoesNotExist:
-            pass
+            try:
+                School.objects.get(name=settings.OPEN_SCHOOL).delete()
+            except School.DoesNotExist:
+                pass
 
-        # valid - not enrolled - grade 10
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': "Willy",
-                                    'surname': "Wolly",
-                                    'cellphone': '0729878963',
-                                    'grade': 'Grade 10',
-                                    'province': "Gauteng",
-                                    'enrolled': 1,
-                                },
-                                follow=True)
-        self.assertContains(resp, "Thank you")
-        new_learner = Learner.objects.get(username='0729878963')
-        self.assertEquals('Willy', new_learner.first_name)
+            # valid - not enrolled - grade 10
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Willy",
+                                        'surname': "Wolly",
+                                        'cellphone': '0729878963',
+                                        'grade': 'Grade 10',
+                                        'province': "Gauteng",
+                                        'enrolled': 1,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729878963')
+            self.assertEquals('Willy', new_learner.first_name)
 
-        # valid - not enrolled - grade 11 - creaing open class
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': "Tom",
-                                    'surname': "Tom",
-                                    'cellphone': '0729876576',
-                                    'grade': 'Grade 11',
-                                    'province': "Gauteng",
-                                    'enrolled': 1,
-                                },
-                                follow=True)
-        self.assertContains(resp, "Thank you")
-        new_learner = Learner.objects.get(username='0729876576')
-        self.assertEquals('Tom', new_learner.first_name)
+            # valid - not enrolled - grade 11 - creaing open class
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Tom",
+                                        'surname': "Tom",
+                                        'cellphone': '0729876576',
+                                        'grade': 'Grade 11',
+                                        'province': "Gauteng",
+                                        'enrolled': 1,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729876576')
+            self.assertEquals('Tom', new_learner.first_name)
 
-        # valid - not enrolled - grade 11
-        resp = self.client.post(reverse('auth.signup_form'),
-                                data={
-                                    'first_name': "Henky",
-                                    'surname': "Tanky",
-                                    'cellphone': '0729876486',
-                                    'grade': 'Grade 11',
-                                    'province': "Gauteng",
-                                    'enrolled': 1,
-                                },
-                                follow=True)
-        self.assertContains(resp, "Thank you")
-        new_learner = Learner.objects.get(username='0729876486')
-        self.assertEquals('Henky', new_learner.first_name)
+            # valid - not enrolled - grade 11
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Henky",
+                                        'surname': "Tanky",
+                                        'cellphone': '0729876486',
+                                        'grade': 'Grade 11',
+                                        'province': "Gauteng",
+                                        'enrolled': 1,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729876486')
+            self.assertEquals('Henky', new_learner.first_name)
 
-        resp = self.client.get(reverse("auth.signup_form_promath"))
-        self.assertContains(resp, 'To sign up please complete the following information:')
+            resp = self.client.get(reverse("auth.signup_form_promath"))
+            self.assertContains(resp, 'To sign up please complete the following information:')
 
     def test_change_details(self):
         self.client.get(reverse(
