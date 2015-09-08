@@ -297,11 +297,6 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     }
 }
 
-.question-padding img {
-    width: auto !important;
-}
-
-
 .container > p { text-align: left; padding: 16px 0px 16px 0px; margin: 0px; }
 
 .heading {
