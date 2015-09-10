@@ -318,6 +318,13 @@ class TestProfanity(TestCase):
         self.assertEquals(contains_profanity('Test testees testing'), True)
         self.assertEquals(contains_profanity('TeSt testees TesTing'), True)
         self.assertEquals(contains_profanity('test TesTees testing'), True)
+        self.assertEquals(contains_profanity('test'), True)
+        self.assertEquals(contains_profanity('test!'), True)
+        self.assertEquals(contains_profanity('test, test'), True)
+        self.assertEquals(contains_profanity(' test'), True)
+        self.assertEquals(contains_profanity('\"test\"'), True)
+        self.assertEquals(contains_profanity('test?'), True)
+        self.assertEquals(contains_profanity(',test'), True)
 
 
 class TestSms(TestCase):

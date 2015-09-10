@@ -32,14 +32,6 @@
         }
     },
     {
-        "pk": 5,
-        "model": "communication.profanity",
-        "fields": {
-            "word": "hat",
-            "translation": "idiot"
-        }
-    },
-    {
         "pk": 6,
         "model": "communication.profanity",
         "fields": {
@@ -1661,14 +1653,6 @@
         "fields": {
             "word": "heeb",
             "translation": "Jewish Person"
-        }
-    },
-    {
-        "pk": 209,
-        "model": "communication.profanity",
-        "fields": {
-            "word": "hell",
-            "translation": "heck"
         }
     },
     {
