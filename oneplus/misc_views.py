@@ -2,6 +2,8 @@ from __future__ import division
 
 from functools import wraps
 import json
+import re
+import logging
 
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
@@ -21,6 +23,9 @@ from oneplus.auth_views import space_available, resolve_http_method
 from oneplus.report_utils import get_csv_report, get_xls_report
 from oneplus.validators import validate_title, validate_publish_date_and_time, validate_content, gen_username
 from oneplus.views import oneplus_state_required, oneplus_login_required
+
+
+logger = logging.getLogger(__name__)
 
 
 @oneplus_state_required
@@ -162,11 +167,19 @@ def contact(request, state, user):
                 "Contact: " + _contact,
                 _comment,
             ])
-            # Send email to info@dig-it.me
-            mail_managers(
-                subject='Contact Us Message - ' + _contact,
-                message=message,
-                fail_silently=False)
+
+            # remove newlines from _contact
+            _contact = re.sub(r"[\n\r]", " ", _contact)
+
+            try:
+                # Send email to info@dig-it.me
+                mail_managers(
+                    subject='Contact Us Message - ' + _contact,
+                    message=message,
+                    fail_silently=False
+                )
+            except Exception as ex:
+                logger.error("Error while sending contact email:\nmsg:%s\nError:%s" % (message, ex))
 
             state["sent"] = True
 
