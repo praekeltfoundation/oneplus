@@ -1,13 +1,14 @@
 from django.conf import settings
-import requests
 from django.contrib.sites.models import Site
 from go_http import HttpApiSender, LoggingSender
-import koremutake
 from django.contrib.auth.hashers import make_password
 from random import randint
-import logging
 from datetime import datetime, timedelta
 from .models import Sms, Ban, Profanity, ChatMessage, PostComment, Discussion
+import koremutake
+import logging
+import requests
+import re
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -172,11 +173,13 @@ def unmoderate(comm, user):
 
 def contains_profanity(content):
     qs = Profanity.objects.all()
+    re_base = "^%s$|^%s\s|\s%s$|\s%s\s|\s%s[.?!,;\"']|[.?!,;\"']%s[.?!,;\"']|[.?!,;\"']%s$|^%s[.?!,;\"']"
 
     for prof in qs:
-        lprof = prof.word.lower()
-        lcontent = content.lower()
-        if lprof in lcontent:
+        word = prof.word
+        r = re_base % (word, word, word, word, word, word, word, word)
+        m = re.match(r, content, re.IGNORECASE)
+        if m:
             return True
 
     return False
