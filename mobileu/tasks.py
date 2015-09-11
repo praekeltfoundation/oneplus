@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 import csv
 from django.core.mail import EmailMessage
 import xlwt
-import validate_email
+from validate_email import validate_email
+from django.core.mail import mail_managers
 
 
 @celery.task(bind=True)
@@ -24,7 +25,7 @@ def get_teacher_list():
     teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
         .distinct('teacher')
     for rel in teacher_list:
-        if not validate_email(rel.teacher.email, verify=True):
+        if not validate_email(rel.teacher.email):
             rel.delete()
     return teacher_list.values_list('teacher_id')
 
@@ -38,7 +39,7 @@ def send_teacher_reports():
 
     #get all the teacher class rel where teachers have set emails
     teacher_list = get_teacher_list()
-    all_teachers_list = Teacher.objects.filter(id__in=teacher_list).values('id', 'email')
+    all_teachers_list = Teacher.objects.filter(id__in=teacher_list).values('id', 'email', 'username')
 
     class_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
         .values_list('classs_id')\
@@ -174,7 +175,6 @@ def send_teacher_reports():
         #attach all the reports for this teacher
         my_item = next((item for item in all_teachers_list if item['id'] == teacher_id), None)
         if my_item:
-            print my_item
             for csv_class_report in my_item['csv_class_reports']:
                 with open(csv_class_report.name, 'r') as r:
                     email.attach(csv_class_report.name, r.read(), 'text/csv')
@@ -188,5 +188,15 @@ def send_teacher_reports():
 
             for xls_module_report in my_item['xls_module_reports']:
                 email.attach_file(xls_module_report)
-
-        email.send()
+        try:
+            email.send()
+        except Exception as detail:
+            mail_managers("DIG-IT: Teacher report sending failed.", "The system failed to send a teacher report.\n"
+                                                            "username: %s\n"
+                                                            "email: %s\n"
+                                                            "month: %s\n\n\n"
+                                                            "Error details: %s"
+                                                                    % (teacher['username'],
+                                                                       teacher['email'],
+                                                                       month,
+                                                                       detail))
