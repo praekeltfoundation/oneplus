@@ -157,39 +157,6 @@ class LearnerStateTest(TestCase):
         answered = self.learner_state.get_all_answered().count()
         self.assertEquals(answered, 1)
 
-    def test_get_training_questions(self):
-        offset = (datetime.today().weekday() - 6) % 7
-        last_saturday = datetime.today() - timedelta(days=offset)
-
-        answer = ParticipantQuestionAnswer.objects.create(
-            participant=self.participant,
-            question=self.question,
-            option_selected=self.option,
-            answerdate=last_saturday,
-            correct=True
-        )
-        answer.save()
-
-        traing_questions = self.learner_state.get_training_questions()
-
-        self.assertEquals(traing_questions.__len__(), 1)
-
-    @patch.object(LearnerState, "today")
-    def test_is_training_week(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 8, 27, 0, 0, 0)
-
-        self.participant = self.create_participant(
-            self.learner, self.classs,
-            datejoined=datetime(2014, 8, 22, 0, 0, 0))
-
-        self.learner_state = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=self.question
-        )
-
-        self.assertTrue(self.learner_state.is_training_week())
-        self.assertEquals(self.learner_state.get_questions_answered_week(), 0)
-
     def test_getnextquestion(self):
         active_question = self.learner_state.getnextquestion()
 
@@ -238,34 +205,3 @@ class LearnerStateTest(TestCase):
 
         self.assertListEqual(list(self.learner_state.get_unanswered()),
                              [question2, question3])
-
-    @patch.object(LearnerState, "today")
-    def test_is_training_weekend(self, mock_get_today):
-        self.participant = self.create_participant(
-            self.learner, self.classs,
-            datejoined=datetime(2014, 8, 22, 0, 0, 0))
-
-        self.learner_state = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=self.question
-        )
-
-        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
-
-        # Create and answer 2 other questions earlier in the day
-        answers = self.create_and_answer_questions(2, 'training',
-                                                   datetime(2014, 8, 23,
-                                                            1, 22, 0))
-        training_questions = self.learner_state.get_training_questions()
-
-        self.assertListEqual(training_questions, answers)
-        self.assertEqual(
-            self.learner_state.is_training_weekend(), True)
-        self.assertEquals(self.learner_state.get_questions_answered_week(), 4)
-
-    @patch.object(LearnerState, "today")
-    def test_is_monday_after_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 8, 25, 0, 0, 0)
-        self.assertTrue(self.learner_state.check_monday_after_training(1))
-        self.assertFalse(self.learner_state.check_monday_after_training(
-            self.learner_state.QUESTIONS_PER_DAY + 1))
