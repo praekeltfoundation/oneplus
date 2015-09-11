@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import csv
 from django.core.mail import EmailMessage
 import xlwt
+import validate_email
 
 
 @celery.task(bind=True)
@@ -19,6 +20,15 @@ def send_sms(x, y):
     return x + y
 
 
+def get_teacher_list():
+    teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
+        .distinct('teacher')
+    for rel in teacher_list:
+        if not validate_email(rel.teacher.email, verify=True):
+            rel.delete()
+    return teacher_list.values_list('teacher_id')
+
+
 @celery.task
 def send_teacher_reports():
     today = datetime.now()
@@ -27,9 +37,7 @@ def send_teacher_reports():
     last_month = first - timedelta(days=1)
 
     #get all the teacher class rel where teachers have set emails
-    teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
-        .values_list('teacher_id')\
-        .distinct('teacher')
+    teacher_list = get_teacher_list()
     all_teachers_list = Teacher.objects.filter(id__in=teacher_list).values('id', 'email')
 
     class_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
