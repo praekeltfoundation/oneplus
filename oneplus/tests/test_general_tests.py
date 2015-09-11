@@ -1044,7 +1044,8 @@ class GeneralTests(TestCase):
         update_perc_correct_answers_worker('7days', 7)
         update_perc_correct_answers_worker('32days', 32)
 
-    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay',
+           side_effect=fake_update_all_perc_correct_answers)
     def test_answer_correct_nextchallenge(self, mock_task):
         self.client.get(
             reverse('auth.autologin',
@@ -1083,7 +1084,8 @@ class GeneralTests(TestCase):
         self.assert_in_metric_logs("questions.correct.7days", 'last', 100)
         self.assert_in_metric_logs("questions.correct.32days", 'last', 100)
 
-    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay', side_effect=fake_update_all_perc_correct_answers)
+    @patch('oneplus.learn_views.update_all_perc_correct_answers.delay',
+           side_effect=fake_update_all_perc_correct_answers)
     def test_answer_incorrect_nextchallenge(self, mock_task):
         self.client.get(reverse(
             'auth.autologin',
@@ -1714,66 +1716,6 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     @patch.object(LearnerState, 'today')
-    def test_training_sunday(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 20, 0, 0, 0)
-
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-
-        self.assertEquals(learnerstate.get_total_questions(), 3)
-
-    @patch.object(LearnerState, 'today')
-    def test_training_saturday(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 19, 0, 0, 0)
-
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-
-        self.assertEquals(learnerstate.get_total_questions(), 3)
-
-    @patch.object(LearnerState, 'today')
-    def test_monday_first_week_no_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 21, 0, 0, 0)
-
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-        self.assertEquals(learnerstate.get_total_questions(), 3)
-
-    @patch.object(LearnerState, 'today')
-    def test_monday_first_week_with_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 21, 0, 0, 0)
-
-        self.create_and_answer_questions(
-            3,
-            'sunday',
-            datetime(2014, 7, 20, 1, 1, 1))
-
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-        self.assertEquals(learnerstate.get_total_questions(), 0)
-
-    @patch.object(LearnerState, 'today')
     def test_tuesday_with_monday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
 
@@ -1868,73 +1810,6 @@ class GeneralTests(TestCase):
             active_result=True,
         )
         self.assertEquals(learnerstate.get_total_questions(), 3)
-
-    @patch.object(LearnerState, 'today')
-    def test_miss_all_days_till_weekend_except_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 7, 26, 0, 0, 0)
-
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-        self.create_and_answer_questions(3, 'training',
-                                         datetime(2014, 7, 20, 1, 1, 1))
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-        self.assertEquals(learnerstate.get_total_questions(), 12)
-
-    @patch.object(LearnerState, 'today')
-    def test_miss_all_questions_except_training(self, mock_get_today):
-        # Sunday the 28th
-        mock_get_today.return_value = datetime(2014, 7, 28, 0, 0)
-
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-
-        # Answered 3 questions at training on Sunday the 20th
-        self.create_and_answer_questions(3, 'training',
-                                         datetime(2014, 7, 20, 1, 1, 1))
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-        self.assertEqual(learnerstate.is_training_week(), False)
-        self.assertEquals(learnerstate.get_total_questions(), 3)
-
-    @patch.object(LearnerState, "today")
-    def test_saturday_no_questions_not_training(self, mock_get_today):
-        learner = self.learner = self.create_learner(
-            self.school,
-            username="+27123456999",
-            mobile="+2712345699",
-            country="country",
-            area="Test_Area",
-            unique_token='abc1233',
-            unique_token_expiry=datetime.now() + timedelta(days=30),
-            is_staff=True)
-        self.participant = self.create_participant(
-            learner, self.classs,
-            datejoined=datetime(2014, 8, 22, 0, 0, 0))
-
-        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0)
-
-        # Create question
-        question1 = self.create_test_question('q1', self.module)
-
-        # Create and answer 2 other questions earlier in the day
-        self.create_and_answer_questions(2, 'training',
-                                         datetime(2014, 8, 23, 1, 22, 0))
-
-        learnerstate = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=question1,
-            active_result=True,
-        )
-
-        self.assertEquals(learnerstate.get_total_questions(), 3)
-        self.assertEquals(learnerstate.get_num_questions_answered_today(), 2)
 
     def test_strip_p_tags(self):
         content = "<p><b>Test</b></p>"
@@ -2578,7 +2453,8 @@ class GeneralTests(TestCase):
 
             mock_mail_managers.assert_called_(
                 fail_silently=False,
-                message=u"First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789 0123456789 0123456789\ntest",
+                message=u"First Name: Test\nLast Name: test\nSchool: Test School\n"
+                        u"Contact: 0123456789 0123456789 0123456789\ntest",
                 subject=u"Contact Us Message - 0123456789 0123456789 0123456789"
             )
 
@@ -3563,20 +3439,27 @@ class ProfanityTests(TestCase):
         contents = [
             "hellow boo",
             "What guys",
-            "teboho...I have made the administrator aware of system failure....but also please lets us be careful on what we say....it should be all about maths and qwaqwa, tshiya maths from mr mdlalose",
+            "teboho...I have made the administrator aware of system failure....but also please lets us be careful on "
+            "what we say....it should be all about maths and qwaqwa, tshiya maths from mr mdlalose",
             "no teboho",
             "Since I'm new in one plus but I have proved that this is the way to success in pro maths 2015.",
             "Since I'm new in one plus but I have proved that this is the way to success in pro maths.",
             "how is everyone doing with eucliean geometry grade 11?",
-            "hmmm.....i think about it more than i forget ......i didnt practise the whole week last week and its something i am not proud of......but then i shall try my best ....",
-            "Mine doesn't want to work. It keeps saying I should come tomorrow but tomorrow never comes. What should I do?",
+            "hmmm.....i think about it more than i forget ......i didnt practise the whole week last week and its "
+            "something i am not proud of......but then i shall try my best ....",
+            "Mine doesn't want to work. It keeps saying I should come tomorrow but tomorrow never comes. What should "
+            "I do?",
             "What do I do if it doesn't want me to login everyday",
             "how did you deal with today's challenges",
             "How do u wim airtime ?",
             "hi im momelezi a maths student in kutlwanong",
             "yho your questions are tricky but they are good for us ''cause they open our minds",
             "thank u for revisions that u have given US",
-            "revision and practise could not be any easy and effective as it is with oneplus. Guys do spread the world as better individuals we can make better friends, with better friends better school mates, with better school mates, with better school mates better schools, with better schools better communities, with better communities better countries, with better countries a better world. With a better world a better Future. Isn't that great?"
-            ]
+            "revision and practise could not be any easy and effective as it is with oneplus. Guys do spread the world "
+            "as better individuals we can make better friends, with better friends better school mates, with better "
+            "school mates, with better school mates better schools, with better schools better communities, with "
+            "better communities better countries, with better countries a better world. With a better world a better "
+            "Future. Isn't that great?"
+        ]
         for content in contents:
             self.assertEquals(contains_profanity(content), False, content)
