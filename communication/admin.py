@@ -26,7 +26,7 @@ class CoursePostInline(admin.TabularInline):
 
 class PostAdmin(SummernoteModelAdmin):
     list_display = ("name", "description")
-    list_filter = ("course", )
+    list_filter = ("courses", )
     search_fields = ("name", "description")
     fieldsets = [
         (None,
