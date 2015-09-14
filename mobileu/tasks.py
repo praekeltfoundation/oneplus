@@ -82,10 +82,10 @@ def send_teacher_reports():
         #create a class report
         class_report_name = "[%s-%s-%s]_%s_class_report" % (last_month.year, last_month.month, last_month.day,
                                                             current_class.name)
-        logger.info("Opening file: %s.csv" % class_report_name)
-        csv_class_report = open(class_report_name + ".csv", 'wb')
-        logger.info("File opened: %s.csv" % class_report_name)
         try:
+            logger.info("Opening file: %s.csv" % class_report_name)
+            csv_class_report = open(class_report_name + ".csv", 'wb')
+            logger.info("File opened: %s.csv" % class_report_name)
             logger.info("Creating report: %s" % class_report_name)
 
             headings = ("Learner's Name", "Answered LAST MONTH", "Answered Correctly LAST MONTH (%)",
@@ -108,6 +108,9 @@ def send_teacher_reports():
             logger.info("Report created: %s" % class_report_name)
         except Exception:
             logger.info("Failed to create report: %s" % class_report_name)
+            failed_reports.append(class_report_name)
+        except (OSError, IOError):
+            logger.info("Failed to open report file: %s" % class_report_name)
             failed_reports.append(class_report_name)
         finally:
             logger.info("Saving report: %s.csv" % class_report_name)
@@ -139,10 +142,10 @@ def send_teacher_reports():
         #create a class report for all the modules
         module_report_name = "[%s-%s-%s]_%s]_module_report" % (last_month.year, last_month.month, last_month.day,
                                                                current_class.name)
-        logger.info("Opening file: %s.csv" % module_report_name)
-        csv_module_report = open(module_report_name + ".csv", 'wb')
-        logger.info("File opened: %s.csv" % module_report_name)
         try:
+            logger.info("Opening file: %s.csv" % module_report_name)
+            csv_module_report = open(module_report_name + ".csv", 'wb')
+            logger.info("File opened: %s.csv" % module_report_name)
             logger.info("Creating report: %s" % module_report_name)
 
             headings = ("Module", "Answered Correctly LAST MONTH (%)", "Answered Correctly ALL TIME (%)")
@@ -163,6 +166,9 @@ def send_teacher_reports():
             logger.info("Report created: %s" % module_report_name)
         except Exception:
             logger.info("Failed to create report: %s" % module_report_name)
+            failed_reports.append(module_report_name)
+        except (OSError, IOError):
+            logger.info("Failed to open report file: %s" % module_report_name)
             failed_reports.append(module_report_name)
         finally:
             logger.info("Saving report: %s.csv" % module_report_name)
