@@ -1,4 +1,4 @@
--e git+/home/newuser/praekelt/mobileu/.git@feature/oneplus-307#egg=django-mobileu
+-e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
 django-google-analytics-app==2.0.3
 raven==5.0.0
 psycopg2
