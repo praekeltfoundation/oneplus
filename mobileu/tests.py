@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.test.client import Client
 from utils import format_option, format_content
-from communication.models import ChatMessage, Discussion, PostComment, ChatGroup, Post
+from communication.models import ChatMessage, Discussion, PostComment, ChatGroup, Post, CoursePostRel
 from organisation.models import Course
 from auth.models import CustomUser
 from datetime import datetime
@@ -116,13 +116,15 @@ class TestPublishViews(TestCase):
         )
 
     def create_post(self, content, name='Test', description='Test'):
-        return Post.objects.create(
+        post = Post.objects.create(
             name=name,
             description=description,
-            course=self.course,
             content=content,
             publishdate=datetime.now()
         )
+        CoursePostRel.objects.create(course=self.course, post=post)
+
+        return post
 
     def create_postcomment(self, post, content):
         return PostComment.objects.create(

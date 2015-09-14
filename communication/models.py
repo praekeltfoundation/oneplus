@@ -42,7 +42,7 @@ class Post(models.Model):
     name = models.CharField(
         "Name", max_length=50, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=50, blank=True)
-    course = models.ForeignKey(Course, null=True, blank=False)
+    courses = models.ManyToManyField(Course, related_name='posts', through='CoursePostRel',)
     big_image = models.ImageField(
         "Big Image", upload_to="img/", blank=True, null=True)
     small_image = models.ImageField(
@@ -57,6 +57,11 @@ class Post(models.Model):
     class Meta:
         verbose_name = "Post"
         verbose_name_plural = "Posts"
+
+
+class CoursePostRel(models.Model):
+    course = models.ForeignKey(Course)
+    post = models.ForeignKey(Post)
 
 
 class PostComment(models.Model):
