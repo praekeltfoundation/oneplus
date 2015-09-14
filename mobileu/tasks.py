@@ -24,10 +24,11 @@ def send_sms(x, y):
 def get_teacher_list():
     teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
         .distinct('teacher')
+    exclude_list = list()
     for rel in teacher_list:
         if not validate_email(rel.teacher.email):
-            rel.delete()
-    return teacher_list.values_list('teacher_id')
+            exclude_list.append(rel.id)
+    return teacher_list.exclude(id__in=exclude_list).values_list('teacher__id')
 
 
 @celery.task
