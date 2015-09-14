@@ -19,16 +19,23 @@ class PageAdmin(admin.ModelAdmin):
     ]
 
 
+class CoursePostInline(admin.TabularInline):
+    model = CoursePostRel
+    extra = 1
+
+
 class PostAdmin(SummernoteModelAdmin):
     list_display = ("name", "description")
     list_filter = ("course", )
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "course", "publishdate"]}),
+            {"fields": ["name", "description", "publishdate"]}),
         ("Content",
             {"fields": ["big_image", "small_image", "moderated", "content"]}),
     ]
+
+    inlines = (CoursePostInline, )
 
 
 class ChatMessageInline(admin.TabularInline):
