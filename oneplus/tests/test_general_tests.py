@@ -1725,7 +1725,7 @@ class GeneralTests(TestCase):
             active_result=True,
         )
 
-        self.assertEquals(learnerstate.get_total_questions(), 3)
+        self.assertEquals(learnerstate.get_total_questions(), 15)
 
     @patch.object(LearnerState, 'today')
     def test_training_saturday(self, mock_get_today):
@@ -1740,7 +1740,7 @@ class GeneralTests(TestCase):
             active_result=True,
         )
 
-        self.assertEquals(learnerstate.get_total_questions(), 3)
+        self.assertEquals(learnerstate.get_total_questions(), 15)
 
     @patch.object(LearnerState, 'today')
     def test_monday_first_week_no_training(self, mock_get_today):
@@ -1771,7 +1771,7 @@ class GeneralTests(TestCase):
             active_question=question1,
             active_result=True,
         )
-        self.assertEquals(learnerstate.get_total_questions(), 0)
+        self.assertEquals(learnerstate.get_total_questions(), 3)
 
     @patch.object(LearnerState, 'today')
     def test_tuesday_with_monday(self, mock_get_today):
@@ -1882,7 +1882,7 @@ class GeneralTests(TestCase):
             active_question=question1,
             active_result=True,
         )
-        self.assertEquals(learnerstate.get_total_questions(), 12)
+        self.assertEquals(learnerstate.get_total_questions(), 15)
 
     @patch.object(LearnerState, 'today')
     def test_miss_all_questions_except_training(self, mock_get_today):
@@ -1900,7 +1900,6 @@ class GeneralTests(TestCase):
             active_question=question1,
             active_result=True,
         )
-        self.assertEqual(learnerstate.is_training_week(), False)
         self.assertEquals(learnerstate.get_total_questions(), 3)
 
     @patch.object(LearnerState, "today")
@@ -1933,7 +1932,7 @@ class GeneralTests(TestCase):
             active_result=True,
         )
 
-        self.assertEquals(learnerstate.get_total_questions(), 3)
+        self.assertEquals(learnerstate.get_total_questions(), 15)
         self.assertEquals(learnerstate.get_num_questions_answered_today(), 2)
 
     def test_strip_p_tags(self):
