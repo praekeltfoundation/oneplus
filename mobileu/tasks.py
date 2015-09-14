@@ -56,6 +56,11 @@ def send_teacher_reports():
         #list to store tuple of participant data
         class_list = list()
 
+        csv_class_report = None
+        csv_module_report = None
+        xls_class_report = None
+        xls_module_report = None
+
         all_participants = Participant.objects.filter(classs=current_class)
 
         for participant in all_participants:
@@ -113,9 +118,10 @@ def send_teacher_reports():
             logger.info("Failed to open report file: %s" % class_report_name)
             failed_reports.append(class_report_name)
         finally:
-            logger.info("Saving report: %s.csv" % class_report_name)
-            csv_class_report.close()
-            logger.info("Report saved: %s.csv" % class_report_name)
+            if csv_class_report is not None:
+                logger.info("Saving report: %s.csv" % class_report_name)
+                csv_class_report.close()
+                logger.info("Report saved: %s.csv" % class_report_name)
             logger.info("Saving report: %s.xls" % class_report_name)
             xls_class_report.save(class_report_name + ".xls")
             logger.info("Report saved: %s.xls" % class_report_name)
@@ -171,9 +177,10 @@ def send_teacher_reports():
             logger.info("Failed to open report file: %s" % module_report_name)
             failed_reports.append(module_report_name)
         finally:
-            logger.info("Saving report: %s.csv" % module_report_name)
-            csv_module_report.close()
-            logger.info("Report saved: %s.csv" % module_report_name)
+            if csv_module_report is not None:
+                logger.info("Saving report: %s.csv" % module_report_name)
+                csv_module_report.close()
+                logger.info("Report saved: %s.csv" % module_report_name)
             logger.info("Saving report: %s.xls" % module_report_name)
             xls_class_report.save(module_report_name + ".xls")
             logger.info("Report saved: %s.xls" % module_report_name)
@@ -185,26 +192,29 @@ def send_teacher_reports():
         for teacher_id in teachers_to_email:
             my_item = next((item for item in all_teachers_list if item['id'] == teacher_id), None)
             if my_item:
-                print my_item
-                if 'csv_class_reports' in my_item:
-                    my_item['csv_class_reports'].append(csv_class_report)
-                else:
-                    my_item['csv_class_reports'] = [csv_class_report]
+                if csv_class_report is not None:
+                    if 'csv_class_reports' in my_item:
+                        my_item['csv_class_reports'].append(csv_class_report)
+                    else:
+                        my_item['csv_class_reports'] = [csv_class_report]
 
-                if 'csv_module_reports' in my_item:
-                    my_item['csv_module_reports'].append(csv_module_report)
-                else:
-                    my_item['csv_module_reports'] = [csv_module_report]
+                if csv_module_report is not None:
+                    if 'csv_module_reports' in my_item:
+                        my_item['csv_module_reports'].append(csv_module_report)
+                    else:
+                        my_item['csv_module_reports'] = [csv_module_report]
 
-                if 'xls_class_reports' in my_item:
-                    my_item['xls_class_reports'].append("%s.xls" % class_report_name)
-                else:
-                    my_item['xls_class_reports'] = ["%s.xls" % class_report_name]
+                if xls_class_report is not None:
+                    if 'xls_class_reports' in my_item:
+                        my_item['xls_class_reports'].append("%s.xls" % class_report_name)
+                    else:
+                        my_item['xls_class_reports'] = ["%s.xls" % class_report_name]
 
-                if 'xls_module_reports' in my_item:
-                    my_item['xls_module_reports'].append("%s.xls" % module_report_name)
-                else:
-                    my_item['xls_module_reports'] = ["%s.xls" % module_report_name]
+                if xls_module_report is not None:
+                    if 'xls_module_reports' in my_item:
+                        my_item['xls_module_reports'].append("%s.xls" % module_report_name)
+                    else:
+                        my_item['xls_module_reports'] = ["%s.xls" % module_report_name]
 
     failed_emails = list()
 
