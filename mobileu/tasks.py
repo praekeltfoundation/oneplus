@@ -9,6 +9,9 @@ from django.core.mail import EmailMessage
 import xlwt
 from validate_email import validate_email
 from django.core.mail import mail_managers
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @celery.task(bind=True)
@@ -47,6 +50,8 @@ def send_teacher_reports():
         .distinct('classs')
     all_classes = Class.objects.filter(id__in=class_list)
 
+    failed_reports = list()
+
     for current_class in all_classes:
         #list to store tuple of participant data
         class_list = list()
@@ -75,8 +80,14 @@ def send_teacher_reports():
                                all_time_ans_num, all_time_cor_num))
 
         #create a class report
-        csv_class_report = open("%s_class_report.csv" % current_class.name, 'wb')
+        class_report_name = "[%s-%s-%s]_%s_class_report" % (last_month.year, last_month.month, last_month.day,
+                                                            current_class.name)
+        logger.info("Opening file: %s.csv" % class_report_name)
+        csv_class_report = open(class_report_name + ".csv", 'wb')
+        logger.info("File opened: %s.csv" % class_report_name)
         try:
+            logger.info("Creating report: %s" % class_report_name)
+
             headings = ("Learner's Name", "Answered LAST MONTH", "Answered Correctly LAST MONTH (%)",
                         "Answered ALL TIME", "Answered Correctly ALL TIME (%)")
 
@@ -94,9 +105,17 @@ def send_teacher_reports():
                 #xls
                 for col_num, item in enumerate(row):
                     class_worksheet.write(row_num, col_num, item)
+            logger.info("Report created: %s" % class_report_name)
+        except Exception:
+            logger.info("Failed to create report: %s" % class_report_name)
+            failed_reports.append(class_report_name)
         finally:
+            logger.info("Saving report: %s.csv" % class_report_name)
             csv_class_report.close()
-            xls_class_report.save("%s_class_report.xls" % current_class.name)
+            logger.info("Report saved: %s.csv" % class_report_name)
+            logger.info("Saving report: %s.xls" % class_report_name)
+            xls_class_report.save(class_report_name + ".xls")
+            logger.info("Report saved: %s.xls" % class_report_name)
 
         #module reports
         class_modules = Module.objects.filter(coursemodulerel__course=current_class.course)
@@ -118,8 +137,14 @@ def send_teacher_reports():
             module_list.append((m.name, correct_last_month, correct_all_time))
 
         #create a class report for all the modules
-        csv_module_report = open("%s_module_report.csv" % current_class.name, 'wb')
+        module_report_name = "[%s-%s-%s]_%s]_module_report" % (last_month.year, last_month.month, last_month.day,
+                                                               current_class.name)
+        logger.info("Opening file: %s.csv" % module_report_name)
+        csv_module_report = open(module_report_name + ".csv", 'wb')
+        logger.info("File opened: %s.csv" % module_report_name)
         try:
+            logger.info("Creating report: %s" % module_report_name)
+
             headings = ("Module", "Answered Correctly LAST MONTH (%)", "Answered Correctly ALL TIME (%)")
             writer = csv.writer(csv_module_report)
             writer.writerow(headings)
@@ -135,9 +160,17 @@ def send_teacher_reports():
                 #xls
                 for col_num, item in enumerate(row):
                     modules_worksheet.write(row_num, col_num, item)
+            logger.info("Report created: %s" % module_report_name)
+        except Exception:
+            logger.info("Failed to create report: %s" % module_report_name)
+            failed_reports.append(module_report_name)
         finally:
+            logger.info("Saving report: %s.csv" % module_report_name)
             csv_module_report.close()
-            xls_module_report.save("%s_module_report.xls" % current_class.name)
+            logger.info("Report saved: %s.csv" % module_report_name)
+            logger.info("Saving report: %s.xls" % module_report_name)
+            xls_class_report.save(module_report_name + ".xls")
+            logger.info("Report saved: %s.xls" % module_report_name)
 
         teachers_to_email = TeacherClass.objects.filter(classs=current_class, teacher__email__isnull=False)\
             .exclude(teacher__email='')\
@@ -146,6 +179,7 @@ def send_teacher_reports():
         for teacher_id in teachers_to_email:
             my_item = next((item for item in all_teachers_list if item['id'] == teacher_id), None)
             if my_item:
+                print my_item
                 if 'csv_class_reports' in my_item:
                     my_item['csv_class_reports'].append(csv_class_report)
                 else:
@@ -157,20 +191,23 @@ def send_teacher_reports():
                     my_item['csv_module_reports'] = [csv_module_report]
 
                 if 'xls_class_reports' in my_item:
-                    my_item['xls_class_reports'].append("%s_class_report.xls" % current_class.name)
+                    my_item['xls_class_reports'].append("%s.xls" % class_report_name)
                 else:
-                    my_item['xls_class_reports'] = ["%s_class_report.xls" % current_class.name]
+                    my_item['xls_class_reports'] = ["%s.xls" % class_report_name]
 
                 if 'xls_module_reports' in my_item:
-                    my_item['xls_module_reports'].append("%s_module_report.xls" % current_class.name)
+                    my_item['xls_module_reports'].append("%s.xls" % module_report_name)
                 else:
-                    my_item['xls_module_reports'] = ["%s_module_report.xls" % current_class.name]
+                    my_item['xls_module_reports'] = ["%s.xls" % module_report_name]
+
+    failed_emails = list()
 
     #email the teachers
     month = last_month.strftime("%B")
     subject = "dig-it report %s" % month
     message = "Please find attached reports of your dig-it classes for %s." % month
     from_email = "info@dig-it.me"
+    logger.info("Emailing teachers.")
     for teacher in all_teachers_list:
         email = EmailMessage(subject, message, from_email, [teacher['email']])
         #attach all the reports for this teacher
@@ -192,12 +229,27 @@ def send_teacher_reports():
         try:
             email.send()
         except Exception as detail:
-            mail_managers("DIG-IT: Teacher report sending failed.", "The system failed to send a teacher report.\n"
-                                                            "username: %s\n"
-                                                            "email: %s\n"
-                                                            "month: %s\n\n\n"
-                                                            "Error details: %s"
-                                                                    % (teacher['username'],
-                                                                       teacher['email'],
-                                                                       month,
-                                                                       detail))
+            failed_emails.append((teacher['username'], teacher['email'], detail))
+
+    if len(failed_reports) > 0:
+        message = "The system failed to create the following reports:\n\n"
+        for fail in failed_reports:
+            message = "report: %s\n " % fail
+        try:
+            mail_managers("DIG-IT: Teacher report creation failed.", message, fail_silently=False)
+        except Exception as ex:
+            logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
+
+    if len(failed_emails) > 0:
+        message = "The system failed to email report to the following teachers:\n\n"
+        for fail in failed_emails:
+            message = "username: %s\n " \
+                      "email: %s\n" \
+                      "Error details: %s" \
+                      % (fail[0],
+                         fail[1],
+                         fail[2])
+        try:
+            mail_managers("DIG-IT: Teacher report sending failed.", message, fail_silently=False)
+        except Exception as ex:
+            logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
