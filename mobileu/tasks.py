@@ -28,7 +28,7 @@ def get_teacher_list():
     for rel in teacher_list:
         if not validate_email(rel.teacher.email):
             exclude_list.append(rel.id)
-    return teacher_list.exclude(id__in=exclude_list).values_list('teacher__id')
+    return teacher_list.exclude(id__in=exclude_list).values_list('teacher__id', flat=True)
 
 
 @celery.task
