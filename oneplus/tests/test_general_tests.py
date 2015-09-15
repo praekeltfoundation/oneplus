@@ -2,7 +2,8 @@
 from datetime import datetime, timedelta
 import logging
 from auth.models import Learner, CustomUser
-from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment
+from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment, \
+    CoursePostRel
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
     EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
@@ -1547,10 +1548,9 @@ class GeneralTests(TestCase):
 
         blog = Post.objects.create(
             name='testblog',
-            course=self.course,
             publishdate=datetime.now()
         )
-        blog.save()
+        CoursePostRel.objects.create(course=self.course, post=blog)
 
         resp = self.client.get(
             reverse('com.blog',

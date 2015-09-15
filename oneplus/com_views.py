@@ -288,11 +288,12 @@ def chat(request, state, user, chatid):
 def blog_hero(request, state, user):
     # get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] = Post.objects.filter(
-        course=_course
+        id__in=post_list
     ).count()
     _posts = Post.objects.filter(
-        course=_course
+        id__in=post_list
     ).order_by("-publishdate")[:4]
     request.session["state"]["blog_num"] = _posts.count()
 
@@ -326,13 +327,14 @@ def blog_hero(request, state, user):
 def blog_list(request, state, user):
     # get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] \
-        = Post.objects.filter(course=_course).count()
+        = Post.objects.filter(id__in=post_list).count()
 
     def get():
         request.session["state"]["blog_page"] \
             = min(10, request.session["state"]["blog_page_max"])
-        _posts = Post.objects.filter(course=_course) \
+        _posts = Post.objects.filter(id__in=post_list) \
                      .order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(request, "com/bloglist.html", {"state": state,
@@ -346,7 +348,7 @@ def blog_list(request, state, user):
             if request.session["state"]["blog_page"] > request.session["state"]["blog_page_max"]:
                 request.session["state"]["blog_page"] = request.session["state"]["blog_page_max"]
 
-        _posts = Post.objects.filter(course=_course).order_by("-publishdate")[:request.session["state"]["blog_page"]]
+        _posts = Post.objects.filter(id__in=post_list).order_by("-publishdate")[:request.session["state"]["blog_page"]]
 
         return render(
             request,
@@ -366,13 +368,14 @@ def blog_list(request, state, user):
 def blog(request, state, user, blogid):
     # get blog entry
     _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     _post = Post.objects.get(pk=blogid)
     _next = Post.objects.filter(
-        course=_course,
+        id__in=post_list,
         publishdate__gt=_post.publishdate
     ).exclude(id=_post.id).order_by("publishdate").first()
     _previous = Post.objects.filter(
-        course=_course,
+        id__in=post_list,
         publishdate__lt=_post.publishdate
     ).exclude(id=_post.id).order_by("-publishdate").first()
 

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Post, PostComment, ChatGroup, ChatMessage, Report, ReportResponse, Sms, \
-    SmsQueue, Discussion
+    SmsQueue, Discussion, CoursePostRel
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from django.core.urlresolvers import reverse
@@ -66,14 +66,16 @@ class ExtraAdminBitTests(TestCase):
         return Message.objects.create(author=author, course=course, **kwargs)
 
     def create_post(self, name="Test Post", description="Test", content="Test content"):
-        return Post.objects.create(
+        post = Post.objects.create(
             name=name,
             description=description,
-            course=self.course,
             content=content,
             publishdate=datetime.now(),
             moderated=True
         )
+        CoursePostRel.objects.create(course=self.course, post=post)
+
+        return post
 
     def create_post_comment(self, post, author, content="Test Content"):
         return PostComment.objects.create(
