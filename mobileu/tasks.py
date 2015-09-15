@@ -25,6 +25,9 @@ def send_sms(x, y):
 
 
 def get_teacher_list():
+    """
+    Return a list of teacher id's who have a valid email
+    """
     teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
         .distinct('teacher')
     exclude_list = list()
@@ -36,33 +39,40 @@ def get_teacher_list():
 
 @celery.task
 def send_teacher_reports():
+    # Get last month date
     today = datetime.now()
-    # first = datetime.datetime(today.year, today.month, 1)
     first = today.replace(year=today.year, month=today.month, day=1)
     last_month = first - timedelta(days=1)
 
-    #get all the teacher class rel where teachers have set emails
+    # Get all the teachers with a valid email
     teacher_list = get_teacher_list()
     all_teachers_list = Teacher.objects.filter(id__in=teacher_list).values('id', 'email', 'username')
 
-    class_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
-        .values_list('classs_id')\
+    # Get all the classes that have an assigned teacher to it
+    teacher_class_list = TeacherClass.objects.filter(teacher__id__in=teacher_list)\
+        .values_list('classs__id', flat=True)\
         .distinct('classs')
-    all_classes = Class.objects.filter(id__in=class_list)
+    all_classes = Class.objects.filter(id__in=teacher_class_list)
 
+    # List to be used to store any reports that fail during creation
     failed_reports = list()
 
+    # Iterate through each class and create respective reports
     for current_class in all_classes:
-        #list to store tuple of participant data
+        # List to store tuple of class's participant report data
         class_list = list()
 
+        # Variables used to hold current class and module reports
         csv_class_report = None
         csv_module_report = None
         xls_class_report = None
         xls_module_report = None
 
+        # GENERATE CLASS REPORT
+        # Get all participants in the class
         all_participants = Participant.objects.filter(classs=current_class)
 
+        # Iterate through each participant and store generate data needed for the report
         for participant in all_participants:
             all_time_ans_set = ParticipantQuestionAnswer.objects.filter(participant=participant)
             all_time_ans_num = all_time_ans_set.aggregate(Count('id'))['id__count']
@@ -81,10 +91,11 @@ def send_teacher_reports():
             if last_month_ans_num != 0:
                 last_month_cor_num = last_month_cor_num / last_month_ans_num * 100
 
+            # Append a participant with it's data to the class list
             class_list.append((participant.learner.first_name, last_month_ans_num, last_month_cor_num,
                                all_time_ans_num, all_time_cor_num))
 
-        #create a class report
+        # Create a class report
         class_report_name = "[%s-%s-%s]_%s_class_report" % (last_month.year, last_month.month, last_month.day,
                                                             current_class.name)
         try:
@@ -101,35 +112,43 @@ def send_teacher_reports():
 
             xls_class_report = xlwt.Workbook(encoding="utf-8")
             class_worksheet = xls_class_report.add_sheet("%s_class_report" % current_class.name)
+
             for col_num, item in enumerate(headings):
                 class_worksheet.write(0, col_num, item)
 
             for row_num, row in enumerate(class_list, start=1):
-                #csv
+                # Write to csv file
                 writer.writerow(row)
-                #xls
+
+                # Write to xls file
                 for col_num, item in enumerate(row):
                     class_worksheet.write(row_num, col_num, item)
+
             logger.info("Report created: %s" % class_report_name)
         except Exception:
             logger.info("Failed to create report: %s" % class_report_name)
             failed_reports.append(class_report_name)
         except (OSError, IOError):
-            logger.info("Failed to open report file: %s" % class_report_name)
+            logger.info("Failed to open a file: %s" % class_report_name)
             failed_reports.append(class_report_name)
         finally:
             if csv_class_report is not None:
                 logger.info("Saving report: %s.csv" % class_report_name)
                 csv_class_report.close()
                 logger.info("Report saved: %s.csv" % class_report_name)
-            logger.info("Saving report: %s.xls" % class_report_name)
-            xls_class_report.save(class_report_name + ".xls")
-            logger.info("Report saved: %s.xls" % class_report_name)
+            if xls_class_report is not None:
+                logger.info("Saving report: %s.xls" % class_report_name)
+                xls_class_report.save(class_report_name + ".xls")
+                logger.info("Report saved: %s.xls" % class_report_name)
 
-        #module reports
+        # GENERATE MODULE REPORT
+        # Get all the modules that the class is linked to
         class_modules = Module.objects.filter(coursemodulerel__course=current_class.course)
+
+        # List to store tuple of class's module report data
         module_list = list()
 
+        # Iterate through each module and store generate data needed for the report
         for m in class_modules:
             correct_last_month = 0
             correct_all_time = 0
@@ -143,11 +162,12 @@ def send_teacher_reports():
                     correct_last_month = answered_last_month.filter(correct=True).aggregate(Count('id'))['id__count'] \
                         / answered_last_month.aggregate(Count('id'))['id__count'] * 100
 
+             # Append a module with it's data to the module list
             module_list.append((m.name, correct_last_month, correct_all_time))
 
-        #create a class report for all the modules
-        module_report_name = "[%s-%s-%s]_%s]_module_report" % (last_month.year, last_month.month, last_month.day,
-                                                               current_class.name)
+        # Create a class report
+        module_report_name = "[%s-%s-%s]_%s_module_report" % (last_month.year, last_month.month, last_month.day,
+                                                              current_class.name)
         try:
             logger.info("Opening file: %s.csv" % module_report_name)
             csv_module_report = open(module_report_name + ".csv", 'wb')
@@ -164,78 +184,80 @@ def send_teacher_reports():
                 modules_worksheet.write(0, col_num, item)
 
             for row_num, row in enumerate(module_list, start=1):
-                #csv
+                # Write to csv file
                 writer.writerow(row)
-                #xls
+
+                # Write to xls file
                 for col_num, item in enumerate(row):
                     modules_worksheet.write(row_num, col_num, item)
-            logger.info("Report created: %s" % module_report_name)
+
+            logger.info("Reports created: %s" % module_report_name)
         except Exception:
             logger.info("Failed to create report: %s" % module_report_name)
             failed_reports.append(module_report_name)
         except (OSError, IOError):
-            logger.info("Failed to open report file: %s" % module_report_name)
+            logger.info("Failed to open a file: %s" % module_report_name)
             failed_reports.append(module_report_name)
         finally:
             if csv_module_report is not None:
                 logger.info("Saving report: %s.csv" % module_report_name)
                 csv_module_report.close()
                 logger.info("Report saved: %s.csv" % module_report_name)
-            logger.info("Saving report: %s.xls" % module_report_name)
-            xls_class_report.save(module_report_name + ".xls")
-            logger.info("Report saved: %s.xls" % module_report_name)
 
-        teachers_to_email = TeacherClass.objects.filter(classs=current_class, teacher__email__isnull=False)\
-            .exclude(teacher__email='')\
+            if xls_module_report is not None:
+                logger.info("Saving report: %s.xls" % module_report_name)
+                xls_class_report.save(module_report_name + ".xls")
+                logger.info("Report saved: %s.xls" % module_report_name)
+
+        # Get all the teachers of this class
+        teachers_to_email = TeacherClass.objects.filter(classs=current_class, teacher__id__in=teacher_list)\
             .values_list('teacher_id', flat=True)
 
+        # Iterate through each teacher and append their reports to the dictionary
         for teacher_id in teachers_to_email:
             my_item = next((item for item in all_teachers_list if item['id'] == teacher_id), None)
             if my_item:
-                if csv_class_report is not None:
-                    if 'csv_class_reports' in my_item:
-                        my_item['csv_class_reports'].append(csv_class_report)
-                    else:
-                        my_item['csv_class_reports'] = [csv_class_report]
+                if 'csv_class_reports' in my_item:
+                    my_item['csv_class_reports'].append("%s.csv" % class_report_name)
+                else:
+                    my_item['csv_class_reports'] = ["%s.csv" % class_report_name]
 
-                if csv_module_report is not None:
-                    if 'csv_module_reports' in my_item:
-                        my_item['csv_module_reports'].append(csv_module_report)
-                    else:
-                        my_item['csv_module_reports'] = [csv_module_report]
+                if 'csv_module_reports' in my_item:
+                    my_item['csv_module_reports'].append("%s.csv" % module_report_name)
+                else:
+                    my_item['csv_module_reports'] = ["%s.csv" % module_report_name]
 
-                if xls_class_report is not None:
-                    if 'xls_class_reports' in my_item:
-                        my_item['xls_class_reports'].append("%s.xls" % class_report_name)
-                    else:
-                        my_item['xls_class_reports'] = ["%s.xls" % class_report_name]
+                if 'xls_class_reports' in my_item:
+                    my_item['xls_class_reports'].append("%s.xls" % class_report_name)
+                else:
+                    my_item['xls_class_reports'] = ["%s.xls" % class_report_name]
 
-                if xls_module_report is not None:
-                    if 'xls_module_reports' in my_item:
-                        my_item['xls_module_reports'].append("%s.xls" % module_report_name)
-                    else:
-                        my_item['xls_module_reports'] = ["%s.xls" % module_report_name]
+                if 'xls_module_reports' in my_item:
+                    my_item['xls_module_reports'].append("%s.xls" % module_report_name)
+                else:
+                    my_item['xls_module_reports'] = ["%s.xls" % module_report_name]
 
+    # List to be used to store emails that fail to send
     failed_emails = list()
 
-    #email the teachers
+    # Email the teachers their reports
     month = last_month.strftime("%B")
     subject = "dig-it report %s" % month
     message = "Please find attached reports of your dig-it classes for %s." % month
     from_email = "info@dig-it.me"
     logger.info("Emailing teachers.")
+
     for teacher in all_teachers_list:
         email = EmailMessage(subject, message, from_email, [teacher['email']])
-        #attach all the reports for this teacher
+
+        # Attach all the reports for this teacher
         my_item = next((item for item in all_teachers_list if item['id'] == teacher_id), None)
         if my_item:
             for csv_class_report in my_item['csv_class_reports']:
-                with open(csv_class_report.name, 'r') as r:
-                    email.attach(csv_class_report.name, r.read(), 'text/csv')
+                email.attach_file(csv_class_report)
 
             for csv_module_report in my_item['csv_module_reports']:
-                with open(csv_module_report.name, 'r') as r:
-                    email.attach(csv_class_report.name, r.read(), 'text/csv')
+                email.attach_file(csv_module_report)
 
             for xls_class_report in my_item['xls_class_reports']:
                 email.attach_file(xls_class_report)
@@ -247,6 +269,7 @@ def send_teacher_reports():
         except Exception as detail:
             failed_emails.append((teacher['username'], teacher['email'], detail))
 
+    # Check if any reports failed to get created and notify the managers
     if len(failed_reports) > 0:
         message = "The system failed to create the following reports:\n\n"
         for fail in failed_reports:
@@ -256,6 +279,7 @@ def send_teacher_reports():
         except Exception as ex:
             logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
 
+    # Check if any emails failed to get sent and notify the managers
     if len(failed_emails) > 0:
         message = "The system failed to email report to the following teachers:\n\n"
         for fail in failed_emails:
