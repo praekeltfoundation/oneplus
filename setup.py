@@ -21,6 +21,8 @@ setup(
         'beautifulsoup4',
         'mock==1.0.1',
         'coverage',
+        'validate_email',
+        'pyDNS'
     ],
     url='www.praekelt.co.za',
     license='',
