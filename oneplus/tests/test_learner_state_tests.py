@@ -67,29 +67,6 @@ class LearnerStateTest(TestCase):
             correct=False
         )
 
-    def create_and_answer_questions(self, num_questions, prefix, date):
-        answers = []
-        for x in range(0, num_questions):
-            # Create a question
-            question = self.create_test_question(
-                'q' + prefix + str(x), self.module)
-
-            question.save()
-            option = self.create_test_question_option(
-                'option_' + prefix + str(x),
-                question)
-            option.save()
-            answer = self.create_test_answer(
-                participant=self.participant,
-                question=question,
-                option_selected=option,
-                answerdate=date
-            )
-            answer.save()
-            answers.append(answer)
-
-        return answers
-
     def setUp(self):
         self.course = self.create_course()
         self.classs = self.create_class('class name', self.course)
