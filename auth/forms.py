@@ -259,8 +259,19 @@ class LearnerChangeForm(forms.ModelForm):
                   "this user's password, but you can change the password "
                   "using <a href=\"password/\">this form</a>.")
 
+    classs = forms.CharField(max_length=500)
+
+    def __init__(self, *args, **kwargs):
+        super(LearnerChangeForm, self).__init__(*args, **kwargs)
+        self.fields["classs"].initial = self.instance.get_class()
+        self.fields["classs"].required = False
+        self.fields["classs"].label = "Class"
+        self.fields["classs"].widget.attrs["disabled"] = "disabled"
+        self.fields["classs"].widget.attrs["class"] = "vTextField"
+
     class Meta:
         model = Learner
+        fields = ("classs", )
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
