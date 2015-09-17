@@ -969,6 +969,8 @@ def sumit_right(request, state, user):
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+    if not _sumit:
+        return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
     if _learnerstate is None:
@@ -1093,6 +1095,9 @@ def sumit_wrong(request, state, user):
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+
+    if not _sumit:
+        return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
