@@ -63,6 +63,10 @@ class CoursePostRel(models.Model):
     course = models.ForeignKey(Course)
     post = models.ForeignKey(Post)
 
+    class Meta:
+        verbose_name = "Courses"
+        verbose_name_plural = "Courses"
+
 
 class PostComment(models.Model):
     author = models.ForeignKey(
