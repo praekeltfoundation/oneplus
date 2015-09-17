@@ -581,6 +581,12 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('learn.sumit_level_up'))
         self.assertRedirects(resp, "home")
 
+        resp = self.client.get(reverse('learn.sumit_right'))
+        self.assertRedirects(resp, "home")
+
+        resp = self.client.get(reverse('learn.sumit_wrong'))
+        self.assertRedirects(resp, "home")
+
         #create event
         sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit Badge")
         gamification_point = GamificationPointBonus.objects.create(name="Sumit Points", value=10)
