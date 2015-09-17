@@ -264,7 +264,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                                "is_active", "unique_token")}),
         ("Permissions", {"fields": ("is_staff", "is_superuser", "groups")}),
         ("Region", {"fields": ("country", "area", "city",
-                               "school")}),
+                               "school", "classs")}),
         ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
         ("Important dates", {"fields": ("last_login", "date_joined")})
     )

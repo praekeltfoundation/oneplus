@@ -197,6 +197,22 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
+    def get_class(self):
+        part_set = self.participant_set.all()
+
+        if part_set:
+            classes = ""
+
+            for part in part_set:
+                if part.classs and part.classs.name:
+                    if len(classes) > 0:
+                        classes += ", "
+                    classes += part.classs.name
+
+            return classes
+        else:
+            return None
+
     class Meta:
         verbose_name = "Learner"
         verbose_name_plural = "Learners"
