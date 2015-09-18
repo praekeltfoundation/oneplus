@@ -2743,30 +2743,32 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Account Issue")
 
     def test_getconnected(self):
-        LearnerState.objects.create(
-            participant=self.participant,
-            active_question=None,
-            )
-
         resp = self.client.post(
             reverse('auth.getconnected')
         )
         self.assertContains(resp, "GET CONNECTED")
 
-        resp = self.client.post(
-            reverse('auth.getconnected'),
+        learner = Learner.objects.create_user(
+            username="+27891234567",
+            mobile="+27891234567",
+            password='1234'
+        )
+        self.create_participant(
+            learner,
+            self.classs,
+            datejoined=datetime.now()
+        )
+        self.client.post(
+            reverse('auth.login'),
             data={
-                "user_exists": True,
-                "username": self.learner.username
-            })
-        self.assertContains(resp, "GET CONNECTED")
+                'username': "+27891234567",
+                'password': '1234'},
+            follow=True
+        )
 
         resp = self.client.post(
-            reverse('auth.getconnected'),
-            data={
-                "user_exists": True,
-                "username": self.learner.username
-            })
+            reverse('auth.getconnected')
+        )
         self.assertContains(resp, "GET CONNECTED")
 
     def test_points_screen(self):

@@ -363,11 +363,8 @@ def getconnected(request, state):
 
     def post():
         exists = False
-        if "user_exists" in request.session:
+        if "user_exists" in request.session and "username" in request.session:
             exists = request.session["user_exists"]
-        else:
-            return get()
-        if "username" in request.session:
             username = request.session["username"]
         else:
             return get()
