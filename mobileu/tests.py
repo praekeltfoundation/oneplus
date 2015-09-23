@@ -256,8 +256,8 @@ class AdminSiteTests(TestCase):
             password=self.admin_user_password,
             mobile='+27111111133')
 
-    def admin_page_test_helper(self, c, page):
-        resp = c.get(page)
+    def admin_page_test_helper(self, c, url):
+        resp = c.get(url)
         self.assertEquals(resp.status_code, 200)
 
     def test_auth_admin_pages_render(self):
@@ -268,12 +268,19 @@ class AdminSiteTests(TestCase):
 
         self.admin_page_test_helper(c, "/admin/auth/")
         self.admin_page_test_helper(c, "/admin/auth/coursemanager/")
+        self.admin_page_test_helper(c, "/admin/auth/coursemanager/add/")
         self.admin_page_test_helper(c, "/admin/auth/coursementor/")
+        self.admin_page_test_helper(c, "/admin/auth/coursementor/add/")
         self.admin_page_test_helper(c, "/admin/auth/group/")
+        self.admin_page_test_helper(c, "/admin/auth/group/add/")
         self.admin_page_test_helper(c, "/admin/auth/learner/")
+        self.admin_page_test_helper(c, "/admin/auth/learner/add/")
         self.admin_page_test_helper(c, "/admin/auth/teacher/")
+        self.admin_page_test_helper(c, "/admin/auth/teacher/add/")
         self.admin_page_test_helper(c, "/admin/auth/schoolmanager/")
+        self.admin_page_test_helper(c, "/admin/auth/schoolmanager/add/")
         self.admin_page_test_helper(c, "/admin/auth/systemadministrator/")
+        self.admin_page_test_helper(c, "/admin/auth/systemadministrator/add/")
 
     def test_communication_admin_pages_render(self):
         c = Client()
@@ -281,27 +288,61 @@ class AdminSiteTests(TestCase):
 
         self.admin_page_test_helper(c, "/admin/communication/")
         self.admin_page_test_helper(c, "/admin/communication/ban/")
+        self.admin_page_test_helper(c, "/admin/communication/ban/add/")
         self.admin_page_test_helper(c, "/admin/communication/chatgroup/")
+        self.admin_page_test_helper(c, "/admin/communication/chatgroup/add/")
         self.admin_page_test_helper(c, "/admin/communication/chatmessage/")
+        self.admin_page_test_helper(c, "/admin/communication/chatmessage/add/")
         self.admin_page_test_helper(c, "/admin/communication/discussion/")
+        self.admin_page_test_helper(c, "/admin/communication/discussion/add/")
         self.admin_page_test_helper(c, "/admin/communication/message/")
+        self.admin_page_test_helper(c, "/admin/communication/message/add/")
         self.admin_page_test_helper(c, "/admin/communication/moderation/")
         self.admin_page_test_helper(c, "/admin/communication/postcomment/")
+        self.admin_page_test_helper(c, "/admin/communication/postcomment/add/")
         self.admin_page_test_helper(c, "/admin/communication/post/")
+        self.admin_page_test_helper(c, "/admin/communication/post/add/")
         self.admin_page_test_helper(c, "/admin/communication/smsqueue/")
+        self.admin_page_test_helper(c, "/admin/communication/smsqueue/add/")
         self.admin_page_test_helper(c, "/admin/communication/reportresponse/")
+        self.admin_page_test_helper(c, "/admin/communication/reportresponse/add/")
         self.admin_page_test_helper(c, "/admin/communication/report/")
+        self.admin_page_test_helper(c, "/admin/communication/report/add/")
         self.admin_page_test_helper(c, "/admin/communication/sms/")
+        self.admin_page_test_helper(c, "/admin/communication/sms/add/")
 
     def test_content_admin_pages_render(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
         self.admin_page_test_helper(c, "/admin/content/")
+        self.admin_page_test_helper(c, "/admin/content/definition/")
+        self.admin_page_test_helper(c, "/admin/content/definition/add/")
+        self.admin_page_test_helper(c, "/admin/content/eventparticipantrel/")
+        self.admin_page_test_helper(c, "/admin/content/eventparticipantrel/add/")
+        self.admin_page_test_helper(c, "/admin/content/eventquestionanswer/")
+        self.admin_page_test_helper(c, "/admin/content/eventquestionanswer/add/")
+        self.admin_page_test_helper(c, "/admin/content/eventquestionrel/")
+        self.admin_page_test_helper(c, "/admin/content/eventquestionrel/add/")
+        self.admin_page_test_helper(c, "/admin/content/event/")
+        self.admin_page_test_helper(c, "/admin/content/event/add/")
+        self.admin_page_test_helper(c, "/admin/content/goldeneggrewardlog/")
+        self.admin_page_test_helper(c, "/admin/content/goldeneggrewardlog/add/")
+        self.admin_page_test_helper(c, "/admin/content/goldenegg/")
+        self.admin_page_test_helper(c, "/admin/content/goldenegg/add/")
         self.admin_page_test_helper(c, "/admin/content/learningchapter/")
+        self.admin_page_test_helper(c, "/admin/content/learningchapter/add/")
         self.admin_page_test_helper(c, "/admin/content/mathml/")
+        self.admin_page_test_helper(c, "/admin/content/mathml/add/")
         self.admin_page_test_helper(c, "/admin/content/testingquestionoption/")
+        self.admin_page_test_helper(c, "/admin/content/testingquestionoption/add/")
+        self.admin_page_test_helper(c, "/admin/content/sumit/")
+        self.admin_page_test_helper(c, "/admin/content/sumit/add/")
+        self.admin_page_test_helper(c, "/admin/content/sumitlevel/")
         self.admin_page_test_helper(c, "/admin/content/testingquestion/")
+        self.admin_page_test_helper(c, "/admin/content/testingquestion/add/")
+        self.admin_page_test_helper(c, "/admin/content/testingquestiondifficulty/")
+        self.admin_page_test_helper(c, "/admin/content/testingquestiondifficulty/add/")
 
     def test_core_admin_pages_render(self):
         c = Client()
@@ -309,8 +350,13 @@ class AdminSiteTests(TestCase):
 
         self.admin_page_test_helper(c, "/admin/core/")
         self.admin_page_test_helper(c, "/admin/core/class/")
+        self.admin_page_test_helper(c, "/admin/core/class/add/")
         self.admin_page_test_helper(c, "/admin/core/participantquestionanswer/")
+        self.admin_page_test_helper(c, "/admin/core/participantquestionanswer/add/")
         self.admin_page_test_helper(c, "/admin/core/participant/")
+        self.admin_page_test_helper(c, "/admin/core/participant/add/")
+        self.admin_page_test_helper(c, "/admin/core/setting/")
+        self.admin_page_test_helper(c, "/admin/core/setting/add/")
 
     def test_gamification_admin_pages_render(self):
         c = Client()
@@ -318,8 +364,11 @@ class AdminSiteTests(TestCase):
 
         self.admin_page_test_helper(c, "/admin/gamification/")
         self.admin_page_test_helper(c, "/admin/gamification/gamificationbadgetemplate/")
+        self.admin_page_test_helper(c, "/admin/gamification/gamificationbadgetemplate/add/")
         self.admin_page_test_helper(c, "/admin/gamification/gamificationpointbonus/")
+        self.admin_page_test_helper(c, "/admin/gamification/gamificationpointbonus/add/")
         self.admin_page_test_helper(c, "/admin/gamification/gamificationscenario/")
+        self.admin_page_test_helper(c, "/admin/gamification/gamificationscenario/add/")
 
     def test_organisation_admin_pages_render(self):
         c = Client()
@@ -327,6 +376,10 @@ class AdminSiteTests(TestCase):
 
         self.admin_page_test_helper(c, "/admin/organisation/")
         self.admin_page_test_helper(c, "/admin/organisation/course/")
+        self.admin_page_test_helper(c, "/admin/organisation/course/add/")
         self.admin_page_test_helper(c, "/admin/organisation/module/")
+        self.admin_page_test_helper(c, "/admin/organisation/module/add/")
         self.admin_page_test_helper(c, "/admin/organisation/organisation/")
+        self.admin_page_test_helper(c, "/admin/organisation/organisation/add/")
         self.admin_page_test_helper(c, "/admin/organisation/school/")
+        self.admin_page_test_helper(c, "/admin/organisation/school/add/")

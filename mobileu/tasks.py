@@ -39,6 +39,10 @@ def get_teacher_list():
 
 @celery.task
 def send_teacher_reports():
+    send_teacher_reports_body()
+
+
+def send_teacher_reports_body():
     # Get last month date
     today = datetime.now()
     first = today.replace(year=today.year, month=today.month, day=1)
@@ -125,21 +129,29 @@ def send_teacher_reports():
                     class_worksheet.write(row_num, col_num, item)
 
             logger.info("Report created: %s" % class_report_name)
-        except Exception:
-            logger.info("Failed to create report: %s" % class_report_name)
+        except (OSError, IOError, Exception) as ex:
+            logger.info("Failed to create report: %s. Reason: %s" % (class_report_name, ex.strerror))
             failed_reports.append(class_report_name)
-        except (OSError, IOError):
-            logger.info("Failed to open a file: %s" % class_report_name)
-            failed_reports.append(class_report_name)
-        finally:
+
+        try:
             if csv_class_report is not None:
                 logger.info("Saving report: %s.csv" % class_report_name)
                 csv_class_report.close()
                 logger.info("Report saved: %s.csv" % class_report_name)
+        except (OSError, IOError, Exception) as ex:
+            logger.info("Failed to save report: %s.csv Reason: %s" % (class_report_name, ex.strerror))
+            if class_report_name not in failed_reports:
+                failed_reports.append(class_report_name)
+
+        try:
             if xls_class_report is not None:
                 logger.info("Saving report: %s.xls" % class_report_name)
                 xls_class_report.save(class_report_name + ".xls")
                 logger.info("Report saved: %s.xls" % class_report_name)
+        except (OSError, IOError, Exception) as ex:
+            logger.info("Failed to save report: %s.xls Reason: %s" % (class_report_name, ex.strerror))
+            if class_report_name not in failed_reports:
+                failed_reports.append(class_report_name)
 
         # GENERATE MODULE REPORT
         # Get all the modules that the class is linked to
@@ -192,22 +204,29 @@ def send_teacher_reports():
                     modules_worksheet.write(row_num, col_num, item)
 
             logger.info("Reports created: %s" % module_report_name)
-        except Exception:
-            logger.info("Failed to create report: %s" % module_report_name)
+        except (OSError, IOError, Exception) as ex:
+            logger.info("Failed to create report: %s Reason: %s" % (module_report_name, ex.strerror))
             failed_reports.append(module_report_name)
-        except (OSError, IOError):
-            logger.info("Failed to open a file: %s" % module_report_name)
-            failed_reports.append(module_report_name)
-        finally:
+
+        try:
             if csv_module_report is not None:
                 logger.info("Saving report: %s.csv" % module_report_name)
                 csv_module_report.close()
                 logger.info("Report saved: %s.csv" % module_report_name)
+        except (OSError, IOError, Exception) as ex:
+            logger.info("Failed to save report: %s.csv Reason: %s" % (module_report_name, ex.strerror))
+            if module_report_name not in failed_reports:
+                failed_reports.append(module_report_name)
 
+        try:
             if xls_module_report is not None:
                 logger.info("Saving report: %s.xls" % module_report_name)
                 xls_class_report.save(module_report_name + ".xls")
                 logger.info("Report saved: %s.xls" % module_report_name)
+        except (OSError, IOError, Exception) as ex:
+            logger.info("Failed to save report: %s.xls Reason: %s" % (module_report_name, ex.strerror))
+            if module_report_name not in failed_reports:
+                failed_reports.append(module_report_name)
 
         # Get all the teachers of this class
         teachers_to_email = TeacherClass.objects.filter(classs=current_class, teacher__id__in=teacher_list)\
