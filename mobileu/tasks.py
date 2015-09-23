@@ -38,6 +38,10 @@ def get_teacher_list():
     return teacher_list.exclude(id__in=exclude_list).values_list('teacher__id', flat=True)
 
 
+def make_safe_sheet_name(sheet_name):
+    return sheet_name[31]
+
+
 @celery.task
 def send_teacher_reports():
     send_teacher_reports_body()
@@ -117,7 +121,8 @@ def send_teacher_reports_body():
             writer.writerow(headings)
 
             xls_class_report = xlwt.Workbook(encoding="utf-8")
-            class_worksheet = xls_class_report.add_sheet("%s_class_report" % current_class.name)
+
+            class_worksheet = xls_class_report.add_sheet(make_safe_sheet_name("%s_class_report" % current_class.name))
 
             for col_num, item in enumerate(headings):
                 class_worksheet.write(0, col_num, item)
@@ -194,7 +199,9 @@ def send_teacher_reports_body():
             writer.writerow(headings)
 
             xls_module_report = xlwt.Workbook(encoding="utf-8")
-            modules_worksheet = xls_module_report.add_sheet("%s_module_report" % current_class.name)
+            modules_worksheet = xls_module_report.add_sheet(
+                make_safe_sheet_name("%s_module_report" % current_class.name))
+            
             for col_num, item in enumerate(headings):
                 modules_worksheet.write(0, col_num, item)
 
