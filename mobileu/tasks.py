@@ -28,12 +28,12 @@ def get_teacher_list():
     """
     Return a list of teacher id's who have a valid email
     """
-    teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False)\
-        .distinct('teacher')
+    teacher_list = TeacherClass.objects.filter(teacher__email__isnull=False).\
+        values_list("teacher__id", "teacher__email").distinct()
     exclude_list = list()
     for rel in teacher_list:
-        if not validate_email(rel.teacher.email):
-            exclude_list.append(rel.id)
+        if not validate_email(rel[1]):
+            exclude_list.append(rel[0])
     return teacher_list.exclude(id__in=exclude_list).values_list('teacher__id', flat=True)
 
 
@@ -55,7 +55,7 @@ def send_teacher_reports_body():
     # Get all the classes that have an assigned teacher to it
     teacher_class_list = TeacherClass.objects.filter(teacher__id__in=teacher_list)\
         .values_list('classs__id', flat=True)\
-        .distinct('classs')
+        .distinct()
     all_classes = Class.objects.filter(id__in=teacher_class_list)
 
     # List to be used to store any reports that fail during creation
@@ -130,7 +130,7 @@ def send_teacher_reports_body():
 
             logger.info("Report created: %s" % class_report_name)
         except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to create report: %s. Reason: %s" % (class_report_name, ex.strerror))
+            logger.info("Failed to create report: %s. Reason: %s" % (class_report_name, ex))
             failed_reports.append(class_report_name)
 
         try:
@@ -139,7 +139,7 @@ def send_teacher_reports_body():
                 csv_class_report.close()
                 logger.info("Report saved: %s.csv" % class_report_name)
         except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.csv Reason: %s" % (class_report_name, ex.strerror))
+            logger.info("Failed to save report: %s.csv Reason: %s" % (class_report_name, ex))
             if class_report_name not in failed_reports:
                 failed_reports.append(class_report_name)
 
@@ -149,7 +149,7 @@ def send_teacher_reports_body():
                 xls_class_report.save(class_report_name + ".xls")
                 logger.info("Report saved: %s.xls" % class_report_name)
         except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.xls Reason: %s" % (class_report_name, ex.strerror))
+            logger.info("Failed to save report: %s.xls Reason: %s" % (class_report_name, ex))
             if class_report_name not in failed_reports:
                 failed_reports.append(class_report_name)
 
@@ -205,7 +205,7 @@ def send_teacher_reports_body():
 
             logger.info("Reports created: %s" % module_report_name)
         except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to create report: %s Reason: %s" % (module_report_name, ex.strerror))
+            logger.info("Failed to create report: %s Reason: %s" % (module_report_name, ex))
             failed_reports.append(module_report_name)
 
         try:
@@ -214,7 +214,7 @@ def send_teacher_reports_body():
                 csv_module_report.close()
                 logger.info("Report saved: %s.csv" % module_report_name)
         except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.csv Reason: %s" % (module_report_name, ex.strerror))
+            logger.info("Failed to save report: %s.csv Reason: %s" % (module_report_name, ex))
             if module_report_name not in failed_reports:
                 failed_reports.append(module_report_name)
 
@@ -224,7 +224,7 @@ def send_teacher_reports_body():
                 xls_class_report.save(module_report_name + ".xls")
                 logger.info("Report saved: %s.xls" % module_report_name)
         except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.xls Reason: %s" % (module_report_name, ex.strerror))
+            logger.info("Failed to save report: %s.xls Reason: %s" % (module_report_name, ex))
             if module_report_name not in failed_reports:
                 failed_reports.append(module_report_name)
 
@@ -270,7 +270,7 @@ def send_teacher_reports_body():
         email = EmailMessage(subject, message, from_email, [teacher['email']])
 
         # Attach all the reports for this teacher
-        my_item = next((item for item in all_teachers_list if item['id'] == teacher_id), None)
+        my_item = next((item for item in all_teachers_list if item['id'] == teacher["id"]), None)
         if my_item:
             for csv_class_report in my_item['csv_class_reports']:
                 email.attach_file(csv_class_report)
