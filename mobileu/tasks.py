@@ -10,6 +10,7 @@ import xlwt
 from validate_email import validate_email
 from django.core.mail import mail_managers
 import logging
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -100,8 +101,9 @@ def send_teacher_reports_body():
                                all_time_ans_num, all_time_cor_num))
 
         # Create a class report
-        class_report_name = "[%s-%s-%s]_%s_class_report" % (last_month.year, last_month.month, last_month.day,
-                                                            current_class.name)
+        class_report_name = "%s%s_%s_%s_%s_class_report" % (settings.MEDIA_ROOT, last_month.year, last_month.month,
+                                                            last_month.day, current_class.name)
+
         try:
             logger.info("Opening file: %s.csv" % class_report_name)
             csv_class_report = open(class_report_name + ".csv", 'wb')
@@ -178,8 +180,9 @@ def send_teacher_reports_body():
             module_list.append((m.name, correct_last_month, correct_all_time))
 
         # Create a class report
-        module_report_name = "[%s-%s-%s]_%s_module_report" % (last_month.year, last_month.month, last_month.day,
-                                                              current_class.name)
+        module_report_name = "%s%s_%s_%s_%s_module_report" % (settings.MEDIA_ROOT, last_month.year, last_month.month,
+                                                              last_month.day, current_class.name)
+
         try:
             logger.info("Opening file: %s.csv" % module_report_name)
             csv_module_report = open(module_report_name + ".csv", 'wb')
@@ -270,20 +273,21 @@ def send_teacher_reports_body():
         email = EmailMessage(subject, message, from_email, [teacher['email']])
 
         # Attach all the reports for this teacher
-        my_item = next((item for item in all_teachers_list if item['id'] == teacher["id"]), None)
-        if my_item:
-            for csv_class_report in my_item['csv_class_reports']:
-                email.attach_file(csv_class_report)
-
-            for csv_module_report in my_item['csv_module_reports']:
-                email.attach_file(csv_module_report)
-
-            for xls_class_report in my_item['xls_class_reports']:
-                email.attach_file(xls_class_report)
-
-            for xls_module_report in my_item['xls_module_reports']:
-                email.attach_file(xls_module_report)
         try:
+            my_item = next((item for item in all_teachers_list if item['id'] == teacher["id"]), None)
+            if my_item:
+                for csv_class_report in my_item['csv_class_reports']:
+                    email.attach_file(csv_class_report, "r")
+
+                for csv_module_report in my_item['csv_module_reports']:
+                    email.attach_file(csv_module_report, "r")
+
+                for xls_class_report in my_item['xls_class_reports']:
+                    email.attach_file(xls_class_report, "r")
+
+                for xls_module_report in my_item['xls_module_reports']:
+                    email.attach_file(xls_module_report, "r")
+
             email.send()
         except Exception as detail:
             failed_emails.append((teacher['username'], teacher['email'], detail))

@@ -131,7 +131,8 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
-MEDIA_ROOT = "/media/"
+ENV_PATH = os.path.abspath(os.path.dirname(__file__))
+MEDIA_ROOT = os.path.join(ENV_PATH, 'media/')
 MEDIA_URL = "/media/"
 
 GRAPPELLI_ADMIN_TITLE = "MobileU"
