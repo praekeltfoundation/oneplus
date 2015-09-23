@@ -22,7 +22,8 @@ setup(
         'mock==1.0.1',
         'coverage',
         'validate_email',
-        'pyDNS'
+        'pyDNS',
+        'xlwt'
     ],
     url='www.praekelt.co.za',
     license='',
