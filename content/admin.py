@@ -219,10 +219,8 @@ class TestingQuestionAdmin(SummernoteModelAdmin, ImportExportModelAdmin):
 
 class TestingQuestionDifficultyAdmin(SummernoteModelAdmin):
     list_display = ("name", "value")
-    readonly_fields = ("name", )
     fieldsets = [
-        (None, {"fields": ["name", "question", "order"]}),
-        ("Content", {"fields": ["content", "correct"]})
+        (None, {"fields": ["name", "value"]}),
     ]
 
 
@@ -231,7 +229,7 @@ class TestingQuestionOptionAdmin(SummernoteModelAdmin):
     list_filter = ("question",)
     readonly_fields = ("name", "order")
     fieldsets = [
-        (None, {"fields": ["name", "value"]}),
+        (None, {"fields": ["name", "question", "order", "content", "correct"]}),
     ]
 
 
