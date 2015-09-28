@@ -4,13 +4,14 @@ from core.models import Class, TeacherClass, Participant, ParticipantQuestionAns
 from organisation.models import Module
 from django.db.models import Count
 from datetime import datetime, timedelta
-import csv
-from django.core.mail import EmailMessage
-import xlwt
 from validate_email import validate_email
 from django.core.mail import mail_managers
-import logging
 from django.conf import settings
+from django.core.mail import EmailMessage
+import xlwt
+import csv
+import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def get_teacher_list():
 
 
 def make_safe_sheet_name(sheet_name):
-    return sheet_name[31]
+    return (sheet_name[:31]) if len(sheet_name) > 31 else sheet_name
 
 
 @celery.task
@@ -136,8 +137,9 @@ def send_teacher_reports_body():
                     class_worksheet.write(row_num, col_num, item)
 
             logger.info("Report created: %s" % class_report_name)
-        except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to create report: %s. Reason: %s" % (class_report_name, ex))
+        except (OSError, IOError, Exception):
+            print traceback.format_exc()
+            logger.info("Failed to create report: %s.\n%s" % (class_report_name, traceback.format_exc()))
             failed_reports.append(class_report_name)
 
         try:
@@ -145,8 +147,9 @@ def send_teacher_reports_body():
                 logger.info("Saving report: %s.csv" % class_report_name)
                 csv_class_report.close()
                 logger.info("Report saved: %s.csv" % class_report_name)
-        except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.csv Reason: %s" % (class_report_name, ex))
+        except (OSError, IOError, Exception):
+            print traceback.format_exc()
+            logger.info("Failed to save report: %s.csv\n%s" % (class_report_name, traceback.format_exc()))
             if class_report_name not in failed_reports:
                 failed_reports.append(class_report_name)
 
@@ -155,8 +158,9 @@ def send_teacher_reports_body():
                 logger.info("Saving report: %s.xls" % class_report_name)
                 xls_class_report.save(class_report_name + ".xls")
                 logger.info("Report saved: %s.xls" % class_report_name)
-        except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.xls Reason: %s" % (class_report_name, ex))
+        except (OSError, IOError, Exception):
+            print traceback.format_exc()
+            logger.info("Failed to save report: %s.xls\n%s" % (class_report_name, traceback.format_exc()))
             if class_report_name not in failed_reports:
                 failed_reports.append(class_report_name)
 
@@ -214,8 +218,8 @@ def send_teacher_reports_body():
                     modules_worksheet.write(row_num, col_num, item)
 
             logger.info("Reports created: %s" % module_report_name)
-        except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to create report: %s Reason: %s" % (module_report_name, ex))
+        except (OSError, IOError, Exception):
+            logger.info("Failed to create report: %s\n%s" % (module_report_name, traceback.format_exc()))
             failed_reports.append(module_report_name)
 
         try:
@@ -223,8 +227,8 @@ def send_teacher_reports_body():
                 logger.info("Saving report: %s.csv" % module_report_name)
                 csv_module_report.close()
                 logger.info("Report saved: %s.csv" % module_report_name)
-        except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.csv Reason: %s" % (module_report_name, ex))
+        except (OSError, IOError, Exception):
+            logger.info("Failed to save report: %s.csv\n%s" % (module_report_name, traceback.format_exc()))
             if module_report_name not in failed_reports:
                 failed_reports.append(module_report_name)
 
@@ -233,8 +237,8 @@ def send_teacher_reports_body():
                 logger.info("Saving report: %s.xls" % module_report_name)
                 xls_class_report.save(module_report_name + ".xls")
                 logger.info("Report saved: %s.xls" % module_report_name)
-        except (OSError, IOError, Exception) as ex:
-            logger.info("Failed to save report: %s.xls Reason: %s" % (module_report_name, ex))
+        except (OSError, IOError, Exception):
+            logger.info("Failed to save report: %s.xls\n%s" % (module_report_name, traceback.format_exc()))
             if module_report_name not in failed_reports:
                 failed_reports.append(module_report_name)
 
@@ -277,7 +281,7 @@ def send_teacher_reports_body():
     logger.info("Emailing teachers.")
 
     for teacher in all_teachers_list:
-        logger.info("Sending email to teach %s", teacher["email"])
+        logger.info("Sending email to teacher %s", teacher["email"])
         email = EmailMessage(subject, message, from_email, [teacher['email']])
 
         # Attach all the reports for this teacher
@@ -314,6 +318,7 @@ def send_teacher_reports_body():
 
             email.send()
         except Exception as detail:
+            logger.info("Failed to send email to teacher.\n%s" % traceback.format_exc())
             failed_emails.append((teacher['username'], teacher['email'], detail))
 
     # Check if any reports failed to get created and notify the managers
