@@ -290,28 +290,28 @@ def send_teacher_reports_body():
             if my_item:
                 for csv_class_report in my_item['csv_class_reports']:
                     try:
-                        email.attach_file(csv_class_report, "r")
+                        email.attach_file(csv_class_report, "text/csv")
                     except Exception as detail:
                         logger.info("Failed to attach report %s for teacher %s. Reason: %s"
                                     % (csv_class_report, teacher["email"], detail))
 
                 for csv_module_report in my_item['csv_module_reports']:
                     try:
-                        email.attach_file(csv_module_report, "r")
+                        email.attach_file(csv_module_report, "text/csv")
                     except Exception as detail:
                         logger.info("Failed to attach report %s for teacher %s. Reason: %s"
                                     % (csv_module_report, teacher["email"], detail))
 
                 for xls_class_report in my_item['xls_class_reports']:
                     try:
-                        email.attach_file(xls_class_report, "r")
+                        email.attach_file(xls_class_report, "application/vnd.ms-excel")
                     except Exception as detail:
                         logger.info("Failed to attach report %s for teacher %s. Reason: %s"
                                     % (xls_class_report, teacher["email"], detail))
 
                 for xls_module_report in my_item['xls_module_reports']:
                     try:
-                        email.attach_file(xls_module_report, "r")
+                        email.attach_file(xls_module_report, "application/vnd.ms-excel")
                     except Exception as detail:
                         logger.info("Failed to attach report %s for teacher %s. Reason: %s"
                                     % (xls_module_report, teacher["email"], detail))
