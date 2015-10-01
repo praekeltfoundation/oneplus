@@ -863,7 +863,8 @@ def report_learner(request, mode, region):
     if mode != '1' and mode != '2':
         return HttpResponseRedirect(reverse("reports.home"))
 
-    headers = [('MSISDN', 'First Name', 'Last Name', 'School', 'Region', 'Questions Completed', 'Percentage Correct')]
+    headers = [('MSISDN', 'First Name', 'Last Name', 'School', 'Region', 'Class', 'Questions Completed',
+                'Percentage Correct')]
     cursor = connection.cursor()
     file_name = 'learner_report'
 
