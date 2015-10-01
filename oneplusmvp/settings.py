@@ -204,7 +204,7 @@ ONEPLUS_WIN_REQUIRED = 9
 # Airtime to win per week in Rands
 ONEPLUS_WIN_AIRTIME = 5
 
-GRAPPELLI_ADMIN_TITLE = "OnePlus Admin"
+GRAPPELLI_ADMIN_TITLE = "dig-it Admin"
 
 SUMMERNOTE_CONFIG = {
     # Change editor size
@@ -238,10 +238,10 @@ USE_TZ = False
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = '25'
-SERVER_EMAIL = 'info@oneplus.co.za'
-EMAIL_SUBJECT_PREFIX = '[ONE-PLUS] '
+SERVER_EMAIL = 'info@dig-it.me'
+EMAIL_SUBJECT_PREFIX = '[DIG-IT] '
 MANAGERS = (
-    ('Jane', 'info@oneplus.co.za'),
+    ('Jane', 'info@dig-it.me'),
 )
 
 MATHML_URL = 'http://mathml.p16n.org/'

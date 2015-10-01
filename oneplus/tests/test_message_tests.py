@@ -198,7 +198,7 @@ class MessageTest(TestCase):
         self.assertEquals(resp.status_code, 200)
         count = Message.objects.all().aggregate(Count('id'))['id__count']
         self.assertEqual(count, 9)
-        self.assertContains(resp, "<title>Select Message to change | OnePlus site admin</title>")
+        self.assertContains(resp, "<title>Select Message to change | dig-it site admin</title>")
 
         resp = c.get(reverse('com.add_message'))
         self.assertEquals(resp.status_code, 200)

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Post, PostComment, ChatGroup, ChatMessage, Report, ReportResponse, Sms, \
-    SmsQueue, Discussion
+    SmsQueue, Discussion, CoursePostRel
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from django.core.urlresolvers import reverse
@@ -66,14 +66,16 @@ class ExtraAdminBitTests(TestCase):
         return Message.objects.create(author=author, course=course, **kwargs)
 
     def create_post(self, name="Test Post", description="Test", content="Test content"):
-        return Post.objects.create(
+        post = Post.objects.create(
             name=name,
             description=description,
-            course=self.course,
             content=content,
             publishdate=datetime.now(),
             moderated=True
         )
+        CoursePostRel.objects.create(course=self.course, post=post)
+
+        return post
 
     def create_post_comment(self, post, author, content="Test Content"):
         return PostComment.objects.create(
@@ -302,7 +304,6 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.post('/message_response/%s' % msg.id,
                       data={
-                          'title': '',
                           'publishdate_0': '',
                           'publishdate_1': '',
                           'content': ''
@@ -311,7 +312,6 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.post('/message_response/%s' % msg.id,
                       data={
-                          'title': '',
                           'publishdate_0': '2015-33-33',
                           'publishdate_1': '99:99:99',
                           'content': ''
@@ -325,7 +325,6 @@ class ExtraAdminBitTests(TestCase):
 
         resp = c.post('/message_response/%s' % msg.id,
                       data={
-                          'title': 'test',
                           'publishdate_0': '2014-01-01',
                           'publishdate_1': '00:00:00',
                           'content': '<p>Test</p>'
@@ -879,6 +878,7 @@ class ExtraAdminBitTests(TestCase):
         self.admin_page_test_helper(c, "/admin/content/testingquestionoption/")
         self.admin_page_test_helper(c, "/admin/content/testingquestion/")
         self.admin_page_test_helper(c, "/admin/content/goldenegg/")
+        self.admin_page_test_helper(c, "/admin/content/goldeneggrewardlog/")
         self.admin_page_test_helper(c, "/admin/content/event/")
         self.admin_page_test_helper(c, "/admin/content/sumit/")
         self.admin_page_test_helper(c, "/admin/content/sumitlevel/")

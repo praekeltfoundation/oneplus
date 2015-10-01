@@ -12,7 +12,7 @@ from auth.models import Learner
 from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
-    EventEndPage, SUMitLevel, SUMit, SUMitEndPage
+    EventEndPage, SUMitLevel, SUMit
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
     ParticipantRedoQuestionAnswer
 from gamification.models import GamificationScenario
@@ -22,7 +22,7 @@ from oneplus.utils import update_metric
 from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
-from django.db.models import Count
+from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
 from requests.sessions import session
 
@@ -58,18 +58,18 @@ def home(request, state, user):
                 if _event_participant_rel:
                     first_sitting = False
         else:
+            if not EventQuestionAnswer.objects.filter(event=_event, participant=_participant).exists() or \
+                    learnerstate.sumit_level not in range(1, 6) or \
+                    learnerstate.sumit_question not in range(1, 4):
+                learnerstate.sumit_level = 1
+                learnerstate.sumit_question = 1
+                learnerstate.save()
+
             sumit = {}
             event_name = _event.name
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
-            if _sumit_level:
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
-            else:
-                learnerstate.sumit_level = 1
-                learnerstate.save()
-                _sumit_level = SUMitLevel.objects.get(order=learnerstate.sumit_level)
-                sumit["url"] = _sumit_level.image.url
-                sumit["level"] = _sumit_level.name
+            sumit["url"] = _sumit_level.image.url
+            sumit["level"] = _sumit_level.name
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -265,9 +265,10 @@ def nextchallenge(request, state, user):
     golden_egg = {}
 
     if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today() + 1) == \
-            _learnerstate.golden_egg_question:
-        golden_egg["question"] = True
-        golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
+            _learnerstate.golden_egg_question and get_golden_egg(_participant):
+        if ((_learnerstate.golden_egg_question - 1) // 3) == _learnerstate.get_week_day():
+            golden_egg["question"] = True
+            golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
 
     if _learnerstate.active_question:
         question_id = _learnerstate.active_question.id
@@ -876,6 +877,16 @@ def sumit(request, state, user):
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
+    if not EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).exists() or \
+            _learnerstate.sumit_level not in range(1, 6) or \
+            _learnerstate.sumit_question not in range(1, 4):
+        _learnerstate.sumit_level = 1
+        _learnerstate.sumit_question = 1
+        _learnerstate.save()
+
+    if not EventParticipantRel.objects.filter(event=_sumit, participant=_participant).exists():
+        EventParticipantRel.objects.create(participant=_participant, event=_sumit, sitting_number=1)
+
     request.session["state"]["next_tasks_today"] = \
         EventQuestionAnswer.objects.filter(
             event=_sumit,
@@ -884,6 +895,9 @@ def sumit(request, state, user):
         ).distinct('participant', 'question').count() + 1
 
     _question = _sumit.get_next_sumit_question(_participant, _learnerstate.sumit_level, _learnerstate.sumit_question)
+
+    if not _question:
+        return redirect("learn.home")
 
     sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
     sumit_question = _learnerstate.sumit_question
@@ -896,9 +910,6 @@ def sumit(request, state, user):
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
         else:
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
-
-    if not _question:
-        return redirect("learn.home")
 
     def get():
         state["total_tasks_today"] = _learnerstate.get_total_questions()
@@ -941,8 +952,10 @@ def sumit(request, state, user):
                     _learnerstate.sumit_level = 5
                     _learnerstate.save()
                 return redirect("learn.sumit_right")
-
-            return redirect("learn.sumit_wrong")
+            else:
+                _learnerstate.sumit_question = 1
+                _learnerstate.save()
+                return redirect("learn.sumit_wrong")
 
         return get()
 
@@ -956,9 +969,10 @@ def sumit_right(request, state, user):
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+    if not _sumit:
+        return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
-
     if _learnerstate is None:
         _learnerstate = LearnerState(participant=_participant)
 
@@ -970,13 +984,20 @@ def sumit_right(request, state, user):
                                            participant=_participant, answer_date__gte=date.today()
                                            ).distinct('participant', 'question').count()
 
-    sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+    sumit = dict()
     sumit_question = _learnerstate.sumit_question
 
-    sumit = {}
+    temp_sumit_question = sumit_question
+    if temp_sumit_question == 1:
+        temp_sumit_question = 4
+        sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level-1)
+    else:
+        sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level)
+
     sumit["level"] = sumit_level.name
+
     for i in range(1, 4):
-        if i in range(1, sumit_question):
+        if i in range(1, temp_sumit_question):
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
         else:
             sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
@@ -984,9 +1005,13 @@ def sumit_right(request, state, user):
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
-    sumit["finsihed"] = None
+    sumit["finished"] = None
     if num_sumit_questions == num_sumit_questions_answered:
         sumit["finished"] = True
+
+    level_up = False
+    if temp_sumit_question == 4 and sumit["finished"] is None:
+        level_up = True
 
     def get():
         return render(
@@ -996,7 +1021,8 @@ def sumit_right(request, state, user):
                 "state": state,
                 "user": user,
                 "question": _question,
-                "sumit": sumit
+                "sumit": sumit,
+                "level_up": level_up
             }
         )
 
@@ -1008,11 +1034,70 @@ def sumit_right(request, state, user):
 
 @oneplus_state_required
 @oneplus_login_required
+def sumit_level_up(request, state, user):
+    _participant = Participant.objects.get(pk=user["participant_id"])
+    _sumit = SUMit.objects.filter(course=_participant.classs.course,
+                                  activation_date__lte=datetime.now(),
+                                  deactivation_date__gt=datetime.now()).first()
+
+    if not _sumit:
+        return redirect("learn.home")
+
+    _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
+    if _learnerstate is None:
+        return redirect("learn.home")
+
+    if _learnerstate.sumit_question != 1 and _learnerstate.sumit_level not in range(2, 4):
+        return redirect("learn.home")
+
+    previous_level = dict()
+    next_level = dict()
+
+    previous_level["name"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level - 1).name
+    next_level["name"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
+
+    if _learnerstate.sumit_level == 2:
+        previous_level["front_colour"] = "green-front"
+        previous_level["back_colour"] = "green-back"
+        next_level["colour"] = "yellow-front"
+    elif _learnerstate.sumit_level == 3:
+        previous_level["front_colour"] = "yellow-front"
+        previous_level["back_colour"] = "yellow-back"
+        next_level["colour"] = "purple-front"
+    elif _learnerstate.sumit_level == 4:
+        previous_level["front_colour"] = "purple-front"
+        previous_level["back_colour"] = "purple-back"
+        next_level["colour"] = "cyan-front"
+    elif _learnerstate.sumit_level == 5:
+        previous_level["front_colour"] = "cyan-front"
+        previous_level["back_colour"] = "cyan-back"
+        next_level["colour"] = "green-front"
+
+    def get():
+        return render(
+            request,
+            "learn/sumit_level_up.html",
+            {
+                "state": state,
+                "user": user,
+                "previous_level": previous_level,
+                "next_level": next_level,
+            }
+        )
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_state_required
+@oneplus_login_required
 def sumit_wrong(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
+
+    if not _sumit:
+        return redirect("learn.home")
 
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
@@ -1033,10 +1118,7 @@ def sumit_wrong(request, state, user):
     sumit = {}
     sumit["level"] = sumit_level.name
     for i in range(1, 4):
-        if i in range(1, sumit_question):
-            sumit["url%d" % i] = "media/img/OP_SUMit_Question_04.png"
-        else:
-            sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
+        sumit["url%d" % i] = "media/img/OP_SUMit_Question_0%d.png" % i
 
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
@@ -1256,34 +1338,44 @@ def right(request, state, user):
     request.session["state"]["total_event_questions"] = EventQuestionRel.objects.filter(event=_event).count()
     golden_egg = {}
 
-    if _learnerstate.golden_egg_question == len(_learnerstate.get_answers_this_week()) + \
-            _learnerstate.get_num_questions_answered_today():
-        _golden_egg = get_golden_egg(_participant)
-        if _golden_egg:
-            if _golden_egg.point_value:
-                golden_egg["message"] = "You've won this week's Golden Egg and %d points." % _golden_egg.point_value
-                _participant.points += _golden_egg.point_value
-                _participant.save()
-            if _golden_egg.airtime:
-                golden_egg["message"] = "You've won this week's Golden Egg and your share of R %d airtime. You will " \
-                                        "be awarded your airtime next Monday." % _golden_egg.airtime
-                mail_managers(subject="Golden Egg Airtime Award", message="%s %s %s won R %d airtime from a Golden Egg"
-                                                                          % (_participant.learner.first_name,
-                                                                             _participant.learner.last_name,
-                                                                             _participant.learner.mobile,
-                                                                             _golden_egg.airtime), fail_silently=False)
-            if _golden_egg.badge:
-                golden_egg["message"] = "You've won this week's Golden Egg and a badge"
-
-                ParticipantBadgeTemplateRel(participant=_participant, badgetemplate=_golden_egg.badge.badge,
-                                            scenario=_golden_egg.badge, awarddate=datetime.now()).save()
-                if _golden_egg.badge.point and _golden_egg.badge.point.value:
-                    _participant.points += _golden_egg.badge.point.value
+    if (len(_learnerstate.get_answers_this_week()) + _learnerstate.get_num_questions_answered_today()) == \
+            _learnerstate.golden_egg_question and get_golden_egg(_participant):
+        # ensure the question was answered on the allocated bucket day, 3 days per bucket
+        # ie. golden_egg_question = 1 Only Monday
+        #     golden_egg_question = 7 Only Wednesday
+        if ((_learnerstate.golden_egg_question - 1) // 3) == _learnerstate.get_week_day():
+            _golden_egg = get_golden_egg(_participant)
+            if _golden_egg and "won_golden_egg" not in state:
+                state["won_golden_egg"] = True
+                if _golden_egg.point_value:
+                    golden_egg["message"] = "You've won this week's Golden Egg and %d points." % _golden_egg.point_value
+                    _participant.points += _golden_egg.point_value
                     _participant.save()
+                if _golden_egg.airtime:
+                    golden_egg["message"] = "You've won this week's Golden Egg and your share of R %d airtime. " \
+                                            "You will be awarded your airtime next Monday." % _golden_egg.airtime
+                    mail_managers(subject="Golden Egg Airtime Award",
+                                  message="%s %s %s won R %d airtime from a Golden Egg"
+                                          % (_participant.learner.first_name, _participant.learner.last_name,
+                                             _participant.learner.mobile, _golden_egg.airtime),
+                                  fail_silently=False)
+                if _golden_egg.badge:
+                    golden_egg["message"] = "You've won this week's Golden Egg and a badge"
 
-            golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
-            GoldenEggRewardLog(participant=_participant, points=_golden_egg.point_value, airtime=_golden_egg.airtime,
-                               badge=_golden_egg.badge).save()
+                    ParticipantBadgeTemplateRel(participant=_participant,
+                                                badgetemplate=_golden_egg.badge.badge,
+                                                scenario=_golden_egg.badge,
+                                                awarddate=datetime.now()).save()
+
+                    if _golden_egg.badge.point and _golden_egg.badge.point.value:
+                        _participant.points += _golden_egg.badge.point.value
+                        _participant.save()
+
+                golden_egg["url"] = Setting.objects.get(key="GOLDEN_EGG_IMG_URL").value
+                GoldenEggRewardLog(participant=_participant,
+                                   points=_golden_egg.point_value,
+                                   airtime=_golden_egg.airtime,
+                                   badge=_golden_egg.badge).save()
 
     state["total_tasks_today"] = _learnerstate.get_total_questions()
 
@@ -1701,9 +1793,6 @@ def event_end_page(request, state, user):
                                                                     correct=True).count()
         percentage = _num_questions_correct / _num_event_questions * 100
 
-        end_page = EventEndPage.objects.filter(event=_event).first()
-        page["header"] = end_page.header
-        page["message"] = end_page.paragraph
         page["percentage"] = round(percentage)
 
         if _event.event_points:
@@ -1770,53 +1859,83 @@ def sumit_end_page(request, state, user):
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
 
+    if not _sumit:
+        return redirect("learn.home")
+
+    rel = EventParticipantRel.objects.filter(event=_sumit, participant=_participant).first()
+
+    if rel.results_received:
+        return redirect("learn.home")
+
     _learnerstate = LearnerState.objects.filter(participant__id=user["participant_id"]).first()
 
-    if _learnerstate is None:
-        _learnerstate = LearnerState(participant=_participant)
-
     page = {}
-    sumit = {}
+    sumit = dict()
+    sumit["points"] = 0
 
     num_sumit_questions = SUMitLevel.objects.all().count() * _learnerstate.QUESTIONS_PER_DAY
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
     if num_sumit_questions == num_sumit_questions_answered:
+
         if _learnerstate.sumit_level in range(1, 5):
-            end_page = SUMitEndPage.objects.get(event=_sumit, type=1)
+            winner = False
         elif _learnerstate.sumit_level == 5:
             num_sumit_questions_correct = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant,
                                                                              correct=True).count()
             if num_sumit_questions_correct == num_sumit_questions:
-                end_page = SUMitEndPage.objects.get(event=_sumit, type=3)
+                winner = True
+                rel.winner = True
+                rel.save()
+
+                if _sumit.event_points:
+                    sumit["points"] = _sumit.event_points
+                    _participant.points += _sumit.event_points
+                    rel.results_received = True
+                    rel.save()
+
+                if _sumit.airtime:
+                    mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
+                                                                          % (_participant.learner.first_name,
+                                                                             _participant.learner.last_name,
+                                                                             _participant.learner.mobile,
+                                                                             _sumit.airtime), fail_silently=False)
+                    sumit["airtime"] = _sumit.airtime
+
+                if _sumit.event_badge:
+                    module = CourseModuleRel.objects.filter(course=_sumit.course).first()
+                    _participant.award_scenario(
+                        _sumit.event_badge.event,
+                        module
+                    )
+                _participant.save()
             else:
-                end_page = SUMitEndPage.objects.get(event=_sumit, type=2)
+                winner = False
 
+        rel.results_received = True
+        rel.save()
+        
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
-        sumit["points"] = _sumit.event_points
+        points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
+            .aggregate(Sum('question__points'))['question__points__sum']
+        sumit["points"] += points
 
-        page["header"] = end_page.header
-        page["message"] = end_page.paragraph
+        if sumit["level"] == 'Summit':
+            front = "white-front"
+            back = "darkgrey-back"
+        elif sumit["level"] == "Peak":
+            front = "darkgrey-front"
+            back = "cyan-back"
+        elif sumit["level"] == "Cliffs":
+            front = "darkgrey-front"
+            back = "purple-back"
+        elif sumit["level"] == "Foothills":
+            front = "darkgrey-front"
+            back = "yellow-back"
+        else:
+            front = "darkgrey-front"
+            back = "green-back"
 
-        if _sumit.event_points:
-            _participant.points += _sumit.event_points
-            _participant.save()
-        if _sumit.airtime:
-            mail_managers(subject="SUMit! Airtime Award", message="%s %s %s won R %d airtime from an event"
-                                                                  % (_participant.learner.first_name,
-                                                                     _participant.learner.last_name,
-                                                                     _participant.learner.mobile,
-                                                                     _sumit.airtime), fail_silently=False)
-        if _sumit.event_badge:
-            module = CourseModuleRel.objects.filter(course=_sumit.course).first()
-            _participant.award_scenario(
-                _sumit.event_badge.event,
-                module
-            )
-
-        _learnerstate.sumit_level = 0
-        _learnerstate.sumit_question = 0
-        _learnerstate.save()
     else:
         return redirect("learn.home")
     badge, badge_points = get_badge_awarded(_participant)
@@ -1830,7 +1949,10 @@ def sumit_end_page(request, state, user):
                 "user": user,
                 "page": page,
                 "badge": badge,
-                "sumit": sumit
+                "sumit": sumit,
+                "front": front,
+                "back": back,
+                "winner": winner
             }
         )
 
@@ -1864,8 +1986,8 @@ def report_question(request, state, user, questionid, frm):
         )
 
     def post():
-        if "issue" in request.POST.keys() and request.POST["issue"] != "" and \
-                        "fix" in request.POST.keys() and request.POST["fix"] != "":
+        if "issue" in request.POST.keys() and request.POST["issue"] != "" \
+                and "fix" in request.POST.keys() and request.POST["fix"] != "":
             _usr = Learner.objects.get(pk=user["id"])
             _issue = request.POST["issue"]
             _fix = request.POST["fix"]

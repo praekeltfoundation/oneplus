@@ -14,7 +14,7 @@
             <p>
                 You seem to have entered an incorrect password.
                 Please click  <a href={% url 'auth.login' %}>here</a> to try again or
-                click <a href={% url 'auth.smspassword' %}>here</a>
+                click <a href={% url 'auth.sms_reset_password' %}>here</a>
                 to reset your password.
             </p>
         {% else %}
@@ -25,16 +25,16 @@
         {% endif %}
     {% else %}
         <p>
-            OnePlus is currently in test phase and has a closed user group.
+            dig-it is currently in test phase and has a closed user group.
             As your cell number is not registered,
             you are not able to access the platform.
             If you believe you should have access and are registered,
             please reach out to us <a href={% url 'misc.contact' %}>here</a>.
         </p>
         <p>
-            For more information about OnePlus please email
-            <a href="mailto:info@oneplus.co.za" class="green-front bold-font">
-                info@oneplus.co.za
+            For more information about dig-it please email
+            <a href="mailto:info@dig-it.me" class="green-front bold-font">
+                info@dig-it.me
             </a>
         </p>
     {% endif %}

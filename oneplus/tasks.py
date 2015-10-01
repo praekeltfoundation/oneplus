@@ -2,6 +2,7 @@ from celery import task
 from core.models import ParticipantQuestionAnswer
 from datetime import datetime, timedelta
 from utils import update_metric
+from models import LearnerState
 
 
 def update_num_question_metric():
@@ -43,3 +44,12 @@ def update_all_perc_correct_answers():
     update_perc_correct_answers_worker('48hr', 2)
     update_perc_correct_answers_worker('7days', 7)
     update_perc_correct_answers_worker('32days', 32)
+
+
+@task
+def reset_learner_states_task():
+    reset_learner_states()
+
+
+def reset_learner_states():
+    LearnerState.objects.all().update(golden_egg_question=0, sumit_level=0, sumit_question=0)

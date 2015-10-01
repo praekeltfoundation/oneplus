@@ -67,29 +67,6 @@ class LearnerStateTest(TestCase):
             correct=False
         )
 
-    def create_and_answer_questions(self, num_questions, prefix, date):
-        answers = []
-        for x in range(0, num_questions):
-            # Create a question
-            question = self.create_test_question(
-                'q' + prefix + str(x), self.module)
-
-            question.save()
-            option = self.create_test_question_option(
-                'option_' + prefix + str(x),
-                question)
-            option.save()
-            answer = self.create_test_answer(
-                participant=self.participant,
-                question=question,
-                option_selected=option,
-                answerdate=date
-            )
-            answer.save()
-            answers.append(answer)
-
-        return answers
-
     def setUp(self):
         self.course = self.create_course()
         self.classs = self.create_class('class name', self.course)
@@ -123,10 +100,10 @@ class LearnerStateTest(TestCase):
         week_range = self.learner_state.get_week_range()
 
         # Begin: Monday the 18th of August
-        self.assertEquals(week_range[0], datetime(2014, 8, 18, 0, 0))
+        self.assertEquals(week_range[0], datetime(2014, 8, 18).date())
 
         # End: Friday the 22nd of August
-        self.assertEquals(week_range[1], datetime(2014, 8, 23, 0, 0))
+        self.assertEquals(week_range[1], datetime(2014, 8, 23).date())
 
     def test_get_number_questions(self):
         # returns required - answered * questions per day(3)
@@ -157,23 +134,6 @@ class LearnerStateTest(TestCase):
         answered = self.learner_state.get_all_answered().count()
         self.assertEquals(answered, 1)
 
-    def test_get_training_questions(self):
-        offset = (datetime.today().weekday() - 6) % 7
-        last_saturday = datetime.today() - timedelta(days=offset)
-
-        answer = ParticipantQuestionAnswer.objects.create(
-            participant=self.participant,
-            question=self.question,
-            option_selected=self.option,
-            answerdate=last_saturday,
-            correct=True
-        )
-        answer.save()
-
-        traing_questions = self.learner_state.get_training_questions()
-
-        self.assertEquals(traing_questions.__len__(), 1)
-
     @patch.object(LearnerState, "today")
     def test_is_training_week(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 8, 27, 0, 0, 0)
@@ -187,7 +147,6 @@ class LearnerStateTest(TestCase):
             active_question=self.question
         )
 
-        self.assertTrue(self.learner_state.is_training_week())
         self.assertEquals(self.learner_state.get_questions_answered_week(), 0)
 
     def test_getnextquestion(self):
@@ -238,34 +197,3 @@ class LearnerStateTest(TestCase):
 
         self.assertListEqual(list(self.learner_state.get_unanswered()),
                              [question2, question3])
-
-    @patch.object(LearnerState, "today")
-    def test_is_training_weekend(self, mock_get_today):
-        self.participant = self.create_participant(
-            self.learner, self.classs,
-            datejoined=datetime(2014, 8, 22, 0, 0, 0))
-
-        self.learner_state = LearnerState.objects.create(
-            participant=self.participant,
-            active_question=self.question
-        )
-
-        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
-
-        # Create and answer 2 other questions earlier in the day
-        answers = self.create_and_answer_questions(2, 'training',
-                                                   datetime(2014, 8, 23,
-                                                            1, 22, 0))
-        training_questions = self.learner_state.get_training_questions()
-
-        self.assertListEqual(training_questions, answers)
-        self.assertEqual(
-            self.learner_state.is_training_weekend(), True)
-        self.assertEquals(self.learner_state.get_questions_answered_week(), 4)
-
-    @patch.object(LearnerState, "today")
-    def test_is_monday_after_training(self, mock_get_today):
-        mock_get_today.return_value = datetime(2014, 8, 25, 0, 0, 0)
-        self.assertTrue(self.learner_state.check_monday_after_training(1))
-        self.assertFalse(self.learner_state.check_monday_after_training(
-            self.learner_state.QUESTIONS_PER_DAY + 1))

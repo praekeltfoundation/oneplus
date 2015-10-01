@@ -31,7 +31,7 @@
             <div>
                 <span class="text-line">
                     <p>Current level:
-                        <b class="{% if sumit.level == 'Basecamp' %} green-front {% elif sumit.level == 'Foothills' %} yellow-front {% elif sumit.level == 'Cliffs' %} purple-front {% else %} cyan-front {% endif %}">{{ sumit.level }}</b>
+                        <b class="{% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-front {% elif sumit.level == 'Foothills' %} yellow-front {% elif sumit.level == 'Cliffs' %} purple-front {% else %} cyan-front {% endif %}">{{ sumit.level }}</b>
                     </p>
                 </span>
             </div>
@@ -61,7 +61,7 @@
             {% endif %}
         {%  endif %}
     {% else %}
-         <p class="green-front large-font">You've finished all of the OnePlus questions!
+         <p class="green-front large-font">You've finished all of the dig-it questions!
              We'll send you an SMS when we have more questions for you.</p>
     {% endif %}
 

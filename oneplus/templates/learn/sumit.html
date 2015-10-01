@@ -11,14 +11,17 @@
         </div>
     {% endif %}
 
-    <div class="text heading darkgrey-front center-font {% if sumit.name == 'Basecamp' or sumit.name == 'Summit' %} green-back {% elif sumit.name == 'Foothills' %} yellow-back {% elif sumit.name == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit! : Level {{ sumit.level }} {{ sumit.name }}</p></div>
+    <div class="text heading darkgrey-front center-font no-padding {% if sumit.name == 'Basecamp' or sumit.name == 'Summit' %} green-back {% elif sumit.name == 'Foothills' %} yellow-back {% elif sumit.name == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit!</p></div>
 
     <div class="sumit_content darkgrey-back">
+    <div class="center-font">
+        <span class="large-font center-font">{{ sumit.name }}</span>
+    </div>
         <div class="sumit_line"></div>
         <div class="sumit">
-            <img class="badge-img" src="{{ sumit.url1 }}">
-            <img class="badge-img" src="{{ sumit.url2 }}">
-            <img class="badge-img" src="{{ sumit.url3 }}">
+            <img class="sumit-img" src="{{ sumit.url1 }}">
+            <img class="sumit-img" src="{{ sumit.url2 }}">
+            <img class="sumit-img" src="{{ sumit.url3 }}">
         </div>
 
         {% autoescape off %}
