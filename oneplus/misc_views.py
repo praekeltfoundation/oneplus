@@ -814,7 +814,13 @@ def report_learner_get_sql(qtype=1):
     # qtype: 1 - all
     #        2 - filtered by region
     sql = \
-        'select cu.username, cu.first_name, cu.last_name, s.name, cu.area, ' \
+        'select ' \
+        '    cu.username, ' \
+        '    cu.first_name, ' \
+        '    cu.last_name, ' \
+        '    s.name, ' \
+        '    cu.area,' \
+        '    cc.name, ' \
         '    qt.cnt, ' \
         '    qc.cnt / ' \
         '    (case  ' \
@@ -822,14 +828,17 @@ def report_learner_get_sql(qtype=1):
         '        when qt.cnt = 0 then 1 ' \
         '        else qt.cnt ' \
         '    end)::numeric * 100 perc_corr ' \
-        'from core_participant p ' \
-        'inner join auth_customuser cu ' \
-        '    on cu.id = p.learner_id ' \
-        'inner join auth_learner l ' \
-        '    on l.customuser_ptr_id = cu.id ' \
-        'inner join organisation_school s ' \
-        '    on s.id = l.school_id ' \
-        'left join ( ' \
+        'from ' \
+        '    core_participant p ' \
+        '    inner join auth_customuser cu ' \
+        '        on cu.id = p.learner_id ' \
+        '    inner join auth_learner l ' \
+        '        on l.customuser_ptr_id = cu.id ' \
+        '    inner join organisation_school s ' \
+        '        on s.id = l.school_id ' \
+        '    inner join core_class cc' \
+        '        on cc.id = p.classs_id' \
+        '    left join ( ' \
         '    select participant_id, count(correct) cnt ' \
         '    from core_participantquestionanswer ' \
         '    where correct = true ' \
@@ -854,7 +863,8 @@ def report_learner(request, mode, region):
     if mode != '1' and mode != '2':
         return HttpResponseRedirect(reverse("reports.home"))
 
-    headers = [('MSISDN', 'First Name', 'Last Name', 'School', 'Region', 'Questions Completed', 'Percentage Correct')]
+    headers = [('MSISDN', 'First Name', 'Last Name', 'School', 'Region', 'Class', 'Questions Completed',
+                'Percentage Correct')]
     cursor = connection.cursor()
     file_name = 'learner_report'
 

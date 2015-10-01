@@ -3147,13 +3147,15 @@ class GeneralTests(TestCase):
         # csv + region
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area'}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area'))
-        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
-        self.assertContains(resp, '+27123456789,,,school name,Test_Area,1,100')
+        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Class,Questions Completed,'
+                                  'Percentage Correct')
+        self.assertContains(resp, '+27123456789,,,school name,Test_Area,class name,1,100')
 
         # csv + region that doesn't exist
         resp = c.get(reverse('reports.learner', kwargs={'mode': 1, 'region': 'Test_Area44'}))
         self.assertEquals(resp.get('Content-Disposition'), make_content('csv', 'Test_Area44'))
-        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Questions Completed,Percentage Correct')
+        self.assertContains(resp, 'MSISDN,First Name,Last Name,School,Region,Class,Questions Completed,'
+                                  'Percentage Correct')
         self.assertNotContains(resp, '+27123456789')
 
         # wrong mode
