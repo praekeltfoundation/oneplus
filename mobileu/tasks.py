@@ -185,7 +185,7 @@ def send_teacher_reports_body():
 
                 if answered_last_month.aggregate(Count('id'))['id__count'] != 0:
                     correct_last_month = answered_last_month.filter(correct=True).aggregate(Count('id'))['id__count'] \
-                        * 100 / answered_last_month.aggregate(Count('id'))['id__count'] * 100
+                        * 100 / answered_last_month.aggregate(Count('id'))['id__count']
 
              # Append a module with it's data to the module list
             module_list.append((m.name, correct_last_month, correct_all_time))
