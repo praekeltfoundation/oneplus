@@ -90,7 +90,7 @@ def send_teacher_reports_body():
             all_time_cor_set = all_time_ans_set.filter(correct=True)
             all_time_cor_num = all_time_cor_set.aggregate(Count('id'))['id__count']
             if all_time_ans_num != 0:
-                all_time_cor_num = round(float(all_time_cor_num) / all_time_ans_num * 100)
+                all_time_cor_num = all_time_cor_num * 100 / all_time_ans_num
 
             last_month_ans_set = all_time_ans_set.filter(answerdate__year=last_month.year,
                                                          answerdate__month=last_month.month)
@@ -99,7 +99,7 @@ def send_teacher_reports_body():
             last_month_cor_num = last_month_ans_set.filter(correct=True)\
                 .aggregate(Count('id'))['id__count']
             if last_month_ans_num != 0:
-                last_month_cor_num = round(float(last_month_cor_num) / last_month_ans_num * 100)
+                last_month_cor_num = last_month_cor_num * 100 / last_month_ans_num
 
             # Append a participant with it's data to the class list
             class_list.append((participant.learner.first_name, last_month_ans_num, last_month_cor_num,
@@ -177,17 +177,15 @@ def send_teacher_reports_body():
             correct_all_time = 0
             answered_all_time = ParticipantQuestionAnswer.objects.filter(question__module=m)
             if answered_all_time.aggregate(Count('id'))['id__count'] != 0:
-                correct_all_time = round(float(
-                    answered_all_time.filter(correct=True).aggregate(Count('id'))['id__count'])
-                    / answered_all_time.aggregate(Count('id'))['id__count'] * 100)
+                correct_all_time = answered_all_time.filter(correct=True).aggregate(Count('id'))['id__count'] * 100 \
+                    / answered_all_time.aggregate(Count('id'))['id__count']
 
                 answered_last_month = answered_all_time.filter(answerdate__year=last_month.year,
                                                                answerdate__month=last_month.month)
 
                 if answered_last_month.aggregate(Count('id'))['id__count'] != 0:
-                    correct_last_month = round(float(
-                        answered_last_month.filter(correct=True).aggregate(Count('id'))['id__count'])
-                        / answered_last_month.aggregate(Count('id'))['id__count'] * 100)
+                    correct_last_month = answered_last_month.filter(correct=True).aggregate(Count('id'))['id__count'] \
+                        * 100 / answered_last_month.aggregate(Count('id'))['id__count'] * 100
 
              # Append a module with it's data to the module list
             module_list.append((m.name, correct_last_month, correct_all_time))
