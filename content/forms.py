@@ -137,6 +137,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
         super(TestingQuestionFormSet, self).clean()
 
         question_options = []
+        question_content = []
         for form in self.forms:
             if not hasattr(form, 'cleaned_data'):
                 continue
@@ -144,8 +145,10 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
             data["order"] = TestingQuestionOption.objects.filter(question__name=self.data.get("name")).count()
             data["name"] = "%s Option %s" % (self.data.get("name"), data.get("order"))
             question_options.append(data.get('correct'))
+            if data.get('content') != '' and not data.get('content') is None:
+                question_content.append(data.get('content'))
 
-        if len(question_options) < 2:
+        if len(question_content) < 2:
             raise forms.ValidationError({'name': ['A minimum of 2 question options must be added.', ]})
 
         correct_selected = False
@@ -185,6 +188,7 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
                 order = self.get_order(question)
                 name = "%s Option %s" % (question, order)
                 TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
+
 
 
 def process_mathml_content(_content, _source, _source_id):
