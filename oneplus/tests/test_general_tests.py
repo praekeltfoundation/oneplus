@@ -297,7 +297,7 @@ class GeneralTests(TestCase):
 
             resp = self.client.get(reverse('learn.home'))
             self.assertEquals(resp.status_code, 200)
-            self.assertContains(resp, "redo today's incorrect answers")
+            self.assertContains(resp, "redo your incorrect answers")
 
     def test_first_time(self):
         self.client.get(reverse(
