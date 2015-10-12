@@ -207,8 +207,9 @@ def send_message(modeladmin, request, queryset):
 
             for learner in queryset:
                 part = Participant.objects.filter(learner=learner, is_active=True).first()
-                Message.objects.create(name=name, publishdate=publish_date, content=message, to_user=learner,
-                                       author=request.user, to_class=part.classs, course=part.classs.course)
+                if part and part.classs:
+                    Message.objects.create(name=name, publishdate=publish_date, content=message, to_user=learner,
+                                           author=request.user, to_class=part.classs, course=part.classs.course)
 
             successful = len(queryset)
 
