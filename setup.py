@@ -11,7 +11,7 @@ setup(
         'django-grappelli==2.5.3',
         'django-summernote==0.6.8',
         'django-import-export==0.2.2',
-        'django-celery==3.1.12',
+        'django-celery==3.1.16',
         'Pillow==2.4.0',
         'psycopg2==2.5.3',
         'koremutake==1.0.5',
