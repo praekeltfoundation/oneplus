@@ -361,7 +361,7 @@ class SUMit(Event):
         event_question_rel = EventQuestionRel.objects.filter(event=self)
 
         if not event_question_rel:
-            modules = CourseModuleRel.objects.filter(course=self.course)
+            modules = CourseModuleRel.objects.filter(course=self.course).values_list('module__id', flat=True)
 
             easy_questions = TestingQuestion.objects.\
                 filter(

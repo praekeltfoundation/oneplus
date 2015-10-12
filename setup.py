@@ -7,7 +7,7 @@ setup(
     install_requires=[
         'Django==1.6.5',
         'South==0.8.4',
-        'Celery',
+        'celery==3.1.12',
         'django-grappelli==2.5.3',
         'django-summernote==0.6.8',
         'django-import-export==0.2.2',
