@@ -188,10 +188,11 @@ class Participant(models.Model):
         for sumit_answer in sumit_answers:
                 points += sumit_answer.question.points
         for event in events:
-            if event.event.type == Event.ET_SUMIT and event.winner is True and event.event.event_points:
-                points += event.event.event_points
-            else:
-                points += event.event.event_points
+            if event.event.event_points:
+                if event.event.type == Event.ET_SUMIT and event.winner is True:
+                    points += event.event.event_points
+                else:
+                    points += event.event.event_points
         for badge in badges:
             if badge.scenario.point:
                 points += badge.scenario.point.value
