@@ -154,7 +154,7 @@ class Participant(models.Model):
                 aggregate(Count('question'))['question__count']
 
             if event.type != 0:
-                if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
+                if event.number_sittings == 1 or event_participant_rel.results_received and answered >= total_questions:
                     return None, event_participant_rel
                 else:
                     return True, event_participant_rel

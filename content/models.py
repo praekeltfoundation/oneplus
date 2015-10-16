@@ -255,7 +255,7 @@ class Event(models.Model):
     activation_date = models.DateTimeField("Activate On", null=False, blank=False)
     deactivation_date = models.DateTimeField("Deactivate On", null=False, blank=False)
     number_sittings = models.PositiveIntegerField("Number of Sittings", choices=SITTINGS_CHOICES, default=ONE)
-    event_points = models.PositiveIntegerField("Event Points", null=True, blank=True)
+    event_points = models.PositiveIntegerField("Event Points", null=True, blank=True, default=0)
     airtime = models.PositiveIntegerField("Airtime Value", null=True, blank=True)
     event_badge = models.ForeignKey("gamification.GamificationScenario",
                                     related_name="event_badge", null=True, blank=True)
