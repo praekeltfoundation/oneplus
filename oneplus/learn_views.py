@@ -259,12 +259,9 @@ def nextchallenge(request, state, user):
         ).distinct('participant', 'question').count() + 1
 
     points = " - %d point question" % _learnerstate.active_question.points
-    try:
-        show_point = Setting.objects.get(key="SHOW_POINT_ALLOCATION")
-    except Setting.DoesNotExist:
-        show_point = None
+    show_point = Setting.get_setting(key="SHOW_POINT_ALLOCATION")
     if show_point:
-        if show_point.value != "True" or _learnerstate.active_question.points is None:
+        if show_point != "True" or _learnerstate.active_question.points is None:
             points = ""
 
     golden_egg = {}
