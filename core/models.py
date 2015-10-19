@@ -154,7 +154,7 @@ class Participant(models.Model):
                 aggregate(Count('question'))['question__count']
 
             if event.type != 0:
-                if event.number_sittings == 1 or event_participant_rel.results_received and answered < total_questions:
+                if event.number_sittings == 1 or event_participant_rel.results_received and answered >= total_questions:
                     return None, event_participant_rel
                 else:
                     return True, event_participant_rel
@@ -188,10 +188,11 @@ class Participant(models.Model):
         for sumit_answer in sumit_answers:
                 points += sumit_answer.question.points
         for event in events:
-            if event.event.type == Event.ET_SUMIT and event.winner is True and event.event.event_points:
-                points += event.event.event_points
-            else:
-                points += event.event.event_points
+            if event.event.event_points:
+                if event.event.type == Event.ET_SUMIT and event.winner is True:
+                    points += event.event.event_points
+                elif event.event.type != Event.ET_SUMIT:
+                    points += event.event.event_points
         for badge in badges:
             if badge.scenario.point:
                 points += badge.scenario.point.value
