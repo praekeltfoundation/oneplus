@@ -51,9 +51,12 @@ class GamificationBadgeTemplate(models.Model):
 
 
 class GamificationScenario(models.Model):
+    ONCE = 1
+    MULTIPLE = 2
+
     AWARD_TYPE_CHOICES = (
-        (1, "Once"),
-        (2, "Multiple")
+        (ONCE, "Once"),
+        (MULTIPLE, "Multiple")
     )
 
     """
