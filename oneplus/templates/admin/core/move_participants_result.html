@@ -2,7 +2,7 @@
 
 {% block content %}
 
-    <p>Participants successfully moved.</p>
+    <p>Participant{{ num_messages|pluralize }} successfully moved.</p>
 
     <a href="{{ redirect }}"><input type="button" value="OK"></a>
 
