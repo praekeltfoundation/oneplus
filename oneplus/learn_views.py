@@ -1811,8 +1811,9 @@ def event_end_page(request, state, user):
 
         page["percentage"] = round(percentage)
         end_page = EventEndPage.objects.filter(event=_event).first()
-        page["heading"] = end_page.header
-        page["message"] = end_page.paragraph
+        if end_page:
+            page["heading"] = end_page.header
+            page["message"] = end_page.paragraph
 
         if _event.event_points:
             _participant.points += _event.event_points
