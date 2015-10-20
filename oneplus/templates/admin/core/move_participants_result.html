@@ -1,0 +1,9 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+    <p>Participant{{ num_updated|pluralize }} successfully moved.</p>
+
+    <a href="{{ redirect }}"><input type="button" value="OK"></a>
+
+{% endblock %}
