@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+
+    <p>Select a class you wish to move the participants to:</p>
+
+    <form action="" method="post" name="move_participants">
+        {% csrf_token %}
+        {% for field in move_participants_form %}
+            {% if not field.is_hidden %}
+                {{ field.label_tag }}<br>
+            {% endif %}
+            {{ field }}<br><br>
+        {% endfor %}
+        <br>
+        <p>The following participants have been selected to move classes:</p>
+        <ul>{{ participants|unordered_list }}</ul> <br>
+
+        <input type="hidden" name="action" value="move_participants" />
+        <input type="hidden" name="post" value="yes" />
+        <input type="submit" name="apply" value="Move Participants" />
+    </form>
+
+{% endblock %}
