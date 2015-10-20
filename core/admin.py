@@ -1,9 +1,11 @@
 from django.contrib import admin
 from core.models import *
-from core.forms import ParticipantCreationForm
+from core.forms import ParticipantCreationForm, MoveParticipantsForm
 from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
     ParticipantFirstNameFilter, ParticipantLastNameFilter, \
     ParticipantMobileFilter, ParticipantFilter, LearnerFilter
+from django import template
+from django.shortcuts import render_to_response
 
 
 class ParticipantInline(admin.TabularInline):
@@ -102,6 +104,56 @@ class ParticipantPointInline(admin.TabularInline):
     list_display = ("pointbonus", "scenario")
 
 
+def move_participants(modeladmin, request, queryset):
+    form = None
+
+    if 'apply' in request.POST:
+        form = MoveParticipantsForm(request.POST)
+
+        if form.is_valid():
+            classs_id = form.cleaned_data["classs"].id
+
+            try:
+                classs = Class.objects.get(id=classs_id)
+            except Class.DoesNotExist:
+                return render_to_response(
+                    'admin/core/move_participants.html',
+                    {
+                        'move_participants_form': form,
+                        'participants': queryset
+                    },
+                    context_instance=template.RequestContext(request)
+                )
+
+            num_updated = queryset.update(classs=classs)
+
+            return render_to_response(
+                'admin/core/move_participants_result.html',
+                {
+                    'redirect': request.get_full_path(),
+                    'num_updated': num_updated
+                },
+            )
+
+    if not form:
+        form = MoveParticipantsForm(
+            initial={
+                '_selected_action': request.POST.getlist(
+                    admin.ACTION_CHECKBOX_NAME,
+                ),
+            }
+        )
+    return render_to_response(
+        'admin/core/move_participants.html',
+        {
+            'move_participants_form': form,
+            'participants': queryset
+        },
+        context_instance=template.RequestContext(request)
+    )
+move_participants.short_description = "Move selected participants to a different class"
+
+
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ("learner", "get_firstname", "get_lastname", "classs", "is_active")
     list_filter = (
@@ -124,6 +176,8 @@ class ParticipantAdmin(admin.ModelAdmin):
         return obj.learner.last_name
     get_lastname.short_description = 'Last Name'
     get_lastname.admin_order_field = 'learner__last_name'
+
+    actions = [move_participants]
 
 
 class SettingAdmin(admin.ModelAdmin):
