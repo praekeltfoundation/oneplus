@@ -125,12 +125,13 @@ def move_participants(modeladmin, request, queryset):
                     context_instance=template.RequestContext(request)
                 )
 
-            queryset.update(classs=classs)
+            num_updated = queryset.update(classs=classs)
 
             return render_to_response(
                 'admin/core/move_participants_result.html',
                 {
                     'redirect': request.get_full_path(),
+                    'num_updated': num_updated
                 },
             )
 
@@ -176,7 +177,7 @@ class ParticipantAdmin(admin.ModelAdmin):
     get_lastname.short_description = 'Last Name'
     get_lastname.admin_order_field = 'learner__last_name'
 
-    actions = [change_class]
+    actions = [move_participants]
 
 
 class SettingAdmin(admin.ModelAdmin):
