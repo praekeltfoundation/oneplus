@@ -15,7 +15,7 @@ from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, Go
     EventEndPage, SUMitLevel, SUMit
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
     ParticipantRedoQuestionAnswer
-from gamification.models import GamificationScenario
+from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
 from oneplus.utils import update_metric
@@ -1677,6 +1677,20 @@ def event_splash_page(request, state, user):
     page["message"] = _splash_page.paragraph
     page["event_type"] = _event.type
 
+    if _event.type == 0:
+        badge_name = "Summit"
+    elif _event.type == 1:
+        badge_name = "Spot Test"
+    else:
+        badge_name = "Exam"
+
+    try:
+        badge_filename = GamificationBadgeTemplate.objects.get(name=badge_name).image
+    except GamificationBadgeTemplate.DoesNotExist:
+        badge_filename = None
+
+    page["badge_filename"] = "media/%s" % badge_filename
+
     def get():
         return render(
             request,
@@ -1796,6 +1810,9 @@ def event_end_page(request, state, user):
         percentage = _num_questions_correct / _num_event_questions * 100
 
         page["percentage"] = round(percentage)
+        end_page = EventEndPage.objects.filter(event=_event).first()
+        page["heading"] = end_page.header
+        page["message"] = end_page.paragraph
 
         if _event.event_points:
             _participant.points += _event.event_points
@@ -1817,7 +1834,8 @@ def event_end_page(request, state, user):
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "SPOT_TEST",
-                module
+                module,
+                special_rule=True
             )
             _num_spot_tests = EventParticipantRel.objects.filter(event__type=1,
                                                                  participant=_participant).count()
@@ -1832,7 +1850,8 @@ def event_end_page(request, state, user):
             module = CourseModuleRel.objects.filter(course=_event.course).first()
             _participant.award_scenario(
                 "EXAM",
-                module
+                module,
+                special_rule=True
             )
     else:
         return redirect("learn.home")
