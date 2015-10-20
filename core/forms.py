@@ -1,5 +1,5 @@
 from django import forms
-from core.models import Participant
+from core.models import Participant, Class
 
 
 class ParticipantCreationForm(forms.ModelForm):
@@ -15,3 +15,8 @@ class ParticipantCreationForm(forms.ModelForm):
                                         "be an active participant in multiple classes at once."
                                         % active_participant.first().classs.name)
         return learner
+
+
+class MoveParticipantsForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    classs = forms.ModelChoiceField(queryset=Class.objects.all())
