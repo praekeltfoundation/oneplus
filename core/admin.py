@@ -104,14 +104,14 @@ class ParticipantPointInline(admin.TabularInline):
     list_display = ("pointbonus", "scenario")
 
 
-def change_class(modeladmin, request, queryset):
+def move_participants(modeladmin, request, queryset):
     form = None
 
     if 'apply' in request.POST:
         form = MoveParticipantsForm(request.POST)
 
         if form.is_valid():
-            classs_id = form.cleaned_date["classs"]
+            classs_id = form.cleaned_data["classs"].id
 
             try:
                 classs = Class.objects.get(id=classs_id)
@@ -128,7 +128,7 @@ def change_class(modeladmin, request, queryset):
             queryset.update(classs=classs)
 
             return render_to_response(
-                'admin/core/move_participants_result',
+                'admin/core/move_participants_result.html',
                 {
                     'redirect': request.get_full_path(),
                 },
@@ -150,7 +150,7 @@ def change_class(modeladmin, request, queryset):
         },
         context_instance=template.RequestContext(request)
     )
-change_class.short_description = "Move selected participants to a different class"
+move_participants.short_description = "Move selected participants to a different class"
 
 
 class ParticipantAdmin(admin.ModelAdmin):
