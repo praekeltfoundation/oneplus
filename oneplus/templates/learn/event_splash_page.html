@@ -9,7 +9,7 @@
 <div class="content center-font narrow darkgrey-front {% if page.event_type == 0 %} green-back {% elif page.event_type == 1 %} yellow-back {% else %} cyan-back {% endif %} white-back ">
     <div class="pad-bottom">
 
-        <div><img src="{% if page.event_type == 0 %} media/img/OP_Badge_SUMit.png {% elif page.event_type == 1 %} media/img/OP_Badge_SpotTest.png {% else %} media/img/OP_Badge_Exam.png {% endif %}"></div>
+        {% if page.badge_filename %}<div><img src="{{ page.badge_filename }}"></div>{% endif %}
         <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
         <div><p class="large-font center-font">{{ page.message }}</p></div>
 
