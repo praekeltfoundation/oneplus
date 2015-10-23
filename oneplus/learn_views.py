@@ -165,7 +165,7 @@ def home(request, state, user):
     redo = None
     redo_active = Setting.get_setting("REPEATING_QUESTIONS_ACTIVE")
 
-    if redo_active and redo_active == "True":
+    if redo_active and redo_active == "true":
         if (request.session["state"]["home_tasks_week"] >= 15) or \
                 (request.session["state"]["home_tasks_today"] >= request.session["state"]["home_required_tasks"]):
             questions = learnerstate.get_redo_questions()
