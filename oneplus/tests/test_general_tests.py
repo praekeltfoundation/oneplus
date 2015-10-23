@@ -293,7 +293,7 @@ class GeneralTests(TestCase):
             ParticipantQuestionAnswer.objects.create(participant=self.participant, question=question,
                                                      option_selected=option, correct=False)
 
-            Setting.objects.create(key="REPEATING_QUESTIONS_ACTIVE", value="true")
+            Setting.objects.create(key="REPEATING_QUESTIONS_ACTIVE", value="True")
 
             resp = self.client.get(reverse('learn.home'))
             self.assertEquals(resp.status_code, 200)
