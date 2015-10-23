@@ -399,17 +399,9 @@ def redo(request, state, user):
         _learnerstate = LearnerState(participant=_participant)
 
     # check if new question required then show question
-    _learnerstate.get_next_redo_question()
+    redo_question = _learnerstate.get_next_redo_question()
 
-    answered = ParticipantQuestionAnswer.objects.filter(
-        participant=_learnerstate.participant
-    ).distinct().values_list('question')
-    correct = ParticipantQuestionAnswer.objects.filter(
-        participant=_learnerstate.participant, correct=True
-    ).distinct().values_list('question')
-    questions = TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct)
-
-    if not questions:
+    if not redo_question:
         return redirect("learn.home")
 
     if _learnerstate.redo_question:

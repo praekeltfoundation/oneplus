@@ -143,12 +143,10 @@ class LearnerState(models.Model):
         return self.redo_question
 
     def get_redo_questions(self):
-        correct = ParticipantQuestionAnswer.objects.filter(
-            participant=self.participant, correct=True).distinct().values('question')
-        redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
-            participant=self.participant, correct=True).distinct().values('question')
-        answered = ParticipantQuestionAnswer.objects.filter(
-            participant=self.participant).distinct().values('question')
+        wrong = ParticipantQuestionAnswer.objects.filter(participant=self.participant, correct=False).distinct()\
+            .values_list('question__id', flat=True)
 
-        return TestingQuestion.objects.filter(id__in=answered).exclude(id__in=correct).\
-            exclude(id__in=redo_correct)
+        redo_correct = ParticipantRedoQuestionAnswer.objects.filter(participant=self.participant, correct=True)\
+            .distinct().values_list('question__id', flat=True)
+
+        return TestingQuestion.objects.filter(id__in=wrong).exclude(id__in=redo_correct)
