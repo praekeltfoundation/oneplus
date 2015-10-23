@@ -168,15 +168,7 @@ def home(request, state, user):
     if redo_active and redo_active == "true":
         if (request.session["state"]["home_tasks_week"] >= 15) or \
                 (request.session["state"]["home_tasks_today"] >= request.session["state"]["home_required_tasks"]):
-            correct = ParticipantQuestionAnswer.objects.filter(
-                participant=_participant, correct=True).distinct().values('question')
-            redo_correct = ParticipantRedoQuestionAnswer.objects.filter(
-                participant=_participant, correct=True).distinct().values('question')
-            answered = ParticipantQuestionAnswer.objects.filter(
-                participant=_participant).distinct().values('question')
-            questions = TestingQuestion.objects.filter(id__in=answered). \
-                exclude(id__in=correct). \
-                exclude(id__in=redo_correct)
+            questions = learnerstate.get_redo_questions()
 
             if questions:
                 redo = True
