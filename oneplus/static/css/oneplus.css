@@ -584,7 +584,7 @@ img.badge {
     width: 100%
 }
 
-.disabled {
+.disabled-badge {
     color: #ffffff;
     opacity: 0.20;
     filter: alpha(opacity=15); /* msie */

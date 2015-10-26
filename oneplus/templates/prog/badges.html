@@ -10,7 +10,7 @@
 
     <div class="content">
         {% for badge in badges %}
-            <div class="badgecontainer {% if not badge.achieved %}disabled{% endif %}">
+            <div class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
                 {% if badge.achieved %}
                     <div class="badge-counter red-back">{{ badge.count }}</div>
                 {% endif %}
