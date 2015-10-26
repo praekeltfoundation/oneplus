@@ -10,14 +10,17 @@
 
     <div class="content">
         {% for badge in badges %}
-            <div class="badgecontainer">
-                <div class="badge-counter {% if not badge.achieved %}disabled{% endif %}">{{ badge.count }}</div>
+            <div class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
+                {% if badge.achieved %}
+                    <div class="badge-counter red-back">{{ badge.count }}</div>
+                {% endif %}
                 {% if badge.image %}
-                    <li class="badge" style="background-image: url('{{ badge.image.url }}')"></li>
+                    <img class="badge" src="{{ badge.image.url }}">
+{#                    <li class="badge" style="background-image: url('{{ badge.image.url }}')"></li>#}
                 {% else %}
                     <li class="badge" style="background-image: url('/static/img/icn_badges.png')"></li>
                 {% endif %}
-                <div class="text center-font"><p>{{ badge.name }}</p></div>
+                <div class="text center-font badge-name"><p>{{ badge.name }}</p></div>
             </div>
         {% endfor %}
         <div class="clear"></div>
