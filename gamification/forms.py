@@ -12,11 +12,5 @@ class GamificationScenarioForm(forms.ModelForm):
             raise ValidationError('A Scenario needs to be associated with a Point')
         return p
 
-    def clean_module(self):
-        m = self.cleaned_data.get('module', None)
-        if not m:
-            raise ValidationError('A Scenario needs to be associated with a Module')
-        return m
-
     class Meta:
         model=GamificationScenario
