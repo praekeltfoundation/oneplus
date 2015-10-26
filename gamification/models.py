@@ -68,7 +68,7 @@ class GamificationScenario(models.Model):
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     event = models.CharField("Event", max_length=500, blank=True)
-    course = models.ForeignKey(Course, null=True, blank=False)
+    course = models.ForeignKey(Course, null=True, blank=True)
     module = models.ForeignKey(Module, null=True, blank=True)
     point = models.ForeignKey(GamificationPointBonus, null=True, blank=True)
     badge = models.ForeignKey(GamificationBadgeTemplate, null=True, blank=True)
