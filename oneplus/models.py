@@ -3,8 +3,7 @@ from content.models import TestingQuestion
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer
 from datetime import datetime, timedelta, time
 from random import randint
-from content.models import GoldenEgg, EventQuestionAnswer, EventQuestionRel, SUMit
-from organisation.models import CourseModuleRel
+from content.models import GoldenEgg, EventQuestionAnswer, SUMit
 
 
 # Participant(Learner) State
@@ -67,16 +66,17 @@ class LearnerState(models.Model):
 
     def get_answers_this_week(self):
         # Get list of answered questions for this week, excluding today
-        if (self.sumit_level == 0):
+        sumit = SUMit.objects.filter(course=self.participant.classs.course,
+                                     activation_date__lte=datetime.now(),
+                                     deactivation_date__gt=datetime.now()).first()
+
+        if not sumit:
             return ParticipantQuestionAnswer.objects.filter(
                 participant=self.participant,
                 answerdate__range=self.get_week_range(),
             ).distinct()
         else:
-            _sumit = SUMit.objects.filter(course=self.participant.classs.course,
-                                          activation_date__lte=datetime.now(),
-                                          deactivation_date__gt=datetime.now()).first()
-            return EventQuestionAnswer.objects.filter(participant=self.participant, event=_sumit,
+            return EventQuestionAnswer.objects.filter(participant=self.participant, event=sumit,
                                                       answer_date__range=self.get_week_range(),
                                                       ).distinct()
 
@@ -90,6 +90,7 @@ class LearnerState(models.Model):
         questions = TestingQuestion.objects.filter(
             module__in=self.participant.classs.course.modules.filter(type=1),
             module__is_active=True,
+            state=3
         ).exclude(id__in=answered)
         return questions
 

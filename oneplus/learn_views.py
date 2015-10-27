@@ -230,18 +230,8 @@ def nextchallenge(request, state, user):
         _learnerstate = LearnerState(participant=_participant)
 
     # check if new question required then show question
-    _learnerstate.getnextquestion()
-
-    answered = ParticipantQuestionAnswer.objects.filter(
-        participant=_learnerstate.participant
-    ).distinct().values_list('question')
-    questions = TestingQuestion.objects.filter(
-        module__in=_learnerstate.participant.classs.course.modules.filter(type=1),
-        module__is_active=True,
-        state=3
-    ).exclude(id__in=answered)
-
-    if not questions:
+    next_question = _learnerstate.getnextquestion()
+    if not next_question:
         return redirect("learn.home")
 
     request.session["state"]["next_tasks_today"] = \
