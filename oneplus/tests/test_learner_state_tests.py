@@ -159,9 +159,9 @@ class LearnerStateTest(TestCase):
 
     def test_get_unanswered_few_answered(self):
         # Create some more questions
-        question2 = self.create_test_question("question2", self.module)
+        question2 = self.create_test_question("question2", self.module, state=3)
         question2_opt = self.create_test_question_option("qu2", question2)
-        question3 = self.create_test_question("question3", self.module)
+        question3 = self.create_test_question("question3", self.module, state=3)
         question3_opt = self.create_test_question_option("qu3", question3)
 
         answer = ParticipantQuestionAnswer.objects.create(
@@ -181,9 +181,9 @@ class LearnerStateTest(TestCase):
         module2 = self.create_module("module2", self.course)
 
         # Create some more questions
-        question2 = self.create_test_question("question2", self.module)
+        question2 = self.create_test_question("question2", self.module, state=3)
         question2_opt = self.create_test_question_option("qu2", question2)
-        question3 = self.create_test_question("question3", module2)
+        question3 = self.create_test_question("question3", module2, state=3)
         question3_opt = self.create_test_question_option("qu3", question3)
 
         answer = ParticipantQuestionAnswer.objects.create(
