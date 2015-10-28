@@ -230,18 +230,8 @@ def nextchallenge(request, state, user):
         _learnerstate = LearnerState(participant=_participant)
 
     # check if new question required then show question
-    _learnerstate.getnextquestion()
-
-    answered = ParticipantQuestionAnswer.objects.filter(
-        participant=_learnerstate.participant
-    ).distinct().values_list('question')
-    questions = TestingQuestion.objects.filter(
-        module__in=_learnerstate.participant.classs.course.modules.filter(type=1),
-        module__is_active=True,
-        state=3
-    ).exclude(id__in=answered)
-
-    if not questions:
+    next_question = _learnerstate.getnextquestion()
+    if not next_question:
         return redirect("learn.home")
 
     request.session["state"]["next_tasks_today"] = \
@@ -321,19 +311,22 @@ def nextchallenge(request, state, user):
                 if _total_correct == 1:
                     _participant.award_scenario(
                         "1_CORRECT",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 if _total_correct == 15:
                     _participant.award_scenario(
                         "15_CORRECT",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 if _total_correct == 30:
                     _participant.award_scenario(
                         "30_CORRECT",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 if _total_correct % 100 == 0:
@@ -354,7 +347,8 @@ def nextchallenge(request, state, user):
                     if last_3.count() == 0 or (last_3.count() == 3 and len([i for i in last_3 if i.correct]) == 3):
                         _participant.award_scenario(
                             "3_CORRECT_RUNNING",
-                            _learnerstate.active_question.module
+                            _learnerstate.active_question.module,
+                            special_rule=True
                         )
 
                 last_5 = ParticipantQuestionAnswer.objects.filter(
@@ -365,7 +359,8 @@ def nextchallenge(request, state, user):
                         and len([i for i in last_5 if i.correct]) == 5:
                     _participant.award_scenario(
                         "5_CORRECT_RUNNING",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 return redirect("learn.right")

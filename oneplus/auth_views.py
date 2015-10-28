@@ -543,7 +543,7 @@ def save_user_session(request, registered, user):
     request.session["user"]["participant_id"] \
         = registered.id
     request.session["user"]["place"] = 0  # TODO
-    registered.award_scenario("LOGIN", None)
+    registered.award_scenario("LOGIN", None, special_rule=True)
 
     # update last login date
     user.last_login = datetime.now()

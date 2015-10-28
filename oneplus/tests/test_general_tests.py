@@ -186,10 +186,10 @@ class GeneralTests(TestCase):
             mobile='+27111111133')
 
     def test_get_next_question(self):
-        self.create_test_question('question1', self.module)
+        self.create_test_question('question1', self.module, state=3)
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
-            active_question=None,
+            active_question=None
         )
 
         # get next question
