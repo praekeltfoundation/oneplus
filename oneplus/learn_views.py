@@ -311,19 +311,22 @@ def nextchallenge(request, state, user):
                 if _total_correct == 1:
                     _participant.award_scenario(
                         "1_CORRECT",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 if _total_correct == 15:
                     _participant.award_scenario(
                         "15_CORRECT",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 if _total_correct == 30:
                     _participant.award_scenario(
                         "30_CORRECT",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 if _total_correct % 100 == 0:
@@ -344,7 +347,8 @@ def nextchallenge(request, state, user):
                     if last_3.count() == 0 or (last_3.count() == 3 and len([i for i in last_3 if i.correct]) == 3):
                         _participant.award_scenario(
                             "3_CORRECT_RUNNING",
-                            _learnerstate.active_question.module
+                            _learnerstate.active_question.module,
+                            special_rule=True
                         )
 
                 last_5 = ParticipantQuestionAnswer.objects.filter(
@@ -355,7 +359,8 @@ def nextchallenge(request, state, user):
                         and len([i for i in last_5 if i.correct]) == 5:
                     _participant.award_scenario(
                         "5_CORRECT_RUNNING",
-                        _learnerstate.active_question.module
+                        _learnerstate.active_question.module,
+                        special_rule=True
                     )
 
                 return redirect("learn.right")

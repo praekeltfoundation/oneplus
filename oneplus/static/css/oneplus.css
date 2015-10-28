@@ -553,7 +553,7 @@ li.change_number {
     height: 82px;
     width: 70px;
     float:left;
-    margin: 5px;
+    margin: 5px 5px 30px 5px;
 }
 
 .badge-counter{
