@@ -173,7 +173,7 @@ class Participant(models.Model):
         sumit_answers = EventQuestionAnswer.objects.filter(
             event__type=Event.ET_SUMIT,
             participant=self,
-            correct=True).exclude(event__event_points__isnull=True)
+            correct=True)
         events = EventParticipantRel.objects.filter(
             participant=self,
             results_received=True)
