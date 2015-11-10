@@ -5,7 +5,7 @@ from auth.models import Learner, CustomUser
 from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment, \
     CoursePostRel
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
-    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer
+    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitLevel
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
     ParticipantBadgeTemplateRel, Setting
 from django.conf import settings
@@ -3169,6 +3169,140 @@ class GeneralTests(TestCase):
         c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('reports.unique_regions'))
         self.assertContains(resp, 'Test_Area')
+
+    def test_sumit_report(self):
+        learner = self.create_learner(self.school, first_name='John', last_name='Smit', mobile='0791234567',
+                                      unique_token='qwerty',
+                                      unique_token_expiry=datetime.now() + timedelta(days=30))
+        course = self.create_course('Maths Course')
+        module = self.create_module('Maths Module', course, type=Module.EVENT)
+        classs = self.create_class('A class', course)
+        participant = self.create_participant(learner, classs, datejoined=datetime.now())
+        sumit = self.create_sumit('First Summit', course, datetime.now(), datetime.now() + timedelta(days=2))
+
+        question_option_set = list()
+        for i in range(1, 16):
+            question = self.create_test_question('easy_question_%2d' % i, module, difficulty=TestingQuestion.DIFF_EASY,
+                                                 state=TestingQuestion.PUBLISHED)
+            correct_option = self.create_test_question_option('easy_question_%2d_o_1' % i, question)
+            question_option_set.append((question, correct_option))
+            EventQuestionRel.objects.create(order=i, event=sumit, question=question)
+
+        for i in range(16, 27):
+            question = self.create_test_question('normal_question_%2d' % i, module,
+                                                 difficulty=TestingQuestion.DIFF_NORMAL,
+                                                 state=TestingQuestion.PUBLISHED)
+            correct_option = self.create_test_question_option('normal_question_%2d_o_1' % i, question)
+            question_option_set.append((question, correct_option))
+            EventQuestionRel.objects.create(order=i-15, event=sumit, question=question)
+
+        for i in range(27, 32):
+            question = self.create_test_question('advanced_question_%2d' % i, module,
+                                                 difficulty=TestingQuestion.DIFF_ADVANCED,
+                                                 state=TestingQuestion.PUBLISHED)
+            correct_option = self.create_test_question_option('advanced_question_%2d_o_1' % i, question)
+            question_option_set.append((question, correct_option))
+            EventQuestionRel.objects.create(order=i-26, event=sumit, question=question)
+
+        for i in range(0, 4):
+            EventQuestionAnswer.objects.create(event=sumit, participant=participant,
+                                               question=question_option_set[i][0],
+                                               question_option=question_option_set[i][1],
+                                               correct=True)
+
+        for i in range(15, 21):
+            EventQuestionAnswer.objects.create(event=sumit, participant=participant,
+                                               question=question_option_set[i][0],
+                                               question_option=question_option_set[i][1],
+                                               correct=True)
+
+        for i in range(26, 31):
+            EventQuestionAnswer.objects.create(event=sumit, participant=participant,
+                                               question=question_option_set[i][0],
+                                               question_option=question_option_set[i][1],
+                                               correct=True)
+
+        LearnerState.objects.create(participant=participant, sumit_level=5)
+        EventParticipantRel.objects.create(event=sumit, participant=participant, sitting_number=1,
+                                           results_received=False)
+
+        sumit_level_name = SUMitLevel.objects.get(order=5).name
+
+        self.client.get(reverse('auth.autologin', kwargs={'token': learner.unique_token}))
+        self.client.get(reverse('learn.sumit_end_page'))
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('report.sumit', kwargs={"mode": 1, "sumit_id": "%d" % sumit.id}))
+        self.assertContains(resp, learner.first_name)
+        self.assertContains(resp, learner.last_name)
+        self.assertContains(resp, learner.mobile)
+        self.assertContains(resp, "Yes", 2)
+        self.assertContains(resp, sumit_level_name)
+
+        resp = c.get(reverse('report.sumit', kwargs={"mode": 2, "sumit_id": "%d" % sumit.id}))
+        self.assertEquals(resp.status_code, 200)
+
+        #not a winner
+        LearnerState.objects.filter(participant=participant).delete()
+        EventParticipantRel.objects.filter(event=sumit, participant=participant).delete()
+
+        LearnerState.objects.create(participant=participant, sumit_level=5)
+        EventParticipantRel.objects.create(event=sumit, participant=participant, sitting_number=1,
+                                           results_received=False)
+
+        ans = EventQuestionAnswer.objects.filter(participant=participant, event=sumit).order_by('answer_date').last()
+        ans.correct = False
+        ans.save()
+
+        self.client.get(reverse('auth.autologin', kwargs={'token': learner.unique_token}))
+        self.client.get(reverse('learn.sumit_end_page'))
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('report.sumit', kwargs={"mode": 1, "sumit_id": "%d" % sumit.id}))
+        self.assertContains(resp, learner.first_name)
+        self.assertContains(resp, learner.last_name)
+        self.assertContains(resp, learner.mobile)
+        self.assertContains(resp, "Yes", 1)
+        self.assertContains(resp, "No", 1)
+        self.assertContains(resp, sumit_level_name)
+
+       #Sumit not complete
+        LearnerState.objects.filter(participant=participant).delete()
+        EventParticipantRel.objects.filter(event=sumit, participant=participant).delete()
+
+        LearnerState.objects.create(participant=participant, sumit_level=5)
+        EventParticipantRel.objects.create(event=sumit, participant=participant, sitting_number=1,
+                                           results_received=False)
+
+        EventQuestionAnswer.objects.filter(participant=participant, event=sumit).order_by('answer_date').last().delete()
+        self.client.get(reverse('auth.autologin', kwargs={'token': learner.unique_token}))
+        self.client.get(reverse('learn.sumit_end_page'))
+
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('report.sumit', kwargs={"mode": 1, "sumit_id": "%d" % sumit.id}))
+        self.assertContains(resp, learner.first_name)
+        self.assertContains(resp, learner.last_name)
+        self.assertContains(resp, learner.mobile)
+        self.assertNotContains(resp, "Yes")
+        self.assertContains(resp, "No", 2)
+        self.assertNotContains(resp, sumit_level_name)
+
+        # Invalid Calls
+        resp = c.get(reverse('report.sumit', kwargs={"mode": 3, "sumit_id": "%d" % sumit.id}))
+        self.assertRedirects(resp, "reports")
+
+        resp = c.get(reverse('report.sumit', kwargs={"mode": 1, "sumit_id": "%d" % 9999}))
+        self.assertRedirects(resp, "reports")
+
+    def test_sumit_report_list(self):
+        sumit = self.create_sumit('First Summit', self.course, datetime.now(), datetime.now() + timedelta(days=2))
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('report.sumit_list'))
+        self.assertContains(resp, sumit.name)
 
     def test_admin_auth_app_changes(self):
         c = Client()

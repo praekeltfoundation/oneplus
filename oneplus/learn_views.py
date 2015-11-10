@@ -1910,9 +1910,16 @@ def sumit_end_page(request, state, user):
                         module
                     )
                 _participant.save()
+
+                mail_managers(subject="SUMit Winner!", message="%s %s %s won %s SUMit!"
+                                                               % (_participant.learner.first_name,
+                                                                  _participant.learner.last_name,
+                                                                  _participant.learner.mobile,
+                                                                  _sumit.name))
             else:
                 winner = False
 
+        rel.sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         rel.results_received = True
         rel.save()
         

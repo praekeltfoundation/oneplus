@@ -52,7 +52,8 @@ urlpatterns = [
         oneplus.learn_views.adminpreview_wrong,
         name="learn.preview.wrong"),
     url(r"^welcome$", oneplus.misc_views.first_time, name="learn.first_time"),
-    url(r"^report_question/(?P<questionid>\d+)/(?P<frm>\w{0,5})$", oneplus.learn_views.report_question, name="learn.report_question"),
+    url(r"^report_question/(?P<questionid>\d+)/(?P<frm>\w{0,5})$", oneplus.learn_views.report_question,
+        name="learn.report_question"),
     url(r"^event_splash_page", oneplus.learn_views.event_splash_page, name="learn.event_splash_page"),
     url(r"^event_start_page", oneplus.learn_views.event_start_page, name="learn.event_start_page"),
     url(r"^event_end_page", oneplus.learn_views.event_end_page, name="learn.event_end_page"),
@@ -132,6 +133,9 @@ urlpatterns = [
     url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
         views.question_difficulty_report,
         name='reports.question_difficulty'),
+    url(r'^report_sumit_list/$', oneplus.misc_views.report_sumit_list, name='report.sumit_list'),
+    url(r'^report_sumit_report/(?P<mode>\d+)/(?P<sumit_id>\d+)', oneplus.misc_views.report_sumit,
+        name='report.sumit'),
 
     #filtering for message admin
     url(r'^courses$', views.get_courses),
