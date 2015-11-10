@@ -1919,7 +1919,7 @@ def sumit_end_page(request, state, user):
             else:
                 winner = False
 
-        rel.level = SUMitLevel.objects.get(_learnerstate.sumit_level).name
+        rel.level = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         rel.results_received = True
         rel.save()
         
