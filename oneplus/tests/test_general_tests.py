@@ -3297,6 +3297,13 @@ class GeneralTests(TestCase):
         resp = c.get(reverse('report.sumit', kwargs={"mode": 1, "sumit_id": "%d" % 9999}))
         self.assertRedirects(resp, "reports")
 
+    def test_sumit_report_list(self):
+        sumit = self.create_sumit('First Summit', self.course, datetime.now(), datetime.now() + timedelta(days=2))
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        resp = c.get(reverse('report.sumit_list'))
+        self.assertContains(resp, sumit.name)
+
     def test_admin_auth_app_changes(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
