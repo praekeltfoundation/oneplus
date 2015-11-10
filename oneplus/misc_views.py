@@ -18,12 +18,12 @@ from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
 from auth.models import CustomUser
 from communication.models import Report, Message, Discussion, PostComment, ChatMessage
-from core.models import Participant
+from core.models import Participant, TestingQuestion
 from oneplus.auth_views import space_available, resolve_http_method
 from oneplus.report_utils import get_csv_report, get_xls_report
 from oneplus.validators import validate_title, validate_publish_date_and_time, validate_content, gen_username
 from oneplus.views import oneplus_state_required, oneplus_login_required
-from content.models import SUMit, EventParticipantRel, EventQuestionAnswer, SUMitLevel
+from content.models import SUMit, EventParticipantRel, EventQuestionAnswer
 from django.db.models import Count
 
 logger = logging.getLogger(__name__)
@@ -896,7 +896,8 @@ def report_sumit(request, mode, sumit_id):
     if mode != '1' and mode != '2' and sumit_id != '':
         return HttpResponseRedirect(reverse('reports.home'))
 
-    headers = [('MSISDN', 'Last Name', 'First Name', 'Winner', 'Level', 'Correct', 'Incorrect', 'Completed')]
+    headers = [('MSISDN', 'Last Name', 'First Name', 'Winner', 'Level', 'Easy Answered', 'Easy Correct',
+                'Normal Answered', 'Normal Correct', 'Advanced Answered', 'Advanced Correct', 'Completed')]
 
     try:
         sumit = SUMit.objects.get(id=sumit_id)
@@ -908,14 +909,35 @@ def report_sumit(request, mode, sumit_id):
     data = list()
 
     for rel in all_rel:
-        answers = EventQuestionAnswer.objects.filter(participant=rel.participant, event=sumit)
-        correct = answers.filter(correct=True).aggregate(Count('id'))['id__count']
-        incorrect = answers.filter(correct=False).aggregate(Count('id'))['id__count']
+        answered = EventQuestionAnswer.objects.filter(participant=rel.participant, event=sumit)
+
+        total_ans = answered.aggregate(Count('id'))['id__count']
+        total_cor = answered.filter(correct=True).aggregate(Count('id'))['id__count']
+
+        easy_ans = answered.filter(question__difficulty=TestingQuestion.DIFF_EASY).aggregate(Count('id'))['id__count']
+        easy_cor = answered.filter(question__difficulty=TestingQuestion.DIFF_EASY, correct=True)\
+            .aggregate(Count('id'))['id__count']
+
+        normal_ans = answered.filter(question__difficulty=TestingQuestion.DIFF_NORMAL)\
+            .aggregate(Count('id'))['id__count']
+        normal_cor = answered.filter(question__difficulty=TestingQuestion.DIFF_NORMAL, correct=True)\
+            .aggregate(Count('id'))['id__count']
+
+        adv_ans = answered.filter(question__difficulty=TestingQuestion.DIFF_ADVANCED)\
+            .aggregate(Count('id'))['id__count']
+        adv_cor = answered.filter(question__difficulty=TestingQuestion.DIFF_ADVANCED, correct=True)\
+            .aggregate(Count('id'))['id__count']
+
+        points = easy_cor + normal_cor * 3 + adv_cor * 6
+
         winner = 'Yes' if rel.winner else 'No'
         completed = 'Yes' if rel.results_received else 'No'
 
         data.append([rel.participant.learner.mobile, rel.participant.learner.last_name,
-                     rel.participant.learner.first_name, winner, rel.sumit_level, correct, incorrect, completed])
+                     rel.participant.learner.first_name, winner, points, rel.sumit_level, easy_ans, easy_cor,
+                     normal_ans, normal_cor, adv_ans, adv_cor, total_ans, total_cor, completed])
+
+        data.sort(key=lambda tup: tup[4], reverse=True)
 
     if mode == '1':
         return get_csv_report(data, file_name, headers)
