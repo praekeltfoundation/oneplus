@@ -23,7 +23,8 @@ from oneplus.auth_views import space_available, resolve_http_method
 from oneplus.report_utils import get_csv_report, get_xls_report
 from oneplus.validators import validate_title, validate_publish_date_and_time, validate_content, gen_username
 from oneplus.views import oneplus_state_required, oneplus_login_required
-
+from content.models import SUMit, EventParticipantRel, EventQuestionAnswer, SUMitLevel
+from django.db.models import Count
 
 logger = logging.getLogger(__name__)
 
@@ -877,6 +878,43 @@ def report_learner(request, mode, region):
         cursor.execute(sql)
 
     data = cursor.fetchall()
+
+    if mode == '1':
+        return get_csv_report(data, file_name, headers)
+    elif mode == '2':
+        return get_xls_report(data, file_name, headers)
+
+
+@user_passes_test(lambda u: u.is_staff)
+def report_sumit_list(request):
+    data = SUMit.objects.all().values('name', 'id')
+    return HttpResponse(json.dumps(list(data)), content_type="application/json")
+
+
+@user_passes_test(lambda u: u.is_staff)
+def report_sumit(request, mode, sumit_id):
+    if mode != '1' and mode != '2' and sumit_id != '':
+        return HttpResponseRedirect(reverse('reports.home'))
+
+    headers = [('MSISDN', 'Last Name', 'First Name', 'Winner', 'Level', 'Correct', 'Incorrect')]
+
+    try:
+        sumit = SUMit.objects.get(id=sumit_id)
+    except SUMit.DoesNotExist:
+        return HttpResponseRedirect(reverse('reports.home'))
+
+    all_rel = EventParticipantRel.objects.filter(event=sumit)
+    file_name = 'sumit_report_%s' % sumit.name
+    data = list()
+
+    for rel in all_rel:
+        answers = EventQuestionAnswer.objects.filter(participant=rel.participant, event=sumit)
+        correct = answers.filter(correct=True).aggregate(Count('id'))['id__count']
+        incorrect = answers.filter(correct=False).aggregate(Count('id'))['id__count']
+        winner = 'Yes' if rel.winner else 'No'
+
+        data.append([rel.participant.learner.mobile, rel.participant.learner.last_name,
+                     rel.participant.learner.first_name, winner, rel.sumit_level, correct, incorrect])
 
     if mode == '1':
         return get_csv_report(data, file_name, headers)

@@ -132,6 +132,9 @@ urlpatterns = [
     url(r'^report_question_difficulty_report/(?P<mode>\d+)$',
         views.question_difficulty_report,
         name='reports.question_difficulty'),
+    url(r'^report_sumit_list/$', oneplus.misc_views.report_sumit_list, name='report.sumit_list'),
+    url(r'^report_sumit_report/(?P<mode>\d+)/(?P<sumit_id>\d+)', oneplus.misc_views.report_sumit,
+        name='report.sumit'),
 
     #filtering for message admin
     url(r'^courses$', views.get_courses),
