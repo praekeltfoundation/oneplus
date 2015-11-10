@@ -3265,7 +3265,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, learner.last_name)
         self.assertContains(resp, learner.mobile)
         self.assertContains(resp, "Yes", 1)
-        self.assertContains(resp, "No", 1)
+        self.assertContains(resp, "John,No", 1)
         self.assertContains(resp, sumit_level_name)
 
        #Sumit not complete
@@ -3287,7 +3287,8 @@ class GeneralTests(TestCase):
         self.assertContains(resp, learner.last_name)
         self.assertContains(resp, learner.mobile)
         self.assertNotContains(resp, "Yes")
-        self.assertContains(resp, "No", 2)
+        self.assertContains(resp, "John,No", 1)
+        self.assertContains(resp, "14,No", 1)
         self.assertNotContains(resp, sumit_level_name)
 
         # Invalid Calls
