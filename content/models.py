@@ -348,6 +348,7 @@ class EventParticipantRel(models.Model):
     sitting_number = models.PositiveIntegerField(null=True, blank=False)
     results_received = models.BooleanField(default=False)
     winner = models.BooleanField(default=False)
+    sumit_level = models.CharField(max_length=50, blank=True)
 
     class Meta:
         verbose_name = "Event Participant Relation"
