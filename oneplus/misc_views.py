@@ -896,7 +896,7 @@ def report_sumit(request, mode, sumit_id):
     if mode != '1' and mode != '2' and sumit_id != '':
         return HttpResponseRedirect(reverse('reports.home'))
 
-    headers = [('MSISDN', 'Last Name', 'First Name', 'Winner', 'Level', 'Correct', 'Incorrect')]
+    headers = [('MSISDN', 'Last Name', 'First Name', 'Winner', 'Level', 'Correct', 'Incorrect', 'Completed')]
 
     try:
         sumit = SUMit.objects.get(id=sumit_id)
@@ -912,9 +912,10 @@ def report_sumit(request, mode, sumit_id):
         correct = answers.filter(correct=True).aggregate(Count('id'))['id__count']
         incorrect = answers.filter(correct=False).aggregate(Count('id'))['id__count']
         winner = 'Yes' if rel.winner else 'No'
+        completed = 'Yes' if rel.results_received else 'No'
 
         data.append([rel.participant.learner.mobile, rel.participant.learner.last_name,
-                     rel.participant.learner.first_name, winner, rel.sumit_level, correct, incorrect])
+                     rel.participant.learner.first_name, winner, rel.sumit_level, correct, incorrect, completed])
 
     if mode == '1':
         return get_csv_report(data, file_name, headers)
