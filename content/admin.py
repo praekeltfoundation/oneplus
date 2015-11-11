@@ -518,12 +518,26 @@ class EventQuestionRelAdmin(admin.ModelAdmin):
     list_display = ("order", "event", "question")
     ordering = ["event__name", "order"]
     search_fields = ("event__name",)
+    readonly_fields = ("order", "event", "question")
 
 
 class EventQuestionAnswerAdmin(admin.ModelAdmin):
-    list_display = ("event", "participant", "question", "question_option", "correct", "answer_date")
+    list_display = ("event", "get_last_name", "get_first_name", "get_msisdn", "question", "question_option",
+                    "correct", "answer_date")
     ordering = ["event__name", "answer_date"]
     search_fields = ("event__name", "participant__learner__first_name", "participant__learner__last_name")
+
+    def get_last_name(self, obj):
+        return obj.participant.learner.last_name
+    get_last_name.short_description = "Last Name"
+
+    def get_first_name(self, obj):
+        return obj.participant.learner.first_name
+    get_first_name.short_description = "First Name"
+
+    def get_msisdn(self, obj):
+        return obj.participant.learner.mobile
+    get_msisdn.short_description = "MSISDN"
 
 
 class EventParticipantRelAdmin(admin.ModelAdmin):
