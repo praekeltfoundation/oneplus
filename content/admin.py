@@ -518,6 +518,7 @@ class EventQuestionRelAdmin(admin.ModelAdmin):
     list_display = ("order", "event", "question")
     ordering = ["event__name", "order"]
     search_fields = ("event__name",)
+    readonly_fields = ("order", "event", "question")
 
 
 class EventQuestionAnswerAdmin(admin.ModelAdmin):
