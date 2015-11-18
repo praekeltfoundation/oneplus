@@ -526,6 +526,7 @@ class EventQuestionAnswerAdmin(admin.ModelAdmin):
                     "correct", "answer_date")
     ordering = ["event__name", "answer_date"]
     search_fields = ("event__name", "participant__learner__first_name", "participant__learner__last_name")
+    list_filter = ('event', 'participant', 'correct',)
 
     def get_last_name(self, obj):
         return obj.participant.learner.last_name
