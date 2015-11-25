@@ -357,6 +357,8 @@ class AdminSiteTests(TestCase):
         self.admin_page_test_helper(c, "/admin/core/participant/add/")
         self.admin_page_test_helper(c, "/admin/core/setting/")
         self.admin_page_test_helper(c, "/admin/core/setting/add/")
+        self.admin_page_test_helper(c, "/admin/core/badgeawardlog/")
+
 
     def test_gamification_admin_pages_render(self):
         c = Client()
