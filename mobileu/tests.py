@@ -359,7 +359,6 @@ class AdminSiteTests(TestCase):
         self.admin_page_test_helper(c, "/admin/core/setting/add/")
         self.admin_page_test_helper(c, "/admin/core/badgeawardlog/")
 
-
     def test_gamification_admin_pages_render(self):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
