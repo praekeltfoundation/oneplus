@@ -3,7 +3,7 @@ from core.models import *
 from core.forms import ParticipantCreationForm, MoveParticipantsForm
 from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
     ParticipantFirstNameFilter, ParticipantLastNameFilter, \
-    ParticipantMobileFilter, ParticipantFilter, LearnerFilter
+    ParticipantMobileFilter, ParticipantFilter, LearnerFilter, ScenarioFilter
 from django import template
 from django.shortcuts import render_to_response
 
@@ -183,8 +183,38 @@ class ParticipantAdmin(admin.ModelAdmin):
 class SettingAdmin(admin.ModelAdmin):
     list_display = ("key", "value")
 
+
+class BadgeAwardLogAdmin(admin.ModelAdmin):
+    list_display = ("get_event", "get_first_name", "get_last_name", "get_image")
+    search_fields = ("participant_badge_rel__participant__learner__first_name",
+                     "participant_badge_rel__participant__learner__last_name",
+                     "participant_badge_rel__scenario__name")
+    readonly_fields = ("participant_badge_rel", "award_date")
+    list_filter = (ParticipantFilter, ScenarioFilter)
+
+    def get_event(self, obj):
+        return obj.participant_badge_rel.scenario.name
+    get_event.short_description = "Badge Name"
+
+    def get_first_name(self, obj):
+        return obj.participant_badge_rel.participant.learner.first_name
+    get_first_name.short_description = "First Name"
+
+    def get_last_name(self, obj):
+        return obj.participant_badge_rel.participant.learner.last_name
+    get_last_name.short_description = "Last Name"
+
+    def get_image(self, obj):
+        if obj.participant_badge_rel.badgetemplate.image:
+            return '<img src="%s">' % obj.participant_badge_rel.badgetemplate.image.url
+        return None
+    get_image.short_description = "Badge"
+    get_image.allow_tags = True
+
+
 # Organisation
 admin.site.register(Class, ClassAdmin)
 admin.site.register(ParticipantQuestionAnswer, ParticipantQuestionAnswerAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Setting, SettingAdmin)
+admin.site.register(BadgeAwardLog, BadgeAwardLogAdmin)
