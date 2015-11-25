@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import ugettext_lazy as _
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
@@ -14,6 +13,7 @@ from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQue
 from organisation.models import Course
 from django.db.models import Count
 from datetime import datetime
+from core.filters import ScenarioFilter, ParticipantFilter
 
 
 class TestingQuestionInline(admin.TabularInline):
@@ -553,21 +553,7 @@ class BadgeAwardLogAdmin(admin.ModelAdmin):
                      "participant_badge_rel__participant__learner__last_name",
                      "participant_badge_rel__scenario__name")
     readonly_fields = ("participant_badge_rel", "award_date")
-
-    class ParticipantFilter(admin.SimpleListFilter):
-        title = _('Participant')
-        parameter_name = 'Participant'
-
-        def lookups(self, request, model_admin):
-            queryset = Participant.objects.all()\
-                .extra(select={'full_name': "concatenate( learner__participant__first_name, "
-                                            "learner__participant__last_name) "})
-            return queryset.values_list('id', 'full_name')\
-                .order_by('learner__participant__first_name')
-
-        def queryset(self, request, queryset):
-            if self.value():
-                return queryset.filter(participant_badge_rel__participant__id=self.value)
+    list_filter = (ParticipantFilter, ScenarioFilter)
 
     def get_event(self, obj):
         return obj.participant_badge_rel.scenario.name

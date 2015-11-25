@@ -3,6 +3,7 @@ from django.db.models import Count
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 import operator
+from gamification.models import GamificationScenario
 
 from auth.models import Learner
 
@@ -137,3 +138,16 @@ class UserFilter(admin.SimpleListFilter):
             return queryset
         else:
             return queryset.filter(user__id=self.value())
+
+
+class ScenarioFilter(admin.SimpleListFilter):
+    title = _('Badge')
+    parameter_name = 'Scenario'
+
+    def lookups(self, request, model_admin):
+        queryset = GamificationScenario.objects.all().values_list('id', 'name').order_by('name')
+        return queryset
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(participant_badge_rel__scenario__id=self.value)
