@@ -192,6 +192,15 @@ class BadgeAwardLogAdmin(admin.ModelAdmin):
     readonly_fields = ("participant_badge_rel", "award_date")
     list_filter = (ParticipantFilter, ScenarioFilter)
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
     def get_event(self, obj):
         return obj.participant_badge_rel.scenario.name
     get_event.short_description = "Badge Name"
