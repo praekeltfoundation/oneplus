@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 from django_summernote.admin import SummernoteModelAdmin, SummernoteInlineModelAdmin
 from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mathml, GoldenEgg, EventSplashPage, \
     EventStartPage, EventEndPage, EventQuestionAnswer, Event, EventQuestionRel, SUMit, SUMitEndPage, SUMitLevel, \
@@ -6,7 +7,7 @@ from .models import TestingQuestion, TestingQuestionOption, LearningChapter, Mat
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from import_export import fields
-from core.models import ParticipantQuestionAnswer, Participant, ParticipantRedoQuestionAnswer
+from core.models import ParticipantQuestionAnswer, Participant, ParticipantRedoQuestionAnswer, BadgeAwardLog
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
     EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm, SUMitForm
@@ -546,6 +547,47 @@ class EventParticipantRelAdmin(admin.ModelAdmin):
     search_fields = ("event__name", "participant__learner__first_name", "participant__learner__last_name")
 
 
+class BadgeAwardLogAdmin(admin.ModelAdmin):
+    list_display = ("get_event", "get_first_name", "get_last_name", "get_image")
+    search_fields = ("participant_badge_rel__participant__learner__first_name",
+                     "participant_badge_rel__participant__learner__last_name",
+                     "participant_badge_rel__scenario__name")
+    readonly_fields = ("participant_badge_rel", "award_date")
+
+    class ParticipantFilter(admin.SimpleListFilter):
+        title = _('Participant')
+        parameter_name = 'Participant'
+
+        def lookups(self, request, model_admin):
+            queryset = Participant.objects.all()\
+                .extra(select={'full_name': "concatenate( learner__participant__first_name, "
+                                            "learner__participant__last_name) "})
+            return queryset.values_list('id', 'full_name')\
+                .order_by('learner__participant__first_name')
+
+        def queryset(self, request, queryset):
+            if self.value():
+                return queryset.filter(participant_badge_rel__participant__id=self.value)
+
+    def get_event(self, obj):
+        return obj.participant_badge_rel.scenario.name
+    get_event.short_description = "Badge Name"
+
+    def get_first_name(self, obj):
+        return obj.participant_badge_rel.participant.learner.first_name
+    get_first_name.short_description = "First Name"
+
+    def get_last_name(self, obj):
+        return obj.participant_badge_rel.participant.learner.last_name
+    get_last_name.short_description = "Last Name"
+
+    def get_image(self, obj):
+        if obj.participant_badge_rel.badgetemplate.image:
+            return '<img src="%s">' % obj.participant_badge_rel.badgetemplate.image.url
+        return None
+    get_image.short_description = "Badge"
+    get_image.allow_tags = True
+
 # Content
 admin.site.register(LearningChapter, LearningChapterAdmin)
 admin.site.register(TestingQuestion, TestingQuestionAdmin)
@@ -561,3 +603,4 @@ admin.site.register(EventQuestionRel, EventQuestionRelAdmin)
 admin.site.register(EventQuestionAnswer, EventQuestionAnswerAdmin)
 admin.site.register(EventParticipantRel, EventParticipantRelAdmin)
 admin.site.register(TestingQuestionDifficulty, TestingQuestionDifficultyAdmin)
+admin.site.register(BadgeAwardLog, BadgeAwardLogAdmin)
