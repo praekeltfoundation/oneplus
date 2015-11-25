@@ -186,19 +186,27 @@ class SettingAdmin(admin.ModelAdmin):
 
 class BadgeAwardLogAdmin(admin.ModelAdmin):
     list_display = ("get_event", "get_first_name", "get_last_name", "get_image")
+    fieldsets = [(None, {"fields": []}),]
     search_fields = ("participant_badge_rel__participant__learner__first_name",
                      "participant_badge_rel__participant__learner__last_name",
                      "participant_badge_rel__scenario__name")
     readonly_fields = ("participant_badge_rel", "award_date")
     list_filter = (ParticipantFilter, ScenarioFilter)
 
+    def get_actions(self, request):
+        actions = super(BadgeAwardLogAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def __init__(self, *args, **kwargs):
+        super(BadgeAwardLogAdmin, self).__init__(*args, **kwargs)
+        self.list_display_links = (None, )
+
     def has_add_permission(self, request):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_change_permission(self, request, obj=None):
         return False
 
     def get_event(self, obj):
