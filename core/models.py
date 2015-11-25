@@ -266,6 +266,10 @@ class BadgeAwardLog(models.Model):
     participant_badge_rel = models.ForeignKey(ParticipantBadgeTemplateRel, blank=False, null=True)
     award_date = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Badge Award Log"
+        verbose_name_plural = "Badge Award Log"
+
 
 class ParticipantQuestionAnswer(models.Model):
     participant = models.ForeignKey(Participant, verbose_name="Participant")
