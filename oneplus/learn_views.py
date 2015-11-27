@@ -1907,7 +1907,8 @@ def sumit_end_page(request, state, user):
                     module = CourseModuleRel.objects.filter(course=_sumit.course).first()
                     _participant.award_scenario(
                         _sumit.event_badge.event,
-                        module
+                        module,
+                        special_rule=True
                     )
                 _participant.save()
 
