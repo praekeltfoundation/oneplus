@@ -328,7 +328,7 @@ class GoldenEggCreateForm(forms.ModelForm):
     course = forms.ModelChoiceField(queryset=Course.objects.all())
 
     def clean_classs(self):
-        course = self.data.get("course")
+        course = self.cleaned_data.get("course")
         classs = self.cleaned_data.get("classs")
         active = self.data.get("active") == "on"
         active_golden_eggs_class = GoldenEgg.objects.filter(classs=classs, active=True)
