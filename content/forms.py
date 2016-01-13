@@ -362,8 +362,6 @@ class GoldenEggCreateForm(forms.ModelForm):
         badge = self.data["badge"]
         if points is None and airtime is None and not badge:
             raise forms.ValidationError("One reward must be selected")
-        if points and (airtime or badge):
-            raise forms.ValidationError("Only one reward can be applied")
         if points:
             return points
         return None
@@ -374,8 +372,6 @@ class GoldenEggCreateForm(forms.ModelForm):
         badge = self.data["badge"]
         if points is None and airtime is None and not badge:
             raise forms.ValidationError("One reward must be selected")
-        if airtime and (points or badge):
-            raise forms.ValidationError("Only one reward can be applied")
         if airtime:
             return airtime
         return None
@@ -386,8 +382,6 @@ class GoldenEggCreateForm(forms.ModelForm):
         badge = self.data["badge"]
         if points is None and airtime is None and not badge:
             raise forms.ValidationError("One reward must be selected")
-        if badge and (points or airtime):
-            raise forms.ValidationError("Only one reward can be applied")
         if badge:
             return self.cleaned_data.get("badge")
         return None
@@ -402,12 +396,6 @@ class EventForm(forms.ModelForm):
         data = self.cleaned_data
         if data.get('event_points') is None and data.get('airtime') is None and data.get('event_badge') is None:
             msg = u"One award must be awarded."
-            self._errors["event_points"] = self.error_class([msg])
-            self._errors["airtime"] = self.error_class([msg])
-            self._errors["event_badge"] = self.error_class([msg])
-
-        elif data.get('event_points') and (data.get('airtime') or data.get('event_badge')):
-            msg = u"Only award can be awarded."
             self._errors["event_points"] = self.error_class([msg])
             self._errors["airtime"] = self.error_class([msg])
             self._errors["event_badge"] = self.error_class([msg])
