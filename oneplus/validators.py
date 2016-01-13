@@ -232,7 +232,7 @@ def validate_sign_up_form(post):
         errors["cellphone_error"] = "This must be completed"
 
     if "grade" in post and post["grade"]:
-        if post["grade"] not in ("Grade 10", "Grade 11"):
+        if post["grade"] not in ("Grade 10", "Grade 11", "Grade 12"):
             errors["grade_error"] = "Select your grade"
         else:
             data["grade"] = post["grade"]
