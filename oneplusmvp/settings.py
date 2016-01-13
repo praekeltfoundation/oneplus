@@ -253,6 +253,7 @@ ADMIN_REORDER = (
 
 GRADE_10_COURSE_NAME = "One Plus Grade 10"
 GRADE_11_COURSE_NAME = "One Plus Grade 11"
+GRADE_12_COURSE_NAME = "One Plus Grade 12"
 GRADE_10_OPEN_CLASS_NAME = "Grade 10 - Open Class"
 GRADE_11_OPEN_CLASS_NAME = "Grade 11 - Open Class"
 OPEN_SCHOOL = "Open School"
