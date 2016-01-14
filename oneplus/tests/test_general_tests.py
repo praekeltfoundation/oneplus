@@ -3457,7 +3457,7 @@ class GeneralTests(TestCase):
                                         'first_name': self.learner.first_name,
                                         'surname': self.learner.last_name,
                                         'cellphone': '12345',
-                                        'grade': 'Grade 12',
+                                        'grade': 'Grade 13',
                                         'province': 'Wrong province name',
                                         'enrolled': 0,
                                     },
@@ -3615,6 +3615,39 @@ class GeneralTests(TestCase):
             self.assertContains(resp, "Thank you")
             new_learner = Learner.objects.get(username='0729876486')
             self.assertEquals('Henky', new_learner.first_name)
+
+            resp = self.client.get(reverse("auth.signup_form_promath"))
+            self.assertContains(resp, 'To sign up please complete the following information:')
+
+            # valid - not enrolled - grade 12 - creaing open class
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Rob",
+                                        'surname': "Web",
+                                        'cellphone': '0729876599',
+                                        'grade': 'Grade 12',
+                                        'province': "Gauteng",
+                                        'enrolled': 1,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729876599')
+            self.assertEquals('Rob', new_learner.first_name)
+
+            # valid - not enrolled - grade 12
+            resp = self.client.post(reverse('auth.signup_form'),
+                                    data={
+                                        'first_name': "Kyle",
+                                        'surname': "Evans",
+                                        'cellphone': '0729876444',
+                                        'grade': 'Grade 12',
+                                        'province': "Gauteng",
+                                        'enrolled': 1,
+                                    },
+                                    follow=True)
+            self.assertContains(resp, "Thank you")
+            new_learner = Learner.objects.get(username='0729876444')
+            self.assertEquals('Kyle', new_learner.first_name)
 
             resp = self.client.get(reverse("auth.signup_form_promath"))
             self.assertContains(resp, 'To sign up please complete the following information:')
