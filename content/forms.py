@@ -13,6 +13,7 @@ from django.db.models import Max
 from core.models import Class
 from organisation.models import Course
 from datetime import datetime
+from django.core.exceptions import ValidationError
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -22,6 +23,38 @@ class TestingQuestionCreateForm(forms.ModelForm):
     module = forms.ModelChoiceField(queryset=Module.objects.all(),
                                     error_messages={'required': 'A Test question needs to '
                                                                 'be associated with a module.'})
+
+    def clean(self):
+        cleaned_data = super(TestingQuestionCreateForm, self).clean()
+
+        num_options = int(self.data.get('testingquestionoption_set-TOTAL_FORMS'))
+        error_list = []
+        count = 0
+
+        has_correct = False
+        has_empty_content = False
+        for i in range(0, num_options):
+            if self.data.get('testingquestionoption_set-%s-correct' % i):
+                has_correct = True
+                if not self.data.get('testingquestionoption_set-%s-content' % i):
+                    has_empty_content = True
+            if not self.data.get('testingquestionoption_set-%s-DELETE' % i) and \
+                    self.data.get('testingquestionoption_set-%s-content' % i):
+                count += 1
+
+        if count < 2:
+            error_list.append(ValidationError('A minimum of 2 question options must be added.', code='error1'))
+
+        if not has_correct:
+            error_list.append(ValidationError('One options needs to be marked as correct.', code='error2'))
+
+        if has_empty_content:
+            error_list.append(ValidationError('Please enter option content.', code='error3'))
+
+        if error_list:
+            raise ValidationError(error_list)
+
+        return cleaned_data
 
     def clean_name(self):
         name = self.data.get("name")
