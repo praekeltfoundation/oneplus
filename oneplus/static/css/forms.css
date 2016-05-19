@@ -10,10 +10,11 @@
     margin: 15px 0;
 }
 
-
-.login label {
+label {
+    /*Login and Signup form*/
     z-index: 1;
     display: block;
+    margin: 5px 0;
 }
 
 input[type=text],input[type=password] {

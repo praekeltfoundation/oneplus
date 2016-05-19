@@ -8,10 +8,10 @@
         <form action="login" method="post" class="login">{% csrf_token %}
                 {{ form.as_p }}
             <fieldset class="field-block">
-                <input type="submit" value="Sign In" class="button green-back grey-front" />
+                <input type="submit" value="Sign In" class="button button-item--green" />
             </fieldset>
         </form>
-        <p> <a href='{% url 'auth.sms_reset_password' %}' class="green-front">Forgot Password?</a></p>
+        <p><a href='{% url 'auth.sms_reset_password' %}' class="green-front">Forgot Password?</a></p>
        <p><a href='{% url 'misc.contact' %}' class="green-front">ProMaths Learner but can't Sign In?</a></p>
     </div>
 

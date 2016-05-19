@@ -5,8 +5,7 @@
 {% block content %}
     <div class="content">
         <p class="center-font">To complete your sign up please select your school and class:</p>
-		<form action="signup_form_promath" method="post" class="signup">
-			{% csrf_token %}
+		<form action="signup_form_promath" method="post" class="signup">{% csrf_token %}
             <input type="hidden" name="first_name" value="{{ data.first_name }}">
             <input type="hidden" name="surname" value="{{ data.surname }}">
             <input type="hidden" name="cellphone" value="{{ data.cellphone}}">
@@ -14,8 +13,8 @@
             <input type="hidden" name="province" value="{{ data.province }}">
             <input type="hidden" name="enrolled" value="{{ data.enrolled }}">
 
-            <p>
-                School:<br>
+             <fieldset class="field-block">
+                <label for="id_school">School:</label>
                 <select name="school" id="id_school">
                     <option value="0">- - - - - - - -</option>
                     {% for school in schools%}
@@ -27,10 +26,10 @@
                     <span class="red-front">{{ errors.school_error }}</span>
                     <br>
                 {% endif %}
-            </p>
+            </fieldset>
 
-            <p>
-                Class:<br>
+             <fieldset class="field-block">
+                <label for="id_class">Class:</label>
                 <select name="classs" id="id_class">
                     <option value="0">- - - - - - - -</option>
                     {% for class in classes %}
@@ -42,9 +41,10 @@
                     <span class="red-front">{{ errors.classs_error }}</span>
                     <br>
                 {% endif %}
-            </p>
-
-            <input type="submit" value="Submit" class="button green-back grey-front" />
+            </fieldset>
+            <fieldset class="field-block">
+                <input type="submit" value="Submit" class="button button-item--green" />
+            </fieldset>
         </form>
     </div>
 

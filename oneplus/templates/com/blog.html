@@ -4,7 +4,11 @@
 {% block content %}
     {% load humanize %}
     <div class="menu">
-        <a href="/blog"><div class="text heading purple-back darkgrey-front"><li class="icon blog"></li><p>Stories</p></div></a>
+        <a href="/blog">
+            <div class="text heading purple-back darkgrey-front">
+                <li class="icon blog"></li><p>Stories</p>
+            </div>
+        </a>
     </div>
     <div class="text heading purple-back"><p>What we have to tell you</p></div>
 
@@ -57,7 +61,7 @@
             <form name="comment_form" method="post" action="?" class="comment">
                 {% csrf_token %}
                 <input type="text" name="comment" value="">
-                <button type="submit" name="comment_button" class="button green-back grey-front">Post</button>
+                <button type="submit" name="comment_button" class="button button-item--green">Post</button>
             </form>
             {% if state.post_comment %}
                 <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>

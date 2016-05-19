@@ -3,18 +3,19 @@
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-
-    <div class="content">
-        <h1 class="green-front xlarge-font center-font">Sign Up</h1>
-        <p class="center-font">
-            Thanks for your interest in dig-it. There {% if num_spaces > 1 %} are{% else %}is{% endif %} currently <b>{{ num_spaces }}
+    <div class="content center-font">
+        <h1 class="heading-large">Sign Up</h1>
+        <p> Thanks for your interest in dig-it. There {% if num_spaces > 1 %} are{% else %}is{% endif %} currently <b>{{ num_spaces }}
             {% if num_spaces > 1 %} spaces{% else %}space{% endif %}</b> left on dig-it. By signing up you will be able to practice your maths
             on your phone. You will be able to answer up to 15 questions per week and earn badges and prizes for your commitment to revision.
         </p>
         <form action="" method="post" class="pad-bottom">{% csrf_token %}
-            <input type="submit" class="button green-back grey-front" name="yes" value="Yes, please sign me up!"/>
-            <br>
-            <input type="submit" class="button green-back grey-front" name="no" value="Not interested right now"/>
+            <fieldset class="field-block">
+                <input type="submit" class="button button-item--green" name="yes" value="Yes, please sign me up!"/>
+            </fieldset>
+            <fieldset class="field-block">
+                <input type="submit" class="button button-item--green" name="no" value="Not interested right now"/>
+            </fieldset>
         </form>
     </div>
 

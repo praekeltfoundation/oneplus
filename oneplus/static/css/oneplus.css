@@ -10,6 +10,7 @@
 @import url("layout/l-header.css");
 @import url("module/m-menu.css");
 @import url("module/m-questions.css");
+@import url("states/state.css");
 @import url("layout/l-footer.css");
 
 .link {
@@ -189,7 +190,7 @@
 }
 
 .highlight {
-    margin: 0px 4px;
+    margin: 0 4px;
 }
 
 .basecamp {
@@ -320,9 +321,8 @@ li.down_red {
 }
 
 .bold-font { font-weight: bold; }
-.large-font {font-size: 20px; font-weight: bold}
 .large-font-normal {font-size: 20px; font-weight: normal}
-.xlarge-font {font-size: 39px; font-weight: bold}
+
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
