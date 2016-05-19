@@ -1,0 +1,51 @@
+html, body {
+    background-color: #191919;
+    margin: 0 auto;
+    position: relative;
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 16px;
+    line-height: 1.5;
+	color: #d5d5d5;
+    height: 100%;
+}
+
+h1 {
+    margin: 10px 0;
+}
+
+a {
+    text-decoration: none;
+    display: block;
+    color: #28e690;
+}
+
+p a {
+    display: inline;
+}
+
+button {
+    white-space: nowrap;
+}
+
+/*-------Bullets List---------*/
+ul, ol, li {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/*-------Forms---------*/
+fieldset {
+    border: none;
+    padding: 0;
+}
+
+input[type=submit],
+input[type=text],
+input[type=password] {
+    -webkit-appearance: none;
+    border-radius: 0;
+}

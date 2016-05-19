@@ -4,37 +4,39 @@
     <title>DIG-IT | {% block title %}{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
-    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
+
+    {% block extra_css %}{% endblock %}
+    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico"/>
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 </head>
 <body>
 {% load google_analytics_tags %}
 <div style="display:none">
-    <img src="{% google_analytics request %}" width="0" height="0" />
+    <img src="{% google_analytics request %}" width="0" height="0"/>
 </div>
 
-<div class="header">
-
+<div class="header l-indent">
     {% if user.name %}
-        <a href="/menu" class="menu" ></a>
+        <a href="/menu" class="menu"></a>
     {% else %}
         <a href="login" class="menu-login green-front">Sign In</a>
     {% endif %}
-
     <a href="/home" class="logo"></a>
 </div>
 
+<div class="container l-indent">
+    {% block content %}{% endblock %}
+</div>
 
-
-
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-
-
-    <div class="footer darkgrey-back pad-top">
-        <div style="text-align: center">dig-it is a collaboration between Investec & Praekelt Foundation</div>
-        <div style="text-align: center"><a href="/about">About</a> | <a href="/terms">Terms</a> | <a href="/contact">Contact</a></div>
-    </div>
+<div class="footer darkgrey-back l-indent">
+    <span class="footer-note">dig-it is a collaboration between Investec & Praekelt Foundation</span>
+    <ul class="footer-list">
+        <li class="footer-list--item"><a href="/about">About</a></li>
+        <li class="footer-list--item"><span>|</span></li>
+        <li class="footer-list--item"><a href="/terms">Terms</a></li>
+        <li class="footer-list--item"><span>|</span></li>
+        <li class="footer-list--item"><a href="/contact">Contact</a></li>
+    </ul>
+</div>
 </body>
 </html>

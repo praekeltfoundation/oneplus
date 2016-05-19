@@ -1,0 +1,76 @@
+/*Need to be edited*/
+
+.header .menu {
+    height: 50px;
+    width: 27px;
+    background-color: #3a3a3a;
+    border: none;
+    float:left;
+    background-image: url("/static/img/menu.png");
+    background-repeat: no-repeat;
+    background-position: 5px 18px;
+    position: absolute;
+}
+
+@media (min-width: 30em) {
+    .header .menu {
+        height: 50px;
+        width: 50px;
+        background-color: #3a3a3a;
+        border: none;
+        float:left;
+        background-image: url("/static/img/menu.png");
+        background-repeat: no-repeat;
+        background-position: 17px 18px;
+    }
+}
+
+.menu-login {
+    float:left;
+    position: absolute;
+}
+
+
+.menu {
+    background-color: #2a2a2a;
+    width: 100%;
+}
+
+.menu .item {
+    height: 35px;
+    width:100%;
+    text-decoration: none;
+    text-align: left;
+    padding-left: 25px;
+    border-bottom: solid 1px #252525;
+}
+
+.menu .item-large {
+    height: auto;
+    width:100%;
+    text-decoration: none;
+    text-align: left;
+    padding: 20px 25px 15px 25px;
+    border-bottom: solid 1px #252525;
+}
+
+.menu .item-large:last-of-type {
+    border-bottom: none;
+}
+
+.menu .reply {
+    padding-left:50px;
+    background-image: url("../img/reply.png");
+    background-repeat: no-repeat;
+    background-position: 25px 20px;
+
+}
+
+.menu .item p {
+    width: 100%;
+}
+
+.menu a{
+    padding: 0px;
+}
+

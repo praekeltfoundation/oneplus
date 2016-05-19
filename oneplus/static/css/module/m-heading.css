@@ -1,0 +1,13 @@
+.heading {
+    width: 100%;
+}
+
+.heading a {
+    display: inline;
+    margin: 0;
+}
+
+.heading-large {
+    font-size: 25px;
+    display: inline;
+}

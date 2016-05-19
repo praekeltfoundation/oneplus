@@ -1,0 +1,18 @@
+
+.header {
+    background-color: #3a3a3a;
+    text-align: center;
+}
+
+.header .active {
+    background-color: #2a2a2a;
+}
+
+.header .logo {
+    height: 25px;
+    width:72px;
+    background-image: url("/static/img/logo.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    display: inline-block;
+}

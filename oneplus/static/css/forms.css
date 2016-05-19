@@ -1,0 +1,43 @@
+.error-message {
+    color: red;
+}
+
+.error-message  p {
+    margin: 0;
+}
+
+.field-block {
+    margin: 15px 0;
+}
+
+
+.login label {
+    z-index: 1;
+    display: block;
+}
+
+input[type=text],input[type=password] {
+    width: 100%;
+    background-color: #444444;
+    height: 35px;
+    border: none;
+    color: #dbdbdb;
+    padding-left: 10px;
+    padding-right: 10px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+textarea {
+    width: 100%;
+    background-color: #444444;
+    height: 80px;
+    border: none;
+    color: #dbdbdb;
+    padding-left: 10px;
+    padding-right:10px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}

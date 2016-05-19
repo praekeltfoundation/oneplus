@@ -5,13 +5,14 @@
 {% block content %}
 
     <div class="content">
-        <h1> </h1>
         <form action="login" method="post" class="login">{% csrf_token %}
-            {{ form.as_p }}
-            <input type="submit" value="Sign In" class="button green-back grey-front" />
+                {{ form.as_p }}
+            <fieldset class="field-block">
+                <input type="submit" value="Sign In" class="button green-back grey-front" />
+            </fieldset>
         </form>
-        <a href='{% url 'auth.sms_reset_password' %}' class="green-front">Forgot Password?</a>
-        <a href='{% url 'misc.contact' %}' class="green-front">ProMaths Learner but can't Sign In?</a>
+        <p> <a href='{% url 'auth.sms_reset_password' %}' class="green-front">Forgot Password?</a></p>
+       <p><a href='{% url 'misc.contact' %}' class="green-front">ProMaths Learner but can't Sign In?</a></p>
     </div>
 
 {% endblock %}

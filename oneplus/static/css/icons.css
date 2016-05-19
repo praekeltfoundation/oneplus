@@ -1,0 +1,64 @@
+
+.badges {
+    background-image: url("../img/icn_badges.png");
+}
+
+.blog {
+    background-image: url("../img/icn_blog.png");
+}
+
+.chat {
+    background-image: url("../img/icn_chat.png");
+}
+
+.help {
+    background-image: url("../img/icn_help.png");
+}
+
+.inbox {
+    background-image: url("../img/icn_inbox_black.png");
+}
+
+.leaderboard {
+    background-image: url("../img/icn_leaderboard_black.png");
+}
+
+.welcome {
+    background-image: url("../img/icn_welcome.png");
+}
+
+.faq {
+    background-image: url("../img/icn_faq.png");
+}
+
+.ontrack {
+    background-image: url("../img/icn_ontrack.png");
+}
+
+.points {
+    background-image: url("../img/icn_points_black.png");
+}
+
+.settings {
+    background-image: url("../img/icn_settings.png");
+}
+
+.user {
+    background-image: url("../img/icn_user_white.png");
+}
+
+.information {
+    background-image: url("../img/icn_about.png");
+}
+
+.home {
+    background-image: url("../img/icn_home.png");
+}
+
+.contact {
+    background-image: url("../img/icn_contact.png");
+}
+
+.change_number {
+    background-image: url("../img/icn_chn_number.png");
+}

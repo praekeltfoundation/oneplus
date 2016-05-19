@@ -1,0 +1,13 @@
+
+.button {
+    display: block;
+    height: 35px;
+    line-height: 1.5;
+    text-decoration: none;
+    text-align: center;
+    width: 100%;
+    border: 1px solid rgb(237, 246, 223);
+    border-bottom: 1px solid rgb(0, 105, 0);
+    border-right: 1px solid rgb(0, 105, 0);
+    font-size: 120%;
+}

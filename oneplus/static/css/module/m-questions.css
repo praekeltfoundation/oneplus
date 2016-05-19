@@ -1,0 +1,18 @@
+
+.question-padding {
+    padding: 0;
+}
+
+@media (min-width: 30em) {
+    .question-padding {
+         padding: 15px 25px 15px 25px;
+    }
+}
+
+.question-padding img {
+    width: 100%;
+}
+
+.question-padding div img {
+    width: 100%;
+}

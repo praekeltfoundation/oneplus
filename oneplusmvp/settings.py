@@ -47,6 +47,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.request',
 )
+
 # Application definition
 
 SITE_ID = 1
@@ -77,6 +78,7 @@ INSTALLED_APPS = (
     "django.contrib.humanize",
     "django.contrib.sites",
     "django.contrib.auth",
+    # "compressor",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -169,7 +171,15 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # 'compressor.finders.CompressorFinder',
 )
+
+# Django compressor settings
+# http://django-compressor.readthedocs.org/en/latest/settings/
+
+# COMPRESS_PRECOMPILERS = (
+#     ('text/x-scss', 'django_libsass.SassCompiler'),
+# )
 
 # Base url for vumi requests
 VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"

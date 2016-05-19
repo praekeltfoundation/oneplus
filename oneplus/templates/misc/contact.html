@@ -3,40 +3,54 @@
 {% block title %}CONTACT{% endblock %}
 
 {% block content %}
+    <div class="heading">
+        <span class="icon contact"></span>
+        <h1 class="heading-large">Contact Us</h1>
+    </div>
 
-    <div class="text heading darkgrey-back lightgrey-front"><li class="icon contact"></li><p>Contact Us</p></div>
-
-    <div class="content narrow darkgrey-back">
+    <div class="content">
         {% if state.sent %}
             <div class="large-font green-front">
                 Your message has been sent. We will get back to you in the next 24 hours
             </div>
         {% else %}
-            <p class="white-front">For more information or to give us feedback, please email
+            <p>For more information or to give us feedback, please email
                 <a href="mailto:info@dig-it.me" class="green-front bold-font">info@dig-it.me</a>
                 or send us a message</p>
             {% if state.valid_message > 1 %}
-                <div class="large-font green-front">
+                <div class="error-message">
                 {% for message in state.valid_message %}
-                {{ message }}<br/>
+                <p>{{ message }}</p>
                 {% endfor %}
-                <br/>
                 </div>
             {% endif %}
             <form name="contact_form" method="post" action="?" class="comment">{% csrf_token %}
-
-                Please enter your details so we can get back to you:<br><br/>
-                First name:
-                <input type="text" name="fname" value="{{ state.fname }}"><br><br/>
-                Last name:
-                <input type="text" name="sname" value="{{ state.sname }}"><br><br/>
-                Mobile number or email address:
-                <input type="text" name="contact" value="{{ state.contact }}"><br><br/>
-                School:
-                <input type="text" name="school" value="{{ state.school }}"><br><br/>
-                Message:
-                <textarea type="text" name="comment" value="" ></textarea><br><br/>
-                <button type="submit" name="contact_button" class="button green-back grey-front" value="Submit">Submit</button>
+                <p>Please enter your details so we can get back to you:</p>
+                <fieldset class="field-block">
+                    <label for="first_name">First name:</label>
+                    <input id="first_name" type="text" name="fname" value="{{ state.fname }}">
+                </fieldset>
+                <fieldset class="field-block">
+                    <label for="surname">Last name:</label>
+                    <input id="surname" type="text" name="sname" value="{{ state.sname }}">
+                </fieldset>
+                <fieldset  class="field-block">
+                    <label for="mobile_no">Mobile number or email address:</label>
+                    <input id="mobile_no" type="text" name="contact" value="{{ state.contact }}">
+                </fieldset>
+                <fieldset class="field-block" >
+                    <label for="school_name">School:</label>
+                    <input id="school_name" type="text" name="school" value="{{ state.school }}">
+                </fieldset>
+                <fieldset  class="field-block">
+                    <label for="message">Message:</label>
+                    <textarea id="message" type="text" name="comment" value=""></textarea>
+                </fieldset>
+                <fieldset  class="field-block">
+                    <button type="submit" name="contact_button" class="button green-back grey-front" value="Submit">
+                        Submit
+                    </button>
+                </fieldset>
             </form>
         {% endif %}
     </div>
