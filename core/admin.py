@@ -185,7 +185,7 @@ class SettingAdmin(admin.ModelAdmin):
 
 
 class BadgeAwardLogAdmin(admin.ModelAdmin):
-    list_display = ("get_event", "get_first_name", "get_last_name", "get_image")
+    list_display = ("get_event", "get_first_name", "get_last_name", "get_image", "award_date")
     fieldsets = [(None, {"fields": []}), ]
     search_fields = ("participant_badge_rel__participant__learner__first_name",
                      "participant_badge_rel__participant__learner__last_name",
