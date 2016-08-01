@@ -5,10 +5,17 @@ from django.core.mail import EmailMultiAlternatives
 from django.db.models import Count
 
 
+def get_this_week():
+        end = datetime.now()
+        start = end.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(weeks=1)
+        end = end.replace(hour=0, minute=0, second=0, microsecond=0)
+        return [start, end]
+
+
 @celery.task
 def weekly_badge_email():
-    week_range = datetime.now() - timedelta(weeks=1)
-    results = BadgeAwardLog.objects.filter(award_date__gte=week_range).\
+    week_range = get_this_week()
+    results = BadgeAwardLog.objects.filter(award_date__range=week_range).\
         values("participant_badge_rel__participant__learner__first_name",
                "participant_badge_rel__participant__learner__last_name",
                "participant_badge_rel__scenario__name").\
@@ -30,7 +37,7 @@ def weekly_badge_email():
 
     html_content += "</table></body></html>"
 
-    subject = "dig-it Weekly Badge Earners %s - %s" % (week_range.date(), datetime.now().date())
+    subject = "dig-it Weekly Badge Earners %s - %s" % (week_range[0].date(), week_range[1].date())
     to = Setting.objects.get(key="WEEKLY_BADGE_EMAIL").value
     from_email = "info@dig-it.me"
 
