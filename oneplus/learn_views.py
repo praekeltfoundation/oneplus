@@ -341,15 +341,11 @@ def nextchallenge(request, state, user):
 
                 if last_3.count() == 3 \
                         and len([i for i in last_3 if i.correct]) == 3:
-                    last_3 = ParticipantQuestionAnswer.objects.filter(
-                        participant=_participant
-                    ).order_by("answerdate").reverse()[3:6]
-                    if last_3.count() == 0 or (last_3.count() == 3 and len([i for i in last_3 if i.correct]) == 3):
-                        _participant.award_scenario(
-                            "3_CORRECT_RUNNING",
-                            _learnerstate.active_question.module,
-                            special_rule=True
-                        )
+                    _participant.award_scenario(
+                        "3_CORRECT_RUNNING",
+                        _learnerstate.active_question.module,
+                        special_rule=True
+                    )
 
                 last_5 = ParticipantQuestionAnswer.objects.filter(
                     participant=_participant
