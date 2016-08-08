@@ -1339,10 +1339,11 @@ def right(request, state, user):
                 if _golden_egg.badge:
                     golden_egg["message"] = "You've won this week's Golden Egg and a badge"
 
-                    ParticipantBadgeTemplateRel(participant=_participant,
-                                                badgetemplate=_golden_egg.badge.badge,
-                                                scenario=_golden_egg.badge,
-                                                awarddate=datetime.now()).save()
+                    _participant.award_scenario(
+                        "GOLDEN_EGG",
+                        _learnerstate.active_question.module,
+                        special_rule=True
+                    )
 
                     if _golden_egg.badge.point and _golden_egg.badge.point.value:
                         _participant.points += _golden_egg.badge.point.value
