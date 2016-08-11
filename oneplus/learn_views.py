@@ -14,7 +14,7 @@ from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, Go
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage, SUMitLevel, SUMit
 from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
-    ParticipantRedoQuestionAnswer
+    ParticipantRedoQuestionAnswer, BadgeAwardLog
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
@@ -1339,10 +1339,13 @@ def right(request, state, user):
                 if _golden_egg.badge:
                     golden_egg["message"] = "You've won this week's Golden Egg and a badge"
 
-                    ParticipantBadgeTemplateRel(participant=_participant,
-                                                badgetemplate=_golden_egg.badge.badge,
-                                                scenario=_golden_egg.badge,
-                                                awarddate=datetime.now()).save()
+                    b = ParticipantBadgeTemplateRel(participant=_participant,
+                                                    badgetemplate=_golden_egg.badge.badge,
+                                                    scenario=_golden_egg.badge,
+                                                    awarddate=datetime.now())
+                    b.save()
+
+                    BadgeAwardLog(participant_badge_rel=b, award_date=datetime.now()).save()
 
                     if _golden_egg.badge.point and _golden_egg.badge.point.value:
                         _participant.points += _golden_egg.badge.point.value
