@@ -7,7 +7,7 @@ import requests
 
 from django import forms
 from content.models import TestingQuestion, TestingQuestionOption, Module, Mathml, GoldenEgg, Event, SUMitEndPage,\
-    TestingQuestionDifficulty
+    TestingQuestionDifficulty, EventQuestionRel
 from django.conf import settings
 from django.db.models import Max
 from core.models import Class
@@ -42,6 +42,12 @@ class TestingQuestionCreateForm(forms.ModelForm):
                     self.data.get('testingquestionoption_set-%s-content' % i):
                 count += 1
 
+        active_in_events = EventQuestionRel.objects.filter(
+            question=self.instance.id,
+            event__activation_date__lt=datetime.now(),
+            event__deactivation_date__gt=datetime.now())\
+            .exclude(question__difficulty=self.data.get("difficulty")).count()
+
         if count < 2:
             error_list.append(ValidationError('A minimum of 2 question options must be added.', code='error1'))
 
@@ -50,6 +56,10 @@ class TestingQuestionCreateForm(forms.ModelForm):
 
         if has_empty_content:
             error_list.append(ValidationError('Please enter option content.', code='error3'))
+
+        if active_in_events > 0:
+            error_list.append(ValidationError('Cannot change difficulty while question is part of an active SUMit.',
+                                              code='error4'))
 
         if error_list:
             raise ValidationError(error_list)
@@ -221,7 +231,6 @@ class TestingQuestionFormSet(forms.models.BaseInlineFormSet):
                 order = self.get_order(question)
                 name = "%s Option %s" % (question, order)
                 TestingQuestionOption.objects.create(name=name, order=order, question=question, correct=False)
-
 
 
 def process_mathml_content(_content, _source, _source_id):
