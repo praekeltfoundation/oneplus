@@ -111,11 +111,17 @@ def about(request, state, user):
 @oneplus_check_user
 def contact(request, state, user):
     def get():
+        state['grades'] = (
+            {"id": 10, "text": "Grade 10"},
+            {"id": 11, "text": "Grade 11"},
+            {"id": 12, "text": "Grade 12"}
+        )
         state["sent"] = False
         state['fname'] = ""
         state['sname'] = ""
         state['comment'] = ""
         state['contact'] = ""
+        state['grade'] = ""
         state['school'] = ""
         state['valid_message'] = ""
 
@@ -156,6 +162,10 @@ def contact(request, state, user):
             state['valid'] = False
             state['valid_message'].append("Message")
 
+        if "grade" in request.POST.keys():
+            _grade = request.POST["grade"]
+            state['grade'] = _grade
+
         if "school" in request.POST.keys():
             _school = request.POST["school"]
             state['school'] = _school
@@ -164,6 +174,7 @@ def contact(request, state, user):
             message = "\n".join([
                 "First Name: " + _fname,
                 "Last Name: " + _sname,
+                "Grade: " + ("Grade %s" % _grade if (_grade != "") else "Not specified"),
                 "School: " + _school,
                 "Contact: " + _contact,
                 _comment,
