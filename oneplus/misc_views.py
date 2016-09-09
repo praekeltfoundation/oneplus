@@ -164,17 +164,21 @@ def contact(request, state, user):
 
         if "grade" in request.POST.keys():
             _grade = request.POST["grade"]
-            state['grade'] = _grade
+        else:
+            _grade = ""
+        state['grade'] = _grade
 
         if "school" in request.POST.keys():
             _school = request.POST["school"]
-            state['school'] = _school
+        else:
+            _school = ""
+        state['school'] = _school
 
         if state['valid']:
             message = "\n".join([
                 "First Name: " + _fname,
                 "Last Name: " + _sname,
-                "Grade: " + ("Grade %s" % _grade if (_grade != "") else "Not specified"),
+                "Grade: " + ("" if _grade == "" else "Grade " + _grade),
                 "School: " + _school,
                 "Contact: " + _contact,
                 _comment,
