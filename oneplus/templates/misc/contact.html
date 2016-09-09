@@ -32,6 +32,13 @@
                 <input type="text" name="sname" value="{{ state.sname }}"><br><br/>
                 Mobile number or email address:
                 <input type="text" name="contact" value="{{ state.contact }}"><br><br/>
+                Grade:
+                <select name="grade" value="{{ state.grade }}">
+                    <option value="">- - - - - - - -</option>
+                    {% for gr in state.grades %}
+                        <option value="{{ gr.id }}">{{ gr.text }}</option>
+                    {% endfor %}
+                </select><br><br/>
                 School:
                 <input type="text" name="school" value="{{ state.school }}"><br><br/>
                 Message:

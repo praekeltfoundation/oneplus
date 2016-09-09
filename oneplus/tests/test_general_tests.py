@@ -2558,6 +2558,7 @@ class GeneralTests(TestCase):
                 "contact": "0123456789",
                 "comment": "test",
                 "school": "Test School",
+                "grade": "11",
             }
         )
 
@@ -2576,6 +2577,7 @@ class GeneralTests(TestCase):
                     "contact": "0123456789\n0123456789\n0123456789",
                     "comment": "test",
                     "school": "Test School",
+                    "grade": "11"
                 }
             )
 
@@ -2583,7 +2585,7 @@ class GeneralTests(TestCase):
 
             mock_mail_managers.assert_called_(
                 fail_silently=False,
-                message=u"First Name: Test\nLast Name: test\nSchool: Test School\nContact: 0123456789 0123456789 0123456789\ntest",
+                message=u"First Name: Test\nLast Name: test\nGrade: Grade 11\nSchool: Test School\nContact: 0123456789 0123456789 0123456789\ntest",
                 subject=u"Contact Us Message - 0123456789 0123456789 0123456789"
             )
 
