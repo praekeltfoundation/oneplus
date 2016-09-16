@@ -328,7 +328,7 @@ def send_teacher_reports_body():
         logger.info("Sending failed report email")
         message = "The system failed to create the following reports:\n\n"
         for fail in failed_reports:
-            message = "report: %s\n " % fail
+            message += "report: %s\n " % fail
         try:
             mail_managers("DIG-IT: Teacher report creation failed.", message, fail_silently=False)
         except Exception as ex:
@@ -339,12 +339,12 @@ def send_teacher_reports_body():
         logger.info("Sending failed emails email")
         message = "The system failed to email report to the following teachers:\n\n"
         for fail in failed_emails:
-            message = "username: %s\n " \
-                      "email: %s\n" \
-                      "Error details: %s" \
-                      % (fail[0],
-                         fail[1],
-                         fail[2])
+            message += "username: %s\n " \
+                       "email: %s\n" \
+                       "Error details: %s\n" \
+                       % (fail[0],
+                          fail[1],
+                          fail[2])
         try:
             mail_managers("DIG-IT: Teacher report sending failed.", message, fail_silently=False)
         except Exception as ex:
