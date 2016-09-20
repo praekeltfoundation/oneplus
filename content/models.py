@@ -357,6 +357,35 @@ class EventParticipantRel(models.Model):
 
 class SUMit(Event):
 
+    def get_question_counts(self):
+        event_question_rel = EventQuestionRel.objects.filter(event=self)
+
+        if not event_question_rel:
+            modules = CourseModuleRel.objects.filter(course=self.course).values_list('module__id', flat=True)
+
+            easy_questions = TestingQuestion.objects.\
+                filter(
+                    module__in=modules,
+                    difficulty=TestingQuestion.DIFF_EASY,
+                    state=TestingQuestion.PUBLISHED
+                ).count()
+
+            normal_questions = TestingQuestion.objects.\
+                filter(
+                    module__in=modules,
+                    difficulty=TestingQuestion.DIFF_NORMAL,
+                    state=TestingQuestion.PUBLISHED
+                ).count()
+
+            advanced_questions = TestingQuestion.objects.\
+                filter(
+                    module__in=modules,
+                    difficulty=TestingQuestion.DIFF_ADVANCED,
+                    state=TestingQuestion.PUBLISHED
+                ).count()
+
+            return {'ec': easy_questions, 'nc': normal_questions, 'ac': advanced_questions}
+
     def get_questions(self):
 
         event_question_rel = EventQuestionRel.objects.filter(event=self)
