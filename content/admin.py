@@ -10,7 +10,7 @@ from core.models import ParticipantQuestionAnswer, Participant, ParticipantRedoQ
 from .forms import TestingQuestionCreateForm, TestingQuestionFormSet, TestingQuestionOptionCreateForm, \
     GoldenEggCreateForm, EventSplashPageInlineFormSet, EventStartPageInlineFormSet, EventEndPageInlineFormSet, \
     EventQuestionRelInline, EventForm, SUMitEndPageInlineFormSet, SUMitLevelForm, SUMitForm
-from organisation.models import Course
+from organisation.models import Course, Module
 from django.db.models import Count
 from datetime import datetime
 
@@ -408,7 +408,8 @@ class SUMitAdmin(admin.ModelAdmin):
     list_display = ("name", "course", "activation_date", "deactivation_date", "get_total_users",
                     "get_total_questions_answered", "get_percent_complete_all", "get_easy_questions_answered",
                     "get_percent_correct_easy", "get_normal_questions_answered", "get_percent_correct_normal",
-                    "get_advanced_questions_answered", "get_percent_correct_advanced", "get_winners", "get_is_active")
+                    "get_advanced_questions_answered", "get_percent_correct_advanced", "get_winners", "get_is_active",
+                    "get_question_counts")
     list_filter = ()
     fieldsets = [
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "event_points",
@@ -494,6 +495,12 @@ class SUMitAdmin(admin.ModelAdmin):
             return "<img alt='True' src='/static/admin/img/icon-no.gif'>"
     get_is_active.short_description = "Active"
     get_is_active.allow_tags = True
+
+    def get_question_pool_size(self, obj):
+        question_counts = SUMit.get(event=obj).get_question_counts()
+        print str(question_counts)
+        return str(question_counts)
+    get_question_pool_size.short_description = "Eligible question counts"
 
 
 class SUMitLevelAdmin(admin.ModelAdmin):
