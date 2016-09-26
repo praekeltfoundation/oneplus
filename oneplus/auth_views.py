@@ -178,7 +178,7 @@ def create_participant(learner, classs):
 
 def set_learner_password(learner):
     # generate random password
-    password = CustomUser.objects.make_random_password(length=8)
+    password = CustomUser.objects.make_random_password(length=4, allowed_chars='0123456789')
     learner.set_password(password)
     learner.save()
     return password
