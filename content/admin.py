@@ -408,12 +408,12 @@ class SUMitAdmin(admin.ModelAdmin):
     list_display = ("name", "course", "activation_date", "deactivation_date", "get_total_users",
                     "get_total_questions_answered", "get_percent_complete_all", "get_easy_questions_answered",
                     "get_percent_correct_easy", "get_normal_questions_answered", "get_percent_correct_normal",
-                    "get_advanced_questions_answered", "get_percent_correct_advanced", "get_winners", "get_is_active",
-                    "get_question_counts")
+                    "get_advanced_questions_answered", "get_percent_correct_advanced", "get_winners", "get_is_active")
     list_filter = ()
     fieldsets = [
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "event_points",
-                           "airtime", "event_badge"]})]
+                           "airtime", "event_badge", "question_counts"]})]
+    readonly_fields = ("question_counts",)
     inlines = (EventSplashPageInline, EventStartPageInline)
     form = SUMitForm
     add_form = SUMitForm
