@@ -16,7 +16,9 @@
 <div class="header">
 
     {% if user.name %}
-        <a href="/menu" class="menu" ></a>
+        {% block menu_icon %}
+            <a href="/menu" class="menu" ></a>
+        {% endblock %}
     {% else %}
         <a href="login" class="menu-login green-front">Sign In</a>
     {% endif %}
