@@ -645,8 +645,12 @@ li.down_red {
 /* button: bold */
 .bold-font { font-weight: bold; }
 .large-font {font-size: 20pt; font-weight: bold}
+.title {
+    font-size: 18pt;
+    line-height: 1.25em;
+}
 .large-font-normal {font-size: 20pt; font-weight: normal}
-.xlarge-font {font-size: 28pt; font-weight: bold;}
+.xlarge-font {font-size: 24pt; font-weight: bold;}
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
