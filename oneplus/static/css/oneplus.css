@@ -229,11 +229,10 @@ a.descriptor {
 }
 
 .menu .item {
-    height: 35px;
+    height: 36pt;
     width:100%;
     text-decoration: none;
     text-align: left;
-    padding-left: 25px;
     border-bottom: solid 1px #252525;
 }
 
@@ -323,10 +322,9 @@ a.descriptor {
 .container > p { text-align: left; padding: 16px 0px 16px 0px; margin: 0px; }
 
 .heading {
-    height: 35px;
     width: 100%;
     text-align: left;
-    padding-left: 25px;
+    padding: 0;
 }
 
 .heading a { display: inline;}
@@ -488,8 +486,8 @@ p a { display: inline;}
 
 li.icon {
     display: inline-block;
-    width: 34px;
-    height: 34px;
+    width: 36pt;
+    height: 36pt;
     background-repeat: no-repeat;
     background-position: 50% 50%;
 }
