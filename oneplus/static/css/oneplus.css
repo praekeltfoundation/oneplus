@@ -566,6 +566,10 @@ li.change_number {
     background-image: url("../img/icn_chn_number.png");
 }
 
+li.terms {
+    background-image: url("../img/terms.png");
+}
+
 .badgecontainer {
     display: block;
     position: relative;
