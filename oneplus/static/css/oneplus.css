@@ -143,16 +143,23 @@ a.descriptor {
     background-position: 50% 50%;
 }
 
-.header .menu {
+.header .menu, .header .menu-close {
     height: 50px;
     width: 27px;
     background-color: #3a3a3a;
     border: none;
     float:left;
-    background-image: url("../img/menu.png");
     background-repeat: no-repeat;
     background-position: 5px 18px;
     position: absolute;
+}
+
+.header .menu {
+    background-image: url("../img/menu.png");
+}
+
+.header .menu-close {
+    background-image: url("../img/menu_close.png");
 }
 
 @media (min-width: 30em) {
