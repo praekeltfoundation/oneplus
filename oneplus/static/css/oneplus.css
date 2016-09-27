@@ -5,10 +5,13 @@ table, html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
 /*MAIN*/
 body {
     font-family: "Arial", sans-serif;
-	font-size: 12px;
+	font-size: 12pt;
 	background-color: #2a2a2a;
 	color: #d5d5d5;
     box-sizing: border-box;
+}
+body * {
+    font-size: inherit;
 }
 
 input[type=submit], input[type=text], input[type=password], select {
@@ -43,7 +46,7 @@ input[type=submit], input[type=text], input[type=password], select {
 
 
 div { box-sizing: border-box; }
-h1 { margin: 0px 0px 16px 0px; }
+h1 { margin: 16px 0px 16px 0px; }
 p { margin: 16px 0px 16px 0px; line-height: 1.1em; }
 a { padding: 0px 0px 5px 0px;
     text-decoration: none;
@@ -57,19 +60,18 @@ button {white-space: nowrap; }
 
 .button {
     display: block;
-    height: 35px;
-    line-height: 35px;
     text-decoration: none;
     text-align: center;
     border: none;
     width: 100%;
-    padding: 0px;
+    padding: 1.25em 0;
     margin-top:10px;
     margin-bottom: 10px;
     border: 1px solid rgb(237, 246, 223);
     border-bottom: 1px solid rgb(0, 105, 0);
     border-right: 1px solid rgb(0, 105, 0);
-    font-size: 120%;
+    font-size: 100%;
+    font-weight: bold;
 }
 .link {
     background: none;
@@ -92,10 +94,19 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     width: 100%
 }
 
+.descriptor, .descriptor > a {
+    font-size: 12pt;
+}
+
+a.descriptor {
+    font-weight: bold;
+}
+
 .header {
     height: 50px;
     line-height: 50px;
     background-color: #3a3a3a;
+    padding: 0 1.25em;
     width: 100%;
 }
 
@@ -105,9 +116,10 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 .header .menu-login {
     float:left;
-    margin: 0px 0px 0px 5px;
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0;
     padding: 0px;
-    width: 45px;
     position: absolute;
 }
 
@@ -256,11 +268,10 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 
 .footer {
-    height: 60px;
     width: 100%;
     color: #646464;
-    padding-top: 12px;
-    padding-bottom: 0px;
+    line-height: 1.5em;
+    padding: 1.5em 0;
 }
 
 .footer a {
@@ -278,7 +289,7 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 }
 
 .content {
-    padding: 1em 0.5em;
+    padding: 0 1.5em;
 }
 
 @media (min-width: 30em) {
@@ -629,13 +640,20 @@ li.down_red {
     background-image: url("../img/down_arrow_red.png");
 }
 
+/* large-font -> title */
+/* xlarge-font -> logo-size */
+/* normal -> body-copy */
+/* descriptor: normal, but bold, light-grey */
+/* button: bold */
 .bold-font { font-weight: bold; }
-.large-font {font-size: 20px; font-weight: bold}
-.large-font-normal {font-size: 20px; font-weight: normal}
-.xlarge-font {font-size: 39px; font-weight: bold}
+.large-font {font-size: 20pt; font-weight: bold}
+.large-font-normal {font-size: 20pt; font-weight: normal}
+.xlarge-font {font-size: 28pt; font-weight: bold;}
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
+
+p {font-size: 12pt; line-height: 1.5em;}
 
 .comment > input[type=text]{
     padding-right: 50px;
