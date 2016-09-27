@@ -341,7 +341,6 @@ p a { display: inline;}
 }
 
 .dayheading {
-    height: 40px;
     width: 100%;
     background-color: #333333;
     display: -webkit-flex;
@@ -350,42 +349,34 @@ p a { display: inline;}
 
 .dayheading div {
     position: relative;
-    height: 40px;
+    padding: 1em 0;
     width: 20%;
     text-align: center;
     float:left;
-    border-top: solid 2px #282828;
-    border-bottom: solid 2px #282828;
+}
+
+.dayheading p {
+    line-height: 1em;
 }
 
 .dayheading .past {
     color: #5a5a5a;
-    border-bottom: solid 2px #28e68e;
 }
 
 .dayheading .present {
     color: #28e68e;
-    border-bottom: solid 2px #282828;
 }
 
-.dayheading .present:after{content:""; background: #28e68e; position: absolute; bottom: 0; left: 0; width: 50%; height: 2px; margin-bottom: -2px;}
 
 .dayheading .future {
     color: #202020;
 }
 
 .weeksummary {
-    height: 70px;
     width: 100%;
     background-color: #333333;
     border-top: solid 1px #232323;
-    display: -webkit-flex;
-    display: flex;
-}
-
-.weeksummary > div > div {
-    height: 66px;
-    width: 50%;
+    display: block;
 }
 
 .weeksummary > div > .left-font {
@@ -393,9 +384,9 @@ p a { display: inline;}
 }
 
 
-.weeksummary .badge {border-bottom: solid 4px #46bbe1; width: 33%;  float:left;}
-.weeksummary .point {border-bottom: solid 4px #e3643a; width: 34%;  float:left;}
-.weeksummary .place {border-bottom: solid 4px #e4263e; width: 33%;  float:right;}
+.weeksummary .badge {background-color: #e4263e; width: 100%;}
+.weeksummary .point {background-color: #e3643a; width: 100%;}
+.weeksummary .place {background-color: #e3643a; width: 100%;}
 
 .white_back {
     text-align: left;
