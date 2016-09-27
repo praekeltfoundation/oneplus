@@ -27,9 +27,9 @@
                 </div>
                 <div class="content narrow ">
                     {% if preview %}
-                        <form action="/preview/{{ question.id }}" method="post" class="pad-bottom">{% csrf_token %}
+                        <form action="/preview/{{ question.id }}" method="post">{% csrf_token %}
                     {% else %}
-                        <form action="next" method="post" class="pad-bottom">{% csrf_token %}
+                        <form action="next" method="post">{% csrf_token %}
                     {% endif %}
                             {% for opt in question.testingquestionoption_set.all %}
                                 <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
@@ -42,7 +42,7 @@
                             {% endfor %}
                             <br/>
                             <div>
-                                <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
+                                <input type="submit" class="button green-back grey-front" value="Submit Answer"/>
                             </div>
                         </form>
                 </div>
@@ -50,8 +50,8 @@
         {% endautoescape %}
 
         {% if not preview %}
-            <div class="content narrow darkgrey-back pad-top">
-                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next"><b>here</b></a></p>
+            <div class="content narrow darkgrey-back">
+                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next">here</a></p>
             </div>
         {% endif %}
 
