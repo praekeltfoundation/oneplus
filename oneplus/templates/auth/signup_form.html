@@ -6,7 +6,7 @@
 
     <div class="content">
         <h1 class="green-front xlarge-font center-font">Sign Up</h1>
-        <p class="center-font">To sign up please complete the following information:</p>
+        <p>To sign up please complete the following information:</p>
 		<form action="signup_form" method="post" class="signup">
 			{% csrf_token %}
 
@@ -55,7 +55,7 @@
             <p>
                 Select your province:<br>
                 <select name="province" id="id_province">
-                    <option value="0">- - - - - - - -</option>
+                    <option value="0">Select</option>
                     {% for province in provinces %}
                         <option value="{{ province }}">{{ province }}</option>
                     {% endfor %}
