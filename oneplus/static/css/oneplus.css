@@ -784,6 +784,14 @@ p {font-size: 12pt; line-height: 1.5em;}
     margin-right: 1em;
 }
 
+table.borderless {
+    margin-bottom:1em
+}
+
+table.borderless td {
+    padding: 0.25em 0;
+}
+
 
 /*
 .comment > button{
