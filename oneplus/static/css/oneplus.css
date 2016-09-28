@@ -23,6 +23,7 @@ input[type=submit], input[type=text], input[type=password], select {
 .darkgrey-front { color: #191919; }
 .grey-front { color: #2a2a2a; }
 .lightgrey-front { color: #5b5b5b; }
+.superlightgrey-front { color: #d5d5d5; }
 .green-front { color: #28e690; }
 .cyan-front { color: #46bbe1; }
 .blue-front { color: #4688e1; }
@@ -34,8 +35,9 @@ input[type=submit], input[type=text], input[type=password], select {
 
 .white-back { background-color: #ffffff; }
 .darkgrey-back { background-color: #191919; }
-.lightgrey-back { background-color: #5b5b5b; }
 .grey-back { background-color: #2a2a2a; }
+.lightgrey-back { background-color: #5b5b5b; }
+.superlightgrey-front { color: #d5d5d5; }
 .green-back { background-color: #28e690; }
 .cyan-back { background-color: #46bbe1; }
 .blue-back { background-color: #4688e1; }
@@ -108,6 +110,7 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 .descriptor, .descriptor > a {
     font-size: 12pt;
+    line-height: 1.5em;
 }
 
 a.descriptor {
@@ -348,6 +351,9 @@ a.descriptor {
 
 .heading a { display: inline;}
 .heading form {margin-right: 10px;}
+.heading p:first-child {
+    padding: 1em 1.5em;
+}
 
 p a { display: inline;}
 
@@ -668,6 +674,11 @@ li.down_red {
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
+
+.post-content p {
+    margin: 0;
+    line-height: 1.5em;
+}
 
 p {font-size: 12pt; line-height: 1.5em;}
 
