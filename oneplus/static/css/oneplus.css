@@ -121,7 +121,7 @@ a.descriptor {
     height: 50px;
     line-height: 50px;
     background-color: #3a3a3a;
-    padding: 0 1.25em;
+    padding: 0;
     width: 100%;
 }
 
@@ -133,9 +133,21 @@ a.descriptor {
     float:left;
     font-size: 12pt;
     font-weight: bold;
-    margin: 0;
+    margin: 0 0.5em;
     padding: 0px;
     position: absolute;
+}
+
+.header .home-signout {
+    color: #ffffff;
+    float: right;
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0.5em;
+    padding: 0px;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 .header .logo {
@@ -146,23 +158,32 @@ a.descriptor {
     background-position: 50% 50%;
 }
 
-.header .menu, .header .menu-close {
+.header .menu, .header .menu-close, .header .home {
     height: 50px;
     width: 27px;
+    margin: 0 0.5em;
     background-color: #3a3a3a;
     border: none;
-    float:left;
     background-repeat: no-repeat;
     background-position: 5px 18px;
     position: absolute;
 }
 
 .header .menu {
-    background-image: url("../img/menu.png");
+    background-image: url("../img/menu-white.png");
+    float: left;
 }
 
 .header .menu-close {
-    background-image: url("../img/menu_close.png");
+    background-image: url("../img/menu_close-white.png");
+    float: left;
+}
+
+.header .home {
+    background-image: url("../img/icn_home-white.png");
+    float: right;
+    top: 0;
+    right: 0;
 }
 
 @media (min-width: 30em) {
@@ -255,7 +276,7 @@ a.descriptor {
     width:100%;
     text-decoration: none;
     text-align: left;
-    border-bottom: solid 1px #252525;
+    border-bottom: solid 1px #5b5b5b;
 }
 
 .menu .item-large {
@@ -574,6 +595,54 @@ li.change_number {
 
 li.terms {
     background-image: url("../img/terms.png");
+}
+
+li.badges-color {
+    background-image: url("../img/icn_badges-purple.png");
+}
+
+li.blog-color {
+    background-image: url("../img/icn_blog-blue.png");
+}
+
+li.chat-color {
+    background-image: url("../img/icn_chat-orange.png");
+}
+
+li.inbox-color {
+    background-image: url("../img/icn_inbox-orange.png");
+}
+
+li.leaderboard-color {
+    background-image: url("../img/icn_leaderboard-purple.png");
+}
+
+li.welcome-color {
+    background-image: url("../img/icn_welcome-green.png");
+}
+
+li.faq-color {
+    background-image: url("../img/icn_faq-blue.png");
+}
+
+li.ontrack-color {
+    background-image: url("../img/icn_ontrack-green.png");
+}
+
+li.points-color {
+    background-image: url("../img/icn_points-purple.png");
+}
+
+li.user-color {
+    background-image: url("../img/icn_user_white.png");
+}
+
+li.home-color {
+    background-image: url("../img/icn_home-white.png");
+}
+
+li.change_number-color {
+    background-image: url("../img/icn_chn_number-white.png");
 }
 
 .badgecontainer {

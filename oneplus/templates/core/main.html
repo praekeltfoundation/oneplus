@@ -24,6 +24,11 @@
     {% endif %}
 
     <a href="/home" class="logo"></a>
+    {% if user.name %}
+        {% block home_icon %}
+            <a href="/home" class="home" ></a>
+        {% endblock %}
+    {% endif %}
 </div>
 
 
