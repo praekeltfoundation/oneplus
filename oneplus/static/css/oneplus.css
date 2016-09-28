@@ -269,6 +269,7 @@ a.descriptor {
 .menu {
     background-color: #2a2a2a;
     width: 100%;
+    border-top: solid 1px #5b5b5b;
 }
 
 .menu .item {

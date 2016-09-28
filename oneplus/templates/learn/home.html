@@ -87,23 +87,23 @@
         </form>
     {% endif %}
 
-    <div class="menu">
+    <div class="menu" style="margin-top:1em">
         <a href="/badges">
-            <div class="item text red-back darkgrey-front">
-                <li class="icon badges"></li>
-                <p>Badges: <b>{{ state.home_badges }}</b></p>
+            <div class="item text grey-back darkgrey-front">
+                <li class="icon badges-color"></li>
+                <p class="white-front">Badges: <b>{{ state.home_badges }}</b></p>
             </div>
         </a>
         <a href="/points">
-            <div class="item text orange-back darkgrey-front">
-                <li class="icon points"></li>
-                <p>Points: <b>{{ state.home_points }}</b></p>
+            <div class="item text grey-back darkgrey-front">
+                <li class="icon points-color"></li>
+                <p class="white-front">Points: <b>{{ state.home_points }}</b></p>
             </div>
         </a>
         <a href="/leader">
-            <div class="item text orange-back darkgrey-front">
-                <li class="icon leaderboard"></li>
-                <p>Place: <b>{{ state.home_position|ordinal }}</b></p>
+            <div class="item text grey-back darkgrey-front">
+                <li class="icon leaderboard-color"></li>
+                <p class="white-front">Place: <b>{{ state.home_position|ordinal }}</b></p>
             </div>
         </a>
 
