@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="menu">
-    <a href="/menu"><div class="text heading red-back darkgrey-front"><li class="icon badges"></li><p>Badges</p></div></a>
+    <a href="/menu"><div class="text heading purple-back darkgrey-front"><li class="icon badges"></li><p>Badges</p></div></a>
 </div>
     <div class="text heading darkgrey-back"><p>The badges you've earned</p></div>
 
@@ -12,7 +12,7 @@
         {% for badge in badges %}
             <div class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
                 {% if badge.achieved %}
-                    <div class="badge-counter red-back">{{ badge.count }}</div>
+                    <div class="badge-counter purple-back">{{ badge.count }}</div>
                 {% endif %}
                 {% if badge.image %}
                     <img class="badge" src="{{ badge.image.url }}">
