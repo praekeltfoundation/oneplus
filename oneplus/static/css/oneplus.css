@@ -280,6 +280,10 @@ a.descriptor {
     border-bottom: solid 1px #5b5b5b;
 }
 
+.menu .item p:first-child {
+    padding: 0 1.5em;
+}
+
 .menu .item-large {
     height: auto;
     width:100%;
@@ -695,7 +699,6 @@ img.badge {
 
 .right {
     float: right;
-    padding-right: 14px;
 }
 
 .pull-left { float:left;}
