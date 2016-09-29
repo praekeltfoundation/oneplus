@@ -33,7 +33,7 @@
 
     {% if sumit %}
         <div class="center-font content darkgrey-back">
-            <div class="pad-bottom"><span class="large-font">SUMit! Week</span></div>
+            <div class="pad-bottom"><span class="large-font-normal">SUMit! Week</span></div>
             <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
             <div>
                 <span class="text-line">
@@ -57,9 +57,9 @@
 
     {% if not state.questions_complete %}
         {% if state.home_tasks_week >= 15 %}
-            <p class="green-front large-font">This week's revision complete. Come back Monday for more{% if redo %} or <a class="redo" href="redo">redo your incorrect answers</a>{% endif %}.</p>
+            <p class="green-front large-font-normal">This week's revision complete. Come back Monday for more{% if redo %} or <a class="redo" href="redo">redo your incorrect answers</a>{% endif %}.</p>
         {% elif state.home_tasks_today >= state.home_required_tasks %}
-            <p class="green-front large-font">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="redo" href="redo">redo your incorrect answers</a>{% endif %}.</p>
+            <p class="green-front large-font-normal">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="redo" href="redo">redo your incorrect answers</a>{% endif %}.</p>
         {% else %}
             {% if not sumit %}
                 <a class="button green-back grey-front" href="next">Take Challenge</a>
@@ -68,7 +68,7 @@
             {% endif %}
         {%  endif %}
     {% else %}
-         <p class="green-front large-font">You've finished all of the dig-it questions!
+         <p class="green-front large-font-normal">You've finished all of the dig-it questions!
              We'll send you an SMS when we have more questions for you.</p>
     {% endif %}
 
