@@ -15,34 +15,35 @@
         <div class="text heading darkgrey-back"><p>Q {{ state.next_tasks_today }}/{{ state.total_tasks_today }}{{ points }}</p></div>
 
         {% if golden_egg and golden_egg.question == True %}
-            <div class="text heading darkgrey-back center-font padding-bottom"><p class="large-font">You’ve found the Golden Egg!</p></div>
-            <div class="center-font darkgrey-back padding-bottom"><img src="{{ golden_egg.url }}"></div>
+            <div class="text heading darkgrey-back center-font"><p class="large-font">You’ve found the Golden Egg!</p></div>
+            <div class="center-font darkgrey-back"><img src="{{ golden_egg.url }}"></div>
         {% endif %}
 
         {% autoescape off %}
             {{ state.question_id }}
             <div class="white-back darkgrey-front">
-                <div class="question-padding">
-                    {{ question.question_content | format_content }}
-                </div>
                 <div class="content narrow ">
+                    <div class="question-padding">
+                        {{ question.question_content | format_content }}
+                    </div>
                     {% if preview %}
-                        <form action="/preview/{{ question.id }}" method="post" class="pad-bottom">{% csrf_token %}
+                        <form action="/preview/{{ question.id }}" method="post">{% csrf_token %}
                     {% else %}
-                        <form action="next" method="post" class="pad-bottom">{% csrf_token %}
+                        <form action="next" method="post">{% csrf_token %}
                     {% endif %}
                             {% for opt in question.testingquestionoption_set.all %}
-                                <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
                                 <label class="label-question" for="answer_{{ opt.id }}">
-                                {% if opt.content %}
-                                    <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
-                                {% else %}
-                                    {{ opt.name }} </label><br/><br/>
-                                {% endif %}
+                                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                                    {% if opt.content %}
+                                        <div class="align-option">{{ opt.content | format_option  }}</div>
+                                    {% else %}
+                                        <div class="align-option">{{ opt.name }}</div>
+                                    {% endif %}
+                                </label>
                             {% endfor %}
                             <br/>
                             <div>
-                                <input type="submit" class="button green-back grey-front drop" value="Submit Answer"/>
+                                <input type="submit" class="button green-back grey-front" value="Submit Answer"/>
                             </div>
                         </form>
                 </div>
@@ -50,8 +51,8 @@
         {% endautoescape %}
 
         {% if not preview %}
-            <div class="content narrow darkgrey-back pad-top">
-                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next"><b>here</b></a></p>
+            <div class="content narrow darkgrey-back">
+                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next">here</a></p>
             </div>
         {% endif %}
 

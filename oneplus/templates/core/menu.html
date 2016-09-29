@@ -1,18 +1,22 @@
 {% extends "core/main.html" %}
 
+{% block menu_icon %}
+    <a href="/home" class="menu-close" ></a>
+{% endblock %}
+
 {% block content %}
     <div class="menu">
-        <a href="/welcome"><div class="item text green-back darkgrey-front"><li class="icon welcome"></li><p>Welcome</p></div></a>
-        <a href="/ontrack"><div class="item text green-back darkgrey-front"><li class="icon ontrack"></li><p>On Track</p></div></a>
-        <a href="/chat"><div class="item text blue-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
-        <a href="/changedetails"><div class="item text blue-back darkgrey-front"><li class="icon change_number"></li><p>Change Number/Email</p></div></a>
-        <a href="/faq"><div class="item text purple-back darkgrey-front"><li class="icon faq"></li><p>FAQ</p></div></a>
-        <a href="/blog"><div class="item text purple-back darkgrey-front"><li class="icon blog"></li><p>Stories</p></div></a>
-        <a href="/badges"><div class="item text red-back darkgrey-front"><li class="icon badges"></li><p>Badges</p></div></a>
-        <a href="/leader"><div class="item text orange-back darkgrey-front"><li class="icon leaderboard"></li><p>Leaderboard</p></div></a>
-        <a href="/points"><div class="item text orange-back darkgrey-front"><li class="icon points"></li><p>Points</p></div></a>
-        <a href="/inbox"><div class="item text yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox{% if state.inbox_unread > 0 %} ({{ state.inbox_unread }}){% endif %}</p></div></a>
-        <a href="/home"><div class="item text yellow-back darkgrey-front"><li class="icon home"></li><p>Home</p></div></a>
-        <a href="/signout"><div class="item text grey-back white-front"><li class="icon user"></li><p>Logout</p></div></a>
+        <a href="/welcome"><div class="item text grey-back white-front"><li class="icon welcome-color"></li><p>Welcome</p></div></a>
+        <a href="/ontrack"><div class="item text grey-back white-front"><li class="icon ontrack-color"></li><p>On Track</p></div></a>
+        <a href="/blog"><div class="item text grey-back white-front"><li class="icon blog-color"></li><p>Stories</p></div></a>
+        <a href="/faq"><div class="item text grey-back white-front"><li class="icon faq-color"></li><p>FAQ</p></div></a>
+        <a href="/badges"><div class="item text grey-back white-front"><li class="icon badges-color"></li><p>Badges</p></div></a>
+        <a href="/leader"><div class="item text grey-back white-front"><li class="icon leaderboard-color"></li><p>Leaderboard</p></div></a>
+        <a href="/points"><div class="item text grey-back white-front"><li class="icon points-color"></li><p>Points</p></div></a>
+        <a href="/chat"><div class="item text grey-back white-front"><li class="icon chat-color"></li><p>Chat Groups</p></div></a>
+        <a href="/inbox"><div class="item text grey-back white-front"><li class="icon inbox-color"></li><p>Inbox{% if state.inbox_unread > 0 %} ({{ state.inbox_unread }}){% endif %}</p></div></a>
+        <a href="/home"><div class="item text grey-back white-front"><li class="icon home-color"></li><p>Home</p></div></a>
+        <a href="/changedetails"><div class="item text grey-back white-front"><li class="icon change_number-color"></li><p>Change Number/Email</p></div></a>
+        <a href="/signout"><div class="item text grey-back white-front"><li class="icon user-color"></li><p>Logout</p></div></a>
     </div>
 {% endblock %}

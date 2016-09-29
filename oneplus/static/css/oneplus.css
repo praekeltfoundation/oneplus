@@ -4,11 +4,15 @@ table, html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p,
 
 /*MAIN*/
 body {
-    font-family: "Century Gothic", CenturyGothic, AppleGothic, sans-serif;
-	font-size: 12px;
+    font-family: "Arial", sans-serif;
+	font-size: 12pt;
 	background-color: #2a2a2a;
 	color: #d5d5d5;
     box-sizing: border-box;
+    height: 100%;
+}
+body * {
+    font-size: inherit;
 }
 
 input[type=submit], input[type=text], input[type=password], select {
@@ -20,6 +24,7 @@ input[type=submit], input[type=text], input[type=password], select {
 .darkgrey-front { color: #191919; }
 .grey-front { color: #2a2a2a; }
 .lightgrey-front { color: #5b5b5b; }
+.superlightgrey-front { color: #d5d5d5; }
 .green-front { color: #28e690; }
 .cyan-front { color: #46bbe1; }
 .blue-front { color: #4688e1; }
@@ -31,8 +36,9 @@ input[type=submit], input[type=text], input[type=password], select {
 
 .white-back { background-color: #ffffff; }
 .darkgrey-back { background-color: #191919; }
-.lightgrey-back { background-color: #5b5b5b; }
 .grey-back { background-color: #2a2a2a; }
+.lightgrey-back { background-color: #5b5b5b; }
+.superlightgrey-front { color: #d5d5d5; }
 .green-back { background-color: #28e690; }
 .cyan-back { background-color: #46bbe1; }
 .blue-back { background-color: #4688e1; }
@@ -43,7 +49,7 @@ input[type=submit], input[type=text], input[type=password], select {
 
 
 div { box-sizing: border-box; }
-h1 { margin: 0px 0px 16px 0px; }
+h1 { margin: 16px 0px 16px 0px; }
 p { margin: 16px 0px 16px 0px; line-height: 1.1em; }
 a { padding: 0px 0px 5px 0px;
     text-decoration: none;
@@ -57,23 +63,34 @@ button {white-space: nowrap; }
 
 .button {
     display: block;
-    height: 35px;
-    line-height: 35px;
     text-decoration: none;
     text-align: center;
     border: none;
     width: 100%;
-    padding: 0px;
+    padding: 1.25em 0;
     margin-top:10px;
     margin-bottom: 10px;
     border: 1px solid rgb(237, 246, 223);
     border-bottom: 1px solid rgb(0, 105, 0);
     border-right: 1px solid rgb(0, 105, 0);
-    font-size: 120%;
+    font-size: 100%;
+    font-weight: bold;
 }
 .link {
     background: none;
     border:none;
+}
+
+.link-button {
+    background: none;
+    padding: 0;
+    border: none;
+    width: 100%;
+    font-weight: bold;
+}
+
+.spaced-links a {
+    padding: 1em 0;
 }
 
 input[type=text],input[type=password], select { width: 100%; background-color: #444444; height: 35px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
@@ -92,10 +109,24 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     width: 100%
 }
 
+.descriptor, .descriptor > a {
+    font-size: 12pt;
+    line-height: 1.5em;
+}
+
+p a {
+    font-weight: bold;
+}
+
+a.descriptor {
+    font-weight: bold;
+}
+
 .header {
     height: 50px;
     line-height: 50px;
     background-color: #3a3a3a;
+    padding: 0;
     width: 100%;
 }
 
@@ -105,10 +136,23 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 .header .menu-login {
     float:left;
-    margin: 0px 0px 0px 5px;
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0.5em;
     padding: 0px;
-    width: 45px;
     position: absolute;
+}
+
+.header .home-signout {
+    color: #ffffff;
+    float: right;
+    font-size: 12pt;
+    font-weight: bold;
+    margin: 0 0.5em;
+    padding: 0px;
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 .header .logo {
@@ -119,24 +163,39 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     background-position: 50% 50%;
 }
 
-.header .menu {
+.header .menu, .header .menu-close, .header .home {
     height: 50px;
     width: 27px;
+    margin: 0 0.5em;
     background-color: #3a3a3a;
     border: none;
-    float:left;
-    background-image: url("../img/menu.png");
     background-repeat: no-repeat;
     background-position: 5px 18px;
     position: absolute;
 }
 
+.header .menu {
+    background-image: url("../img/menu-white.png");
+    float: left;
+}
+
+.header .menu-close {
+    background-image: url("../img/menu_close-white.png");
+    float: left;
+}
+
+.header .home {
+    background-image: url("../img/icn_home-white.png");
+    float: right;
+    top: 0;
+    right: 0;
+}
+
 @media (min-width: 30em) {
     .header .menu-login {
         float:left;
-        margin: 0px 0px 0px 17px;
+        margin: 0 0.5em;
         padding: 0px;
-        width: 50px;
     }
 
     .header .menu {
@@ -145,7 +204,7 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
         background-color: #3a3a3a;
         border: none;
         float:left;
-        background-image: url("../img/menu.png");
+        background-image: url("../img/menu-white.png");
         background-repeat: no-repeat;
         background-position: 17px 18px;
     }
@@ -214,15 +273,19 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 .menu {
     background-color: #2a2a2a;
     width: 100%;
+    border-top: solid 1px #5b5b5b;
 }
 
 .menu .item {
-    height: 35px;
+    height: 36pt;
     width:100%;
     text-decoration: none;
     text-align: left;
-    padding-left: 25px;
-    border-bottom: solid 1px #252525;
+    border-bottom: solid 1px #5b5b5b;
+}
+
+.menu .item p:first-child {
+    padding: 0 1.5em;
 }
 
 .menu .item-large {
@@ -256,11 +319,10 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 
 
 .footer {
-    height: 60px;
     width: 100%;
     color: #646464;
-    padding-top: 12px;
-    padding-bottom: 0px;
+    line-height: 1.5em;
+    padding: 1.5em 0;
 }
 
 .footer a {
@@ -278,7 +340,7 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 }
 
 .content {
-    padding: 1em 0.5em;
+    padding: 0 1.5em;
 }
 
 @media (min-width: 30em) {
@@ -288,16 +350,17 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 }
 
 .content.narrow {
-    padding: 15px 25px 15px 25px;
+    padding: 1em 2em;
+    margin: 0;
 }
 
 .question-padding {
-    padding: 0px;
+    padding: 0.5em 0;
 }
 
 @media (min-width: 30em) {
     .question-padding {
-         padding: 15px 25px 15px 25px;
+         padding: 15px 25px;
     }
 }
 
@@ -312,14 +375,16 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
 .container > p { text-align: left; padding: 16px 0px 16px 0px; margin: 0px; }
 
 .heading {
-    height: 35px;
     width: 100%;
     text-align: left;
-    padding-left: 25px;
+    padding: 0;
 }
 
 .heading a { display: inline;}
 .heading form {margin-right: 10px;}
+.heading p:first-child {
+    padding: 1em 1.5em;
+}
 
 p a { display: inline;}
 
@@ -332,7 +397,6 @@ p a { display: inline;}
 }
 
 .dayheading {
-    height: 40px;
     width: 100%;
     background-color: #333333;
     display: -webkit-flex;
@@ -341,42 +405,34 @@ p a { display: inline;}
 
 .dayheading div {
     position: relative;
-    height: 40px;
+    padding: 1em 0;
     width: 20%;
     text-align: center;
     float:left;
-    border-top: solid 2px #282828;
-    border-bottom: solid 2px #282828;
+}
+
+.dayheading p {
+    line-height: 1em;
 }
 
 .dayheading .past {
     color: #5a5a5a;
-    border-bottom: solid 2px #28e68e;
 }
 
 .dayheading .present {
     color: #28e68e;
-    border-bottom: solid 2px #282828;
 }
 
-.dayheading .present:after{content:""; background: #28e68e; position: absolute; bottom: 0; left: 0; width: 50%; height: 2px; margin-bottom: -2px;}
 
 .dayheading .future {
     color: #202020;
 }
 
 .weeksummary {
-    height: 70px;
     width: 100%;
     background-color: #333333;
     border-top: solid 1px #232323;
-    display: -webkit-flex;
-    display: flex;
-}
-
-.weeksummary > div > div {
-    height: 66px;
-    width: 50%;
+    display: block;
 }
 
 .weeksummary > div > .left-font {
@@ -384,9 +440,9 @@ p a { display: inline;}
 }
 
 
-.weeksummary .badge {border-bottom: solid 4px #46bbe1; width: 33%;  float:left;}
-.weeksummary .point {border-bottom: solid 4px #e3643a; width: 34%;  float:left;}
-.weeksummary .place {border-bottom: solid 4px #e4263e; width: 33%;  float:right;}
+.weeksummary .badge {background-color: #e4263e; width: 100%;}
+.weeksummary .point {background-color: #e3643a; width: 100%;}
+.weeksummary .place {background-color: #e3643a; width: 100%;}
 
 .white_back {
     text-align: left;
@@ -477,8 +533,8 @@ p a { display: inline;}
 
 li.icon {
     display: inline-block;
-    width: 34px;
-    height: 34px;
+    width: 36pt;
+    height: 36pt;
     background-repeat: no-repeat;
     background-position: 50% 50%;
 }
@@ -532,7 +588,7 @@ li.user {
 }
 
 li.information {
-    background-image: url("../img/icn_about.png");
+    background-image: url("../img/about_us.png");
 }
 
 li.home {
@@ -547,6 +603,58 @@ li.change_number {
     background-image: url("../img/icn_chn_number.png");
 }
 
+li.terms {
+    background-image: url("../img/terms.png");
+}
+
+li.badges-color {
+    background-image: url("../img/icn_badges-purple.png");
+}
+
+li.blog-color {
+    background-image: url("../img/icn_blog-blue.png");
+}
+
+li.chat-color {
+    background-image: url("../img/icn_chat-orange.png");
+}
+
+li.inbox-color {
+    background-image: url("../img/icn_inbox-orange.png");
+}
+
+li.leaderboard-color {
+    background-image: url("../img/icn_leaderboard-purple.png");
+}
+
+li.welcome-color {
+    background-image: url("../img/icn_welcome-green.png");
+}
+
+li.faq-color {
+    background-image: url("../img/icn_faq-blue.png");
+}
+
+li.ontrack-color {
+    background-image: url("../img/icn_ontrack-green.png");
+}
+
+li.points-color {
+    background-image: url("../img/icn_points-purple.png");
+}
+
+li.user-color {
+    background-image: url("../img/icn_user_white.png");
+}
+
+li.home-color {
+    background-image: url("../img/icn_home-white.png");
+}
+
+li.change_number-color {
+    background-image: url("../img/icn_chn_number-white.png");
+}
+
 .badgecontainer {
     display: block;
     position: relative;
@@ -558,11 +666,11 @@ li.change_number {
 
 .badge-counter{
     border-radius: 100%;
-    height: 22px;
-    width: 22px !important;
-    left: 48px;
+    height: 28px;
+    width: 28px !important;
+    left: 42px;
     text-align: center;
-    line-height: 22px;
+    line-height: 28px;
     border: 1px solid black;
     position: relative;
     margin-top: 0px !important;
@@ -596,12 +704,12 @@ img.badge {
 
 .right {
     float: right;
-    padding-right: 14px;
 }
 
 .pull-left { float:left;}
 .pull-right { float:right;}
 .clear { clear: both; }
+.clearfix { overflow: auto; }
 
 div.award-badge {
     display: block;
@@ -629,13 +737,29 @@ li.down_red {
     background-image: url("../img/down_arrow_red.png");
 }
 
+/* large-font -> title */
+/* xlarge-font -> logo-size */
+/* normal -> body-copy */
+/* descriptor: normal, but bold, light-grey */
+/* button: bold */
 .bold-font { font-weight: bold; }
-.large-font {font-size: 20px; font-weight: bold}
-.large-font-normal {font-size: 20px; font-weight: normal}
-.xlarge-font {font-size: 39px; font-weight: bold}
+.large-font {font-size: 20pt; font-weight: bold}
+.title {
+    font-size: 18pt;
+    line-height: 1.25em;
+}
+.large-font-normal {font-size: 20pt; font-weight: normal}
+.xlarge-font {font-size: 24pt; font-weight: bold;}
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
+
+.post-content p {
+    margin: 0;
+    line-height: 1.5em;
+}
+
+p {font-size: 12pt; line-height: 1.5em;}
 
 .comment > input[type=text]{
     padding-right: 50px;
@@ -667,6 +791,14 @@ li.down_red {
     vertical-align: middle;
     display: inline-block;
     margin-right: 1em;
+}
+
+table.borderless {
+    margin-bottom:1em
+}
+
+table.borderless td {
+    padding: 0.25em 0;
 }
 
 
@@ -712,15 +844,24 @@ li.down_red {
 .pad-bottom { padding-bottom:25px !important; }
 .pad-top { padding-top:30px !important; }
 
-.label-question{
-    vertical-align:middle !important;
-    padding-top: 8px;
-    padding-bottom: 8px
+label.label-question {
+    width: 100%;
+    font-size: 12pt;
+    display: block;
+    margin: 1em 0;
+}
+
+.label-question input[type=radio] {
+    float: left;
+    margin: 0;
+    height: 10pt;
+    width: 10pt;
 }
 
 .align-option{
-    vertical-align: middle;
-    display: inline-block;
+    margin: 0 0 0 1em;
+    vertical-align: top;
+    display: block;
 }
 
 ul.bullets{
