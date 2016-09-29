@@ -412,8 +412,8 @@ class SUMitAdmin(admin.ModelAdmin):
     list_filter = ()
     fieldsets = [
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "event_points",
-                           "airtime", "event_badge", "question_counts_html"]})]
-    readonly_fields = ("question_counts_html",)
+                           "airtime", "event_badge", "question_counts"]})]
+    readonly_fields = ("question_counts",)
     inlines = (EventSplashPageInline, EventStartPageInline)
     form = SUMitForm
     add_form = SUMitForm
@@ -497,7 +497,7 @@ class SUMitAdmin(admin.ModelAdmin):
     get_is_active.allow_tags = True
 
     def get_question_pool_size(self, obj):
-        question_counts = SUMit.get(event=obj).get_question_counts()
+        question_counts = SUMit.get(event=obj).get_question_counts_html()
         print str(question_counts)
         return str(question_counts)
     get_question_pool_size.short_description = "Eligible question counts"

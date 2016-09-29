@@ -324,11 +324,15 @@ class Event(models.Model):
 
     def get_question_counts_html(self):
         counts = self.get_question_counts()
-        html_str = format_html("<span>Easy: {}/15</span><br/><span>Normal: {}/11</span><br/><span>Hard: {}/5</span>",
-                               counts['easy'], counts['normal'], counts['advanced'])
+        html_str = format_html("<span style=\"color:{}\">Easy: {}/15</span><br/>" +
+                               "<span style=\"color:{}\">Normal: {}/11</span><br/>" +
+                               "<span style=\"color:{}\">Hard: {}/5</span>",
+                               "#880000" if counts['easy'] < 15 else "#008800", counts['easy'],
+                               "#880000" if counts['normal'] < 11 else "#008800", counts['normal'],
+                               "#880000" if counts['advanced'] < 5 else "#008800", counts['advanced'])
         return html_str
 
-    question_counts_html = property(get_question_counts_html)
+    question_counts = property(get_question_counts_html)
 
 
 class EventStartPage(models.Model):
