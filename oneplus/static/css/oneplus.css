@@ -9,6 +9,7 @@ body {
 	background-color: #2a2a2a;
 	color: #d5d5d5;
     box-sizing: border-box;
+    height: 100%;
 }
 body * {
     font-size: inherit;
@@ -113,6 +114,10 @@ textarea { width: 100%; background-color: #444444; height: 80px; border:none; co
     line-height: 1.5em;
 }
 
+p a {
+    font-weight: bold;
+}
+
 a.descriptor {
     font-weight: bold;
 }
@@ -200,7 +205,7 @@ a.descriptor {
         background-color: #3a3a3a;
         border: none;
         float:left;
-        background-image: url("../img/menu.png");
+        background-image: url("../img/menu-white.png");
         background-repeat: no-repeat;
         background-position: 17px 18px;
     }
@@ -346,16 +351,17 @@ a.descriptor {
 }
 
 .content.narrow {
-    padding: 15px 25px 15px 25px;
+    padding: 1em 2em;
+    margin: 0;
 }
 
 .question-padding {
-    padding: 0px;
+    padding: 0.5em 0;
 }
 
 @media (min-width: 30em) {
     .question-padding {
-         padding: 15px 25px 15px 25px;
+         padding: 15px 25px;
     }
 }
 
@@ -704,6 +710,7 @@ img.badge {
 .pull-left { float:left;}
 .pull-right { float:right;}
 .clear { clear: both; }
+.clearfix { overflow: auto; }
 
 div.award-badge {
     display: block;
@@ -838,15 +845,24 @@ table.borderless td {
 .pad-bottom { padding-bottom:25px !important; }
 .pad-top { padding-top:30px !important; }
 
-.label-question{
-    vertical-align:middle !important;
-    padding-top: 8px;
-    padding-bottom: 8px
+label.label-question {
+    width: 100%;
+    font-size: 12pt;
+    display: block;
+    margin: 1em 0;
+}
+
+.label-question input[type=radio] {
+    float: left;
+    margin: 0;
+    height: 10pt;
+    width: 10pt;
 }
 
 .align-option{
-    vertical-align: middle;
-    display: inline-block;
+    margin: 0 0 0 1em;
+    vertical-align: top;
+    display: block;
 }
 
 ul.bullets{

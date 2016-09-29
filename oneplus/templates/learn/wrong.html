@@ -19,8 +19,8 @@
             {{ state.question_id }}
             <div class="content narrow white-back darkgrey-front">
                 <div>
-                    <div class="xlarge-font center-font">Incorrect</div>
-                    <div class="large-font center-font">Unfortunately that is not the answer</div>
+                    <div class="large-font-normal center-font">Incorrect</div>
+                    <div class="center-font">Unfortunately that is not the answer</div>
                     {% if question.textbook_link %}
                         <a href="{{  question.textbook_link  }}">
                             <div class="large-font center-font green-front">
@@ -36,41 +36,40 @@
                         {% endif %}
                     {% endif %}
                 </div>
-            </div>
 
-            <div class="content narrow white-back darkgrey-front">
-                <h1 class="green-front">Question</h1>
+                <h1 class="large-font-normal black-front">Question</h1>
                 <p>{{ question.question_content | format_content }}</p>
 
-                <h1 class="green-front">Options</h1>
+                <h1 class="large-font-normal black-front">Options</h1>
                 {% for opt in question.testingquestionoption_set.all %}
-                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
                     <label class="label-question" for="answer_{{ opt.id }}">
-                    {% if opt.content %}
-                        <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
-                    {% else %}
-                        {{ opt.name }} </label><br/><br/>
-                    {% endif %}
+                        <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}">
+                        {% if opt.content %}
+                             <span class="align-option">{{ opt.content | format_option  }}</span>
+                        {% else %}
+                            <span class="align-option">{{ opt.name }}</span>
+                        {% endif %}
+                    </label>
                 {% endfor %}
 
-                <h1 class="green-front">Correct Answer:</h1>
+                <h1 class="large-font-normal black-front">Correct Answer:</h1>
                 {% for opt in question.testingquestionoption_set.all %}
                     {% if  opt.correct %}
                         <p>Option {{ forloop.counter }}:
                             {% if opt.content %}
-                                <div class="align-option"> {{ opt.content | format_option  }}</div> </label>
+                                <div class="align-option">{{ opt.content | format_option  }}</div>
                             {% else %}
-                                {{ opt.name }} </label>
+                                <div class="align-option">{{ opt.name }}</div>
                             {% endif %}
                         </p>
                     {% endif %}
                 {% endfor %}
 
-                <h1 class="green-front">Solution</h1>
+                <h1 class="large-font-normal black-front">Solution</h1>
                 <p>{{ question.answer_content | format_content}}</p>
 
                 {% if question.notes %}
-                    <h1 class="green-front">Addition Notes</h1>
+                    <h1 class="large-font-normal black-front">Addition Notes</h1>
                     <p>{{ question.notes | format_content  }}</p>
                 {% endif %}
             </div>

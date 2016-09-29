@@ -22,15 +22,15 @@
                     {% if golden_egg %}
                         <div class="center-font"><img src="{{ golden_egg.url }}"></div>
                     {% endif %}
-                    <div class="xlarge-font center-font">
+                    <div class="large-font-normal center-font">
                         {% if not golden_egg %}
                             Correct
                         {% else %}
                             Congratulations!
                         {% endif %}
-                    <div class="large-font-normal center-font">
-                        <span class="large-font center-font">
+                    <div class="center-font">
                         {% if not golden_egg %}
+                            <span class="large-font center-font">
                             {% if points %}
                                 {{ points }} point{{ points |pluralize }}
                             {% else %}
@@ -56,41 +56,40 @@
                         {% endif %}
                     {% endif %}
                 </div>
-            </div>
 
-            <div class="content narrow white-back darkgrey-front">
-                <h1 class="black-front">Question</h1>
+                <h1 class="large-font-normal black-front">Question</h1>
                 <p>{{ question.question_content | format_content }}</p>
 
-                <h1 class="black-front">Options</h1>
+                <h1 class="large-font-normal black-front">Options</h1>
                 {% for opt in question.testingquestionoption_set.all %}
-                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
                     <label class="label-question" for="answer_{{ opt.id }}">
-                    {% if opt.content %}
-                        <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
-                    {% else %}
-                        {{ opt.name }} </label><br/><br/>
-                    {% endif %}
+                        <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                        {% if opt.content %}
+                            <div class="align-option">{{ opt.content | format_option  }}</div>
+                        {% else %}
+                            <div class="align-option">{{ opt.name }}</div>
+                        {% endif %}
+                    </label>
                 {% endfor %}
 
-                <h1 class="black-front">Correct Answer:</h1>
+                <h1 class="large-font-normal black-front">Correct Answer:</h1>
                 {% for opt in question.testingquestionoption_set.all %}
                     {% if  opt.correct %}
                         <p>Option {{ forloop.counter }}:
                             {% if opt.content %}
-                                <div class="align-option"> {{ opt.content | format_option  }}</div> </label>
+                                <div class="align-option">{{ opt.content | format_option  }}</div>
                             {% else %}
-                                {{ opt.name }} </label>
+                                <div class="align-option">{{ opt.name }}</div>
                             {% endif %}
                         </p>
                     {% endif %}
                 {% endfor %}
 
-                <h1 class="black-front">Solution</h1>
+                <h1 class="large-font-normal black-front">Solution</h1>
                 <p>{{ question.answer_content | format_content  }}</p>
 
                 {% if question.notes %}
-                    <h1 class="black-front">Addition Notes</h1>
+                    <h1 class="large-font-normal black-front">Addition Notes</h1>
                     <p>{{ question.notes | format_content  }}</p>
                 {% endif %}
             </div>
