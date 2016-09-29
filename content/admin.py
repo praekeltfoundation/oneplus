@@ -412,8 +412,8 @@ class SUMitAdmin(admin.ModelAdmin):
     list_filter = ()
     fieldsets = [
         (None, {"fields": ["name", "course", "activation_date", "deactivation_date", "event_points",
-                           "airtime", "event_badge", "question_counts"]})]
-    readonly_fields = ("question_counts",)
+                           "airtime", "event_badge", "question_counts_html"]})]
+    readonly_fields = ("question_counts_html",)
     inlines = (EventSplashPageInline, EventStartPageInline)
     form = SUMitForm
     add_form = SUMitForm

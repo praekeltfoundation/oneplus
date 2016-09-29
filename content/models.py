@@ -319,10 +319,16 @@ class Event(models.Model):
                 difficulty=TestingQuestion.DIFF_ADVANCED,
                 state=TestingQuestion.PUBLISHED
             ).count()
+
+        return {'easy': ec, 'normal': nc, 'advanced': ac}
+
+    def get_question_counts_html(self):
+        counts = self.get_question_counts()
         html_str = format_html("<span>Easy: {}/15</span><br/><span>Normal: {}/11</span><br/><span>Hard: {}/5</span>",
-                               ec, nc, ac)
+                               counts['easy'], counts['normal'], counts['advanced'])
         return html_str
-    question_counts = property(get_question_counts)
+
+    question_counts_html = property(get_question_counts_html)
 
 
 class EventStartPage(models.Model):
