@@ -6,7 +6,7 @@
 {% block content %}
     {% load humanize %}
         {% if state.report_sent %}
-            <div class="content narrow darkgrey-back pad-top">
+            <div class="content darkgrey-back pad-top">
                 <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
             </div>
         {% endif %}
@@ -22,7 +22,7 @@
         {% autoescape off %}
             {{ state.question_id }}
             <div class="white-back darkgrey-front">
-                <div class="content narrow ">
+                <div class="content padded">
                     <div class="question-padding">
                         {{ question.question_content | format_content }}
                     </div>
@@ -51,7 +51,7 @@
         {% endautoescape %}
 
         {% if not preview %}
-            <div class="content narrow darkgrey-back">
+            <div class="content padded darkgrey-back">
                 <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next">here</a></p>
             </div>
         {% endif %}

@@ -360,13 +360,17 @@ a.descriptor {
     margin: 0;
 }
 
+.content.padded {
+    padding: 1.5em;
+}
+
 .question-padding {
     padding: 0.5em 0;
 }
 
 @media (min-width: 30em) {
     .question-padding {
-         padding: 15px 25px;
+         padding: .5em 0;
     }
 }
 

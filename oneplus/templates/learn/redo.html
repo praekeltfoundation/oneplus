@@ -6,7 +6,7 @@
 {% block content %}
     {% load humanize %}
         {% if state.report_sent %}
-            <div class="content narrow darkgrey-back pad-top">
+            <div class="content padded darkgrey-back pad-top">
                 <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
             </div>
         {% endif %}
@@ -16,7 +16,7 @@
 
         {% autoescape off %}
             {{ state.question_id }}
-            <div class="content narrow white-back darkgrey-front">
+            <div class="content padded white-back darkgrey-front">
                 <form action="redo" method="post">{% csrf_token %}
                     <p>{{ question.question_content | format_content }}</p>
                     {% for opt in question.testingquestionoption_set.all %}
@@ -37,7 +37,7 @@
             </div>
         {% endautoescape %}
 
-        <div class="content narrow darkgrey-back pad-top">
+        <div class="content padded darkgrey-back pad-top">
             <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next"><b>here</b></a></p>
         </div>
 {% endblock %}
