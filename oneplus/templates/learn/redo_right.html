@@ -7,7 +7,7 @@
     {% load humanize %}
 
         {% if state.report_sent %}
-            <div class="content narrow darkgrey-back pad-top">
+            <div class="content padded darkgrey-back pad-top">
                 <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
             </div>
         {% endif %}
@@ -17,9 +17,9 @@
 
         {% autoescape off %}
             {{ state.question_id }}
-            <div class="content narrow white-back darkgrey-front">
-                <div class="pad-bottom">
-                    <div class="xlarge-font center-font pad-bottom">Correct<div class="large-font-normal center-font"></div></div>
+            <div class="content padded white-back darkgrey-front">
+                <div>
+                    <div class="large-font-normal center-font pad-bottom">Correct<div class="large-font-normal center-font"></div></div>
                     {% if questions <= 0 %}
                         <a class="button green-back grey-front drop" href="home">Done For Today</a>
                     {% else %}
@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <div class="content narrow white-back darkgrey-front">
+            <div class="content padded white-back darkgrey-front">
                 <h1 class="green-front" style="padding-top: 15px">Question</h1>
                 <p>{{ question.question_content | format_content }}</p>
 
@@ -61,12 +61,12 @@
             </div>
         {% endautoescape %}
 
-        <div class="content narrow darkgrey-back pad-top">
+        <div class="content padded darkgrey-back pad-top">
             <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/right"><b>here</b></a></p>
         </div>
 
         {% if not state.banned %}
-            <div class="content narrow darkgrey-back pad-top">
+            <div class="content padded darkgrey-back pad-top">
                 <div class="white-front bold-font">Discuss the Challenge</div>
                 <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                     <input type="text" name="comment" value="" />
