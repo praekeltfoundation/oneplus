@@ -361,12 +361,15 @@ def send_sumit_counts_body():
     today = datetime.now()
     sumits = SUMit.objects.filter(activation_date__gt=today,
                                   activation_date__lt=today + timedelta(hours=48))
+    is_insufficient = False
     message = 'SUMits with insufficient questions:\n'
     for s in sumits:
         counts = s.get_question_counts()
         if counts['easy'] < 15 or counts['normal'] < 11 or counts['advanced'] < 5:
+            is_insufficient = True
             message += s.name + ': activating ' + s.activation_date + '\n'
-    try:
-        mail_managers('DIG-IT: SUMits with too few questions', message, fail_silently=False)
-    except Exception as ex:
-        logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
+    if is_insufficient:
+        try:
+            mail_managers('DIG-IT: SUMits with too few questions', message, fail_silently=False)
+        except Exception as ex:
+            logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
