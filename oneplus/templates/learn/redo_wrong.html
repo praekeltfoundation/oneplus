@@ -18,10 +18,10 @@
         {% autoescape off %}
             {{ state.question_id }}
             <div class="content padded white-back darkgrey-front">
-                <div class="pad-bottom">
+                <div>
 
-                    <div class="xlarge-font center-font pad-bottom">Incorrect</div>
-                    <div class="large-font center-font">Unfortunately that is not the answer</div>
+                    <div class="large-font-normal center-font">Incorrect</div>
+                    <div class="center-font">Unfortunately that is not the answer</div>
                     {% if question.textbook_link %}
                         <a href="{{  question.textbook_link  }}">
                             <div class="large-font center-font green-front">
@@ -30,9 +30,9 @@
                         </a>
                     {% endif %}
                     {% if questions <= 0 %}
-                        <a class="button green-back grey-front drop" href="home">Done For Today</a>
+                        <a class="button green-back grey-front" href="home">Done For Today</a>
                     {% else %}
-                        <a class="button green-back grey-front drop" href="redo">Next Question</a>
+                        <a class="button green-back grey-front" href="redo">Next Question</a>
                     {% endif %}
                 </div>
             </div>
