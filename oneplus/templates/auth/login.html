@@ -10,8 +10,10 @@
             {{ form.as_p }}
             <input type="submit" value="Sign In" class="button green-back grey-front" />
         </form>
-        <a href='{% url 'auth.sms_reset_password' %}' class="green-front">Forgot Password?</a>
-        <a href='{% url 'misc.contact' %}' class="green-front">ProMaths Learner but can't Sign In?</a>
+        <div class="spaced-links">
+            <a href='{% url 'auth.sms_reset_password' %}' class="link-button green-front center-font">Forgot Password?</a>
+            <a href='{% url 'misc.contact' %}' class="link-button green-front center-font">ProMaths Learner but can't Sign In?</a>
+        </div>
     </div>
 
 {% endblock %}

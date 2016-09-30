@@ -16,12 +16,19 @@
 <div class="header">
 
     {% if user.name %}
-        <a href="/menu" class="menu" ></a>
+        {% block menu_icon %}
+            <a href="/menu" class="menu" ></a>
+        {% endblock %}
     {% else %}
         <a href="login" class="menu-login green-front">Sign In</a>
     {% endif %}
 
     <a href="/home" class="logo"></a>
+    {% if user.name %}
+        {% block home_icon %}
+            <a href="/home" class="home" ></a>
+        {% endblock %}
+    {% endif %}
 </div>
 
 
@@ -32,9 +39,9 @@
         </div>
 
 
-    <div class="footer darkgrey-back pad-top">
-        <div style="text-align: center">dig-it is a collaboration between Investec & Praekelt Foundation</div>
-        <div style="text-align: center"><a href="/about">About</a> | <a href="/terms">Terms</a> | <a href="/contact">Contact</a></div>
+    <div class="footer darkgrey-back">
+        <div class="center-font descriptor">dig-it is a collaboration between Investec & Praekelt Foundation</div>
+        <div class="center-font descriptor"><a href="/about">About</a> | <a href="/terms">Terms</a> | <a href="/contact">Contact</a></div>
     </div>
 </body>
 </html>

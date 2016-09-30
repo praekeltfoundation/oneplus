@@ -5,11 +5,11 @@
 {% block content %}
     {% load humanize %}
 <div class="menu">
-    <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon leaderboard"></li><p>{{ header_1 }}</p></div></a>
+    <a href="/menu"><div class="text heading purple-back darkgrey-front"><li class="icon leaderboard"></li><p>{{ header_1 }}</p></div></a>
 </div>
     <div class="text heading darkgrey-back">
         {% if position %}
-            <p>{{ header_2 }} <span class="red-front">{{ position |ordinal }} place</span></p>
+            <p>{{ header_2 }} <span class="purple-front">{{ position |ordinal }} place</span></p>
         {% endif %}
     </div>
 
@@ -22,12 +22,12 @@
             </div>
             <div class="clear"></div>
         {% endif %}
-        <table width="100%">
+        <table class="borderless" width="100%">
         {% for participant in learners %}
-        <tr class="item grey-back {% if participant.me %}red-front{% endif %}">
-                <td class="large-font pull-left" style="width:20%">#{{ participant.position }}</td>
-                <td class="large-font pull-left" >{{ participant.name }}</td>
-                <td class="large-font pull-right">{{ participant.points }}</td>
+        <tr class="item grey-back {% if participant.me %}purple-front{% endif %}">
+                <td class="large-font-normal pull-left" style="width:20%">#{{ participant.position }}</td>
+                <td class="large-font-normal pull-left">{{ participant.name }}</td>
+                <td class="large-font-normal pull-right">{{ participant.points }}</td>
                 <td class="clear"></td>
         </tr>
         {% endfor %}

@@ -280,7 +280,7 @@ class GeneralTests(TestCase):
             self.assertEquals(resp.status_code, 200)
 
             resp = self.client.get(reverse('learn.home'))
-            self.assertContains(resp, "5</span><br/>POINTS")
+            self.assertContains(resp, "Points: <b>5</b>")
 
             for i in range(1, 15):
                 question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
