@@ -771,6 +771,19 @@ li.down_red {
 
 p {font-size: 12pt; line-height: 1.5em;}
 
+.grouped-titles p {
+    margin: 0;
+    margin-bottom: 0.25em;
+}
+
+.grouped-titles .title  {
+    margin-top: 1em;
+}
+
+.grouped-titles .sub-title {
+    margin-top: 0.5em;
+}
+
 .comment > input[type=text]{
     padding-right: 50px;
     margin-top:10px;
