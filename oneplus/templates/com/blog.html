@@ -8,7 +8,7 @@
     </div>
     <div class="text heading darkgrey-back"><p>What we have to tell you</p></div>
 
-    <div class="content narrow white-back">
+    <div class="content padded white-back">
         {% if post.big_image %}
             <div class="blogimage" style="background-image: url('{{ post.big_image.url }}')"></div>
         {% endif %}
@@ -52,7 +52,7 @@
         {% endif %}
 
     {% if not state.banned and not preview%}
-        <div class="content narrow darkgrey-back pad-bottom">
+        <div class="content padded darkgrey-back pad-bottom">
             <div class="white-front bold-font">Post a Comment</div>
             <form name="comment_form" method="post" action="?" class="comment">
                 {% csrf_token %}
@@ -65,7 +65,7 @@
         </div>
     {% endif %}
 
-    <div class="content narrow white-back">
+    <div class="content padded white-back">
         {% if state.blog_previous %}
             <a class="blue-front bold-font pull-left" href="/blog/{{ state.blog_previous }}">&lt; Previous</a>
         {% endif %}

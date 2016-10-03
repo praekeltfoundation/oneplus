@@ -9,7 +9,7 @@
 
     <div class="text heading darkgrey-back"><p>What we have to tell you</p></div>
 
-    <div class="content narrow white-back">
+    <div class="content padded white-back">
         {% for post in posts %}
             {% if post.big_image and forloop.counter == 1 %}
                 <div class="blogimage" style="background-image: url('{{ post.big_image.url }}')"></div>

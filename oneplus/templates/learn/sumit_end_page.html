@@ -12,7 +12,7 @@
     <div class="text {% if sumit.level != 'Basecamp' and sumit.level != 'Foothills' %} cliffs purple-front {% else %} lightgrey-front {% endif %} "><p>Cliffs</p></div>
     <div class="text {% if sumit.level == 'Peak' or sumit.level == 'Summit' %} peak cyan-front {% else %} lightgrey-front {% endif %}"><p>Peak</p></div>
 </div>
-<div class="content narrow center-font {{ front }} {{ back }}">
+<div class="content padded center-font {{ front }} {{ back }}">
     {% if sumit.level != "Summit" or not winner %}
         <div class="content">
             {% if sumit.level != 'Summit' %}
