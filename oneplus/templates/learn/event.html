@@ -6,7 +6,7 @@
 {% block content %}
     {% load humanize %}
     {% if state.report_sent %}
-        <div class="content narrow darkgrey-back pad-top">
+        <div class="content padded darkgrey-back pad-top">
             <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
         </div>
     {% endif %}
@@ -16,7 +16,7 @@
     <div class="text heading darkgrey-back"><p>Q {{ event_questions_answered | add:1 }}/{{ total_event_questions }}</p></div>
 
     {% autoescape off %}
-        <div class="content narrow white-back darkgrey-front">
+        <div class="content padded white-back darkgrey-front">
             <form action="event" method="post" class="pad-bottom">{% csrf_token %}
                 <p>{{ question.question_content | format_content }}</p>
                 {% for opt in question.testingquestionoption_set.all %}

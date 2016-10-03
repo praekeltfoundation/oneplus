@@ -40,7 +40,7 @@
     </div>
 
     {% if not state.banned and not preview%}
-        <div class="content narrow darkgrey-back">
+        <div class="content padded darkgrey-back">
             Post a comment
             <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                 <input type="text" name="comment" value="" />
