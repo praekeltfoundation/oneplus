@@ -17,14 +17,16 @@ class Migration(DataMigration):
             print "Migrating module"
             prev_order = 0
             for question in orm.TestingQuestion.objects\
-                    .filter(module__id=module.id)\
+                    .filter(module__id=module['id'])\
                     .order_by('order', 'id'):
-                if question.order == prev_order:
+                if question.order > prev_order:
+                    prev_order = question.order
+                else:
                     print "Migrating question"
-                    question.order += 1
-                    question.name = "%s Question %d" % (module.name, question.order)
+                    prev_order += 1
+                    question.order = prev_order
+                    question.name = "%s Question %d" % (module['name'], question.order)
                     question.save()
-                prev_order = question.order
 
     def backwards(self, orm):
         "Write your backwards methods here."
