@@ -13,13 +13,15 @@ class Migration(DataMigration):
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
         for module in orm['organisation.Module'].objects.all():
-            i = 1
+            prev_order = 0
             for question in orm.TestingQuestion.objects\
-                    .filter(module__id=module)\
-                    .order_by('order'):
-                question.order = i
-                question.name = "%s Question %d" % (module.name, i)
-                question.save()
+                    .filter(module__id=module.id)\
+                    .order_by('order', 'id'):
+                if question.order == prev_order:
+                    prev_order += 1
+                    question.order += 1
+                    question.name = "%s Question %d" % (module.name, question.order)
+                    question.save()
 
     def backwards(self, orm):
         "Write your backwards methods here."
