@@ -25,7 +25,7 @@ class Migration(DataMigration):
                     print "Migrating question"
                     prev_order += 1
                     question.order = prev_order
-                    question.name = "%s Question %d" % (module['name'], question.order)
+                    question.name = "%s Question %d [R]" % (module['name'], question.order)
                     question.save()
 
     def backwards(self, orm):
