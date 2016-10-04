@@ -12,16 +12,19 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        for module in orm['organisation.Module'].objects.all():
+        print "Beginning migration"
+        for module in orm['organisation.Module'].objects.values('id', 'name'):
+            print "Migrating module"
             prev_order = 0
             for question in orm.TestingQuestion.objects\
                     .filter(module__id=module.id)\
                     .order_by('order', 'id'):
                 if question.order == prev_order:
-                    prev_order += 1
+                    print "Migrating question"
                     question.order += 1
                     question.name = "%s Question %d" % (module.name, question.order)
                     question.save()
+                prev_order = question.order
 
     def backwards(self, orm):
         "Write your backwards methods here."
@@ -375,5 +378,5 @@ class Migration(DataMigration):
         }
     }
 
-    complete_apps = ['content']
+    complete_apps = ['organisation', 'content']
     symmetrical = True
