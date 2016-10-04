@@ -24,6 +24,14 @@ class TestingQuestionCreateForm(forms.ModelForm):
                                     error_messages={'required': 'A Test question needs to '
                                                                 'be associated with a module.'})
 
+    def get_order(self, module_id):
+        results = TestingQuestion.objects.filter(module__id=module_id).aggregate(Max("order"))
+        if results and "order__max" in results and results["order__max"]:
+            max_order = results["order__max"] + 1
+        else:
+            max_order = 1
+        return max_order
+
     def clean(self):
         cleaned_data = super(TestingQuestionCreateForm, self).clean()
 
@@ -72,10 +80,10 @@ class TestingQuestionCreateForm(forms.ModelForm):
             module = self.data.get("module")
             if not module:
                 raise forms.ValidationError("You must select a module")
-            count = TestingQuestion.objects.filter(module__id=module).count() + 1
+            order = self.get_order(module)
             module = Module.objects.get(id=module)
-            self.data["name"] = "%s Question %d" % (module, count)
-            return "%s Question %d" % (module, count)
+            self.data["name"] = "%s Question %d" % (module, order)
+            return "%s Question %d" % (module, order)
         return name
 
     def clean_order(self):
@@ -84,21 +92,20 @@ class TestingQuestionCreateForm(forms.ModelForm):
             module = self.data.get("module")
             if not module:
                 raise forms.ValidationError("You must select a module")
-            count = TestingQuestion.objects.filter(module__id=module).count() + 1
-            return count
+            order = self.get_order(module)
         return order
 
     def save(self, commit=True):
         testing_question = super(TestingQuestionCreateForm, self).save(commit=False)
         if testing_question.order == 0 or testing_question.name == "Auto Generated":
-            count = TestingQuestion.objects.filter(module__id=self.data.get("module")).count() + 1
             module = Module.objects.get(id=self.data.get("module"))
-            name = "%s Question %d" % (module, count)
+            order = self.get_order(self.data.get("module"))
+            name = "%s Question %d" % (module, order)
             while TestingQuestion.objects.filter(name=name):
-                count += 1
-                name = "%s Question %d" % (module, count)
+                order += 1
+                name = "%s Question %d" % (module, order)
             testing_question.name = name
-            testing_question.order = count
+            testing_question.order = order
         testing_question.save()
 
         question_content = self.cleaned_data.get("question_content")
@@ -148,7 +155,12 @@ class TestingQuestionOptionCreateForm(forms.ModelForm):
     def save(self, commit=True):
         question_option = super(TestingQuestionOptionCreateForm, self).save(commit=False)
         question = TestingQuestion.objects.get(id=self.data.get("question"))
-        order = TestingQuestionOption.objects.filter(question=question).count() + 1
+        order = TestingQuestionOption.objects\
+            .filter(module__id=self.data.get("module"))\
+            .aggregate(Max("order"))['order__max']
+        if order is None:
+            order = 0
+        order += 1
         question_option.order = order
         question_option.name = "%s Option %s" % (question, order)
         question_option.save()
