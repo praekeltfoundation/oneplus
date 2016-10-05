@@ -144,7 +144,7 @@ class Discussion(models.Model):
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.author.first_name + ": " + self.content
 
     class Meta:
@@ -349,7 +349,7 @@ class ChatGroup(models.Model):
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -383,7 +383,7 @@ class ChatMessage(models.Model):
         null=True
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.content
 
     def safe_content(self):
