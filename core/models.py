@@ -9,12 +9,14 @@ from gamification.models import \
 from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
     EventQuestionRel, GoldenEggRewardLog, Event
 from django.db.models import Count
+from django.utils.encoding import python_2_unicode_compatible
 
 
 def today():
     return datetime.now()
 
 
+@python_2_unicode_compatible
 class Class(models.Model):
 
     """
@@ -48,6 +50,7 @@ class TeacherClass(models.Model):
     classs = models.ForeignKey(Class)
 
 
+@python_2_unicode_compatible
 class Participant(models.Model):
 
     """
@@ -271,6 +274,7 @@ class BadgeAwardLog(models.Model):
         verbose_name_plural = "Badge Award Log"
 
 
+@python_2_unicode_compatible
 class ParticipantQuestionAnswer(models.Model):
     participant = models.ForeignKey(Participant, verbose_name="Participant")
     question = models.ForeignKey(TestingQuestion, verbose_name="Question")
@@ -292,6 +296,7 @@ class ParticipantQuestionAnswer(models.Model):
         verbose_name_plural = "Participant Question Responses"
 
 
+@python_2_unicode_compatible
 class ParticipantRedoQuestionAnswer(models.Model):
     participant = models.ForeignKey(Participant, verbose_name="Participant")
     question = models.ForeignKey(TestingQuestion, verbose_name="Question")
