@@ -5,8 +5,10 @@ from organisation.models import Course, Module
 from content.models import TestingQuestion
 from django.db.models import Q
 from django.utils.html import format_html, mark_safe
+from django.utils.encoding import python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class Page(models.Model):
 
     """
@@ -30,6 +32,7 @@ class Page(models.Model):
         verbose_name_plural = "Pages"
 
 
+@python_2_unicode_compatible
 class Post(models.Model):
 
     """
@@ -92,6 +95,7 @@ class PostComment(models.Model):
     )
 
 
+@python_2_unicode_compatible
 class Discussion(models.Model):
 
     """
@@ -140,7 +144,7 @@ class Discussion(models.Model):
     )
     original_content = models.TextField("Original Content", blank=True, null=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.author.first_name + ": " + self.content
 
     class Meta:
@@ -148,6 +152,7 @@ class Discussion(models.Model):
         verbose_name_plural = "Discussions"
 
 
+@python_2_unicode_compatible
 class Message(models.Model):
     name = models.CharField(
         "Name",
@@ -316,6 +321,7 @@ class Message(models.Model):
         verbose_name_plural = "Messages"
 
 
+@python_2_unicode_compatible
 class MessageStatus(models.Model):
 
     """
@@ -343,7 +349,7 @@ class ChatGroup(models.Model):
     description = models.CharField("Description", max_length=50, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -351,6 +357,7 @@ class ChatGroup(models.Model):
         verbose_name_plural = "Chat Groups"
 
 
+@python_2_unicode_compatible
 class ChatMessage(models.Model):
     chatgroup = models.ForeignKey(ChatGroup, null=True, blank=False)
     author = models.ForeignKey(
@@ -376,7 +383,7 @@ class ChatMessage(models.Model):
         null=True
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.content
 
     def safe_content(self):
