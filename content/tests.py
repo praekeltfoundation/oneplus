@@ -463,3 +463,26 @@ class TestContent(TestCase):
         awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant2, badgetemplate__name="Exam Champ")
 
         self.assertEquals(awarded_badge.count(), 0)
+
+    def test_module_questions_order_max(self):
+        module = Module.objects.get(name='module')
+        form_data = {
+            'name': 'Auto Generated',
+            'module': module.id,
+            'content': 'This is some content.',
+            'difficulty': 3,
+            'state': 1,
+            'points': 5,
+            'order': 0,
+            'testingquestionoption_set-0-correct': True,
+            'testingquestionoption_set-0-content': True,
+            'testingquestionoption_set-1-correct': True,
+            'testingquestionoption_set-1-content': True,
+            'testingquestionoption_set-TOTAL_FORMS': 2}
+        self.assertTrue(TestingQuestionCreateForm(form_data), 'Generated form is invalid')
+        q1 = TestingQuestionCreateForm(form_data.copy()).save()
+        q2 = TestingQuestionCreateForm(form_data.copy()).save()
+        q3 = TestingQuestionCreateForm(form_data.copy()).save()
+        self.delete_test_question(q2)
+        q4 = TestingQuestionCreateForm(form_data.copy()).save()
+        self.assertLess(q3.order, q4.order, 'Q3.order: %d; Q4.order: %d' % (q3.order, q4.order))
