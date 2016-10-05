@@ -1,6 +1,7 @@
 from content.models import TestingQuestion, Mathml, SUMit, Event, TestingQuestionOption, EventQuestionRel, \
     EventQuestionAnswer
-from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text
+from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text, \
+    TestingQuestionCreateForm
 from organisation.models import Course, Module, CourseModuleRel, School, Organisation
 from auth.models import Learner
 from core.models import Participant, Class, ParticipantBadgeTemplateRel
@@ -52,6 +53,9 @@ class TestContent(TestCase):
             learner=learner,
             classs=classs,
             **kwargs)
+
+    def delete_test_question(self, question, **kwargs):
+        question.delete()
 
     def setUp(self):
         self.course = self.create_course()
@@ -150,6 +154,11 @@ class TestContent(TestCase):
                          "</mml:math>"
 
         self.create_test_question_helper(question_content, answer_content, 2)
+
+    def test_delete_test_question(self):
+        q = self.create_test_question('question?', self.module)
+        self.delete_test_question(q)
+        self.assertEqual(len(TestingQuestion.objects.filter(name=q.name)), 0, 'Q2 not deleted')
 
     def test_linebreaks(self):
         content = "<p>heading</p><p>content</p>"
