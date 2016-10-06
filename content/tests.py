@@ -470,7 +470,6 @@ class TestContent(TestCase):
                                  course=self.course,
                                  activation_date=datetime.now()+timedelta(hours=12),
                                  deactivation_date=datetime.now()+timedelta(hours=24))
-        s.save()
         counts = s.get_question_counts()
         self.assertDictEqual(
             {'easy': 0, 'normal': 0, 'advanced': 0},
@@ -519,7 +518,6 @@ class TestContent(TestCase):
                                  course=self.course,
                                  activation_date=datetime.now()+timedelta(hours=12),
                                  deactivation_date=datetime.now()+timedelta(hours=24))
-        s.save()
         send_sumit_counts_body()
         mocked_mail_managers.assert_called_once_with(
             subject="DIG-IT: SUMits with too few questions",
@@ -533,7 +531,6 @@ class TestContent(TestCase):
                                  course=self.course,
                                  activation_date=datetime.now()+timedelta(hours=12),
                                  deactivation_date=datetime.now()+timedelta(hours=24))
-        s.save()
         for i in range(15):
             TestingQuestion.objects.create(name='QE%d' % i,
                                            module=self.module,
