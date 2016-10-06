@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MaxValueValidator
 from organisation.models import Module
 from django.core.urlresolvers import reverse
-from django.utils.html import remove_tags
+from django.utils.html import remove_tags, format_html
 from mobileu.utils import format_content, format_option
 from django.db.models import Count
 from datetime import datetime
@@ -298,6 +298,44 @@ class Event(models.Model):
 
     def is_active(self):
         return self.activation_date < datetime.now() < self.deactivation_date
+
+    def get_question_counts(self):
+        modules = CourseModuleRel.objects.filter(course=self.course).values_list('module__id', flat=True)
+
+        ec = TestingQuestion.objects.\
+            filter(
+                module__in=modules,
+                difficulty=TestingQuestion.DIFF_EASY,
+                state=TestingQuestion.PUBLISHED
+            ).count()
+
+        nc = TestingQuestion.objects.\
+            filter(
+                module__in=modules,
+                difficulty=TestingQuestion.DIFF_NORMAL,
+                state=TestingQuestion.PUBLISHED
+            ).count()
+
+        ac = TestingQuestion.objects.\
+            filter(
+                module__in=modules,
+                difficulty=TestingQuestion.DIFF_ADVANCED,
+                state=TestingQuestion.PUBLISHED
+            ).count()
+
+        return {'easy': ec, 'normal': nc, 'advanced': ac}
+
+    def get_question_counts_html(self):
+        counts = self.get_question_counts()
+        html_str = format_html("<span style=\"color:{}\">Easy: {}/15</span><br/>" +
+                               "<span style=\"color:{}\">Normal: {}/11</span><br/>" +
+                               "<span style=\"color:{}\">Hard: {}/5</span>",
+                               "#880000" if counts['easy'] < 15 else "#008800", counts['easy'],
+                               "#880000" if counts['normal'] < 11 else "#008800", counts['normal'],
+                               "#880000" if counts['advanced'] < 5 else "#008800", counts['advanced'])
+        return html_str
+
+    question_counts = property(get_question_counts_html)
 
 
 class EventStartPage(models.Model):
