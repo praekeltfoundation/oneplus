@@ -514,7 +514,7 @@ class TestContent(TestCase):
             'Should have normal=2, got %s' % str(counts))
 
     @patch("mobileu.tasks.mail_managers")
-    def test_send_sumit_counts(self, mocked_mail_managers):
+    def test_send_sumit_counts_insufficient(self, mocked_mail_managers):
         s = SUMit.objects.create(name='Blarg',
                                  course=self.course,
                                  activation_date=datetime.now()+timedelta(hours=12),
@@ -526,6 +526,34 @@ class TestContent(TestCase):
             message=u"SUMits with insufficient questions:" +
                     "\nBlarg: activating " + s.activation_date.strftime('%Y-%m-%d %H:%M') + "\n",
             fail_silently=False)
+
+    @patch("mobileu.tasks.mail_managers")
+    def test_send_sumit_counts_sufficient(self, mocked_mail_managers):
+        s = SUMit.objects.create(name='Blarg',
+                                 course=self.course,
+                                 activation_date=datetime.now()+timedelta(hours=12),
+                                 deactivation_date=datetime.now()+timedelta(hours=24))
+        s.save()
+        for i in range(15):
+            TestingQuestion.objects.create(name='QE%d' % i,
+                                           module=self.module,
+                                           question_content='Question E%d?' % i,
+                                           state=TestingQuestion.PUBLISHED,
+                                           difficulty=TestingQuestion.DIFF_EASY)
+        for i in range(11):
+            TestingQuestion.objects.create(name='QN%d' % i,
+                                           module=self.module,
+                                           question_content='Question N%d?' % i,
+                                           state=TestingQuestion.PUBLISHED,
+                                           difficulty=TestingQuestion.DIFF_NORMAL)
+        for i in range(5):
+            TestingQuestion.objects.create(name='QA%d' % i,
+                                           module=self.module,
+                                           question_content='Question A%d?' % i,
+                                           state=TestingQuestion.PUBLISHED,
+                                           difficulty=TestingQuestion.DIFF_ADVANCED)
+        send_sumit_counts_body()
+        mocked_mail_managers.assert_not_called()
 
     def test_module_questions_order_max(self):
         module = Module.objects.get(name='module')
