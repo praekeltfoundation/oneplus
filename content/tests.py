@@ -465,8 +465,56 @@ class TestContent(TestCase):
 
         self.assertEquals(awarded_badge.count(), 0)
 
+    def test_sumit_counts(self):
+        s = SUMit.objects.create(name='Blarg',
+                                 course=self.course,
+                                 activation_date=datetime.now()+timedelta(hours=12),
+                                 deactivation_date=datetime.now()+timedelta(hours=24))
+        s.save()
+        counts = s.get_question_counts()
+        self.assertDictEqual(
+            {'easy': 0, 'normal': 0, 'advanced': 0},
+            counts,
+            'Should have no eligible questions, got %s' % str(counts))
+        q1 = TestingQuestion.objects.create(name='TQ1',
+                                            module=self.module,
+                                            question_content='First question?',
+                                            state=TestingQuestion.PUBLISHED,
+                                            difficulty=TestingQuestion.DIFF_EASY)
+        counts = s.get_question_counts()
+        self.assertDictEqual(
+            {'easy': 1, 'normal': 0, 'advanced': 0},
+            counts,
+            'Should have easy=1, got %s' % str(counts))
+        q2 = TestingQuestion.objects.create(name='TQ2',
+                                            module=self.module,
+                                            question_content='Second question?',
+                                            state=TestingQuestion.PUBLISHED,
+                                            difficulty=TestingQuestion.DIFF_NORMAL)
+        counts = s.get_question_counts()
+        self.assertDictEqual(
+            {'easy': 1, 'normal': 1, 'advanced': 0},
+            counts,
+            'Should have easy=1 and normal=1, got %s' % str(counts))
+        q1.delete()
+        counts = s.get_question_counts()
+        self.assertDictEqual(
+            {'easy': 0, 'normal': 1, 'advanced': 0},
+            counts,
+            'Should have normal=1, got %s' % str(counts))
+        q3 = TestingQuestion.objects.create(name='TQ3',
+                                            module=self.module,
+                                            question_content='Third question?',
+                                            state=TestingQuestion.PUBLISHED,
+                                            difficulty=TestingQuestion.DIFF_NORMAL)
+        counts = s.get_question_counts()
+        self.assertDictEqual(
+            {'easy': 0, 'normal': 2, 'advanced': 0},
+            counts,
+            'Should have normal=2, got %s' % str(counts))
+
     @patch("mobileu.tasks.mail_managers")
-    def test_sumit_counts(self, mocked_mail_managers):
+    def test_send_sumit_counts(self, mocked_mail_managers):
         s = SUMit.objects.create(name='Blarg',
                                  course=self.course,
                                  activation_date=datetime.now()+timedelta(hours=12),
@@ -478,7 +526,6 @@ class TestContent(TestCase):
             message=u"SUMits with insufficient questions:" +
                     "\nBlarg: activating " + s.activation_date.strftime('%Y-%m-%d %H:%M') + "\n",
             fail_silently=False)
-        s.delete()
 
     def test_module_questions_order_max(self):
         module = Module.objects.get(name='module')
