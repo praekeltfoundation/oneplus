@@ -367,9 +367,9 @@ def send_sumit_counts_body():
         counts = s.get_question_counts()
         if counts['easy'] < 15 or counts['normal'] < 11 or counts['advanced'] < 5:
             is_insufficient = True
-            message += s.name + ': activating ' + s.activation_date + '\n'
+            message += s.name + ': activating ' + s.activation_date.strftime('%Y-%m-%d %H:%M') + '\n'
     if is_insufficient:
         try:
-            mail_managers('DIG-IT: SUMits with too few questions', message, fail_silently=False)
+            mail_managers(subject='DIG-IT: SUMits with too few questions', message=message, fail_silently=False)
         except Exception as ex:
             logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
