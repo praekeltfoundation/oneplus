@@ -1,7 +1,9 @@
 from django.db import models
 from organisation.models import Course, Module
+from django.utils.encoding import python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class GamificationPointBonus(models.Model):
 
     """
@@ -23,6 +25,7 @@ class GamificationPointBonus(models.Model):
         verbose_name_plural = "Point Bonuses"
 
 
+@python_2_unicode_compatible
 class GamificationBadgeTemplate(models.Model):
 
     """
@@ -50,6 +53,7 @@ class GamificationBadgeTemplate(models.Model):
         verbose_name_plural = "Badge Templates"
 
 
+@python_2_unicode_compatible
 class GamificationScenario(models.Model):
     ONCE = 1
     MULTIPLE = 2

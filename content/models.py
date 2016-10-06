@@ -8,8 +8,10 @@ from django.db.models import Count
 from datetime import datetime
 from organisation.models import CourseModuleRel
 from django.core.mail import mail_managers
+from django.utils.encoding import python_2_unicode_compatible
 
 
+@python_2_unicode_compatible
 class LearningChapter(models.Model):
 
     """
@@ -38,6 +40,7 @@ class LearningChapter(models.Model):
         verbose_name_plural = "Learning Chapters"
 
 
+@python_2_unicode_compatible
 class TestingQuestion(models.Model):
 
     # Question States
@@ -120,6 +123,7 @@ class TestingQuestionDifficulty(models.Model):
         verbose_name_plural = "Testing Question Difficulties"
 
 
+@python_2_unicode_compatible
 class TestingQuestionOption(models.Model):
     name = models.CharField(
         "Name",
@@ -157,14 +161,12 @@ class TestingQuestionOption(models.Model):
     def __str__(self):
         return self.name
 
-    def __unicode__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Question Option"
         verbose_name_plural = "Question Options"
 
 
+@python_2_unicode_compatible
 class Mathml(models.Model):
     TESTING_QUESTION_QUESTION = 0
     TESTING_QUESTION_ANSWER = 1
@@ -233,6 +235,7 @@ class GoldenEggRewardLog(models.Model):
         verbose_name_plural = "Golden Egg Reward Logs"
 
 
+@python_2_unicode_compatible
 class Event(models.Model):
     ONE = 1
     MULTIPLE = 2
@@ -506,6 +509,7 @@ class SUMitEndPage(EventEndPage):
     type = models.PositiveIntegerField(choices=TYPE_CHOICES)
 
 
+@python_2_unicode_compatible
 class SUMitLevel(models.Model):
     DIFFICULTY_CHOICES = (
         (2, "Easy"),

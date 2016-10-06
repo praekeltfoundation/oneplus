@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
 PROVINCE_CHOICES = (
     ("Eastern Cape", "Eastern Cape"),
@@ -13,6 +14,7 @@ PROVINCE_CHOICES = (
 )
 
 
+@python_2_unicode_compatible
 class Organisation(models.Model):
 
     """
@@ -35,6 +37,7 @@ class Organisation(models.Model):
         verbose_name_plural = "Organisations"
 
 
+@python_2_unicode_compatible
 class School(models.Model):
 
     """
@@ -57,6 +60,7 @@ class School(models.Model):
         verbose_name_plural = "Schools"
 
 
+@python_2_unicode_compatible
 class Course(models.Model):
 
     """
@@ -89,6 +93,7 @@ class Course(models.Model):
         verbose_name_plural = "Courses"
 
 
+@python_2_unicode_compatible
 class Module(models.Model):
 
     """

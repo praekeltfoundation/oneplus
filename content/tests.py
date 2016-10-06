@@ -1,6 +1,7 @@
 from content.models import TestingQuestion, Mathml, SUMit, Event, TestingQuestionOption, EventQuestionRel, \
     EventQuestionAnswer
-from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text
+from content.forms import process_mathml_content, render_mathml, convert_to_tags, convert_to_text, \
+    TestingQuestionCreateForm
 from organisation.models import Course, Module, CourseModuleRel, School, Organisation
 from auth.models import Learner
 from core.models import Participant, Class, ParticipantBadgeTemplateRel
@@ -53,6 +54,9 @@ class TestContent(TestCase):
             learner=learner,
             classs=classs,
             **kwargs)
+
+    def delete_test_question(self, question, **kwargs):
+        question.delete()
 
     def setUp(self):
         self.course = self.create_course()
@@ -151,6 +155,11 @@ class TestContent(TestCase):
                          "</mml:math>"
 
         self.create_test_question_helper(question_content, answer_content, 2)
+
+    def test_delete_test_question(self):
+        q = self.create_test_question('question?', self.module)
+        self.delete_test_question(q)
+        self.assertEqual(len(TestingQuestion.objects.filter(name=q.name)), 0, 'Q2 not deleted')
 
     def test_linebreaks(self):
         content = "<p>heading</p><p>content</p>"
@@ -470,3 +479,26 @@ class TestContent(TestCase):
                     "\nBlarg: activating " + s.activation_date.strftime('%Y-%m-%d %H:%M') + "\n",
             fail_silently=False)
         s.delete()
+
+    def test_module_questions_order_max(self):
+        module = Module.objects.get(name='module')
+        form_data = {
+            'name': 'Auto Generated',
+            'module': module.id,
+            'content': 'This is some content.',
+            'difficulty': 3,
+            'state': 1,
+            'points': 5,
+            'order': 0,
+            'testingquestionoption_set-0-correct': True,
+            'testingquestionoption_set-0-content': True,
+            'testingquestionoption_set-1-correct': True,
+            'testingquestionoption_set-1-content': True,
+            'testingquestionoption_set-TOTAL_FORMS': 2}
+        self.assertTrue(TestingQuestionCreateForm(form_data), 'Generated form is invalid')
+        q1 = TestingQuestionCreateForm(form_data.copy()).save()
+        q2 = TestingQuestionCreateForm(form_data.copy()).save()
+        q3 = TestingQuestionCreateForm(form_data.copy()).save()
+        self.delete_test_question(q2)
+        q4 = TestingQuestionCreateForm(form_data.copy()).save()
+        self.assertLess(q3.order, q4.order, 'Q3.order: %d; Q4.order: %d' % (q3.order, q4.order))
