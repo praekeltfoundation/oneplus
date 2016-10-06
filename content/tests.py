@@ -5,9 +5,10 @@ from organisation.models import Course, Module, CourseModuleRel, School, Organis
 from auth.models import Learner
 from core.models import Participant, Class, ParticipantBadgeTemplateRel
 from content.tasks import end_event_processing_body
+from mobileu.tasks import send_sumit_counts_body
 
 from django.test import TestCase
-from datetime import datetime
+from datetime import datetime, timedelta
 from mock import patch
 from django.conf import settings
 import os
@@ -454,3 +455,18 @@ class TestContent(TestCase):
         awarded_badge = ParticipantBadgeTemplateRel.objects.filter(participant=self.participant2, badgetemplate__name="Exam Champ")
 
         self.assertEquals(awarded_badge.count(), 0)
+
+    @patch("mobileu.tasks.mail_managers")
+    def test_sumit_counts(self, mocked_mail_managers):
+        s = SUMit.objects.create(name='Blarg',
+                                 course=self.course,
+                                 activation_date=datetime.now()+timedelta(hours=12),
+                                 deactivation_date=datetime.now()+timedelta(hours=24))
+        s.save()
+        send_sumit_counts_body()
+        mocked_mail_managers.assert_called_once_with(
+            subject="DIG-IT: SUMits with too few questions",
+            message=u"SUMits with insufficient questions:" +
+                    "\nBlarg: activating " + s.activation_date.strftime('%Y-%m-%d %H:%M') + "\n",
+            fail_silently=False)
+        s.delete()
