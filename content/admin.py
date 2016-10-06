@@ -498,7 +498,6 @@ class SUMitAdmin(admin.ModelAdmin):
 
     def get_question_pool_size(self, obj):
         question_counts = SUMit.get(event=obj).get_question_counts_html()
-        print str(question_counts)
         return str(question_counts)
     get_question_pool_size.short_description = "Eligible question counts"
 
