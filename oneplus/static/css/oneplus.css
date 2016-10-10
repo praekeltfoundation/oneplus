@@ -819,12 +819,27 @@ p {font-size: 12pt; line-height: 1.5em;}
     margin-right: 1em;
 }
 
+.wrap-words {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+}
+
 table.borderless {
-    margin-bottom:1em;
+    width: 100%;
+    line-height: 1.5;
+    table-layout:fixed;
 }
 
 table.borderless td {
     padding: 0.5em 0;
+}
+
+.slim-num-field {
+    width: 36pt;
 }
 
 .text-right {
