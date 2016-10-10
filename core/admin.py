@@ -1,10 +1,15 @@
-from django.contrib import admin
-from core.models import *
-from core.forms import ParticipantCreationForm, MoveParticipantsForm
-from core.filters import FirstNameFilter, LastNameFilter, MobileFilter, \
-    ParticipantFirstNameFilter, ParticipantLastNameFilter, \
-    ParticipantMobileFilter, ParticipantFilter, LearnerFilter, ScenarioFilter
+from core.filters import FirstNameFilter, LastNameFilter, LearnerFilter, MobileFilter, \
+    ParticipantFilter, ParticipantFirstNameFilter, ParticipantLastNameFilter, \
+    ParticipantMobileFilter, ScenarioFilter
+
+from core.forms import MoveParticipantsForm, ParticipantCreationForm
+
+from core.models import BadgeAwardLog, Class, Participant, ParticipantQuestionAnswer, Setting, TaskLogger
+
 from django import template
+
+from django.contrib import admin
+
 from django.shortcuts import render_to_response
 
 
@@ -229,9 +234,29 @@ class BadgeAwardLogAdmin(admin.ModelAdmin):
     get_image.allow_tags = True
 
 
+class TaskLoggerAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'task_name', 'success', 'message')
+    search_fields = ('task_name',)
+    list_filter = ('created_at', 'task_name', 'success')
+    readonly_fields = ('created_at', 'task_name', 'success', 'message')
+
+    def get_actions(self, request):
+        # Disable delete
+        actions = super(TaskLoggerAdmin, self).get_actions(request)
+        del actions['delete_selected']
+        return actions
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 # Organisation
 admin.site.register(Class, ClassAdmin)
 admin.site.register(ParticipantQuestionAnswer, ParticipantQuestionAnswerAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Setting, SettingAdmin)
 admin.site.register(BadgeAwardLog, BadgeAwardLogAdmin)
+admin.site.register(TaskLogger, TaskLoggerAdmin)
