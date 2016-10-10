@@ -752,6 +752,7 @@ li.down_red {
 /* normal -> body-copy */
 /* descriptor: normal, but bold, light-grey */
 /* button: bold */
+.body-copy { font-size: 12pt; }
 .bold-font { font-weight: bold; }
 .large-font {font-size: 20pt; font-weight: bold}
 .title {
@@ -763,6 +764,8 @@ li.down_red {
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
+
+.vert-center { vertical-align: middle; }
 
 .post-content p {
     margin: 0;
