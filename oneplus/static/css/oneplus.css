@@ -820,11 +820,15 @@ p {font-size: 12pt; line-height: 1.5em;}
 }
 
 table.borderless {
-    margin-bottom:1em
+    margin-bottom:1em;
 }
 
 table.borderless td {
-    padding: 0.25em 0;
+    padding: 0.5em 0;
+}
+
+.text-right {
+    text-align: right;
 }
 
 
