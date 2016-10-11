@@ -227,7 +227,7 @@ def process_teach_email_list(all_teachers_list, teacher_id, class_report_name, m
             my_item['xls_module_reports'] = ["%s.xls" % module_report_name]
 
 
-def email_teacher(subject, message, from_email, teacher, all_teachers_list, failed_emails, my_item):
+def email_teacher(subject, message, from_email, teacher, all_teachers_list, failed_emails):
     log("Sending email to teacher %s", teacher["email"])
     email = EmailMessage(subject, message, from_email, [teacher['email']])
 
