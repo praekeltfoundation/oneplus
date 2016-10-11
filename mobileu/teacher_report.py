@@ -63,7 +63,7 @@ def process_participant(participant, last_month):
         last_month_cor_num = last_month_cor_num * 100 / last_month_ans_num
 
     # Append a participant with it's data to the class list
-    return (participant.learner.first_name,
+    return (participant.learner.first_name.encode('ascii', errors='replace'),
             last_month_ans_num,
             last_month_cor_num,
             all_time_ans_num,
@@ -146,7 +146,7 @@ def process_module(m, last_month):
                 * 100 / answered_last_month.aggregate(Count('id'))['id__count']
 
     # Append a module with it's data to the module list
-    return (m.name, correct_last_month, correct_all_time)
+    return (m.name.encode('ascii', errors='replace'), correct_last_month, correct_all_time)
 
 
 def write_module_list(module_report_name, current_class, module_list, failed_reports):
