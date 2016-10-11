@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="menu">
-    <a href="/menu"><div class="text heading yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox ({{ state.inbox_unread }})</p></div></a>
+    <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon inbox"></li><p>Inbox ({{ state.inbox_unread }})</p></div></a>
 </div>
-    <div class="text heading darkgrey-back"><p>Something to say? <a href="/inbox_send" class="yellow-front">Send us a message</a></p></div>
+    <div class="text heading darkgrey-back"><p>Something to say? <a href="/inbox_send" class="orange-front">Send us a message</a></p></div>
 
     <div class="menu">
         {% autoescape off %}
@@ -18,7 +18,7 @@
                         </form>
 
                         <a class="{% if not msg.viewed %}yellow-front{% else %}white-front{% endif %}" href="/inbox/{{ msg.id }}">{{ msg.name }}</a>
-                        <p>{{ msg.content|striptags|truncatechars:50 }} <a class="yellow-front link" href="/inbox/{{ msg.id }}">Read More</a></p>
+                        <p>{{ msg.content|striptags|truncatechars:50 }} <a class="orange-front link" href="/inbox/{{ msg.id }}">Read More</a></p>
                     </div>
                 {% endfor %}
             {% else %}
