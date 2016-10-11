@@ -240,18 +240,8 @@ class TaskLoggerAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'task_name', 'success')
     readonly_fields = ('created_at', 'task_name', 'success', 'message')
 
-    def get_actions(self, request):
-        # Disable delete
-        actions = super(TaskLoggerAdmin, self).get_actions(request)
-        del actions['delete_selected']
-        return actions
-
     def has_add_permission(self, request, obj=None):
         return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
 
 # Organisation
 admin.site.register(Class, ClassAdmin)
