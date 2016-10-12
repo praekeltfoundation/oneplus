@@ -6,7 +6,12 @@ from utils import format_option, format_content
 from communication.models import ChatMessage, Discussion, PostComment, ChatGroup, Post, CoursePostRel
 from organisation.models import Course
 from auth.models import CustomUser
-from datetime import datetime
+from datetime import datetime, timedelta
+import math
+import mobileu.teacher_report as teacher_report
+from core.models import Class, Teacher, TeacherClass, TestingQuestion, TestingQuestionOption, Learner, Participant, \
+    ParticipantQuestionAnswer
+from organisation.models import Course, CourseModuleRel, Module, School
 
 
 class TestContent(TestCase):
@@ -384,3 +389,100 @@ class AdminSiteTests(TestCase):
         self.admin_page_test_helper(c, "/admin/organisation/organisation/add/")
         self.admin_page_test_helper(c, "/admin/organisation/school/")
         self.admin_page_test_helper(c, "/admin/organisation/school/add/")
+
+
+class TestTeacherReport(TestCase):
+    def generate_questions(self, module, num_questions, num_options):
+        questions = []
+        options = []
+        for i in range(num_questions):
+            q = TestingQuestion.objects.create(name='Q%d' % (i,),
+                                               order=i,
+                                               module=module,
+                                               question_content='This is Q%d' % (i,),
+                                               difficulty=TestingQuestion.DIFF_EASY,
+                                               state=TestingQuestion.PUBLISHED)
+            questions.append(q)
+            for j in range(num_options):
+                o = TestingQuestionOption.objects.create(
+                    question=q,
+                    name='Q%dA%d' % (i, j),
+                    order=j,
+                    content='This is Q%dA%d' % (i, j),
+                    correct=True if j == 0 else False)
+                options.append(o)
+        return {'questions': questions, 'options': options}
+
+    def answer_questions_roundrobin(self, participant, questions, num_options, lastmonth):
+        num_correct = 0
+        for i in range(len(questions)):
+            q = questions[i]
+            selected_option = TestingQuestionOption.objects.get(question=q, order=i % num_options)
+            if selected_option.correct:
+                num_correct += 1
+            qr = ParticipantQuestionAnswer.objects.create(
+                participant=participant,
+                question=q,
+                option_selected=selected_option,
+                correct=selected_option.correct,
+                answerdate=lastmonth+timedelta(hours=i/3*24))
+        return num_correct
+
+    def test_safe_sheet_name(self):
+        normal = teacher_report.make_safe_sheet_name('ThisIsMyName')
+        self.assertEqual(
+            normal,
+            'ThisIsMyName',
+            'Long name should be truncated to "ThisIsMyName", got %s' % (normal,))
+        truncated = teacher_report.make_safe_sheet_name('ThisIsAReallyLongSheetNameThatNeverSeemsToEnd')
+        self.assertEqual(
+            truncated,
+            'ThisIsAReallyLongSheetNameThatN',
+            'Long name should be truncated to "ThisIsAReallyLongSheetNameThatN", got %s' % (truncated,))
+
+    def test_get_teacher_list(self):
+        self.assertListEqual(list(teacher_report.get_teacher_list()), list(), 'Teacher list not empty')
+        course = Course.objects.create(name='Thisisafuncourse')
+        module = Module.objects.create(name='Thisisafunmodule')
+        rel = CourseModuleRel.objects.create(course=course, module=module)
+        school = School.objects.create(name='Thisisafunschool')
+        classs = Class.objects.create(name='Thisisafunclass', course=course)
+        teacher = Teacher.objects.create(first_name='Anon', last_name='Ymousteach',
+                                         username='Iamafunteacher', mobile='1234567890',
+                                         school=school, email='aymous@school.com')
+        teach_class = TeacherClass.objects.create(classs=classs, teacher=teacher)
+        teach_list = teacher_report.get_teacher_list()
+        self.assertListEqual(list(teach_list), [teacher.pk],
+                             'Teacher list should contain one item, got %s' % (teach_list,))
+        teacher2 = Teacher.objects.create(first_name='Anon', last_name='Ymousity',
+                                          username='Iamafunteachertoo', mobile='9876543210',
+                                          school=school, email='anonmouse@school.com')
+        teach_class2 = TeacherClass.objects.create(classs=classs, teacher=teacher2)
+        teach_list = teacher_report.get_teacher_list()
+        self.assertListEqual(list(teach_list), [teacher.pk, teacher2.pk],
+                             'Teacher list should contain two items, got %s' % (teach_list,))
+
+    def test_process_participant(self):
+        today = datetime.now()
+        lastmonth = today - timedelta(hours=1*28*24)
+        course = Course.objects.create(name='Thisisafuncourse')
+        module = Module.objects.create(name='Thisisafunmodule')
+        rel = CourseModuleRel.objects.create(course=course, module=module)
+        school = School.objects.create(name='Thisisafunschool')
+        classs = Class.objects.create(name='Thisisafunclass', course=course)
+        learner = Learner.objects.create(first_name='Anon', last_name='Ymous',
+                                         username='0836549852', mobile='0836549852',
+                                         school=school, email='aymous@school.com')
+        participant = Participant.objects.create(learner=learner,
+                                                 classs=classs,
+                                                 datejoined=today-timedelta(days=14))
+        num_questions = 15
+        num_options = 2
+        q_and_a = self.generate_questions(module, num_questions, num_options)
+        num_correct = self.answer_questions_roundrobin(participant, q_and_a['questions'], num_options, lastmonth)
+        processed = teacher_report.process_participant(participant, lastmonth)
+        self.assertEqual(processed[0], 'Anon')
+        self.assertEqual(processed[1], num_questions)
+        self.assertAlmostEqual(processed[2], math.floor(100*num_correct/num_questions), 0)
+        self.assertEqual(processed[3], num_questions)
+        self.assertAlmostEqual(processed[4], math.floor(100*num_correct/num_questions), 0)
