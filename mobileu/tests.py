@@ -413,6 +413,15 @@ class TestTeacherReport(TestCase):
                 options.append(o)
         return {'questions': questions, 'options': options}
 
+    def generate_participant(self, school, classs, first_name='Anon', last_name='Ymous',
+                             username='5556667777', mobile='5556667777', datejoined=datetime.now()):
+        learner = Learner.objects.create(first_name=first_name, last_name=last_name,
+                                         username=username, mobile=mobile, school=school)
+        participant = Participant.objects.create(learner=learner,
+                                                 classs=classs,
+                                                 datejoined=datejoined)
+        return participant
+
     def generate_class(self, course_name='Test_Course', module_name='Test_Module',
                        school_name='Test_School', class_name='Test_Class'):
         course = Course.objects.create(name=course_name)
@@ -471,12 +480,8 @@ class TestTeacherReport(TestCase):
         today = datetime.now()
         lastmonth = today - timedelta(hours=1*28*24)
         class_details = self.generate_class()
-        learner = Learner.objects.create(first_name='Anon', last_name='Ymous',
-                                         username='0836549852', mobile='0836549852',
-                                         school=class_details['school'], email='aymous@school.com')
-        participant = Participant.objects.create(learner=learner,
-                                                 classs=class_details['class'],
-                                                 datejoined=today-timedelta(days=14))
+        participant = self.generate_participant(school=class_details['school'], classs=class_details['class'],
+                                                datejoined=today-timedelta(days=14))
         num_questions = 15
         num_options = 2
         q_and_a = self.generate_questions(class_details['module'], num_questions, num_options)
