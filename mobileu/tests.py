@@ -492,3 +492,25 @@ class TestTeacherReport(TestCase):
         self.assertAlmostEqual(processed[2], math.floor(100*num_correct/num_questions), 0)
         self.assertEqual(processed[3], num_questions)
         self.assertAlmostEqual(processed[4], math.floor(100*num_correct/num_questions), 0)
+
+    def test_process_module(self):
+        today = datetime.now()
+        lastmonth = today - timedelta(hours=1*28*24)
+        num_learners = 10
+        class_details = self.generate_class()
+        participants = []
+        for i in range(num_learners):
+            mobile = '08251232%02d' % i
+            participant = self.generate_participant(school=class_details['school'], classs=class_details['class'],
+                                                    first_name='Anon%d' % (i,), username=mobile, mobile=mobile,
+                                                    datejoined=today-timedelta(days=14))
+            participants.append(participant)
+        num_questions = 15
+        num_options = 2
+        q_and_a = self.generate_questions(class_details['module'], num_questions, num_options)
+        num_correct = 0
+        for p in participants:
+            num_correct += self.answer_questions_roundrobin(p, q_and_a['questions'], num_options, lastmonth)
+        correct_percentage = 100 * num_correct/num_learners/num_questions
+        processed = teacher_report.process_module(class_details['module'], lastmonth)
+        self.assertTupleEqual(processed, (class_details['module'].name, correct_percentage, correct_percentage))
