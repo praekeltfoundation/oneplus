@@ -413,6 +413,15 @@ class TestTeacherReport(TestCase):
                 options.append(o)
         return {'questions': questions, 'options': options}
 
+    def generate_class(self, course_name='Test_Course', module_name='Test_Module',
+                       school_name='Test_School', class_name='Test_Class'):
+        course = Course.objects.create(name=course_name)
+        module = Module.objects.create(name=module_name)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
+        school = School.objects.create(name=school_name)
+        classs = Class.objects.create(name=class_name, course=course)
+        return {'course': course, 'module': module, 'school': school, 'class': classs}
+
     def answer_questions_roundrobin(self, participant, questions, num_options, lastmonth):
         num_correct = 0
         for i in range(len(questions)):
@@ -442,22 +451,18 @@ class TestTeacherReport(TestCase):
 
     def test_get_teacher_list(self):
         self.assertListEqual(list(teacher_report.get_teacher_list()), list(), 'Teacher list not empty')
-        course = Course.objects.create(name='Thisisafuncourse')
-        module = Module.objects.create(name='Thisisafunmodule')
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        school = School.objects.create(name='Thisisafunschool')
-        classs = Class.objects.create(name='Thisisafunclass', course=course)
+        class_details = self.generate_class()
         teacher = Teacher.objects.create(first_name='Anon', last_name='Ymousteach',
                                          username='Iamafunteacher', mobile='1234567890',
-                                         school=school, email='aymous@school.com')
-        teach_class = TeacherClass.objects.create(classs=classs, teacher=teacher)
+                                         school=class_details['school'], email='aymous@school.com')
+        teach_class = TeacherClass.objects.create(classs=class_details['class'], teacher=teacher)
         teach_list = teacher_report.get_teacher_list()
         self.assertListEqual(list(teach_list), [teacher.pk],
                              'Teacher list should contain one item, got %s' % (teach_list,))
         teacher2 = Teacher.objects.create(first_name='Anon', last_name='Ymousity',
                                           username='Iamafunteachertoo', mobile='9876543210',
-                                          school=school, email='anonmouse@school.com')
-        teach_class2 = TeacherClass.objects.create(classs=classs, teacher=teacher2)
+                                          school=class_details['school'], email='anonmouse@school.com')
+        teach_class2 = TeacherClass.objects.create(classs=class_details['class'], teacher=teacher2)
         teach_list = teacher_report.get_teacher_list()
         self.assertListEqual(list(teach_list), [teacher.pk, teacher2.pk],
                              'Teacher list should contain two items, got %s' % (teach_list,))
@@ -465,20 +470,16 @@ class TestTeacherReport(TestCase):
     def test_process_participant(self):
         today = datetime.now()
         lastmonth = today - timedelta(hours=1*28*24)
-        course = Course.objects.create(name='Thisisafuncourse')
-        module = Module.objects.create(name='Thisisafunmodule')
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        school = School.objects.create(name='Thisisafunschool')
-        classs = Class.objects.create(name='Thisisafunclass', course=course)
+        class_details = self.generate_class()
         learner = Learner.objects.create(first_name='Anon', last_name='Ymous',
                                          username='0836549852', mobile='0836549852',
-                                         school=school, email='aymous@school.com')
+                                         school=class_details['school'], email='aymous@school.com')
         participant = Participant.objects.create(learner=learner,
-                                                 classs=classs,
+                                                 classs=class_details['class'],
                                                  datejoined=today-timedelta(days=14))
         num_questions = 15
         num_options = 2
-        q_and_a = self.generate_questions(module, num_questions, num_options)
+        q_and_a = self.generate_questions(class_details['module'], num_questions, num_options)
         num_correct = self.answer_questions_roundrobin(participant, q_and_a['questions'], num_options, lastmonth)
         processed = teacher_report.process_participant(participant, lastmonth)
         self.assertEqual(processed[0], 'Anon')
