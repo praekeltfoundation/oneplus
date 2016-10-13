@@ -250,7 +250,7 @@ def signup_form_normal(request):
                 try:
                     classs = Class.objects.get(name=class_name)
                 except ObjectDoesNotExist:
-                    course = Course.objects.get(name='none')
+                    course = data["course"]
                     classs = Class.objects.create(
                         name=class_name,
                         description="%s open class for %s" % (school.name, data['grade']),

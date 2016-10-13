@@ -6,6 +6,7 @@ from core.models import Class
 from core.common import PROVINCES
 from organisation.models import School, Course
 from django.db.models import Q
+from oneplusmvp import settings
 
 
 def zero_len(value):
@@ -273,7 +274,15 @@ def validate_sign_up_form_normal(post):
 
     if "grade" in post and post["grade"]:
         try:
-            Course.objects.get(name='none')
+            if post["grade"] == "Grade 10":
+                course_name = settings.GRADE_10_COURSE_NAME
+            elif post["grade"] == "Grade 11":
+                course_name = settings.GRADE_11_COURSE_NAME
+            elif post["grade"] == "Grade 12":
+                course_name = settings.GRADE_12_COURSE_NAME
+            else:
+                raise Course.DoesNotExist
+            data['course'] = Course.objects.get(name=course_name)
         except Course.DoesNotExist:
             errors["grade_course_error"] = "No course is assigned to your grade"
 
