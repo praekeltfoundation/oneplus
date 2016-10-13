@@ -7,11 +7,15 @@
     <a href="/menu"><div class="text heading purple-back darkgrey-front"><li class="icon points"></li><p>Points</p></div></a>
     </div>
     <div class="text heading darkgrey-back"><p>Your points earned<span class="purple-front large-font-normal pull-right">{{ state.points_points }}</span></p></div>
-
-    <div class="menu">
-        {% for mod in modules %}
-            <div class="item text grey-back white-front"><p>{{ mod.name }}<span class="right large-font-normal">{{ mod.score }}</span></p></div>
-        {% endfor %}
+    <div class="content padded">
+        <table class="borderless" width="100%">
+            {% for mod in modules %}
+                <tr class="item grey-back white-front">
+                    <td class="body-copy vert-center wrap-words">{{ mod.name }}</td>
+                    <td class="text-right body-copy vert-center slim-num-field">{{ mod.score }}</td>
+                </tr>
+            {% endfor %}
+        </table>
     </div>
 
 {% endblock %}

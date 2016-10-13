@@ -5,7 +5,7 @@
 {% block content %}
     {% load humanize %}
     <div class="menu">
-        <a href="/menu"><div class="text heading cyan-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
+        <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
     </div>
     <div class="text heading darkgrey-back"><p>Connect with others</p></div>
 
@@ -17,7 +17,7 @@
             </a>
             <div><span class="white-front bold-font">{{ grp.last_message.author.first_name }}</span> <span class="lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</span></div>
             <p class="white-front">{{ grp.last_message.content }}</p>
-            <a href="chat/{{ grp.id }}" class="blue-front">See more Comments ></a>
+            <a href="chat/{{ grp.id }}" class="orange-front">See more Comments ></a>
         </div>
     {% endfor %}
     </div>

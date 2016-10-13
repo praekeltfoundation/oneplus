@@ -5,7 +5,7 @@
 {% block content %}
     {% load humanize %}
 <div class="menu">
-    <a href="/chat"><div class="text heading cyan-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
+    <a href="/chat"><div class="text heading orange-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
 </div>
     <div class="text heading darkgrey-back"><p>{{ group.name }}</p></div>
 
@@ -33,7 +33,7 @@
         <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
             {{ state.chat_page }} of {{ state.chat_page_max }}
             {% if state.chat_page < state.chat_page_max %}
-            <button type="submit" name="more_button" class="blue-front link" value="">Load more Comments ></button>
+            <button type="submit" name="more_button" class="orange-front link" value="">Load more Comments ></button>
             <input type="hidden" name="page" value="" />
             {% endif %}
         </form>
@@ -44,7 +44,7 @@
             Post a comment
             <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                 <input type="text" name="comment" value="" />
-                <button type="submit" name="comment_button" class="button blue-back grey-front" value="Submit">Post</button>
+                <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Post</button>
             </form>
         </div>
     {% endif %}

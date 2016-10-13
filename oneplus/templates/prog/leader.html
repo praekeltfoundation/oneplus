@@ -22,13 +22,12 @@
             </div>
             <div class="clear"></div>
         {% endif %}
-        <table class="borderless" width="100%">
+        <table class="borderless" width="100%" style="padding-bottom:1em;">
         {% for participant in learners %}
         <tr class="item grey-back {% if participant.me %}purple-front{% endif %}">
-                <td class="large-font-normal pull-left" style="width:20%">#{{ participant.position }}</td>
-                <td class="large-font-normal pull-left">{{ participant.name }}</td>
-                <td class="large-font-normal pull-right">{{ participant.points }}</td>
-                <td class="clear"></td>
+                <td class="body-copy vert-center slim-num-field">#{{ participant.position }}</td>
+                <td class="body-copy vert-center wrap-words">{{ participant.name }}</td>
+                <td class="body-copy text-right vert-center slim-num-field">{{ participant.points }}</td>
         </tr>
         {% endfor %}
         </table>
