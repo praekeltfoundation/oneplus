@@ -326,3 +326,11 @@ class Setting(models.Model):
             return setting.value
         else:
             return None
+
+
+class UnprocessedSchools(models.Model):
+    learner = models.ForeignKey(Learner, null=True)
+    province = models.CharField("Province", max_length=20, null=True, blank=True, choices=PROVINCE_CHOICES)
+    date_added = models.DateTimeField("Date added", auto_now_add=True)
+    suggested_name = models.CharField("Suggested name", max_length=30, blank=False)
+    is_completed = models.BooleanField("Completed", default=False)
