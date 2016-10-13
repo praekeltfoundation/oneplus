@@ -219,7 +219,7 @@ def signup_form(request):
 
             else:
                 filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
-                filtered_classes = Class.objects.filter(province=data["province"])
+                filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
                 return render(request, "auth/signup_form_promath.html", {"data": data,
                                                                          "schools": filtered_schools,
                                                                          "classes": filtered_classes})
@@ -246,6 +246,17 @@ def signup_form_normal(request):
         if not errors:
             if data["school"] != "other":
                 school = School.objects.get(id=data["school"])
+                class_name = "%s - %s" % (school.name, data['grade'])
+                try:
+                    classs = Class.objects.get(name=class_name)
+                except ObjectDoesNotExist:
+                    course = Course.objects.get(name='none')
+                    classs = Class.objects.create(
+                        name=class_name,
+                        description="%s open class for %s" % (school.name, data['grade']),
+                        province=data["province"],
+                        type=Class.CT_OPEN,
+                        course=course)
                 # create learner
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
@@ -253,17 +264,6 @@ def signup_form_normal(request):
                                              country="South Africa",
                                              school=school,
                                              grade=data["grade"])
-                class_name = "%s - %s" % (school.name, data['grade'])
-                try:
-                    classs = Class.objects.get(name=class_name)
-                except ObjectDoesNotExist:
-                    course = Course.objects.get(grade='none')
-                    classs = Class.objects.create(
-                        name=class_name,
-                        description="%s open class for %s" % (school.name, data['grade']),
-                        province=data["province"],
-                        type=Class.CT_OPEN,
-                        course=course)
 
                 # create participant
                 create_participant(new_learner, classs)
@@ -321,8 +321,8 @@ def signup_form_promath(request):
             return render(request, "auth/signedup.html")
         else:
             if "province" in data:
-                filtered_schools = School.objects.filter(province=data["province"])
-                filtered_classes = Class.objects.filter(province=data["province"])
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
+                filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
 
                 return render(request, "auth/signup_form_promath.html", {"data": data,
                                                                          "errors": errors,

@@ -28,6 +28,11 @@
                     <span class="red-front">{{ errors.school_error }}</span>
                     <br>
                 {% endif %}
+                {% if errors.grade_course_rel_error %}
+                    <span class="red-front">{{ errors.grade_course_error }}</span> -
+                    <a href={% url 'misc.contact' %}>Contact us</a> to get connected.
+                    <br>
+                {% endif %}
             </p>
 
             <input type="submit" value="Submit" class="button green-back grey-front" />

@@ -4,7 +4,7 @@ import re
 from auth.models import CustomUser
 from core.models import Class
 from core.common import PROVINCES
-from organisation.models import School
+from organisation.models import School, Course
 from django.db.models import Q
 
 
@@ -270,6 +270,12 @@ def validate_sign_up_form_normal(post):
                 data["school"] = post["school"]
     else:
         errors["school_error"] = "This must be completed"
+
+    if "grade" in post and post["grade"]:
+        try:
+            Course.objects.get(name='none')
+        except Course.DoesNotExist:
+            errors["grade_course_error"] = "No course is assigned to your grade"
 
     return data, errors
 
