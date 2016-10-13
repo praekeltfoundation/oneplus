@@ -255,13 +255,29 @@ def validate_sign_up_form(post):
     return data, errors
 
 
+def validate_sign_up_form_normal(post):
+    data = {}
+    errors = {}
+
+    if "school" in post and post["school"]:
+        try:
+            School.objects.get(id=post["school"], open_type=School.OT_OPEN)
+            data["school"] = post["school"]
+        except School.DoesNotExist:
+            errors["school_error"] = "Select your school"
+    else:
+        errors["school_error"] = "This must be completed"
+
+    return data, errors
+
+
 def validate_sign_up_form_promath(post):
     data = {}
     errors = {}
 
     if "school" in post and post["school"]:
         try:
-            School.objects.get(id=post["school"])
+            School.objects.get(id=post["school"], open_type=School.OT_CLOSED)
             data["school"] = post["school"]
         except School.DoesNotExist:
             errors["school_error"] = "Select your school"
