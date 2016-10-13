@@ -260,11 +260,14 @@ def validate_sign_up_form_normal(post):
     errors = {}
 
     if "school" in post and post["school"]:
-        try:
-            School.objects.get(id=post["school"], open_type=School.OT_OPEN)
-            data["school"] = post["school"]
-        except School.DoesNotExist:
-            errors["school_error"] = "Select your school"
+        if post["school"] != "other":
+            try:
+                School.objects.get(id=post["school"], open_type=School.OT_OPEN)
+                data["school"] = post["school"]
+            except School.DoesNotExist:
+                errors["school_error"] = "Select your school"
+        else:
+                data["school"] = post["school"]
     else:
         errors["school_error"] = "This must be completed"
 
