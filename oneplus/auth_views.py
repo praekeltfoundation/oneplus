@@ -17,7 +17,7 @@ from lockout import LockedOut
 import koremutake
 from .validators import *
 from django.db.models import Count
-from organisation.models import School, Course, GradeCourseRel
+from organisation.models import School, Course
 from core.models import Class, Participant
 from oneplusmvp import settings
 from content.models import Event
@@ -213,51 +213,9 @@ def signup_form(request):
 
         if not errors:
             if data["enrolled"] == "1":
-                try:
-                    school = School.objects.get(name=settings.OPEN_SCHOOL)
-                except School.DoesNotExist:
-                    organisation = Organisation.objects.get(name="One Plus")
-                    school = School.objects.create(name=settings.OPEN_SCHOOL,
-                                                   organisation=organisation,
-                                                   province=data["province"])
-
-                # create learner
-                new_learner = create_learner(first_name=data["first_name"],
-                                             last_name=data["surname"],
-                                             mobile=data["cellphone"],
-                                             country="South Africa",
-                                             school=school,
-                                             grade=data["grade"])
-
-                if data["grade"] == "Grade 10":
-                    try:
-                        classs = Class.objects.get(name=settings.GRADE_10_OPEN_CLASS_NAME)
-                    except Class.DoesNotExist:
-                        try:
-                            course = Course.objects.get(name=settings.GRADE_10_COURSE_NAME)
-                        except Course.DoesNotExist:
-                            course = Course.objects.create(name=settings.GRADE_10_COURSE_NAME)
-                        classs = Class.objects.create(name=settings.GRADE_10_OPEN_CLASS_NAME, course=course)
-                elif data["grade"] == "Grade 11":
-                    try:
-                        classs = Class.objects.get(name=settings.GRADE_11_OPEN_CLASS_NAME)
-                    except Class.DoesNotExist:
-                        try:
-                            course = Course.objects.get(name=settings.GRADE_11_COURSE_NAME)
-                        except Course.DoesNotExist:
-                            course = Course.objects.create(name=settings.GRADE_11_COURSE_NAME)
-                        classs = Class.objects.create(name=settings.GRADE_11_OPEN_CLASS_NAME, course=course)
-                else:
-                    try:
-                        classs = Class.objects.get(name=settings.GRADE_12_OPEN_CLASS_NAME)
-                    except Class.DoesNotExist:
-                        try:
-                            course = Course.objects.get(name=settings.GRADE_12_COURSE_NAME)
-                        except Course.DoesNotExist:
-                            course = Course.objects.create(name=settings.GRADE_12_COURSE_NAME)
-                        classs = Class.objects.create(name=settings.GRADE_12_OPEN_CLASS_NAME, course=course)
-
-                create_participant(new_learner, classs)
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
+                return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                        "schools": filtered_schools})
 
             else:
                 filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
@@ -266,17 +224,6 @@ def signup_form(request):
                                                                          "schools": filtered_schools,
                                                                          "classes": filtered_classes})
 
-            password = set_learner_password(new_learner)
-            send_welcome_sms(new_learner, password)
-
-            # inform dig-it about the new learner
-            subject = "".join(['New student registered'])
-            message = "".join([
-                new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
-
-            mail_managers(subject=subject, message=message, fail_silently=False)
-
-            return render(request, "auth/signedup.html")
         else:
             return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
                                                              "data": data,
@@ -310,13 +257,13 @@ def signup_form_normal(request):
                 try:
                     classs = Class.objects.get(name=class_name)
                 except ObjectDoesNotExist:
-                    grade = GradeCourseRel.objects.get(grade=data["grade"])
+                    course = Course.objects.get(grade='none')
                     classs = Class.objects.create(
                         name=class_name,
                         description="%s open class for %s" % (school.name, data['grade']),
                         province=data["province"],
                         type=Class.CT_OPEN,
-                        course=grade.course)
+                        course=course)
 
                 # create participant
                 create_participant(new_learner, classs)
