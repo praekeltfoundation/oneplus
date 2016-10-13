@@ -17,7 +17,7 @@ from lockout import LockedOut
 import koremutake
 from .validators import *
 from django.db.models import Count
-from organisation.models import School, Course
+from organisation.models import School, Course, GradeCourseRel
 from core.models import Class, Participant
 from oneplusmvp import settings
 from content.models import Event
@@ -260,7 +260,7 @@ def signup_form(request):
                 create_participant(new_learner, classs)
 
             else:
-                filtered_schools = School.objects.filter(province=data["province"])
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
                 filtered_classes = Class.objects.filter(province=data["province"])
                 return render(request, "auth/signup_form_promath.html", {"data": data,
                                                                          "schools": filtered_schools,
@@ -281,6 +281,63 @@ def signup_form(request):
             return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
                                                              "data": data,
                                                              "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@available_space_required
+def signup_form_normal(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+
+    def post():
+        data, errors = validate_sign_up_form(request.POST)
+        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
+        data.update(normal_data)
+        errors.update(normal_errors)
+
+        if not errors:
+            if data["school"] != "other":
+                school = School.objects.get(id=data["school"])
+                # create learner
+                new_learner = create_learner(first_name=data["first_name"],
+                                             last_name=data["surname"],
+                                             mobile=data["cellphone"],
+                                             country="South Africa",
+                                             school=school,
+                                             grade=data["grade"])
+                class_name = "%s - %s" % (school.name, data['grade'])
+                try:
+                    classs = Class.objects.get(name=class_name)
+                except ObjectDoesNotExist:
+                    grade = GradeCourseRel.objects.get(grade=data["grade"])
+                    classs = Class.objects.create(
+                        name=class_name,
+                        description="%s open class for %s" % (school.name, data['grade']),
+                        province=data["province"],
+                        type=Class.CT_OPEN,
+                        course=grade.course)
+
+                # create participant
+                create_participant(new_learner, classs)
+
+                password = set_learner_password(new_learner)
+                send_welcome_sms(new_learner, password)
+
+                return render(request, "auth/signedup.html")
+            else:
+                errors.update({"unknown_school": "Unknown school selected."})
+                return render(request, "auth/signup_form.html", {"data": data,
+                                                                 "errors": errors})
+        else:
+            if "province" in data:
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
+
+                return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                        "errors": errors,
+                                                                        "schools": filtered_schools})
+            else:
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     return resolve_http_method(request, [get, post])
 
