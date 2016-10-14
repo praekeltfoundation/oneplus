@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="content">
-        <p class="center-font">To complete your sign up please select your school and class:</p>
+        <p class="center-font">To complete your sign up please select your school:</p>
 		<form action="signup_form_normal" method="post" class="signup">
 			{% csrf_token %}
             <input type="hidden" name="first_name" value="{{ data.first_name }}">
@@ -17,7 +17,7 @@
             <p>
                 School:<br>
                 <select name="school" id="id_school">
-                    <option value="0">- - - - - - - -</option>
+                    <option value="0">Select school</option>
                     {% for school in schools%}
                         <option value="{{ school.id }}">{{ school.name }}</option>
                     {% endfor %}
