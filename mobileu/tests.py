@@ -540,4 +540,34 @@ class TestTeacherReport(TestCase):
                                                                               fake_open().write.call_count))
         csv_writes = fake_open().write.call_args_list[1:learners_per_class + 1]
         for i in range(learners_per_class):
-            self.assertRegexpMatches(csv_writes[i][0][0], 'Learner %d' % (i,))
+            correct_percent = i * 100 / learners_per_class
+            self.assertRegexpMatches(
+                csv_writes[i][0][0],
+                'Learner %d,%d,%d,%d,%d' % (i, num_questions, correct_percent, num_questions, correct_percent))
+
+    def test_write_module_list(self):
+        num_modules = 10
+        module_report_name = 'Test_Module_Report'
+        module_list = []
+        current_class = Mock()
+        current_class.name.return_value = 'Test_Class'
+        for i in range(num_modules):
+            correct_percent = i * 100 / num_modules
+            module_list.append(['Module %d' % (i,), correct_percent, correct_percent + 1])
+        failed_reports = []
+        fake_open = mock_open()
+        with patch('__builtin__.open', fake_open, create=True):
+            teacher_report.write_module_list(module_report_name, current_class, module_list, failed_reports)
+        self.assertListEqual(fake_open.call_args_list,
+                             [call('Test_Module_Report.csv', 'wb'), call('Test_Module_Report.xls', 'w+b')],
+                             'Didn\'t open both *.csv and *.xls files for report')
+        self.assertGreater(
+            fake_open().write.call_count,
+            num_modules + 1,
+            msg='Number of writes too low, should be more than %d, got %d' % (num_modules + 1,
+                                                                              fake_open().write.call_count))
+        csv_writes = fake_open().write.call_args_list[1:num_modules + 1]
+        for i in range(num_modules):
+            correct_percent = i * 100 / num_modules
+            self.assertRegexpMatches(csv_writes[i][0][0],
+                                     'Module %d,%d,%d' % (i, correct_percent, correct_percent + 1))
