@@ -29,12 +29,15 @@ class Class(models.Model):
     Classes link Users (learners, mentors, etc) and Courses. A user has to
     be in a class to participate in a modules.
     """
+    CT_TRADITIONAL = 1
+    CT_OPEN = 2
+
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     course = models.ForeignKey(Course, null=True, blank=False)
     type = models.PositiveIntegerField("Type", choices=(
-        (1, "Traditional"), (2, "Open Class ")), default=1)
+        (CT_TRADITIONAL, "Traditional"), (CT_OPEN, "Open Class ")), default=CT_TRADITIONAL)
     startdate = models.DateTimeField("Start Date", null=True, blank=True)
     enddate = models.DateTimeField("End Date", null=True, blank=True)
     is_active = models.BooleanField("Is Active", default=True)
@@ -343,3 +346,11 @@ class TaskLogger(models.Model):
     class Meta:
         verbose_name = 'Task Logger'
         verbose_name_plural = 'Task Logger'
+
+
+class UnprocessedSchools(models.Model):
+    learner = models.ForeignKey(Learner, null=True)
+    province = models.CharField("Province", max_length=20, null=True, blank=True, choices=PROVINCE_CHOICES)
+    date_added = models.DateTimeField("Date added", auto_now_add=True)
+    suggested_name = models.CharField("Suggested name", max_length=30, blank=False)
+    is_completed = models.BooleanField("Completed", default=False)
