@@ -3444,6 +3444,13 @@ class GeneralTests(TestCase):
     def test_signup_form(self):
         with patch("django.core.mail.mail_managers") as mock_mail_managers:
             province_school = School.objects.get(name="Open School")
+            self.course.name = settings.GRADE_10_COURSE_NAME
+            self.course.save()
+            promaths_school = self.create_school("ProMaths School",
+                                                 province_school.organisation,
+                                                 open_type=School.OT_CLOSED)
+            promaths_class = self.create_class("ProMaths Class",
+                                               self.course)
             resp = self.client.get(reverse('auth.signup_form'))
             self.assertEqual(resp.status_code, 200)
 
@@ -3545,8 +3552,8 @@ class GeneralTests(TestCase):
                                         'province': 'Gauteng',
                                         'grade': 'Grade 10',
                                         'enrolled': 0,
-                                        'school': self.school.id,
-                                        'classs': self.classs.id
+                                        'school': promaths_school.id,
+                                        'classs': promaths_class.id
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -3554,13 +3561,16 @@ class GeneralTests(TestCase):
             self.assertEquals('Bob', new_learner.first_name)
 
             # valid - not enrolled - grade 10 - no open class created
-            resp = self.client.post(reverse('auth.signup_form'),
+            self.school.province = "Gauteng"
+            self.school.save()
+            resp = self.client.post(reverse('auth.signup_form_normal'),
                                     data={
                                         'first_name': "Koos",
                                         'surname': "Botha",
                                         'cellphone': '0729876540',
                                         'grade': 'Grade 10',
                                         'province': "Gauteng",
+                                        'school': self.school.id,
                                         'enrolled': 1,
                                     },
                                     follow=True)
@@ -3574,13 +3584,14 @@ class GeneralTests(TestCase):
                 pass
 
             # valid - not enrolled - grade 10
-            resp = self.client.post(reverse('auth.signup_form'),
+            resp = self.client.post(reverse('auth.signup_form_normal'),
                                     data={
                                         'first_name': "Willy",
                                         'surname': "Wolly",
                                         'cellphone': '0729878963',
                                         'grade': 'Grade 10',
                                         'province': "Gauteng",
+                                        'school': self.school.id,
                                         'enrolled': 1,
                                     },
                                     follow=True)
@@ -3588,14 +3599,18 @@ class GeneralTests(TestCase):
             new_learner = Learner.objects.get(username='0729878963')
             self.assertEquals('Willy', new_learner.first_name)
 
+            self.course.name = settings.GRADE_11_COURSE_NAME
+            self.course.save()
+
             # valid - not enrolled - grade 11 - creaing open class
-            resp = self.client.post(reverse('auth.signup_form'),
+            resp = self.client.post(reverse('auth.signup_form_normal'),
                                     data={
                                         'first_name': "Tom",
                                         'surname': "Tom",
                                         'cellphone': '0729876576',
                                         'grade': 'Grade 11',
                                         'province': "Gauteng",
+                                        'school': self.school.id,
                                         'enrolled': 1,
                                     },
                                     follow=True)
@@ -3604,13 +3619,14 @@ class GeneralTests(TestCase):
             self.assertEquals('Tom', new_learner.first_name)
 
             # valid - not enrolled - grade 11
-            resp = self.client.post(reverse('auth.signup_form'),
+            resp = self.client.post(reverse('auth.signup_form_normal'),
                                     data={
                                         'first_name': "Henky",
                                         'surname': "Tanky",
                                         'cellphone': '0729876486',
                                         'grade': 'Grade 11',
                                         'province': "Gauteng",
+                                        'school': self.school.id,
                                         'enrolled': 1,
                                     },
                                     follow=True)
@@ -3621,14 +3637,18 @@ class GeneralTests(TestCase):
             resp = self.client.get(reverse("auth.signup_form_promath"))
             self.assertContains(resp, 'To sign up please complete the following information:')
 
+            self.course.name = settings.GRADE_12_COURSE_NAME
+            self.course.save()
+
             # valid - not enrolled - grade 12 - creaing open class
-            resp = self.client.post(reverse('auth.signup_form'),
+            resp = self.client.post(reverse('auth.signup_form_normal'),
                                     data={
                                         'first_name': "Rob",
                                         'surname': "Web",
                                         'cellphone': '0729876599',
                                         'grade': 'Grade 12',
                                         'province': "Gauteng",
+                                        'school': self.school.id,
                                         'enrolled': 1,
                                     },
                                     follow=True)
@@ -3637,13 +3657,14 @@ class GeneralTests(TestCase):
             self.assertEquals('Rob', new_learner.first_name)
 
             # valid - not enrolled - grade 12
-            resp = self.client.post(reverse('auth.signup_form'),
+            resp = self.client.post(reverse('auth.signup_form_normal'),
                                     data={
                                         'first_name': "Kyle",
                                         'surname': "Evans",
                                         'cellphone': '0729876444',
                                         'grade': 'Grade 12',
                                         'province': "Gauteng",
+                                        'school': self.school.id,
                                         'enrolled': 1,
                                     },
                                     follow=True)

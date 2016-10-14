@@ -213,14 +213,50 @@ def signup_form(request):
 
         if not errors:
             if data["enrolled"] == "1":
-                try:
-                    school = School.objects.get(name=settings.OPEN_SCHOOL)
-                except School.DoesNotExist:
-                    organisation = Organisation.objects.get(name="One Plus")
-                    school = School.objects.create(name=settings.OPEN_SCHOOL,
-                                                   organisation=organisation,
-                                                   province=data["province"])
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
+                return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                        "schools": filtered_schools})
 
+            else:
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
+                filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
+                return render(request, "auth/signup_form_promath.html", {"data": data,
+                                                                         "schools": filtered_schools,
+                                                                         "classes": filtered_classes})
+
+        else:
+            return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
+                                                             "data": data,
+                                                             "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@available_space_required
+def signup_form_normal(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+
+    def post():
+        data, errors = validate_sign_up_form(request.POST)
+        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
+        data.update(normal_data)
+        errors.update(normal_errors)
+
+        if not errors:
+            if data["school"] != "other":
+                school = School.objects.get(id=data["school"])
+                class_name = "%s - %s" % (school.name, data['grade'])
+                try:
+                    classs = Class.objects.get(name=class_name)
+                except ObjectDoesNotExist:
+                    course = data["course"]
+                    classs = Class.objects.create(
+                        name=class_name,
+                        description="%s open class for %s" % (school.name, data['grade']),
+                        province=data["province"],
+                        type=Class.CT_OPEN,
+                        course=course)
                 # create learner
                 new_learner = create_learner(first_name=data["first_name"],
                                              last_name=data["surname"],
@@ -229,58 +265,26 @@ def signup_form(request):
                                              school=school,
                                              grade=data["grade"])
 
-                if data["grade"] == "Grade 10":
-                    try:
-                        classs = Class.objects.get(name=settings.GRADE_10_OPEN_CLASS_NAME)
-                    except Class.DoesNotExist:
-                        try:
-                            course = Course.objects.get(name=settings.GRADE_10_COURSE_NAME)
-                        except Course.DoesNotExist:
-                            course = Course.objects.create(name=settings.GRADE_10_COURSE_NAME)
-                        classs = Class.objects.create(name=settings.GRADE_10_OPEN_CLASS_NAME, course=course)
-                elif data["grade"] == "Grade 11":
-                    try:
-                        classs = Class.objects.get(name=settings.GRADE_11_OPEN_CLASS_NAME)
-                    except Class.DoesNotExist:
-                        try:
-                            course = Course.objects.get(name=settings.GRADE_11_COURSE_NAME)
-                        except Course.DoesNotExist:
-                            course = Course.objects.create(name=settings.GRADE_11_COURSE_NAME)
-                        classs = Class.objects.create(name=settings.GRADE_11_OPEN_CLASS_NAME, course=course)
-                else:
-                    try:
-                        classs = Class.objects.get(name=settings.GRADE_12_OPEN_CLASS_NAME)
-                    except Class.DoesNotExist:
-                        try:
-                            course = Course.objects.get(name=settings.GRADE_12_COURSE_NAME)
-                        except Course.DoesNotExist:
-                            course = Course.objects.create(name=settings.GRADE_12_COURSE_NAME)
-                        classs = Class.objects.create(name=settings.GRADE_12_OPEN_CLASS_NAME, course=course)
-
+                # create participant
                 create_participant(new_learner, classs)
 
+                password = set_learner_password(new_learner)
+                send_welcome_sms(new_learner, password)
+
+                return render(request, "auth/signedup.html")
             else:
-                filtered_schools = School.objects.filter(province=data["province"])
-                filtered_classes = Class.objects.filter(province=data["province"])
-                return render(request, "auth/signup_form_promath.html", {"data": data,
-                                                                         "schools": filtered_schools,
-                                                                         "classes": filtered_classes})
-
-            password = set_learner_password(new_learner)
-            send_welcome_sms(new_learner, password)
-
-            # inform dig-it about the new learner
-            subject = "".join(['New student registered'])
-            message = "".join([
-                new_learner.first_name + ' ' + new_learner.last_name + ' has registered.'])
-
-            mail_managers(subject=subject, message=message, fail_silently=False)
-
-            return render(request, "auth/signedup.html")
+                errors.update({"unknown_school": "Unknown school selected."})
+                return render(request, "auth/signup_form.html", {"data": data,
+                                                                 "errors": errors})
         else:
-            return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
-                                                             "data": data,
-                                                             "errors": errors})
+            if "province" in data:
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
+
+                return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                        "errors": errors,
+                                                                        "schools": filtered_schools})
+            else:
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
     return resolve_http_method(request, [get, post])
 
@@ -317,8 +321,8 @@ def signup_form_promath(request):
             return render(request, "auth/signedup.html")
         else:
             if "province" in data:
-                filtered_schools = School.objects.filter(province=data["province"])
-                filtered_classes = Class.objects.filter(province=data["province"])
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
+                filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
 
                 return render(request, "auth/signup_form_promath.html", {"data": data,
                                                                          "errors": errors,
