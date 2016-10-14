@@ -8,6 +8,7 @@ from organisation.models import Course
 from auth.models import CustomUser
 from datetime import datetime, timedelta
 import math
+from mock import Mock, patch, mock_open, call
 import mobileu.teacher_report as teacher_report
 from core.models import Class, Teacher, TeacherClass, TestingQuestion, TestingQuestionOption, Learner, Participant, \
     ParticipantQuestionAnswer
@@ -492,3 +493,51 @@ class TestTeacherReport(TestCase):
         self.assertAlmostEqual(processed[2], math.floor(100*num_correct/num_questions), 0)
         self.assertEqual(processed[3], num_questions)
         self.assertAlmostEqual(processed[4], math.floor(100*num_correct/num_questions), 0)
+
+    def test_process_module(self):
+        today = datetime.now()
+        lastmonth = today - timedelta(hours=1*28*24)
+        num_learners = 10
+        class_details = self.generate_class()
+        participants = []
+        for i in range(num_learners):
+            mobile = '08251232%02d' % i
+            participant = self.generate_participant(school=class_details['school'], classs=class_details['class'],
+                                                    first_name='Anon%d' % (i,), username=mobile, mobile=mobile,
+                                                    datejoined=today-timedelta(days=14))
+            participants.append(participant)
+        num_questions = 15
+        num_options = 2
+        q_and_a = self.generate_questions(class_details['module'], num_questions, num_options)
+        num_correct = 0
+        for p in participants:
+            num_correct += self.answer_questions_roundrobin(p, q_and_a['questions'], num_options, lastmonth)
+        correct_percentage = 100 * num_correct/num_learners/num_questions
+        processed = teacher_report.process_module(class_details['module'], lastmonth)
+        self.assertTupleEqual(processed, (class_details['module'].name, correct_percentage, correct_percentage))
+
+    def test_write_class_list(self):
+        learners_per_class = 10
+        num_questions = 15
+        class_report_name = 'Test_Class_Report'
+        class_list = []
+        current_class = Mock()
+        current_class.name.return_value = 'Test_Class'
+        for i in range(learners_per_class):
+            correct_percent = i * 100 / learners_per_class
+            class_list.append(['Learner %d' % (i,), num_questions, correct_percent, num_questions, correct_percent])
+        failed_reports = []
+        fake_open = mock_open()
+        with patch('__builtin__.open', fake_open, create=True):
+            teacher_report.write_class_list(class_report_name, class_list, current_class, failed_reports)
+        self.assertListEqual(fake_open.call_args_list,
+                             [call('Test_Class_Report.csv', 'wb'), call('Test_Class_Report.xls', 'w+b')],
+                             'Didn\'t open both *.csv and *.xls files for report')
+        self.assertGreater(
+            fake_open().write.call_count,
+            learners_per_class + 1,
+            msg='Number of writes too low, should be more than %d, got %d' % (learners_per_class + 1,
+                                                                              fake_open().write.call_count))
+        csv_writes = fake_open().write.call_args_list[1:learners_per_class + 1]
+        for i in range(learners_per_class):
+            self.assertRegexpMatches(csv_writes[i][0][0], 'Learner %d' % (i,))
