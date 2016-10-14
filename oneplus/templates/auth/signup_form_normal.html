@@ -21,7 +21,7 @@
                     {% for school in schools%}
                         <option value="{{ school.id }}">{{ school.name }}</option>
                     {% endfor %}
-                    <option value="other">Other</option>
+                    {% comment %}<option value="other">Other</option>{% endcomment %}
                 </select>
                 <br>
                 {% if errors.school_error %}
