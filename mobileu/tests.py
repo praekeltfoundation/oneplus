@@ -474,7 +474,7 @@ class TestTeacherReport(TestCase):
                                           school=class_details['school'], email='anonmouse@school.com')
         teach_class2 = TeacherClass.objects.create(classs=class_details['class'], teacher=teacher2)
         teach_list = teacher_report.get_teacher_list()
-        self.assertListEqual(list(teach_list), [teacher.pk, teacher2.pk],
+        self.assertListEqual(sorted(list(teach_list)), sorted([teacher.pk, teacher2.pk]),
                              'Teacher list should contain two items, got %s' % (teach_list,))
 
     def test_process_participant(self):
@@ -571,3 +571,13 @@ class TestTeacherReport(TestCase):
             correct_percent = i * 100 / num_modules
             self.assertRegexpMatches(csv_writes[i][0][0],
                                      'Module %d,%d,%d' % (i, correct_percent, correct_percent + 1))
+
+    @patch('django.core.mail.EmailMessage')
+    def test_email_teacher(self, fake_mail):
+        teacher_report.email_teacher('Teacher report mails',
+                                     'Here are your teacher reports',
+                                     'local@dig-it.me',
+                                     {'id': 1, 'email': 'teach@school.com', 'username': 'teach'},
+                                     [{'id': 1, 'email': 'teach@school.com'}],
+                                     [])
+        print(fake_mail.mock_calls)
