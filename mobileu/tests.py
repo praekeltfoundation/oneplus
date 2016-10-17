@@ -8,7 +8,7 @@ from organisation.models import Course
 from auth.models import CustomUser
 from datetime import datetime, timedelta
 import math
-from mock import Mock, patch, mock_open, call
+from mock import Mock, patch, mock_open, call, ANY
 import mobileu.teacher_report as teacher_report
 from core.models import Class, Teacher, TeacherClass, TestingQuestion, TestingQuestionOption, Learner, Participant, \
     ParticipantQuestionAnswer
@@ -572,12 +572,64 @@ class TestTeacherReport(TestCase):
             self.assertRegexpMatches(csv_writes[i][0][0],
                                      'Module %d,%d,%d' % (i, correct_percent, correct_percent + 1))
 
-    @patch('django.core.mail.EmailMessage')
-    def test_email_teacher(self, fake_mail):
-        teacher_report.email_teacher('Teacher report mails',
-                                     'Here are your teacher reports',
-                                     'local@dig-it.me',
-                                     {'id': 1, 'email': 'teach@school.com', 'username': 'teach'},
-                                     [{'id': 1, 'email': 'teach@school.com'}],
-                                     [])
-        print(fake_mail.mock_calls)
+    @patch('mobileu.teacher_report.log', autospec=True)
+    @patch('mobileu.teacher_report.EmailMessage', autospec=True)
+    def test_email_teacher(self, fake_mail, fake_log):
+        subject = 'Teacher report mails'
+        message = 'Here are your teacher reports'
+        from_email = 'local@dig-it.me'
+        current_teacher = {'id': 1, 'email': 'teach@school.com', 'username': 'teach'}
+        all_teachers_list = []
+        failed_email_reports = []
+
+        # test normal mailing
+        new_teacher_obj = {'id': 1,
+                           'email': 'teach@school.com',
+                           'csv_class_reports': ['Class report 1.csv'],
+                           'csv_module_reports': ['Module report 1.csv'],
+                           'xls_class_reports': ['Class report 1.xls'],
+                           'xls_module_reports': ['Module report 1.xls']}
+        all_teachers_list.append(new_teacher_obj)
+        teacher_report.email_teacher(subject, message, from_email, current_teacher,
+                                     all_teachers_list, failed_email_reports)
+        self.assertEqual(fake_mail().attach_file.call_count, 4)
+        self.assertTrue(fake_mail().send.called)
+
+        # test failed file attachment
+        fake_mail.reset_mock()
+        fake_log.reset_mock()
+        fake_mail().attach_file.side_effect = Exception
+        teacher_report.email_teacher(subject, message, from_email, current_teacher,
+                                     all_teachers_list, failed_email_reports)
+        fake_log.assert_has_calls([
+            call(ANY, False), call(ANY, False), call(ANY, False), call(ANY, False)
+        ])
+        fake_mail().attach_file.side_effect = None
+
+        # test failed sending
+        fake_mail.reset_mock()
+        fake_log.reset_mock()
+        fake_mail().send.side_effect = Exception
+        teacher_report.email_teacher(subject, message, from_email, current_teacher,
+                                     all_teachers_list, failed_email_reports)
+        fake_log.assert_has_calls([call(ANY, False)])
+        self.assertEqual(len(failed_email_reports), 1)
+        self.assertEqual(failed_email_reports[0][0], current_teacher['username'])
+        self.assertEqual(failed_email_reports[0][1], current_teacher['email'])
+        fake_mail().send.side_effect = None
+
+        # test multiple non-matching teachers
+        fake_mail.reset_mock()
+        fake_log.reset_mock()
+        failed_email_reports = []
+        all_teachers_list.insert(0, {'id': 2})
+        all_teachers_list.insert(0, {'id': 3})
+        all_teachers_list.append({'id': 4})
+        teacher_report.email_teacher(subject, message, from_email, current_teacher,
+                                     all_teachers_list, failed_email_reports)
+        self.assertEqual(fake_mail().attach_file.call_count, 4)
+        self.assertTrue(fake_mail().send.called)
+        fake_log.assert_called_once_with(ANY, current_teacher["email"])
+
+
+    def test_send_teacher_reports_body(self):
