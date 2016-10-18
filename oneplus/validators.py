@@ -295,7 +295,7 @@ def validate_sign_up_form_promath(post):
 
     if "school" in post and post["school"]:
         try:
-            School.objects.get(id=post["school"], open_type=School.OT_CLOSED)
+            School.objects.get(id=post["school"], open_type__in=(School.OT_CLOSED, School.OT_OPEN))
             data["school"] = post["school"]
         except School.DoesNotExist:
             errors["school_error"] = "Select your school"
