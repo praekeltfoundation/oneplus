@@ -8,7 +8,7 @@ from organisation.models import Course
 from auth.models import CustomUser
 from datetime import datetime, timedelta
 import math
-from mock import Mock, patch, mock_open, call, ANY
+from mock import Mock, patch, mock_open, call, ANY, DEFAULT
 import mobileu.teacher_report as teacher_report
 from core.models import Class, Teacher, TeacherClass, TestingQuestion, TestingQuestionOption, Learner, Participant, \
     ParticipantQuestionAnswer
@@ -425,11 +425,26 @@ class TestTeacherReport(TestCase):
 
     def generate_class(self, course_name='Test_Course', module_name='Test_Module',
                        school_name='Test_School', class_name='Test_Class'):
-        course = Course.objects.create(name=course_name)
-        module = Module.objects.create(name=module_name)
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        school = School.objects.create(name=school_name)
-        classs = Class.objects.create(name=class_name, course=course)
+        try:
+            course = Course.objects.get(name=course_name)
+        except Course.DoesNotExist:
+            course = Course.objects.create(name=course_name)
+        try:
+            module = Module.objects.get(name=module_name)
+        except Module.DoesNotExist:
+            module = Module.objects.create(name=module_name)
+        try:
+            rel = CourseModuleRel.objects.get(course=course, module=module)
+        except CourseModuleRel.DoesNotExist:
+            rel = CourseModuleRel.objects.create(course=course, module=module)
+        try:
+            school = School.objects.get(name=school_name)
+        except School.DoesNotExist:
+            school = School.objects.create(name=school_name)
+        try:
+            classs = Class.objects.get(name=class_name, course=course)
+        except Class.DoesNotExist:
+            classs = Class.objects.create(name=class_name, course=course)
         return {'course': course, 'module': module, 'school': school, 'class': classs}
 
     def answer_questions_roundrobin(self, participant, questions, num_options, lastmonth):
@@ -631,5 +646,101 @@ class TestTeacherReport(TestCase):
         self.assertTrue(fake_mail().send.called)
         fake_log.assert_called_once_with(ANY, current_teacher["email"])
 
-
     def test_send_teacher_reports_body(self):
+        num_classes = 3
+        teachers_per_class = 5
+        learners_per_class = 10
+        questions_answered = 15
+        classes = []
+        teachers = []
+        participants = []
+        for i in range(num_classes):
+            class_details = self.generate_class(class_name='Class%d' % i)
+            classes.append(class_details)
+            for j in range(teachers_per_class):
+                teacher = teacher = Teacher.objects.create(first_name='C%dTeacher%d' % (i, j,),
+                                                           last_name='C%dMcLastnamey%d' % (i, j,),
+                                                           username='c%dteacher%d' % (i, j,),
+                                                           mobile='12345%03d%03d' % (i, j,),
+                                                           school=class_details['school'],
+                                                           email='c%dteacher%d@school.com' % (i, j))
+                teach_class = TeacherClass.objects.create(classs=class_details['class'], teacher=teacher)
+                teachers.append(teacher)
+            for j in range(learners_per_class):
+                participant = self.generate_participant(class_details['school'],
+                                                        class_details['class'],
+                                                        first_name='C%dLearner%d' % (i, j,),
+                                                        last_name='C%dMcLastnamey%d' % (i, j,),
+                                                        username='54321%03d%03d' % (i, j,),
+                                                        mobile='54321%03d%03d' % (i, j,))
+                participants.append(participant)
+
+        modules = list(Module.objects.all())
+
+        def mock_get_teacher_list():
+            return [teacher.id for teacher in teachers]
+
+        mock_process_participant_list = [
+            (participants[i].learner.first_name,
+             math.floor(questions_answered * i / len(participants)),
+             math.floor(100 * i / len(participants)),
+             math.floor(questions_answered * i / len(participants)),
+             math.floor(100 * i / len(participants)))
+            for i in range(len(participants))]
+        module_idx = 0
+
+        def mock_process_module_list(*args, **kwargs):
+            result = (modules[module_idx].name,
+                      math.floor(100 * module_idx / len(modules)),
+                      math.floor(100 * module_idx / len(modules)))
+            self.module_idx = (module_idx + 1) % len(modules)
+            return result
+
+        def mock_email_teachers_fail_some(subject, message, from_email, teacher, all_teachers_list, failed_emails):
+            if (teacher['id'] % num_classes) == 0:
+                failed_emails.append((teacher['username'], teacher['email'], 'Failed %s' % (teacher['username'],)))
+
+        def reset_mocks(patches):
+            self.module_idx = 0
+            for _, value in patches.items():
+                value.reset_mock()
+            patches['process_participant'].side_effect = iter(mock_process_participant_list)
+
+        with patch.multiple('mobileu.teacher_report',
+                            autospec=True,
+                            create=True,
+                            settings=DEFAULT,
+                            mail_managers=DEFAULT,
+                            log=DEFAULT,
+                            process_participant=DEFAULT,
+                            process_module=DEFAULT,
+                            get_teacher_list=DEFAULT,
+                            write_class_list=DEFAULT,
+                            write_module_list=DEFAULT,
+                            email_teacher=DEFAULT) as patches:
+            patches['settings'].MEDIA_ROOT = '/MROOT/'
+            patches['get_teacher_list'].return_value = mock_get_teacher_list()
+            patches['process_participant'].side_effect = iter(mock_process_participant_list)
+            patches['process_module'].side_effect = mock_process_module_list
+            failed_teachers = [teacher.username for teacher in teachers if ((teacher.id % num_classes) == 0)]
+
+            # test basic case
+            teacher_report.send_teacher_reports_body()
+            self.assertEqual(patches['email_teacher'].call_count, num_classes*teachers_per_class)
+
+            # test teacher e-mails failed
+            reset_mocks(patches)
+            patches['email_teacher'].side_effect = mock_email_teachers_fail_some
+            teacher_report.send_teacher_reports_body()
+            self.assertEqual(patches['mail_managers'].call_count, 1)
+            fail_teach_args, fail_teach_kwargs = patches['mail_managers'].call_args
+            for teacher in failed_teachers:
+                self.assertRegexpMatches(fail_teach_args[1], '%s' % (teacher,))
+
+            # test managers e-mail failed
+            reset_mocks(patches)
+            patches['mail_managers'].side_effect = Exception
+            teacher_report.send_teacher_reports_body()
+            failed_teachers = [teacher.username for teacher in teachers if ((teacher.id % num_classes) == 0)]
+            self.assertEqual(patches['mail_managers'].call_count, 1)
+            patches['log'].assert_has_calls([call('Sending failed emails email'), call(ANY, False)])
