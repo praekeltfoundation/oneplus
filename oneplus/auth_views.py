@@ -218,7 +218,8 @@ def signup_form(request):
                                                                         "schools": filtered_schools})
 
             else:
-                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
+                filtered_schools = School.objects.filter(province=data["province"],
+                                                         open_type__in=(School.OT_CLOSED, School.OT_OPEN))
                 filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
                 return render(request, "auth/signup_form_promath.html", {"data": data,
                                                                          "schools": filtered_schools,
@@ -321,7 +322,8 @@ def signup_form_promath(request):
             return render(request, "auth/signedup.html")
         else:
             if "province" in data:
-                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_CLOSED)
+                filtered_schools = School.objects.filter(province=data["province"],
+                                                         open_type__in=(School.OT_CLOSED, School.OT_OPEN))
                 filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
 
                 return render(request, "auth/signup_form_promath.html", {"data": data,
