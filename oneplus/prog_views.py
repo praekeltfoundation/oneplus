@@ -10,7 +10,6 @@ from oneplus.auth_views import resolve_http_method
 from django.contrib.auth.decorators import user_passes_test
 
 
-@oneplus_state_required
 @oneplus_login_required
 def ontrack(request, state, user):
     # get on track state
@@ -56,7 +55,6 @@ def ontrack(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def leader(request, state, user):
     # get learner state
@@ -289,7 +287,6 @@ def leader(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def points(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -336,7 +333,6 @@ def points(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def badges(request, state, user):
     # get learner state

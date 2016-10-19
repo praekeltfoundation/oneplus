@@ -18,6 +18,7 @@ COUNTRYWIDE = "Countrywide"
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
+    @oneplus_state_required
     @wraps(f)
     def wrap(request, *args, **kwargs):
         if "user" not in request.session.keys():

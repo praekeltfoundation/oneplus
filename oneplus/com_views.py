@@ -25,7 +25,6 @@ from oneplus.auth_views import resolve_http_method
 __author__ = 'herman'
 
 
-@oneplus_state_required
 @oneplus_login_required
 def inbox(request, state, user):
     # get inbox messages
@@ -80,7 +79,6 @@ def inbox(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def inbox_detail(request, state, user, messageid):
     # get inbox messages
@@ -119,7 +117,6 @@ def inbox_detail(request, state, user, messageid):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def inbox_send(request, state, user):
     # get inbox messages
@@ -179,7 +176,6 @@ def inbox_send(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def chatgroups(request, state, user):
     # get chat groups
@@ -211,7 +207,6 @@ def chatgroups(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def chat(request, state, user, chatid):
     # get chat group
@@ -283,7 +278,6 @@ def chat(request, state, user, chatid):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def blog_hero(request, state, user):
     # get blog entry
@@ -322,7 +316,6 @@ def blog_hero(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def blog_list(request, state, user):
     # get blog entry
@@ -363,7 +356,6 @@ def blog_list(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def blog(request, state, user, blogid):
     # get blog entry

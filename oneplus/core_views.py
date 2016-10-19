@@ -9,7 +9,6 @@ from oneplus.auth_views import resolve_http_method
 __author__ = 'herman'
 
 
-@oneplus_state_required
 @oneplus_login_required
 def menu(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])

@@ -27,7 +27,6 @@ from oneplus.tasks import update_all_perc_correct_answers, update_num_question_m
 from requests.sessions import session
 
 
-@oneplus_state_required
 @oneplus_login_required
 def home(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -217,7 +216,6 @@ def home(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def nextchallenge(request, state, user):
     # get learner state
@@ -369,7 +367,6 @@ def nextchallenge(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def redo(request, state, user):
     # get learner state
@@ -429,7 +426,6 @@ def redo(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def redo_right(request, state, user):
     # get learner state
@@ -567,7 +563,6 @@ def redo_right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def redo_wrong(request, state, user):
     # get learner state
@@ -701,7 +696,6 @@ def redo_wrong(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def event(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -759,7 +753,6 @@ def event(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def event_right(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -798,7 +791,6 @@ def event_right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def event_wrong(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -837,7 +829,6 @@ def event_wrong(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def sumit(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -939,7 +930,6 @@ def sumit(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def sumit_right(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1009,7 +999,6 @@ def sumit_right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def sumit_level_up(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1065,7 +1054,6 @@ def sumit_level_up(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def sumit_wrong(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1288,7 +1276,6 @@ def get_golden_egg(participant):
     return golden_egg
 
 
-@oneplus_state_required
 @oneplus_login_required
 def right(request, state, user):
     # get learner state
@@ -1492,7 +1479,6 @@ def right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def wrong(request, state, user):
     # get learner state
@@ -1631,7 +1617,6 @@ def wrong(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def event_splash_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1686,7 +1671,6 @@ def event_splash_page(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def event_start_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1761,7 +1745,6 @@ def event_start_page(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def event_end_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1851,7 +1834,6 @@ def event_end_page(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def sumit_end_page(request, state, user):
     _participant = Participant.objects.get(pk=user["participant_id"])
@@ -1967,7 +1949,6 @@ def sumit_end_page(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def report_question(request, state, user, questionid, frm):
     _participant = Participant.objects.get(pk=user["participant_id"])

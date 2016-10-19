@@ -396,7 +396,6 @@ def getconnected(request, state):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def change_details(request, state, user):
     def render_error(error_field, error_message):

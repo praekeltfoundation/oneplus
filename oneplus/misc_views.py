@@ -41,7 +41,6 @@ def welcome(request, state):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def first_time(request, state, user):
     def get():
@@ -55,7 +54,6 @@ def first_time(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def faq(request, state, user):
     def get():
@@ -69,7 +67,6 @@ def faq(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def terms(request, state, user):
     def get():
@@ -93,7 +90,6 @@ def oneplus_check_user(f):
     return wrap
 
 
-@oneplus_state_required
 @oneplus_check_user
 def about(request, state, user):
     def get():
@@ -107,7 +103,6 @@ def about(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_check_user
 def contact(request, state, user):
     def get():
