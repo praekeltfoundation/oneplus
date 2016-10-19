@@ -1,17 +1,17 @@
 from __future__ import division
-from datetime import *
+from datetime import date
 from functools import wraps
 import json
 from django.shortcuts import HttpResponse, redirect
 from django.http import HttpResponseRedirect
-from oneplus.models import *
 from django.contrib.auth.decorators import user_passes_test
 from communication.utils import contains_profanity, get_replacement_content
 from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
 from organisation.models import Course
-from core.models import Class
+from content.models import TestingQuestion
+from core.models import Class, Participant
 
 COUNTRYWIDE = "Countrywide"
 
