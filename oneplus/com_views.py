@@ -3,11 +3,12 @@ from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
-from communication.models import *
-from communication.models import Message, SmsQueue, Sms
-from core.models import *
-from oneplus.models import *
-from .validators import *
+from datetime import datetime
+from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
+from core.models import Class, Course, Learner, Participant
+from .validators import validate_content, validate_course, validate_date_and_time, validate_direction, \
+    validate_message, validate_name, validate_publish_date_and_time, validate_to_class, validate_to_course, \
+    validate_users
 from communication.utils import report_user_post
 from oneplus.views import oneplus_participant_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
