@@ -5,10 +5,6 @@ import json
 import re
 import logging
 
-from django.shortcuts import render, HttpResponse
-from django.http import HttpResponseRedirect
-from django.core.mail import mail_managers
-from django.contrib.auth.decorators import user_passes_test
 from django.db import connection
 from django.core.urlresolvers import reverse
 from .validators import *

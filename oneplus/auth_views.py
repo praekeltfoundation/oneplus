@@ -8,21 +8,15 @@ from .views import *
 from communication.models import *
 from core.models import *
 from oneplus.models import *
-from auth.models import CustomUser
-from communication.utils import VumiSmsApi
-from communication.utils import get_autologin_link
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from lockout import LockedOut
-import koremutake
 from .validators import *
 from django.db.models import Count
-from organisation.models import School, Course
+from organisation.models import School
 from core.models import Class, Participant
-from oneplusmvp import settings
 from content.models import Event
 from core.common import PROVINCES
-from organisation.models import Organisation
 from communication.utils import VumiSmsApi
 
 __author__ = 'herman'

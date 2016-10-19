@@ -3,20 +3,10 @@ from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render, HttpResponse
-from django.http import HttpResponseRedirect
-from django.core.mail import mail_managers
-from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from django.core.mail import mail_managers
-from django.contrib.auth.decorators import user_passes_test
 from communication.models import *
 from communication.models import Message, SmsQueue, Sms
 from core.models import *
-from core.models import Class
 from oneplus.models import *
-from organisation.models import Course
 from .validators import *
 from communication.utils import report_user_post
 from oneplus.views import oneplus_participant_required, oneplus_login_required, _content_profanity_check
