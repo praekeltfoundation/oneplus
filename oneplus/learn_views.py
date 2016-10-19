@@ -13,18 +13,16 @@ from communication.models import Discussion, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage, SUMitLevel, SUMit
-from core.models import Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting, \
-    ParticipantRedoQuestionAnswer, BadgeAwardLog
+from core.models import BadgeAwardLog, Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel, Setting
 from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
 from oneplus.utils import update_metric
-from oneplus.views import oneplus_participant_required, oneplus_login_required, _content_profanity_check
+from oneplus.views import oneplus_participant_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
 from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
-from requests.sessions import session
 
 
 @oneplus_participant_required
