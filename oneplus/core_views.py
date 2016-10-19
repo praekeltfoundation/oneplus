@@ -10,7 +10,7 @@ __author__ = 'herman'
 
 
 @oneplus_participant_required
-def menu(request, participant, state, user):
+def menu(request, state, user, participant):
     _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner,

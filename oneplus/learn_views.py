@@ -26,7 +26,7 @@ from oneplus.tasks import update_all_perc_correct_answers, update_num_question_m
 
 
 @oneplus_participant_required
-def home(request, participant, state, user):
+def home(request, state, user, participant):
     _participant = participant
 
     _start_of_week = date.today() - timedelta(date.today().weekday())
@@ -215,7 +215,7 @@ def home(request, participant, state, user):
 
 
 @oneplus_participant_required
-def nextchallenge(request, participant, state, user):
+def nextchallenge(request, state, user, participant):
     # get learner state
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
@@ -366,7 +366,7 @@ def nextchallenge(request, participant, state, user):
 
 
 @oneplus_participant_required
-def redo(request, participant, state, user):
+def redo(request, state, user, participant):
     # get learner state
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
@@ -425,7 +425,7 @@ def redo(request, participant, state, user):
 
 
 @oneplus_participant_required
-def redo_right(request, participant, state, user):
+def redo_right(request, state, user, participant):
     # get learner state
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
@@ -562,7 +562,7 @@ def redo_right(request, participant, state, user):
 
 
 @oneplus_participant_required
-def redo_wrong(request, participant, state, user):
+def redo_wrong(request, state, user, participant):
     # get learner state
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
@@ -695,7 +695,7 @@ def redo_wrong(request, participant, state, user):
 
 
 @oneplus_participant_required
-def event(request, participant, state, user):
+def event(request, state, user, participant):
     _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -752,7 +752,7 @@ def event(request, participant, state, user):
 
 
 @oneplus_participant_required
-def event_right(request, participant, state, user):
+def event_right(request, state, user, participant):
     _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -790,7 +790,7 @@ def event_right(request, participant, state, user):
 
 
 @oneplus_participant_required
-def event_wrong(request, participant, state, user):
+def event_wrong(request, state, user, participant):
     _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -828,7 +828,7 @@ def event_wrong(request, participant, state, user):
 
 
 @oneplus_participant_required
-def sumit(request, participant, state, user):
+def sumit(request, state, user, participant):
     _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -929,7 +929,7 @@ def sumit(request, participant, state, user):
 
 
 @oneplus_participant_required
-def sumit_right(request, participant, state, user):
+def sumit_right(request, state, user, participant):
     _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -998,7 +998,7 @@ def sumit_right(request, participant, state, user):
 
 
 @oneplus_participant_required
-def sumit_level_up(request, participant, state, user):
+def sumit_level_up(request, state, user, participant):
     _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -1053,7 +1053,7 @@ def sumit_level_up(request, participant, state, user):
 
 
 @oneplus_participant_required
-def sumit_wrong(request, participant, state, user):
+def sumit_wrong(request, state, user, participant):
     _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -1275,7 +1275,7 @@ def get_golden_egg(participant):
 
 
 @oneplus_participant_required
-def right(request, participant, state, user):
+def right(request, state, user, participant):
     # get learner state
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
@@ -1478,7 +1478,7 @@ def right(request, participant, state, user):
 
 
 @oneplus_participant_required
-def wrong(request, participant, state, user):
+def wrong(request, state, user, participant):
     # get learner state
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
@@ -1616,7 +1616,7 @@ def wrong(request, participant, state, user):
 
 
 @oneplus_participant_required
-def event_splash_page(request, participant, state, user):
+def event_splash_page(request, state, user, participant):
     _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -1670,7 +1670,7 @@ def event_splash_page(request, participant, state, user):
 
 
 @oneplus_participant_required
-def event_start_page(request, participant, state, user):
+def event_start_page(request, state, user, participant):
     _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -1744,7 +1744,7 @@ def event_start_page(request, participant, state, user):
 
 
 @oneplus_participant_required
-def event_end_page(request, participant, state, user):
+def event_end_page(request, state, user, participant):
     _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -1833,7 +1833,7 @@ def event_end_page(request, participant, state, user):
 
 
 @oneplus_participant_required
-def sumit_end_page(request, participant, state, user):
+def sumit_end_page(request, state, user, participant):
     _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
@@ -1948,7 +1948,7 @@ def sumit_end_page(request, participant, state, user):
 
 
 @oneplus_participant_required
-def report_question(request, participant, state, user, questionid, frm):
+def report_question(request, state, user, participant, questionid, frm):
     _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant=_participant

@@ -17,7 +17,7 @@ __author__ = 'herman'
 
 
 @oneplus_participant_required
-def inbox(request, participant, state, user):
+def inbox(request, state, user, participant):
     # get inbox messages
     _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
@@ -71,7 +71,7 @@ def inbox(request, participant, state, user):
 
 
 @oneplus_participant_required
-def inbox_detail(request, participant, state, user, messageid):
+def inbox_detail(request, state, user, participant, messageid):
     # get inbox messages
     _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
@@ -109,7 +109,7 @@ def inbox_detail(request, participant, state, user, messageid):
 
 
 @oneplus_participant_required
-def inbox_send(request, participant, state, user):
+def inbox_send(request, state, user, participant):
     # get inbox messages
     _participant = participant
     request.session["state"]["inbox_sent"] = False
@@ -168,7 +168,7 @@ def inbox_send(request, participant, state, user):
 
 
 @oneplus_participant_required
-def chatgroups(request, participant, state, user):
+def chatgroups(request, state, user, participant):
     # get chat groups
     _groups = participant.classs.course.chatgroup_set.all()
 
@@ -268,7 +268,7 @@ def chat(request, state, user, chatid):
 
 
 @oneplus_participant_required
-def blog_hero(request, participant, state, user):
+def blog_hero(request, state, user, participant):
     # get blog entry
     _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
@@ -306,7 +306,7 @@ def blog_hero(request, participant, state, user):
 
 
 @oneplus_participant_required
-def blog_list(request, participant, state, user):
+def blog_list(request, state, user, participant):
     # get blog entry
     _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)

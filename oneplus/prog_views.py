@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 
 @oneplus_participant_required
-def ontrack(request, participant, state, user):
+def ontrack(request, state, user, participant):
     # get on track state
     _participant = participant
     _modules = Participant.objects.get(
@@ -56,7 +56,7 @@ def ontrack(request, participant, state, user):
 
 
 @oneplus_participant_required
-def leader(request, participant, state, user):
+def leader(request, state, user, participant):
     # get learner state
     _participant = participant
 
@@ -288,7 +288,7 @@ def leader(request, participant, state, user):
 
 
 @oneplus_participant_required
-def points(request, participant, state, user):
+def points(request, state, user, participant):
     _participant = participant
     _modules = _participant.classs.course.modules.filter(type=1).order_by('order')
     request.session["state"]["points_points"] = _participant.points
@@ -334,7 +334,7 @@ def points(request, participant, state, user):
 
 
 @oneplus_participant_required
-def badges(request, participant, state, user):
+def badges(request, state, user, participant):
     # get learner state
     _participant = participant
     _course = _participant.classs.course
