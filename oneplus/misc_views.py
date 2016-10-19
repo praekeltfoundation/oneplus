@@ -6,12 +6,13 @@ import re
 import logging
 
 from django.db import connection
+from django.db.models import Count
 from django.core.urlresolvers import reverse
-from .validators import *
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
+from datetime import datetime
 from auth.models import CustomUser
 from communication.models import Report, Message, Discussion, PostComment, ChatMessage
 from core.models import Participant, TestingQuestion
@@ -20,7 +21,6 @@ from oneplus.report_utils import get_csv_report, get_xls_report
 from oneplus.validators import validate_title, validate_publish_date_and_time, validate_content, gen_username
 from oneplus.views import oneplus_state_required, oneplus_login_required
 from content.models import SUMit, EventParticipantRel, EventQuestionAnswer
-from django.db.models import Count
 
 logger = logging.getLogger(__name__)
 
