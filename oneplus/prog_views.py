@@ -5,15 +5,15 @@ from django.db.models import Count, Sum
 from auth.models import Learner
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
-from oneplus.views import oneplus_state_required, oneplus_login_required, COUNTRYWIDE
+from oneplus.views import oneplus_participant_required, COUNTRYWIDE
 from oneplus.auth_views import resolve_http_method
 from django.contrib.auth.decorators import user_passes_test
 
 
-@oneplus_login_required
-def ontrack(request, state, user):
+@oneplus_participant_required
+def ontrack(request, participant, state, user):
     # get on track state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _modules = Participant.objects.get(
         pk=user["participant_id"]).classs.course.modules.filter(type=1).order_by('order')
 
@@ -55,10 +55,10 @@ def ontrack(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def leader(request, state, user):
+@oneplus_participant_required
+def leader(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
 
     def get_overall_leaderboard():
         leaderboard = Participant.objects.filter(classs=_participant.classs,) \
@@ -287,9 +287,9 @@ def leader(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def points(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def points(request, participant, state, user):
+    _participant = participant
     _modules = _participant.classs.course.modules.filter(type=1).order_by('order')
     request.session["state"]["points_points"] = _participant.points
 
@@ -333,10 +333,10 @@ def points(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def badges(request, state, user):
+@oneplus_participant_required
+def badges(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _course = _participant.classs.course
     _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
         .filter(course=_course).prefetch_related("badge").order_by('badge__order')

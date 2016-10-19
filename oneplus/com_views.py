@@ -19,16 +19,16 @@ from oneplus.models import *
 from organisation.models import Course
 from .validators import *
 from communication.utils import report_user_post
-from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
+from oneplus.views import oneplus_participant_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 
 __author__ = 'herman'
 
 
-@oneplus_login_required
-def inbox(request, state, user):
+@oneplus_participant_required
+def inbox(request, participant, state, user):
     # get inbox messages
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner,
         _participant.classs.course
@@ -79,10 +79,10 @@ def inbox(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def inbox_detail(request, state, user, messageid):
+@oneplus_participant_required
+def inbox_detail(request, participant, state, user, messageid):
     # get inbox messages
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner, _participant.classs.course
     )
@@ -117,10 +117,10 @@ def inbox_detail(request, state, user, messageid):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def inbox_send(request, state, user):
+@oneplus_participant_required
+def inbox_send(request, participant, state, user):
     # get inbox messages
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     request.session["state"]["inbox_sent"] = False
 
     def get():
@@ -176,12 +176,10 @@ def inbox_send(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def chatgroups(request, state, user):
+@oneplus_participant_required
+def chatgroups(request, participant, state, user):
     # get chat groups
-    _groups = Participant.objects.get(
-        pk=user["participant_id"]
-    ).classs.course.chatgroup_set.all()
+    _groups = participant.classs.course.chatgroup_set.all()
 
     for g in _groups:
         _last_msg = g.chatmessage_set.order_by("-publishdate").first()
@@ -278,10 +276,10 @@ def chat(request, state, user, chatid):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def blog_hero(request, state, user):
+@oneplus_participant_required
+def blog_hero(request, participant, state, user):
     # get blog entry
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] = Post.objects.filter(
         id__in=post_list
@@ -316,10 +314,10 @@ def blog_hero(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def blog_list(request, state, user):
+@oneplus_participant_required
+def blog_list(request, participant, state, user):
     # get blog entry
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] \
         = Post.objects.filter(id__in=post_list).count()
@@ -356,10 +354,10 @@ def blog_list(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def blog(request, state, user, blogid):
+@oneplus_participant_required
+def blog(request, participant, state, user, blogid):
     # get blog entry
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     _post = Post.objects.get(pk=blogid)
     _next = Post.objects.filter(

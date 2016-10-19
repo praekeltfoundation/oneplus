@@ -19,7 +19,7 @@ from gamification.models import GamificationScenario, GamificationBadgeTemplate
 from organisation.models import CourseModuleRel
 from oneplus.models import LearnerState
 from oneplus.utils import update_metric
-from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
+from oneplus.views import oneplus_participant_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
 from django.db.models import Count, Sum
@@ -27,9 +27,9 @@ from oneplus.tasks import update_all_perc_correct_answers, update_num_question_m
 from requests.sessions import session
 
 
-@oneplus_login_required
-def home(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def home(request, participant, state, user):
+    _participant = participant
 
     _start_of_week = date.today() - timedelta(date.today().weekday())
     learnerstate = LearnerState.objects.filter(
@@ -216,12 +216,12 @@ def home(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def nextchallenge(request, state, user):
+@oneplus_participant_required
+def nextchallenge(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
-        participant__id=user["participant_id"]
+        participant=_participant
     ).first()
 
     if _learnerstate is None:
@@ -367,10 +367,10 @@ def nextchallenge(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def redo(request, state, user):
+@oneplus_participant_required
+def redo(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant__id=user["participant_id"]
     ).first()
@@ -426,10 +426,10 @@ def redo(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def redo_right(request, state, user):
+@oneplus_participant_required
+def redo_right(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
@@ -563,10 +563,10 @@ def redo_right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def redo_wrong(request, state, user):
+@oneplus_participant_required
+def redo_wrong(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
@@ -696,9 +696,9 @@ def redo_wrong(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def event(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def event(request, participant, state, user):
+    _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
@@ -753,9 +753,9 @@ def event(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def event_right(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def event_right(request, participant, state, user):
+    _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -791,9 +791,9 @@ def event_right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def event_wrong(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def event_wrong(request, participant, state, user):
+    _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -829,9 +829,9 @@ def event_wrong(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def sumit(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def sumit(request, participant, state, user):
+    _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()
@@ -930,9 +930,9 @@ def sumit(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def sumit_right(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def sumit_right(request, participant, state, user):
+    _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -999,9 +999,9 @@ def sumit_right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def sumit_level_up(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def sumit_level_up(request, participant, state, user):
+    _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -1054,9 +1054,9 @@ def sumit_level_up(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_login_required
-def sumit_wrong(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def sumit_wrong(request, participant, state, user):
+    _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -1276,10 +1276,10 @@ def get_golden_egg(participant):
     return golden_egg
 
 
-@oneplus_login_required
-def right(request, state, user):
+@oneplus_participant_required
+def right(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
@@ -1479,10 +1479,10 @@ def right(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def wrong(request, state, user):
+@oneplus_participant_required
+def wrong(request, participant, state, user):
     # get learner state
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
@@ -1617,9 +1617,9 @@ def wrong(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def event_splash_page(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def event_splash_page(request, participant, state, user):
+    _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -1671,9 +1671,9 @@ def event_splash_page(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def event_start_page(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def event_start_page(request, participant, state, user):
+    _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -1745,9 +1745,9 @@ def event_start_page(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def event_end_page(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def event_end_page(request, participant, state, user):
+    _participant = participant
     _event = Event.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -1834,9 +1834,9 @@ def event_end_page(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_login_required
-def sumit_end_page(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def sumit_end_page(request, participant, state, user):
+    _participant = participant
     _sumit = SUMit.objects.filter(course=_participant.classs.course,
                                   activation_date__lte=datetime.now(),
                                   deactivation_date__gt=datetime.now()).first()
@@ -1949,9 +1949,9 @@ def sumit_end_page(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_login_required
-def report_question(request, state, user, questionid, frm):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def report_question(request, participant, state, user, questionid, frm):
+    _participant = participant
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
