@@ -86,6 +86,7 @@ def oneplus_check_user(f):
     return wrap
 
 
+@oneplus_state_required
 @oneplus_check_user
 def about(request, state, user):
     def get():
@@ -99,6 +100,7 @@ def about(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
+@oneplus_state_required
 @oneplus_check_user
 def contact(request, state, user):
     def get():
