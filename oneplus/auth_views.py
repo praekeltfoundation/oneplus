@@ -1,17 +1,19 @@
 from __future__ import division
+import re
 from django.shortcuts import render
 from django.contrib.auth import authenticate, logout
 from .forms import SmsPasswordForm, ResetPasswordForm
 from django.core.mail import mail_managers
 from oneplus.forms import LoginForm
 from .views import *
-from communication.models import *
-from core.models import *
-from oneplus.models import *
+from auth.models import CustomUser
+from communication.models import SmsQueue
+from core.models import Learner, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from lockout import LockedOut
-from .validators import *
+from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
+    validate_sign_up_form_promath
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
