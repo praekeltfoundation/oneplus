@@ -3,16 +3,15 @@ from django.shortcuts import render
 from django.shortcuts import render
 from communication.models import Message
 from core.models import Participant
-from oneplus.views import oneplus_state_required, oneplus_login_required
+from oneplus.views import oneplus_participant_required
 from oneplus.auth_views import resolve_http_method
 
 __author__ = 'herman'
 
 
-@oneplus_state_required
-@oneplus_login_required
-def menu(request, state, user):
-    _participant = Participant.objects.get(pk=user["participant_id"])
+@oneplus_participant_required
+def menu(request, state, user, participant):
+    _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner,
         _participant.classs.course

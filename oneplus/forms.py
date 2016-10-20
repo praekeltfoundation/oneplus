@@ -1,6 +1,4 @@
 from django import forms
-from organisation.models import School
-from core.models import Class
 
 
 class LoginForm(forms.Form):

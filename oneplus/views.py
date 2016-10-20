@@ -1,23 +1,24 @@
 from __future__ import division
-from datetime import *
+from datetime import date
 from functools import wraps
 import json
 from django.shortcuts import HttpResponse, redirect
 from django.http import HttpResponseRedirect
-from oneplus.models import *
 from django.contrib.auth.decorators import user_passes_test
 from communication.utils import contains_profanity, get_replacement_content
 from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
 from organisation.models import Course
-from core.models import Class
+from content.models import TestingQuestion
+from core.models import Class, Participant
 
 COUNTRYWIDE = "Countrywide"
 
 
 # Code decorator to ensure that the user is logged in
 def oneplus_login_required(f):
+    @oneplus_state_required
     @wraps(f)
     def wrap(request, *args, **kwargs):
         if "user" not in request.session.keys():
@@ -45,6 +46,20 @@ def oneplus_state_required(f):
             request.session["state"]["menu_visible"] = False
 
         return f(request, state=request.session["state"], *args, **kwargs)
+    return wrap
+
+
+def oneplus_participant_required(f):
+    @oneplus_login_required
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        if "participant_id" in request.session["user"]:
+            try:
+                participant = Participant.objects.get(pk=request.session["user"]["participant_id"])
+            except Participant.DoesNotExist:
+                request.session.flush()
+                return redirect("auth.login")
+            return f(request, participant=participant, *args, **kwargs)
     return wrap
 
 

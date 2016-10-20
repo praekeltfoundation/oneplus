@@ -1,28 +1,27 @@
 from __future__ import division
-from django.shortcuts import render
+import re
+from functools import wraps
 from django.contrib.auth import authenticate, logout
+from django.shortcuts import HttpResponse, redirect, render
+from django.http import HttpResponseRedirect
 from .forms import SmsPasswordForm, ResetPasswordForm
 from django.core.mail import mail_managers
 from oneplus.forms import LoginForm
-from .views import *
-from communication.models import *
-from core.models import *
-from oneplus.models import *
+from .views import oneplus_state_required, oneplus_login_required
 from auth.models import CustomUser
-from communication.utils import VumiSmsApi
-from communication.utils import get_autologin_link
+from communication.models import SmsQueue
+from core.models import Learner, ParticipantQuestionAnswer, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
+from datetime import datetime
 from lockout import LockedOut
-import koremutake
-from .validators import *
+from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
+    validate_sign_up_form_promath
 from django.db.models import Count
-from organisation.models import School, Course
+from organisation.models import School
 from core.models import Class, Participant
-from oneplusmvp import settings
 from content.models import Event
 from core.common import PROVINCES
-from organisation.models import Organisation
 from communication.utils import VumiSmsApi
 
 __author__ = 'herman'
@@ -396,7 +395,6 @@ def getconnected(request, state):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def change_details(request, state, user):
     def render_error(error_field, error_message):

@@ -3,33 +3,23 @@ from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render, HttpResponse
-from django.http import HttpResponseRedirect
-from django.core.mail import mail_managers
-from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from django.core.mail import mail_managers
-from django.contrib.auth.decorators import user_passes_test
-from communication.models import *
-from communication.models import Message, SmsQueue, Sms
-from core.models import *
-from core.models import Class
-from oneplus.models import *
-from organisation.models import Course
-from .validators import *
+from datetime import datetime
+from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
+from core.models import Class, Course, Learner, Participant
+from .validators import validate_content, validate_course, validate_date_and_time, validate_direction, \
+    validate_message, validate_name, validate_publish_date_and_time, validate_to_class, validate_to_course, \
+    validate_users
 from communication.utils import report_user_post
-from oneplus.views import oneplus_state_required, oneplus_login_required, _content_profanity_check
+from oneplus.views import oneplus_participant_required, oneplus_login_required, _content_profanity_check
 from oneplus.auth_views import resolve_http_method
 
 __author__ = 'herman'
 
 
-@oneplus_state_required
-@oneplus_login_required
-def inbox(request, state, user):
+@oneplus_participant_required
+def inbox(request, state, user, participant):
     # get inbox messages
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner,
         _participant.classs.course
@@ -80,11 +70,10 @@ def inbox(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-@oneplus_login_required
-def inbox_detail(request, state, user, messageid):
+@oneplus_participant_required
+def inbox_detail(request, state, user, participant, messageid):
     # get inbox messages
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     request.session["state"]["inbox_unread"] = Message.unread_message_count(
         _participant.learner, _participant.classs.course
     )
@@ -119,11 +108,10 @@ def inbox_detail(request, state, user, messageid):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-@oneplus_login_required
-def inbox_send(request, state, user):
+@oneplus_participant_required
+def inbox_send(request, state, user, participant):
     # get inbox messages
-    _participant = Participant.objects.get(pk=user["participant_id"])
+    _participant = participant
     request.session["state"]["inbox_sent"] = False
 
     def get():
@@ -179,13 +167,10 @@ def inbox_send(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-@oneplus_login_required
-def chatgroups(request, state, user):
+@oneplus_participant_required
+def chatgroups(request, state, user, participant):
     # get chat groups
-    _groups = Participant.objects.get(
-        pk=user["participant_id"]
-    ).classs.course.chatgroup_set.all()
+    _groups = participant.classs.course.chatgroup_set.all()
 
     for g in _groups:
         _last_msg = g.chatmessage_set.order_by("-publishdate").first()
@@ -211,7 +196,6 @@ def chatgroups(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_login_required
 def chat(request, state, user, chatid):
     # get chat group
@@ -283,11 +267,10 @@ def chat(request, state, user, chatid):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-@oneplus_login_required
-def blog_hero(request, state, user):
+@oneplus_participant_required
+def blog_hero(request, state, user, participant):
     # get blog entry
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] = Post.objects.filter(
         id__in=post_list
@@ -322,11 +305,10 @@ def blog_hero(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-@oneplus_login_required
-def blog_list(request, state, user):
+@oneplus_participant_required
+def blog_list(request, state, user, participant):
     # get blog entry
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] \
         = Post.objects.filter(id__in=post_list).count()
@@ -363,11 +345,10 @@ def blog_list(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
-@oneplus_login_required
-def blog(request, state, user, blogid):
+@oneplus_participant_required
+def blog(request, participant, state, user, blogid):
     # get blog entry
-    _course = Participant.objects.get(pk=user["participant_id"]).classs.course
+    _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
     _post = Post.objects.get(pk=blogid)
     _next = Post.objects.filter(

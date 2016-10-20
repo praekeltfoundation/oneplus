@@ -3782,6 +3782,31 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Your number has been changed to 0721478529")
         self.assertContains(resp, "Your email has been changed to asdf@asdf.com.")
 
+    def test_participant_required_decorator(self):
+        learner = self.create_learner(
+            self.school,
+            username="+27987654321",
+            mobile="+27987654321",
+            country="country",
+            area="Test_Area",
+            unique_token='cba321',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        participant = self.create_participant(
+            learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.client.get(reverse('auth.autologin',
+                                kwargs={'token': learner.unique_token}))
+
+        # participant exists
+        resp = self.client.get(reverse('learn.home'), follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "WELCOME")
+
+        # participant doesn't exist
+        participant.delete()
+        resp = self.client.get(reverse('learn.home'), follow=True)
+        self.assertRedirects(resp, reverse('auth.login'))
+
 
 class ProfanityTests(TestCase):
     fixtures = ['profanities.json']
