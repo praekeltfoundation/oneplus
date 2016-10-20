@@ -1,15 +1,21 @@
-from django.db import models
-from django.db.models import Sum
 from datetime import datetime
-from organisation.models import Course
-from organisation.models import PROVINCE_CHOICES
+
 from auth.models import Learner, Teacher
-from gamification.models import \
-    GamificationPointBonus, GamificationBadgeTemplate, GamificationScenario
-from content.models import TestingQuestion, TestingQuestionOption, EventParticipantRel, EventQuestionAnswer, \
-    EventQuestionRel, GoldenEggRewardLog, Event
+
+from content.models import Event, EventParticipantRel, EventQuestionAnswer, \
+    EventQuestionRel, GoldenEggRewardLog, TestingQuestion, TestingQuestionOption
+
+from django.db import models
+
 from django.db.models import Count
+
 from django.utils.encoding import python_2_unicode_compatible
+
+from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
+
+from organisation.models import Course
+
+from organisation.models import PROVINCE_CHOICES
 
 
 def today():
@@ -88,7 +94,7 @@ class Participant(models.Model):
         if scenarios.count() > 0:
             return scenarios
         else:
-            #Fall back to a default rule
+            # Fall back to a default rule
             scenarios = GamificationScenario.objects.filter(
                 event=event,
                 course=self.classs.course,
@@ -124,7 +130,7 @@ class Participant(models.Model):
             self.save()
 
     def answer_event(self, event, question, option):
-        #Create participant event question answer
+        # Create participant event question answer
         answer = EventQuestionAnswer(
             participant=self,
             event=event,
@@ -329,6 +335,17 @@ class Setting(models.Model):
             return setting.value
         else:
             return None
+
+
+class TaskLogger(models.Model):
+    created_at = models.DateTimeField('Date', auto_now_add=True, db_index=True)
+    task_name = models.CharField(max_length=64, db_index=True)
+    success = models.BooleanField()
+    message = models.TextField()
+
+    class Meta:
+        verbose_name = 'Task Logger'
+        verbose_name_plural = 'Task Logger'
 
 
 class UnprocessedSchools(models.Model):
