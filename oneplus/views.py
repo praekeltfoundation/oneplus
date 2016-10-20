@@ -57,6 +57,7 @@ def oneplus_participant_required(f):
             try:
                 participant = Participant.objects.get(pk=request.session["user"]["participant_id"])
             except Participant.DoesNotExist:
+                request.session.flush()
                 return redirect("auth.login")
             return f(request, participant=participant, *args, **kwargs)
     return wrap
