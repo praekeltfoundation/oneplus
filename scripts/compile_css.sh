@@ -6,4 +6,4 @@ cd "${0%/*}"
 # Change to CSS dir
 cd ../oneplus/static/css/
 
-sass ./[!_]*.scss
+sass ./oneplus.scss
