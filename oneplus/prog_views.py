@@ -14,8 +14,7 @@ from django.contrib.auth.decorators import user_passes_test
 def ontrack(request, state, user, participant):
     # get on track state
     _participant = participant
-    _modules = Participant.objects.get(
-        pk=user["participant_id"]).classs.course.modules.filter(type=1).order_by('order')
+    _modules = _participant.classs.course.modules.filter(type=1).order_by('order')
 
     # Calculate achieved score
     for m in _modules:
@@ -61,7 +60,7 @@ def leader(request, state, user, participant):
     _participant = participant
 
     def get_overall_leaderboard():
-        leaderboard = Participant.objects.filter(classs=_participant.classs,) \
+        leaderboard = Participant.objects.filter(classs=_participant.classs, is_active=True) \
             .order_by("-points", 'learner__first_name')
 
         learners = []
@@ -145,8 +144,10 @@ def leader(request, state, user, participant):
             return learners[:10], position
 
     def get_class_leaderboard():
-        total_list = Class.objects.annotate(answered=Count("participant__participantquestionanswer"))
-        correct_list = Class.objects.filter(participant__participantquestionanswer__correct=True)\
+        total_list = Class.objects.filter(participant__is_active=True)\
+            .annotate(answered=Count("participant__participantquestionanswer"))
+        correct_list = Class.objects.filter(participant__is_active=True,
+                                            participant__participantquestionanswer__correct=True)\
             .annotate(correct=Count("participant__participantquestionanswer"))
 
         classes = []
