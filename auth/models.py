@@ -197,8 +197,10 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
-    def get_class(self):
+    def get_class(self, active_only=False):
         part_set = self.participant_set.all()
+        if active_only:
+            part_set = part_set.filter(is_active=True)
 
         if part_set:
             classes = ", ".join([part.classs.name for part in part_set if part.classs and part.classs.name])

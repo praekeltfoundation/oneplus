@@ -311,7 +311,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         return super(LearnerAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
 
     def class_list(self, obj):
-        return obj.get_class()
+        return obj.get_class(active_only=True)
 
 
 class TeacherClassInline(admin.TabularInline):
