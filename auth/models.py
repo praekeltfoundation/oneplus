@@ -201,13 +201,7 @@ class Learner(CustomUser):
         part_set = self.participant_set.all()
 
         if part_set:
-            classes = ""
-
-            for part in part_set:
-                if part.classs and part.classs.name:
-                    if len(classes) > 0:
-                        classes += ", "
-                    classes += part.classs.name
+            classes = ", ".join([part.classs.name for part in part_set if part.classs and part.classs.name])
 
             return classes
         else:
