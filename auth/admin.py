@@ -250,7 +250,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "first_name", "last_name", "school",
-                    "area", "welcome_message_sent")
+                    "area", "welcome_message_sent", "class_list")
     list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
                    "welcome_message_sent", ClassFilter, CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
@@ -309,6 +309,9 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         extra_context = extra_context or {}
         extra_context['scenario_list'] = badges_list
         return super(LearnerAdmin, self).change_view(request, object_id, form_url, extra_context=extra_context)
+
+    def class_list(self, obj):
+        return obj.get_class(active_only=True)
 
 
 class TeacherClassInline(admin.TabularInline):

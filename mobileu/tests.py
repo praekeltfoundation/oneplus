@@ -494,7 +494,7 @@ class TestTeacherReport(TestCase):
 
     def test_process_participant(self):
         today = datetime.now()
-        lastmonth = today - timedelta(hours=1*28*24)
+        lastmonth = (today.replace(day=1) - timedelta(days=-1)).replace(day=1)
         class_details = self.generate_class()
         participant = self.generate_participant(school=class_details['school'], classs=class_details['class'],
                                                 datejoined=today-timedelta(days=14))
@@ -510,8 +510,8 @@ class TestTeacherReport(TestCase):
         self.assertAlmostEqual(processed[4], math.floor(100*num_correct/num_questions), 0)
 
     def test_process_module(self):
-        today = datetime.now()
-        lastmonth = today - timedelta(hours=1*28*24)
+        today = datetime.today()
+        lastmonth = (today.replace(day=1) - timedelta(days=-1)).replace(day=1)
         num_learners = 10
         class_details = self.generate_class()
         participants = []
