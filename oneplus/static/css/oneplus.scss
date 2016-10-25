@@ -1,9 +1,10 @@
 @import 'reset';
 @import 'colours';
+@import 'fonts';
 
 /*MAIN*/
 body {
-    font-family: "Arial", sans-serif;
+    font-family: $standard-font-family;
 	font-size: 12pt;
 	background-color: #2a2a2a;
 	color: #d5d5d5;
@@ -759,15 +760,15 @@ li.down_red {
 /* normal -> body-copy */
 /* descriptor: normal, but bold, light-grey */
 /* button: bold */
-.body-copy { font-size: 12pt; }
+.body-copy { font-size: $body-copy-size; }
 .bold-font { font-weight: bold; }
 .large-font {font-size: 20pt; font-weight: bold}
 .title {
-    font-size: 18pt;
+    font-size: $title-size;
     line-height: 1.25em;
 }
 .large-font-normal {font-size: 20pt; font-weight: normal}
-.xlarge-font {font-size: 24pt; font-weight: bold;}
+.xlarge-font {font-size: $logo-size; font-weight: bold;}
 .left-font {text-align: left !important; }
 .center-font {text-align: center !important; }
 .right-font {text-align: right !important; }
@@ -779,7 +780,7 @@ li.down_red {
     line-height: 1.5em;
 }
 
-p {font-size: 12pt; line-height: 1.5em;}
+p {font-size: $body-copy-size; line-height: 1.5em;}
 
 .grouped-titles p {
     margin: 0;
