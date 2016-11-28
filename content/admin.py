@@ -448,10 +448,21 @@ class SUMitAdmin(admin.ModelAdmin):
             return round((float(completed) / total_participants) * 100)
     get_percent_complete_all.short_description = "% Complete All Questions"
 
+    def get_count_correct_easy(self, obj):
+        return EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
+            .aggregate(Count('correct'))['correct__count']
+
+    def get_count_correct_normal(self, obj):
+        return EventQuestionAnswer.objects.filter(event=obj, question__difficulty=3, correct=True) \
+            .aggregate(Count('correct'))['correct__count']
+
+    def get_count_correct_advanced(self, obj):
+        return EventQuestionAnswer.objects.filter(event=obj, question__difficulty=4, correct=True) \
+            .aggregate(Count('correct'))['correct__count']
+
     def get_percent_correct_easy(self, obj):
         answered = self.get_easy_questions_answered(obj)
-        correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
-            .aggregate(Count('correct'))['correct__count']
+        correct = self.get_count_correct_easy(obj)
         if answered > 0:
             return round((float(correct) / answered) * 100)
         else:
@@ -460,8 +471,7 @@ class SUMitAdmin(admin.ModelAdmin):
 
     def get_percent_correct_normal(self, obj):
         answered = self.get_normal_questions_answered(obj)
-        correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
-            .aggregate(Count('correct'))['correct__count']
+        correct = self.get_count_correct_normal(obj)
         if answered > 0:
             return round((float(correct) / answered) * 100)
         else:
@@ -470,8 +480,7 @@ class SUMitAdmin(admin.ModelAdmin):
 
     def get_percent_correct_advanced(self, obj):
         answered = self.get_advanced_questions_answered(obj)
-        correct = EventQuestionAnswer.objects.filter(event=obj, question__difficulty=2, correct=True) \
-            .aggregate(Count('correct'))['correct__count']
+        correct = self.get_count_correct_advanced(obj)
         if answered > 0:
             return round((float(correct) / answered) * 100)
         else:
