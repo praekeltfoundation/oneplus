@@ -1,0 +1,83 @@
+{% extends "core/main.html" %}
+
+{% block title %}Change Profile{% endblock %}
+
+{% block content %}
+    <div class="menu">
+        <a href="/menu"><div class="text heading blue-back darkgrey-front"><li class="icon change_number"></li><p>Change Profile</p></div></a>
+    </div>
+    <div class="content">
+        <form action="editprofile" method="post" class="">
+            {% csrf_token %}
+
+            <div class="content">
+                <label class="bold-font" for="id_first_name">Name</label>
+                <input class="comment" type="text" id="id_first_name" name="first_name">
+                {% if error_field == "first_name_error" %}
+                    <p class="red-front">
+                        {{ error_message }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="content">
+                <label class="bold-font" for="id_surname">Surname</label>
+                <input type="text" id="id_surname" name="surname">
+                {% if error_field == "surname_error" %}
+                    <p class="red-front">
+                        {{ error_message }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_mobile">Mobile Number</label>
+                <input type="text" id="id_mobile" name="mobile">
+                {% if error_field == "mobile_error" %}
+                    <p class="red-front">
+                        {{ error_message }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_password">Password</label>
+                <input type="text" id="id_password" name="password" disabled />
+                <p>
+                    Change your password <a href="{% url 'auth.sms_reset_password' %}">here</a>.
+                </p>
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_province">Province</label>
+                <input type="text" id="id_province" name="province" disabled />
+                {% if error_field == "province_error" %}
+                    <p class="red-front">
+                        {{ error_message }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_grade">Grade</label>
+                <input type="text" id="id_grade" name="grade" disabled />
+                <p>
+                    If you are in the incorrect grade, please <a href="{% url 'misc.contact' %}">contact us</a> so that
+                    we can move you to the correct grade.
+                </p>
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_school">School</label>
+                <input dis type="text" id="id_school" name="school" disabled />
+                <p>
+                    If you have moved schools, please <a href="{% url 'misc.contact' %}">contact us</a> so that we can
+                    move you to your new school.
+                </p>
+            </div>
+
+            <input type="submit" value="Submit" class="button green-back grey-front" />
+        </form>
+    </div>
+{% endblock content %}
