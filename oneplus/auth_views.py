@@ -728,3 +728,22 @@ def reset_password(request, token):
         )
 
     return resolve_http_method(request, [get, post])
+
+
+@oneplus_login_required
+def profile(request, state, user):
+    def get():
+        return render(request, "auth/profile.html")
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_login_required
+def edit_profile(request, state, user):
+    def get():
+        return render(request, "auth/profile.html", {"editing": True})
+
+    def post():
+        return render(request, "auth/profile.html", {"editing": True})
+
+    return resolve_http_method(request, [get, post])
