@@ -39,6 +39,55 @@ table {
   border-collapse: collapse;
   border-spacing: 0; }
 
+/* old colours */
+/* redesign colours */
+/* old colours */
+/* redesign colours */
+/* modular scale */
+/* font family declarations */
+/* font family selections */
+h1 {
+  font-family: "Asap", sans-serif;
+  font-size: 48px;
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.88;
+  letter-spacing: -2px;
+  color: #68baa7; }
+
+h2 {
+  font-family: "Asap", sans-serif;
+  font-size: 42px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.9;
+  letter-spacing: -1.7px;
+  color: #000000; }
+
+.h1_superscript {
+  font-family: "Asap", sans-serif;
+  font-size: 42px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.9;
+  letter-spacing: -1.7px;
+  text-align: center;
+  color: #eca11a; }
+
+h3 {
+  font-family: "Asap", sans-serif;
+  font-size: 24px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  text-align: center;
+  color: #0c0d0c; }
+
 /*MAIN*/
 body {
   font-family: "Arial", sans-serif;
