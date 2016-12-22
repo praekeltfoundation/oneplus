@@ -6,6 +6,8 @@ from content.models import SUMit
 
 from django.core.mail import mail_managers
 
+from django.core.management import call_command
+
 from djcelery import celery
 
 from teacher_report import send_teacher_reports_body
@@ -49,3 +51,12 @@ def send_sumit_counts_body():
             mail_managers(subject='DIG-IT: SUMits with too few questions', message=message, fail_silently=False)
         except Exception as ex:
             logger.error("Error while sending email:\nmsg: %s\nError: %s" % (message, ex))
+
+
+@celery.task
+def run_haystack_update():
+    run_haystack_update_body()
+
+
+def run_haystack_update_body():
+    call_command('update_index', '--remove')
