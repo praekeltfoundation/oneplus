@@ -1,5 +1,65 @@
+@import 'colours';
+
 $logo-size: 24pt;
 $title-size: 18pt;
 $body-copy-size: 12pt;
 
+/* modular scale */
+$ms-base: 16px;
+$ms-ratio: 1.618;
+
+/* font family declarations */
+$font-family-asap: 'Asap', sans-serif;
+$font-family-lato: 'Lato', sans-serif;
+
+/* font family selections */
+$font-family-primary: $font-family-asap;
+$font-family-secondary: $font-family-lato;
+
 $standard-font-family: "Arial", sans-serif;
+
+h1 {
+  font-family: $font-family-primary;
+  font-size: 48px;
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.88;
+  letter-spacing: -2px;
+  color: $pale-teal;
+}
+
+h2 {
+  font-family: $font-family-primary;
+  font-size: 42px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.9;
+  letter-spacing: -1.7px;
+  color: $black;
+}
+
+.h1_superscript {
+  font-family: $font-family-primary;
+  font-size: 42px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 0.9;
+  letter-spacing: -1.7px;
+  text-align: center;
+  color: $squash;
+}
+
+h3 {
+  font-family: $font-family-primary;
+  font-size: 24px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  text-align: center;
+  color: #0c0d0c;
+}
