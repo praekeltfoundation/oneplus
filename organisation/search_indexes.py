@@ -3,7 +3,7 @@ from .models import School
 
 
 class SchoolIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.CharField(document=True, use_template=True)
+    text = indexes.CharField(document=True, model_attr='name')
     name = indexes.CharField(model_attr='name')
     province = indexes.CharField(model_attr='province', null=True)
 
