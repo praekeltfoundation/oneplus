@@ -13,3 +13,5 @@ xlwt
 python-dateutil
 coverage
 django-boolean-sum
+elasticsearch
+django-haystack==2.4.1
