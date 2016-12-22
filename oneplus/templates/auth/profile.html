@@ -7,11 +7,11 @@
         <a href="/menu"><div class="text heading blue-back darkgrey-front"><li class="icon change_number"></li><p>Change Profile</p></div></a>
     </div>
     <div class="content">
-        <a href="{% url 'auth.profile_edit' %}">Edit</a>
+        <a href="{% url 'auth.edit_profile' %}">Edit</a>
         <form action="editprofile" method="post" class="">
             {% csrf_token %}
 
-            <div class="content">
+            <div class="fieldWrapper">
                 <label class="bold-font" for="id_first_name">Name</label>
                 <input class="comment" type="text" id="id_first_name" name="first_name" value="{{ data.first_name }}"
                         {% if not editing %}disabled{% endif %} />
@@ -22,7 +22,7 @@
                 {% endif %}
             </div>
             <br>
-            <div class="content">
+            <div class="fieldWrapper">
                 <label class="bold-font" for="id_surname">Surname</label>
                 <input type="text" id="id_surname" name="surname" value="{{ data.surname }}"
                         {% if not editing %}disabled{% endif %} />
