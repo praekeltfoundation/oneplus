@@ -733,7 +733,19 @@ def reset_password(request, token):
 @oneplus_login_required
 def profile(request, state, user):
     def get():
-        return render(request, "auth/profile.html")
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            data = {
+                'first_name': learner.first_name,
+                'grade': learner.grade,
+                'last_name': learner.last_name,
+                'mobile': learner.mobile,
+                'province': learner.school.province,
+                'school': learner.school.name,
+            }
+        except Exception as e:
+            data = {}
+        return render(request, "auth/profile.html", {'data': data})
 
     return resolve_http_method(request, [get])
 
@@ -741,9 +753,21 @@ def profile(request, state, user):
 @oneplus_login_required
 def edit_profile(request, state, user):
     def get():
-        return render(request, "auth/profile.html", {"editing": True})
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            data = {
+                'first_name': learner.first_name,
+                'grade': learner.grade,
+                'last_name': learner.last_name,
+                'mobile': learner.mobile,
+                'province': learner.school.province,
+                'school': learner.school.name,
+            }
+        except Exception as e:
+            data = {}
+        return render(request, "auth/profile.html", {'data': data, 'editing': True})
 
     def post():
-        return render(request, "auth/profile.html", {"editing": True})
+        return render(request, "auth/profile.html", {'editing': True})
 
     return resolve_http_method(request, [get, post])
