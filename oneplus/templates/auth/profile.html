@@ -46,10 +46,12 @@
             <br>
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_password">Password</label>
-                <input type="text" id="id_password" name="password" value="{{ data.password }}" disabled />
-                <p>
-                    Change your password <a href="{% url 'auth.sms_reset_password' %}">here</a>.
-                </p>
+                <input type="text" id="id_password" name="password" value="******" disabled />
+                {% if editing %}
+                    <p>
+                        Change your password <a href="{% url 'auth.sms_reset_password' %}">here</a>.
+                    </p>
+                {% endif %}
             </div>
             <br>
             <div class="fieldWrapper">
