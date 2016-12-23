@@ -24,7 +24,7 @@
             <br>
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_surname">Surname</label>
-                <input type="text" id="id_surname" name="surname" value="{{ data.surname }}"
+                <input type="text" id="id_surname" name="surname" value="{{ data.last_name }}"
                         {% if not editing %}disabled{% endif %} />
                 {% if error_field == "surname_error" %}
                     <p class="red-front">
