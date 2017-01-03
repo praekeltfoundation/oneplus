@@ -745,7 +745,7 @@ def profile(request, state, user):
             }
         except Exception as e:
             data = {}
-        return render(request, "auth/profile.html", {'data': data})
+        return render(request, "auth/profile.html", {'data': data, 'user': user})
 
     return resolve_http_method(request, [get])
 
@@ -765,7 +765,7 @@ def edit_profile(request, state, user):
             }
         except Exception as e:
             data = {}
-        return render(request, "auth/profile.html", {'data': data, 'editing': True})
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'user': user})
 
     def post():
         try:
@@ -791,6 +791,6 @@ def edit_profile(request, state, user):
             data = {}
             errors = {}
 
-        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors})
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
 
     return resolve_http_method(request, [get, post])
