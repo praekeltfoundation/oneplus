@@ -16,7 +16,7 @@ from django.contrib.auth.hashers import make_password
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_promath
+    validate_sign_up_form_promath, validate_profile_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -768,6 +768,29 @@ def edit_profile(request, state, user):
         return render(request, "auth/profile.html", {'data': data, 'editing': True})
 
     def post():
-        return render(request, "auth/profile.html", {'editing': True})
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            validated_data, errors = validate_profile_form(request.POST, learner)
+
+            if not errors or len(errors) == 0:
+                learner.first_name = validated_data['first_name']
+                learner.last_name = validated_data['last_name']
+                learner.mobile = validated_data['mobile']
+                learner.save()
+
+            data = {
+                'first_name': request.POST.get('first_name', learner.first_name),
+                'grade': request.POST.get('grade', learner.grade),
+                'last_name': request.POST.get('last_name', learner.last_name),
+                'mobile': request.POST.get('mobile', learner.mobile),
+                'province': request.POST.get('province', learner.school.province),
+                'school': request.POST.get('school', learner.school.name),
+            }
+
+        except Exception as e:
+            data = {}
+            errors = {}
+
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors})
 
     return resolve_http_method(request, [get, post])
