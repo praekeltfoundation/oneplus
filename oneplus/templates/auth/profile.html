@@ -8,27 +8,27 @@
     </div>
     <div class="content">
         <a href="{% url 'auth.edit_profile' %}">Edit</a>
-        <form action="editprofile" method="post" class="">
+        <form action="edit_profile" method="post" class="">
             {% csrf_token %}
 
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_first_name">Name</label>
                 <input class="comment" type="text" id="id_first_name" name="first_name" value="{{ data.first_name }}"
                         {% if not editing %}disabled{% endif %} />
-                {% if error_field == "first_name_error" %}
+                {% if errors.first_name_error %}
                     <p class="red-front">
-                        {{ error_message }}
+                        {{ errors.first_name_error }}
                     </p>
                 {% endif %}
             </div>
             <br>
             <div class="fieldWrapper">
-                <label class="bold-font" for="id_surname">Surname</label>
-                <input type="text" id="id_surname" name="surname" value="{{ data.last_name }}"
+                <label class="bold-font" for="id_last_name">Surname</label>
+                <input type="text" id="id_last_name" name="last_name" value="{{ data.last_name }}"
                         {% if not editing %}disabled{% endif %} />
-                {% if error_field == "surname_error" %}
+                {% if errors.last_name_error %}
                     <p class="red-front">
-                        {{ error_message }}
+                        {{ errors.last_name_error }}
                     </p>
                 {% endif %}
             </div>
@@ -37,9 +37,9 @@
                 <label class="bold-font" for="id_mobile">Mobile Number</label>
                 <input type="text" id="id_mobile" name="mobile" value="{{ data.mobile }}"
                         {% if not editing %}disabled{% endif %} />
-                {% if error_field == "mobile_error" %}
+                {% if errors.mobile_error %}
                     <p class="red-front">
-                        {{ error_message }}
+                        {{ errors.mobile_error }}
                     </p>
                 {% endif %}
             </div>
@@ -57,9 +57,9 @@
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_province">Province</label>
                 <input type="text" id="id_province" name="province" value="{{ data.province }}" disabled />
-                {% if error_field == "province_error" %}
+                {% if errors.province_error %}
                     <p class="red-front">
-                        {{ error_message }}
+                        {{ errors.province_error }}
                     </p>
                 {% endif %}
             </div>
