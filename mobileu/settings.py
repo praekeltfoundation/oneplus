@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
+    "haystack",
     "gamification",
     "communication",
     "content",
@@ -109,6 +110,14 @@ SUMMERNOTE_CONFIG = {
         ['insert', ['link', 'picture']],
         ['table', ['table']],
     ],
+}
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
+        'INDEX_NAME': 'haystack',
+    },
 }
 
 # Internationalization
