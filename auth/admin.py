@@ -250,9 +250,9 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
     list_display = ("username", "first_name", "last_name", "school",
-                    "area", "welcome_message_sent", "class_list")
+                    "area", "welcome_message_sent", "class_list", "grade")
     list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
-                   "welcome_message_sent", ClassFilter, CourseFilter, AirtimeFilter)
+                   "welcome_message_sent", "grade", ClassFilter, CourseFilter, AirtimeFilter)
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name", "first_name", "last_login")
     filter_horizontal = ()
