@@ -13,10 +13,65 @@ import tablib
 from import_export import resources
 from auth.resources import LearnerResource
 from core.stats import *
+from mobileu.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_12_COURSE_NAME
+
+
+def create_course(name="course name", **kwargs):
+    return Course.objects.create(name=name, **kwargs)
+
+
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
+
+
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
+
+
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
+
+
+def create_test_question(name, module, **kwargs):
+    return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+
+
+def create_test_question_option(name, question, correct=True):
+    return TestingQuestionOption.objects.create(
+        name=name, question=question, correct=correct)
+
+
+def create_school(name, organisation, **kwargs):
+    return School.objects.create(
+        name=name,
+        organisation=organisation,
+        **kwargs)
+
+
+def create_learner(school, **kwargs):
+    return Learner.objects.create(school=school, **kwargs)
+
+
+def create_participant(learner, classs, **kwargs):
+    return Participant.objects.create(
+        learner=learner,
+        classs=classs,
+        **kwargs)
+
+
+def create_badgetemplate(name='badge template name', **kwargs):
+    return GamificationBadgeTemplate.objects.create(name=name, **kwargs)
+
+
+def create_pointbonus(name='point bonus name', **kwargs):
+    return GamificationPointBonus.objects.create(name=name, **kwargs)
 
 
 class TestRunner(DiscoverRunner):
-
     def setup_databases(self, **kwargs):
         '''
         syncdb won't create the tables for django.contrib.auth due to
@@ -37,68 +92,23 @@ class TestRunner(DiscoverRunner):
 
 
 class TestMessage(TestCase):
-
-    def create_course(self, name="course name", **kwargs):
-        return Course.objects.create(name=name, **kwargs)
-
-    def create_class(self, name, course, **kwargs):
-        return Class.objects.create(name=name, course=course, **kwargs)
-
-    def create_module(self, name, course, **kwargs):
-        module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        module.save()
-        rel.save()
-        return module
-
-    def create_organisation(self, name='organisation name', **kwargs):
-        return Organisation.objects.create(name=name, **kwargs)
-
-    def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
-
-    def create_test_question_option(self, name, question, correct=True):
-        return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=correct)
-
-    def create_school(self, name, organisation, **kwargs):
-        return School.objects.create(
-            name=name,
-            organisation=organisation,
-            **kwargs)
-
-    def create_learner(self, school, **kwargs):
-        return Learner.objects.create(school=school, **kwargs)
-
-    def create_participant(self, learner, classs, **kwargs):
-        return Participant.objects.create(
-            learner=learner,
-            classs=classs,
-            **kwargs)
-
-    def create_badgetemplate(self, name='badge template name', **kwargs):
-        return GamificationBadgeTemplate.objects.create(name=name, **kwargs)
-
-    def create_pointbonus(self, name='point bonus name', **kwargs):
-        return GamificationPointBonus.objects.create(name=name, **kwargs)
-
     def setUp(self):
-        self.course = self.create_course()
-        self.module = self.create_module('module name', self.course)
-        self.classs = self.create_class('class name', self.course)
+        self.course = create_course()
+        self.module = create_module('module name', self.course)
+        self.classs = create_class('class name', self.course)
 
-        self.organisation = self.create_organisation()
-        self.school = self.create_school('school name', self.organisation)
-        self.learner = self.create_learner(
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+        self.learner = create_learner(
             self.school,
             mobile="+27123456789",
             country="country")
-        self.badge_template = self.create_badgetemplate()
-        self.question = self.create_test_question('q1', self.module)
-        self.option = self.create_test_question_option('opt_1', self.question)
+        self.badge_template = create_badgetemplate()
+        self.question = create_test_question('q1', self.module)
+        self.option = create_test_question_option('opt_1', self.question)
 
         # create point bonus with value 5
-        self.pointbonus = self.create_pointbonus(value=5)
+        self.pointbonus = create_pointbonus(value=5)
 
         # create scenario
         self.scenario = GamificationScenario.objects.create(
@@ -109,7 +119,7 @@ class TestMessage(TestCase):
             point=self.pointbonus,
             badge=self.badge_template
         )
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             self.learner,
             self.classs,
             datejoined=datetime.now()
@@ -196,10 +206,10 @@ class TestMessage(TestCase):
         self.assertEqual(scenarios.first(), self.scenario)
 
     def test_recalculate_points_only_right(self):
-        question2 = self.create_test_question(name="testquestion2",
+        question2 = create_test_question(name="testquestion2",
                                               module=self.module)
 
-        option2 = self.create_test_question_option(name="option2",
+        option2 = create_test_question_option(name="option2",
                                                    question=question2,
                                                    correct=False)
 
@@ -319,13 +329,13 @@ class TestMessage(TestCase):
         self.assertEquals(count, 1)
 
         # create another
-        learner_1 = self.create_learner(
+        learner_1 = create_learner(
             self.school,
             mobile="+27123456788",
             country="country",
             username="+27123456788")
 
-        self.create_participant(
+        create_participant(
             learner=learner_1,
             classs=self.classs,
             datejoined=datetime.now()
@@ -336,13 +346,13 @@ class TestMessage(TestCase):
         self.assertEquals(count, 2)
 
         # create another but older than 24h
-        learner_2 = self.create_learner(
+        learner_2 = create_learner(
             self.school,
             mobile="+27123456787",
             country="country",
             username="+27123456787")
 
-        self.create_participant(
+        create_participant(
             learner=learner_2,
             classs=self.classs,
             datejoined=datetime.now() - timedelta(days=2)
@@ -435,3 +445,32 @@ class TestSettingMethods(TestCase):
         result = Setting.get_setting("TEST1")
         self.assertIsNotNone(result)
         self.assertEquals(result, setting.value)
+
+
+class TestClassMethods(TestCase):
+    def setUp(self):
+        gr10_course = create_course(GRADE_10_COURSE_NAME)
+        gr11_course = create_course(GRADE_11_COURSE_NAME)
+        gr12_course = create_course(GRADE_12_COURSE_NAME)
+        self.module = create_module('module name', gr10_course)
+        self.classs = create_class('class name', gr10_course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+
+    def test_get_or_create_grade_course(self):
+        course = Class.get_or_create_grade_course(Learner.GR_10)
+
+        self.assertIsNotNone(course, 'Course should be created')
+        self.assertEqual(course.name, GRADE_10_COURSE_NAME)
+
+        new_course = Class.get_or_create_grade_course(Learner.GR_10)
+        self.assertEqual(course.id, new_course.id, 'Same course should be returned the second time.')
+
+    def test_get_or_create_class(self):
+        classs = Class.get_or_create_class(Learner.GR_10, self.school)
+
+        self.assertIsNotNone(classs, 'Class should be created')
+        self.assertEqual(classs.name, self.school.name + ' - ' + Learner.GR_10)
+
+        new_class = Class.get_or_create_class(Learner.GR_10, self.school)
+        self.assertEqual(classs.id, new_class.id, 'Same class should be returned the second time.')
