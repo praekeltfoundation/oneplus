@@ -2,7 +2,11 @@ import logging
 
 from datetime import datetime, timedelta
 
+from auth.models import Learner
+
 from content.models import SUMit
+
+from core.models import Class, Participant
 
 from django.core.mail import mail_managers
 
@@ -60,3 +64,28 @@ def run_haystack_update():
 
 def run_haystack_update_body():
     call_command('update_index', '--remove')
+
+
+@celery.task
+def grade_up():
+    grade_up_body()
+
+
+def grade_up_body():
+    valid_grades = ['Grade 10', 'Grade 11', 'Grade 12']
+    graduate_suffix = 'Graduates'
+
+    old_participants = Participant.objects.filter(learner__grade=valid_grades[-1], is_active=True)
+    old_participants.update(is_active=False)
+    learners = Learner.objects.filter(grade=valid_grades[-1])
+    learners.update(grade='Graduate')
+
+    for i in xrange((len(valid_grades) - 1) - 1, -1, -1):
+        grade = valid_grades[i]
+        old_participants = Participant.objects.filter(learner__grade=grade, is_active=True)
+        old_participants.update(is_active=False)
+        learners = Learner.objects.filter(grade=grade)
+        learners.update(grade=valid_grades[i+1])
+        for learner in learners:
+            Class.get_or_create_class(grade, learner.school).create_participant(learner)
+
