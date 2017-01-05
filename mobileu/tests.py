@@ -839,9 +839,9 @@ class TestGradeUp(TestCase):
         self.assertEqual(grad_count, 0, 'Should have 0 graduates, got %d' % (grad_count,))
 
         # test whether number of active participants is correct
-        old_partcipant_count = Participant.objects.filter(learner__grade=Learner.GR_10).count()
+        old_partcipant_count = Participant.objects.filter(is_active=True, learner__grade=Learner.GR_10).count()
         self.assertEqual(old_partcipant_count, 0, 'Should have 0 active participants, got %d' % (old_partcipant_count,))
-        new_partcipant_count = Participant.objects.filter(learner__grade=Learner.GR_12).count()
+        new_partcipant_count = Participant.objects.filter(is_active=True, learner__grade=Learner.GR_12).count()
         self.assertEqual(new_partcipant_count, 1, 'Should have 1 active participant, got %d' % (new_partcipant_count,))
 
         # test whether learner moves up correctly from Gr 12
@@ -851,6 +851,6 @@ class TestGradeUp(TestCase):
         gr_11_count = Learner.objects.filter(grade=Learner.GR_11).count()
         self.assertEqual(gr_11_count, 0, 'Should have 0 Gr 11 learners, got %d' % (gr_11_count,))
         gr_12_count = Learner.objects.filter(grade=Learner.GR_12).count()
-        self.assertEqual(gr_12_count, 0, 'Should have 0 Gr 12 learners, got %d' % (gr_10_count,))
+        self.assertEqual(gr_12_count, 0, 'Should have 0 Gr 12 learners, got %d' % (gr_12_count,))
         grad_count = Learner.objects.filter(grade=Learner.GR_GRAD).count()
         self.assertEqual(grad_count, 1, 'Should have 1 graduates, got %d' % (grad_count,))
