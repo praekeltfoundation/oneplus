@@ -62,8 +62,12 @@ class Class(models.Model):
         verbose_name_plural = "Classes"
 
     @staticmethod
-    def get_grade_course(grade):
-        return Course.objects.get(name=Class.grade_course_lookup.get(grade))
+    def get_or_create_grade_course(grade):
+        try:
+            course = Course.objects.get(name=Class.grade_course_lookup.get(grade))
+        except:
+            course = Course.objects.create(name=Class.grade_course_lookup.get(grade))
+        return course
 
     @staticmethod
     def get_or_create_class(grade, school):
@@ -79,13 +83,13 @@ class Class(models.Model):
         class_name = "%s - %s" % (school.name, grade)
         try:
             classs = Class.objects.get(name=class_name)
-        except Class.ObjectDoesNotExist:
+        except Class.DoesNotExist:
             classs = Class.objects.create(
                 name=class_name,
                 description="%s open class for %s" % (school.name, grade),
                 province=school.province,
                 type=Class.CT_OPEN,
-                course=Class.get_grade_course(grade))
+                course=Class.get_or_create_grade_course(grade))
         return classs
 
     def create_participant(self, learner):
