@@ -17,6 +17,8 @@ from organisation.models import Course
 
 from organisation.models import PROVINCE_CHOICES
 
+from mobileu.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_12_COURSE_NAME
+
 
 def today():
     return datetime.now()
@@ -31,6 +33,12 @@ class Class(models.Model):
     """
     CT_TRADITIONAL = 1
     CT_OPEN = 2
+
+    grade_course_lookup = {
+        Learner.GR_10: GRADE_10_COURSE_NAME,
+        Learner.GR_11: GRADE_11_COURSE_NAME,
+        Learner.GR_12: GRADE_12_COURSE_NAME,
+    }
 
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
@@ -52,6 +60,38 @@ class Class(models.Model):
     class Meta:
         verbose_name = "Class"
         verbose_name_plural = "Classes"
+
+    @staticmethod
+    def get_grade_course(grade):
+        return Course.objects.get(name=Class.grade_course_lookup.get(grade))
+
+    @staticmethod
+    def get_or_create_class(grade, school):
+        """
+        Returns a class for the appropriate course/grade/school. Will be created if it doesn't exist.
+
+        Args:
+            grade   (str):      String representing the grade of the class.
+            school  (School):   School object that the class should belong to.
+        Returns:
+            Class   The fetched/generated class object.
+        """
+        class_name = "%s - %s" % (school.name, grade)
+        try:
+            classs = Class.objects.get(name=class_name)
+        except Class.ObjectDoesNotExist:
+            classs = Class.objects.create(
+                name=class_name,
+                description="%s open class for %s" % (school.name, grade),
+                province=school.province,
+                type=Class.CT_OPEN,
+                course=Class.get_grade_course(grade))
+        return classs
+
+    def create_participant(self, learner):
+        return Participant.objects.create(learner=learner,
+                                          classs=self,
+                                          datejoined=datetime.now())
 
 
 class TeacherClass(models.Model):
