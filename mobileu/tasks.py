@@ -72,20 +72,19 @@ def grade_up():
 
 
 def grade_up_body():
-    valid_grades = ['Grade 10', 'Grade 11', 'Grade 12']
-    graduate_suffix = 'Graduates'
+    valid_grades = ['Grade 10', 'Grade 11', 'Grade 12', 'Graduate']
 
-    old_participants = Participant.objects.filter(learner__grade=valid_grades[-1], is_active=True)
-    old_participants.update(is_active=False)
-    learners = Learner.objects.filter(grade=valid_grades[-1])
-    learners.update(grade='Graduate')
-
-    for i in xrange((len(valid_grades) - 1) - 1, -1, -1):
+    # set i to 2nd last index
+    i = (len(valid_grades) - 1) - 1
+    while i >= 0:
         grade = valid_grades[i]
         old_participants = Participant.objects.filter(learner__grade=grade, is_active=True)
         old_participants.update(is_active=False)
-        learners = Learner.objects.filter(grade=grade)
+        learners = Learner.objects.filter(grade=grade, is_active=True)
         learners.update(grade=valid_grades[i+1])
+        i -= 1
+
+    for grade in valid_grades[:-1]:
+        learners = Learner.objects.filter(grade=grade, is_active=True)
         for learner in learners:
             Class.get_or_create_class(grade, learner.school).create_participant(learner)
-
