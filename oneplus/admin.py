@@ -19,9 +19,6 @@ class OnePlusLearnerResource(LearnerResource):
     completed_questions = fields.Field(column_name=u'completed_questions')
     percentage_correct = fields.Field(column_name=u'percentage_correct')
 
-    class Meta(LearnerResource.Meta):
-        pass
-
     def import_obj(self, obj, data, dry_run):
         school, created = School.objects.get_or_create(name=data[u'school'])
         data[u'school'] = school.id
