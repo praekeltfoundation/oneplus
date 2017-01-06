@@ -46,7 +46,7 @@ class LearnerResource(resources.ModelResource):
             return ""
 
     def dehydrate_class_name(self, learner):
-        participant = Participant.objects.filter(learner=learner)
+        participant = Participant.objects.filter(learner=learner, is_active=True)
         if participant.first() is not None:
             return participant.first().classs.name
         else:
@@ -60,6 +60,7 @@ class LearnerResource(resources.ModelResource):
 
     def dehydrate_completed_questions(self, learner):
         return ParticipantQuestionAnswer.objects.filter(
+            participant__is_active=True,
             participant__learner=learner
         ).count()
 
@@ -67,6 +68,7 @@ class LearnerResource(resources.ModelResource):
         complete = self.dehydrate_completed_questions(learner)
         if complete > 0:
             return ParticipantQuestionAnswer.objects.filter(
+                participant__is_active=True,
                 participant__learner=learner,
                 correct=True
             ).count() * 100 / complete
@@ -167,7 +169,8 @@ class TeacherResource(resources.ModelResource):
 
     def dehydrate_students_completed_questions(self, teacher):
         return ParticipantQuestionAnswer.objects.filter(
-            participant__classs__teacher=teacher
+            participant__classs__teacher=teacher,
+            participant__is_active=True
         ).count()
 
     def dehydrate_students_percentage_correct(self, teacher):
@@ -175,6 +178,7 @@ class TeacherResource(resources.ModelResource):
         if complete > 0:
             return ParticipantQuestionAnswer.objects.filter(
                 participant__classs__teacher=teacher,
+                participant__is_active=True,
                 correct=True
             ).count() * 100 / complete
         else:
