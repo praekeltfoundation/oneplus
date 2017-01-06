@@ -2,17 +2,68 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.test.client import Client
+from django.utils import timezone
 from utils import format_option, format_content
 from communication.models import ChatMessage, Discussion, PostComment, ChatGroup, Post, CoursePostRel
-from organisation.models import Course
+from organisation.models import Course, Organisation
 from auth.models import CustomUser
 from datetime import datetime, timedelta
 import math
 from mock import Mock, patch, mock_open, call, ANY, DEFAULT
 import mobileu.teacher_report as teacher_report
+from mobileu.tasks import grade_up_body
 from core.models import Class, Teacher, TeacherClass, TestingQuestion, TestingQuestionOption, Learner, Participant, \
     ParticipantQuestionAnswer
 from organisation.models import Course, CourseModuleRel, Module, School
+from settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_12_COURSE_NAME
+
+
+def create_course(name="course name", **kwargs):
+    return Course.objects.create(name=name, **kwargs)
+
+
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
+
+
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
+
+
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
+
+
+def create_test_question(name, module, **kwargs):
+    return TestingQuestion.objects.create(name=name, module=module, **kwargs)
+
+
+def create_test_question_option(name, question, correct=True):
+    return TestingQuestionOption.objects.create(
+        name=name, question=question, correct=correct)
+
+
+def create_school(name, organisation, **kwargs):
+    return School.objects.create(
+        name=name,
+        organisation=organisation,
+        **kwargs)
+
+
+def create_learner(school, **kwargs):
+    return Learner.objects.create(school=school, **kwargs)
+
+
+def create_participant(learner, classs, datejoined=timezone.now(), **kwargs):
+    return Participant.objects.create(
+        learner=learner,
+        classs=classs,
+        datejoined=datejoined,
+        **kwargs)
 
 
 class TestContent(TestCase):
@@ -744,3 +795,62 @@ class TestTeacherReport(TestCase):
             failed_teachers = [teacher.username for teacher in teachers if ((teacher.id % num_classes) == 0)]
             self.assertEqual(patches['mail_managers'].call_count, 1)
             patches['log'].assert_has_calls([call('Sending failed emails email'), call(ANY, False)])
+
+
+class TestGradeUp(TestCase):
+    def setUp(self):
+        gr10_course = create_course(GRADE_10_COURSE_NAME)
+        gr11_course = create_course(GRADE_11_COURSE_NAME)
+        gr12_course = create_course(GRADE_12_COURSE_NAME)
+        self.module = create_module('module name', gr10_course)
+        self.classs = create_class('class name', gr10_course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+
+    def test_grade_up(self):
+        learner = create_learner(school=self.school, grade=Learner.GR_10)
+        participant = create_participant(learner, self.classs)
+        self.assertEqual(Learner.objects.filter(grade=Learner.GR_10).count(), 1)
+        self.assertEqual(Learner.objects.filter(grade=Learner.GR_11).count(), 0)
+        self.assertEqual(Learner.objects.filter(grade=Learner.GR_12).count(), 0)
+
+        # test whether learner moves up correctly from Gr 10
+        grade_up_body()
+        gr_10_count = Learner.objects.filter(grade=Learner.GR_10).count()
+        self.assertEqual(gr_10_count, 0, 'Should have 0 Gr 10 learners, got %d' % (gr_10_count,))
+        gr_11_count = Learner.objects.filter(grade=Learner.GR_11).count()
+        self.assertEqual(gr_11_count, 1, 'Should have 1 Gr 11 learners, got %d' % (gr_11_count,))
+        gr_12_count = Learner.objects.filter(grade=Learner.GR_12).count()
+        self.assertEqual(gr_12_count, 0, 'Should have 0 Gr 12 learners, got %d' % (gr_10_count,))
+        grad_count = Learner.objects.filter(grade=Learner.GR_GRAD).count()
+        self.assertEqual(grad_count, 0, 'Should have 0 graduates, got %d' % (grad_count,))
+        old_participant = Participant.objects.get(id=participant.id)
+        self.assertFalse(old_participant.is_active, "Old participant should be inactive")
+
+        # test whether learner moves up correctly from Gr 11
+        grade_up_body()
+        gr_10_count = Learner.objects.filter(grade=Learner.GR_10).count()
+        self.assertEqual(gr_10_count, 0, 'Should have 0 Gr 10 learners, got %d' % (gr_10_count,))
+        gr_11_count = Learner.objects.filter(grade=Learner.GR_11).count()
+        self.assertEqual(gr_11_count, 0, 'Should have 0 Gr 11 learners, got %d' % (gr_11_count,))
+        gr_12_count = Learner.objects.filter(grade=Learner.GR_12).count()
+        self.assertEqual(gr_12_count, 1, 'Should have 1 Gr 12 learners, got %d' % (gr_12_count,))
+        grad_count = Learner.objects.filter(grade=Learner.GR_GRAD).count()
+        self.assertEqual(grad_count, 0, 'Should have 0 graduates, got %d' % (grad_count,))
+
+        # test whether number of active participants is correct
+        old_partcipant_count = Participant.objects.filter(is_active=True, learner__grade=Learner.GR_10).count()
+        self.assertEqual(old_partcipant_count, 0, 'Should have 0 active participants, got %d' % (old_partcipant_count,))
+        new_partcipant_count = Participant.objects.filter(is_active=True, learner__grade=Learner.GR_12).count()
+        self.assertEqual(new_partcipant_count, 1, 'Should have 1 active participant, got %d' % (new_partcipant_count,))
+
+        # test whether learner moves up correctly from Gr 12
+        grade_up_body()
+        gr_10_count = Learner.objects.filter(grade=Learner.GR_10).count()
+        self.assertEqual(gr_10_count, 0, 'Should have 0 Gr 10 learners, got %d' % (gr_10_count,))
+        gr_11_count = Learner.objects.filter(grade=Learner.GR_11).count()
+        self.assertEqual(gr_11_count, 0, 'Should have 0 Gr 11 learners, got %d' % (gr_11_count,))
+        gr_12_count = Learner.objects.filter(grade=Learner.GR_12).count()
+        self.assertEqual(gr_12_count, 0, 'Should have 0 Gr 12 learners, got %d' % (gr_12_count,))
+        grad_count = Learner.objects.filter(grade=Learner.GR_GRAD).count()
+        self.assertEqual(grad_count, 1, 'Should have 1 graduates, got %d' % (grad_count,))

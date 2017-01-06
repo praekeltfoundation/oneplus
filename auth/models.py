@@ -161,6 +161,13 @@ class CourseMentor(CustomUser):
 
 # A learner
 class Learner(CustomUser):
+    GR_10 = 'Grade 10'
+    GR_11 = 'Grade 11'
+    GR_12 = 'Grade 12'
+    GR_GRAD = 'Graduate'
+
+    grade_list = (GR_10, GR_11, GR_12, GR_GRAD)
+
     school = models.ForeignKey(School, null=True, blank=False)
     last_maths_result = models.FloatField(
         verbose_name="Last Terms Mathematics Result",
@@ -171,7 +178,8 @@ class Learner(CustomUser):
         verbose_name="User Grade",
         max_length=50,
         blank=True,
-        null=True
+        null=True,
+        choices=((g, g) for g in grade_list)
     )
     welcome_message_sent = models.BooleanField(
         verbose_name="Welcome SMS Sent",

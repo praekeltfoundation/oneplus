@@ -27,6 +27,7 @@ class LearnerResource(resources.ModelResource):
             'first_name',
             'last_name',
             'email',
+            'grade',
             'school',
             'country',
             'area',
@@ -37,6 +38,12 @@ class LearnerResource(resources.ModelResource):
             'percentage_correct',
             'class_name',
         )
+
+    def dehydrate_grade(self, learner):
+        if learner.grade:
+            return learner.grade
+        else:
+            return ""
 
     def dehydrate_class_name(self, learner):
         participant = Participant.objects.filter(learner=learner)
