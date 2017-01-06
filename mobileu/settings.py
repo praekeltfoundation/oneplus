@@ -174,3 +174,9 @@ try:
     from production_settings import *
 except ImportError as e:
     pass
+
+try:
+    from oneplusmvp.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_12_COURSE_NAME, \
+        GRADE_10_OPEN_CLASS_NAME, GRADE_11_OPEN_CLASS_NAME, GRADE_12_OPEN_CLASS_NAME
+except ImportError as e:
+    pass
