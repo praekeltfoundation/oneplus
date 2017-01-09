@@ -3437,7 +3437,7 @@ class GeneralTests(TestCase):
         self.assertEquals(i_mobile_4, None)
 
     def test_signup_form(self):
-        with patch("django.core.mail.mail_managers") as mock_mail_managers:
+        with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
             province_school = School.objects.get(name="Open School")
             self.course.name = settings.GRADE_10_COURSE_NAME
             self.course.save()
@@ -3504,6 +3504,38 @@ class GeneralTests(TestCase):
             #no data
             resp = self.client.post(reverse('auth.signup_form_normal'), follow=True)
             self.assertContains(resp, "Sign Up")
+
+            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
+                # non-empty search result
+                MockSearchSet().filter.return_value = [{'object': {'id': 1, 'name': 'Blargity School'}}]
+                resp = self.client.post(reverse('auth.signup_form_normal'),
+                                        data={
+                                            'first_name': "Bob",
+                                            'surname': "Bobby",
+                                            'cellphone': '0729876543',
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 10',
+                                            'enrolled': 1,
+                                            'school_dirty': 'blarg'},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'Blargity School')
+                MockSearchSet.clear()
+
+                # No search results
+                MockSearchSet().filter.return_value = []
+                resp = self.client.post(reverse('auth.signup_form_normal'),
+                                        data={
+                                            'first_name': "Bob",
+                                            'surname': "Bobby",
+                                            'cellphone': '0729876543',
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 10',
+                                            'enrolled': 1,
+                                            'school_dirty': 'blarg'},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'No schools were a close enough match')
 
             #invalid school and class
             resp = self.client.post(reverse('auth.signup_school_confirm'),

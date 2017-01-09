@@ -15,7 +15,7 @@ from communication.models import SmsQueue
 from core.models import Learner, ParticipantQuestionAnswer, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
-from django.core.urlresolvers import reverse
+from haystack.exceptions import SearchBackendError
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
@@ -262,7 +262,6 @@ def signup_form_normal(request):
 
         if not errors:
             if "school_dirty" in data:
-
                 school_list = SearchQuerySet().filter(province=data['province'], name__fuzzy=data['school_dirty'])
                 if len(school_list) > 0:
                     return render(request, "auth/signup_school_confirm.html", {"data": data,
