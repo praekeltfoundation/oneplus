@@ -10,8 +10,7 @@ from haystack.inputs import Clean, Exact, PythonData, Raw
 from haystack.utils import get_model_ct
 import settings
 
-FUZZY_VALID_FILTERS = {x for x in VALID_FILTERS}
-FUZZY_VALID_FILTERS.add('fuzzy')
+FUZZY_VALID_FILTERS = set([x for x in VALID_FILTERS] + ['fuzzy'])
 
 
 class FuzzySearchNode(SearchNode):
