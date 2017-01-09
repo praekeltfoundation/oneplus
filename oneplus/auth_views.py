@@ -83,6 +83,27 @@ def login(request, state):
                                 fail_silently=False
                             )
                             return render(request, "misc/account_problem.html")
+                        elif len(par) < 1:
+                            subject = ' '.join([
+                                'No participants active -',
+                                usr.first().first_name,
+                                usr.first().last_name,
+                                '-',
+                                usr.first().username
+                            ])
+                            message = '\n'.join([
+                                'Student: ' + usr.first().first_name + ' ' + usr.first().last_name,
+                                'Msisdn: ' + usr.first().username,
+                                'is unable to login due to having no active participants.',
+                                'To fix this, a participant will have to be activated/created.'
+                            ])
+
+                            mail_managers(
+                                subject=subject,
+                                message=message,
+                                fail_silently=False
+                            )
+                            return render(request, "misc/account_problem.html")
 
                         event = Event.objects.filter(course=par.first().classs.course,
                                                      activation_date__lte=datetime.now(),
