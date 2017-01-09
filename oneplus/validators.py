@@ -292,31 +292,6 @@ def validate_sign_up_form_school_confirm(post):
     return data, errors
 
 
-def validate_sign_up_form_promath(post):
-    data = {}
-    errors = {}
-
-    if "school" in post and post["school"]:
-        try:
-            School.objects.get(id=post["school"], open_type__in=(School.OT_CLOSED, School.OT_OPEN))
-            data["school"] = post["school"]
-        except School.DoesNotExist:
-            errors["school_error"] = "Select your school"
-    else:
-        errors["school_error"] = "This must be completed"
-
-    if "classs" in post and post["classs"]:
-        try:
-            Class.objects.get(id=post["classs"])
-            data["classs"] = post["classs"]
-        except Class.DoesNotExist:
-            errors["classs_error"] = "Select your class"
-    else:
-        errors["classs_error"] = "This must be completed"
-
-    return data, errors
-
-
 def validate_profile_form(post, learner):
     data = {}
     errors = {}

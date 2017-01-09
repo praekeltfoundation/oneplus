@@ -19,7 +19,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_school_confirm, validate_sign_up_form_promath, validate_profile_form
+    validate_sign_up_form_school_confirm,  validate_profile_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
