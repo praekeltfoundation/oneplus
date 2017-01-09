@@ -324,7 +324,7 @@ def validate_profile_form(post, learner):
         errors["first_name_error"] = "This must be completed"
 
     if "last_name" in post and post["last_name"]:
-        data["last_name"] = post["surname"]
+        data["last_name"] = post["last_name"]
     else:
         errors["last_name_error"] = "This must be completed"
 
