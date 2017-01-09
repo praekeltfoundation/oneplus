@@ -232,22 +232,6 @@ def validate_sign_up_form(post):
     else:
         errors["cellphone_error"] = "This must be completed"
 
-    if "grade" in post and post["grade"]:
-        if post["grade"] not in ("Grade 10", "Grade 11", "Grade 12"):
-            errors["grade_error"] = "Select your grade"
-        else:
-            data["grade"] = post["grade"]
-    else:
-        errors["grade_error"] = "This must be completed"
-
-    if "province" in post and post["province"]:
-        if post["province"] in PROVINCES:
-            data["province"] = post["province"]
-        else:
-            errors["province_error"] = "Select your province"
-    else:
-        errors["province_error"] = "This must be completed"
-
     if "enrolled" in post and post["enrolled"]:
         data["enrolled"] = post["enrolled"]
     else:
@@ -260,20 +244,22 @@ def validate_sign_up_form_normal(post):
     data = {}
     errors = {}
 
-    if "school" in post and post["school"]:
-        if post["school"] != "other":
-            try:
-                School.objects.get(id=post["school"], open_type=School.OT_OPEN)
-                data["school"] = post["school"]
-            except School.DoesNotExist:
-                errors["school_error"] = "Select your school"
+    if "province" in post and post["province"]:
+        if post["province"] in PROVINCES:
+            data["province"] = post["province"]
         else:
-                data["school"] = post["school"]
+            errors["province_error"] = "Select your province"
     else:
-        errors["school_error"] = "This must be completed"
+        errors["province_error"] = "This must be completed"
+
+    if "school_dirty" in post and post["school_dirty"]:
+        data["school_dirty"] = post["school_dirty"]
+    elif not "school" in post:
+        errors["school_dirty_error"] = "This must be completed"
 
     if "grade" in post and post["grade"]:
         try:
+            data["grade"] = post["grade"]
             if post["grade"] == "Grade 10":
                 course_name = settings.GRADE_10_COURSE_NAME
             elif post["grade"] == "Grade 11":
@@ -284,7 +270,24 @@ def validate_sign_up_form_normal(post):
                 raise Course.DoesNotExist
             data['course'] = Course.objects.get(name=course_name)
         except Course.DoesNotExist:
+            data["grade"] = None
             errors["grade_course_error"] = "No course is assigned to your grade"
+
+    return data, errors
+
+
+def validate_sign_up_form_school_confirm(post):
+    data = {}
+    errors = {}
+
+    if "school" in post and post["school"]:
+        data["school"] = post["school"]
+        try:
+            School.objects.get(id=data["school"])
+        except:
+            errors["school_error"] = "No such school exists"
+    else:
+        errors["school_error"] = "This must be completed"
 
     return data, errors
 
