@@ -68,6 +68,7 @@ INSTALLED_APPS = (
     "django_bleach",
     "bs4",
     "google_analytics",
+    "haystack",
     "raven.contrib.django.raven_compat",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -116,6 +117,14 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
+}
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
+        'INDEX_NAME': 'haystack',
+    },
 }
 
 GOOGLE_ANALYTICS = {

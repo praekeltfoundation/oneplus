@@ -312,3 +312,36 @@ def validate_sign_up_form_promath(post):
         errors["classs_error"] = "This must be completed"
 
     return data, errors
+
+
+def validate_profile_form(post, learner):
+    data = {}
+    errors = {}
+
+    if "first_name" in post and post["first_name"]:
+        data["first_name"] = post["first_name"]
+    else:
+        errors["first_name_error"] = "This must be completed"
+
+    if "last_name" in post and post["last_name"]:
+        data["last_name"] = post["last_name"]
+    else:
+        errors["last_name_error"] = "This must be completed"
+
+    if "mobile" in post and post["mobile"]:
+        mobile = post["mobile"]
+        if validate_mobile(mobile):
+            users = CustomUser.objects.filter(Q(mobile=mobile) | Q(username=mobile))
+            if users:
+                for user in users:
+                    if user.id != learner.id:
+                        errors["mobile_error"] = "Cellphone number already taken"
+                        break
+            else:
+                data["mobile"] = mobile
+        else:
+            errors["mobile_error"] = "Enter a valid cellphone number"
+    else:
+        errors["mobile_error"] = "This must be completed"
+
+    return data, errors

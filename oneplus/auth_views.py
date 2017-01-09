@@ -16,7 +16,7 @@ from django.contrib.auth.hashers import make_password
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_promath
+    validate_sign_up_form_promath, validate_profile_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -75,6 +75,27 @@ def login(request, state):
                                 'Msisdn: ' + usr.first().username,
                                 'is unable to login due to having multiple active participants.',
                                 'To fix this, some participants  will have to be deactivated.'
+                            ])
+
+                            mail_managers(
+                                subject=subject,
+                                message=message,
+                                fail_silently=False
+                            )
+                            return render(request, "misc/account_problem.html")
+                        elif len(par) < 1:
+                            subject = ' '.join([
+                                'No participants active -',
+                                usr.first().first_name,
+                                usr.first().last_name,
+                                '-',
+                                usr.first().username
+                            ])
+                            message = '\n'.join([
+                                'Student: ' + usr.first().first_name + ' ' + usr.first().last_name,
+                                'Msisdn: ' + usr.first().username,
+                                'is unable to login due to having no active participants.',
+                                'To fix this, a participant will have to be activated/created.'
                             ])
 
                             mail_managers(
@@ -726,5 +747,71 @@ def reset_password(request, token):
                 "message": message
             }
         )
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_login_required
+def profile(request, state, user):
+    def get():
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            data = {
+                'first_name': learner.first_name,
+                'grade': learner.grade,
+                'last_name': learner.last_name,
+                'mobile': learner.mobile,
+                'province': learner.school.province,
+                'school': learner.school.name,
+            }
+        except Exception as e:
+            data = {}
+        return render(request, "auth/profile.html", {'data': data, 'user': user})
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_login_required
+def edit_profile(request, state, user):
+    def get():
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            data = {
+                'first_name': learner.first_name,
+                'grade': learner.grade,
+                'last_name': learner.last_name,
+                'mobile': learner.mobile,
+                'province': learner.school.province,
+                'school': learner.school.name,
+            }
+        except Exception as e:
+            data = {}
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'user': user})
+
+    def post():
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            validated_data, errors = validate_profile_form(request.POST, learner)
+
+            if not errors or len(errors) == 0:
+                learner.first_name = validated_data['first_name']
+                learner.last_name = validated_data['last_name']
+                learner.mobile = validated_data['mobile']
+                learner.save()
+
+            data = {
+                'first_name': request.POST.get('first_name', learner.first_name),
+                'grade': request.POST.get('grade', learner.grade),
+                'last_name': request.POST.get('last_name', learner.last_name),
+                'mobile': request.POST.get('mobile', learner.mobile),
+                'province': request.POST.get('province', learner.school.province),
+                'school': request.POST.get('school', learner.school.name),
+            }
+
+        except Exception as e:
+            data = {}
+            errors = {}
+
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
 
     return resolve_http_method(request, [get, post])
