@@ -22,3 +22,8 @@ $sunflower-yellow: #f1e101;
 $white: #ffffff;
 
 $background-color-primary: $white;
+
+@mixin background-transparent {
+  background-color: $white;
+  background-color: transparent;
+}
