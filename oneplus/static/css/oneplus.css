@@ -289,6 +289,10 @@ input[type=text], input[type=password], select, textarea {
 .radiogroup input.block {
   display: block; }
 
+.subtle-info {
+  color: #5b5b5b;
+  font-size: 66%; }
+
 .login label {
   z-index: 1;
   display: block; }

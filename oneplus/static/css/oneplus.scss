@@ -184,6 +184,11 @@ input[type=text], input[type=password], select, textarea {
   }
 }
 
+.subtle-info {
+  color: $lightgrey;
+  font-size: 66%;
+}
+
 .login label { z-index: 1; display: block; }
 
 .text {
