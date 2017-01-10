@@ -7,23 +7,46 @@
         <p class="center-font">To complete your sign up please select your school:</p>
 		<form action="signup_form_normal" method="post" class="signup">
 			{% csrf_token %}
+            <input type="hidden" name="page_num" id="id_page_num" value="1" />
             <input type="hidden" name="first_name" value="{{ data.first_name }}">
             <input type="hidden" name="surname" value="{{ data.surname }}">
             <input type="hidden" name="cellphone" value="{{ data.cellphone}}">
-            <input type="hidden" name="grade" value="{{ data.grade }}">
-            <input type="hidden" name="province" value="{{ data.province }}">
             <input type="hidden" name="enrolled" value="{{ data.enrolled }}">
 
             <p>
-                School:<br>
-                <select name="school" id="id_school">
-                    <option value="0">Select school</option>
-                    {% for school in schools%}
-                        <option value="{{ school.id }}">{{ school.name }}</option>
+                What is your current grade?<br>
+                <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
+                <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
+                <input type="radio" name="grade" value="Grade 12"> Grade 12 <br>
+                {% if errors.grade_error %}
+                    <span class="red-front">{{ errors.grade_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                Select your province:<br>
+                <select name="province" id="id_province">
+                    <option value="0">Select</option>
+                    {% for province in provinces %}
+                        <option value="{{ province }}">{{ province }}</option>
                     {% endfor %}
-                    {% comment %}<option value="other">Other</option>{% endcomment %}
                 </select>
                 <br>
+                {% if errors.province_error %}
+                    <span class="red-front">{{ errors.province_error }}</span>
+                    <br>
+                {% endif %}
+            </p>
+
+            <p>
+                School:<br>
+                <input type="text" name="school_dirty" id="id_school_dirty" value="{{ data.school_dirty }}" >
+                <br>
+                {% if errors.school_dirty_error %}
+                    <span class="red-front">{{ errors.school_dirty_error }}</span>
+                    <br>
+                {% endif %}
                 {% if errors.school_error %}
                     <span class="red-front">{{ errors.school_error }}</span>
                     <br>

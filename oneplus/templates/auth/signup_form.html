@@ -42,32 +42,6 @@
             </p>
 
             <p>
-                What is your current grade?<br>
-                <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
-                <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
-                <input type="radio" name="grade" value="Grade 12"> Grade 12 <br>
-                {% if errors.grade_error %}
-                    <span class="red-front">{{ errors.grade_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
-                Select your province:<br>
-                <select name="province" id="id_province">
-                    <option value="0">Select</option>
-                    {% for province in provinces %}
-                        <option value="{{ province }}">{{ province }}</option>
-                    {% endfor %}
-                </select>
-                <br>
-                {% if errors.province_error %}
-                    <span class="red-front">{{ errors.province_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
-            <p>
                 Are you currently enrolled in a ProMaths class?<br>
                 <input type="radio" name="enrolled" value="0"> Yes
                 <br>

@@ -1,0 +1,94 @@
+{% extends "core/main.html" %}
+
+{% block title %}Change Profile{% endblock %}
+
+{% block content %}
+    <div class="menu">
+        <a href="/menu"><div class="text heading blue-back darkgrey-front"><li class="icon change_number"></li><p>Change Profile</p></div></a>
+    </div>
+    <div class="content">
+        <a href="{% url 'auth.edit_profile' %}">Edit</a>
+        <form action="edit_profile" method="post" class="">
+            {% csrf_token %}
+
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_first_name">Name</label>
+                <input class="comment" type="text" id="id_first_name" name="first_name" value="{{ data.first_name }}"
+                        {% if not editing %}disabled{% endif %} />
+                {% if errors.first_name_error %}
+                    <p class="red-front">
+                        {{ errors.first_name_error }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_last_name">Surname</label>
+                <input type="text" id="id_last_name" name="last_name" value="{{ data.last_name }}"
+                        {% if not editing %}disabled{% endif %} />
+                {% if errors.last_name_error %}
+                    <p class="red-front">
+                        {{ errors.last_name_error }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_mobile">Mobile Number</label>
+                <input type="text" id="id_mobile" name="mobile" value="{{ data.mobile }}"
+                        {% if not editing %}disabled{% endif %} />
+                {% if errors.mobile_error %}
+                    <p class="red-front">
+                        {{ errors.mobile_error }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_password">Password</label>
+                <input type="text" id="id_password" name="password" value="******" disabled />
+                {% if editing %}
+                    <p>
+                        Change your password <a href="{% url 'auth.sms_reset_password' %}">here</a>.
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_province">Province</label>
+                <input type="text" id="id_province" name="province" value="{{ data.province }}" disabled />
+                {% if errors.province_error %}
+                    <p class="red-front">
+                        {{ errors.province_error }}
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_grade">Grade</label>
+                <input type="text" id="id_grade" name="grade" value="{{ data.grade }}" disabled />
+                {% if editing %}
+                    <p>
+                        If you are in the incorrect grade, please <a href="{% url 'misc.contact' %}">contact us</a> so that
+                        we can move you to the correct grade.
+                    </p>
+                {% endif %}
+            </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_school">School</label>
+                <input type="text" id="id_school" name="school" value="{{ data.school }}" disabled />
+                {% if editing %}
+                    <p>
+                        If you have moved schools, please <a href="{% url 'misc.contact' %}">contact us</a> so that we can
+                        move you to your new school.
+                    </p>
+                {% endif %}
+            </div>
+
+            {% if editing %}
+                <input type="submit" value="Submit" class="button green-back grey-front" />
+            {% endif %}
+        </form>
+    </div>
+{% endblock content %}

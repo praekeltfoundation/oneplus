@@ -1,6 +1,8 @@
 from __future__ import division
 import re
 from functools import wraps
+from haystack.query import SearchQuerySet
+from django.shortcuts import render
 from django.contrib.auth import authenticate, logout
 from django.shortcuts import HttpResponse, redirect, render
 from django.http import HttpResponseRedirect
@@ -13,10 +15,11 @@ from communication.models import SmsQueue
 from core.models import Learner, ParticipantQuestionAnswer, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
+from haystack.exceptions import SearchBackendError
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_promath
+    validate_sign_up_form_school_confirm,  validate_profile_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -75,6 +78,27 @@ def login(request, state):
                                 'Msisdn: ' + usr.first().username,
                                 'is unable to login due to having multiple active participants.',
                                 'To fix this, some participants  will have to be deactivated.'
+                            ])
+
+                            mail_managers(
+                                subject=subject,
+                                message=message,
+                                fail_silently=False
+                            )
+                            return render(request, "misc/account_problem.html")
+                        elif len(par) < 1:
+                            subject = ' '.join([
+                                'No participants active -',
+                                usr.first().first_name,
+                                usr.first().last_name,
+                                '-',
+                                usr.first().username
+                            ])
+                            message = '\n'.join([
+                                'Student: ' + usr.first().first_name + ' ' + usr.first().last_name,
+                                'Msisdn: ' + usr.first().username,
+                                'is unable to login due to having no active participants.',
+                                'To fix this, a participant will have to be activated/created.'
                             ])
 
                             mail_managers(
@@ -211,19 +235,8 @@ def signup_form(request):
         data, errors = validate_sign_up_form(request.POST)
 
         if not errors:
-            if data["enrolled"] == "1":
-                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
-                return render(request, "auth/signup_form_normal.html", {"data": data,
-                                                                        "schools": filtered_schools})
-
-            else:
-                filtered_schools = School.objects.filter(province=data["province"],
-                                                         open_type__in=(School.OT_CLOSED, School.OT_OPEN))
-                filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
-                return render(request, "auth/signup_form_promath.html", {"data": data,
-                                                                         "schools": filtered_schools,
-                                                                         "classes": filtered_classes})
-
+            return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                    "provinces": PROVINCES})
         else:
             return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
                                                              "data": data,
@@ -239,9 +252,62 @@ def signup_form_normal(request):
 
     def post():
         data, errors = validate_sign_up_form(request.POST)
+        if errors:
+            return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
+                                                             "data": data,
+                                                             "errors": errors})
         normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
         data.update(normal_data)
         errors.update(normal_errors)
+
+        if not errors:
+            if "school_dirty" in data:
+                school_list = SearchQuerySet().filter(province=data['province'], name__fuzzy=data['school_dirty'])
+                if len(school_list) > 0:
+                    return render(request, "auth/signup_school_confirm.html", {"data": data,
+                                                                               "school_list": school_list})
+                else:
+                    errors.update({"school_dirty_error": "No schools were a close enough match."})
+                    return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                            "errors": errors})
+            else:
+                errors.update({"school_error": "Unknown school selected."})
+                return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                        "errors": errors})
+        else:
+            if "province" in data:
+                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
+
+                return render(request, "auth/signup_form_normal.html", {"data": data,
+                                                                        "errors": errors,
+                                                                        "schools": filtered_schools})
+            else:
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+
+    return resolve_http_method(request, [get, post])
+
+
+@available_space_required
+def signup_school_confirm(request):
+    def get():
+        return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+
+    def post():
+        data, errors = validate_sign_up_form(request.POST)
+        if errors:
+            return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
+                                                             "data": data,
+                                                             "errors": errors})
+        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
+        data.update(normal_data)
+        errors.update(normal_errors)
+        if normal_errors:
+            return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
+                                                                    "data": data,
+                                                                    "errors": errors})
+        school_data, school_errors = validate_sign_up_form_school_confirm(request.POST)
+        data.update(school_data)
+        errors.update(school_errors)
 
         if not errors:
             if data["school"] != "other":
@@ -273,62 +339,15 @@ def signup_form_normal(request):
 
                 return render(request, "auth/signedup.html")
             else:
-                errors.update({"unknown_school": "Unknown school selected."})
-                return render(request, "auth/signup_form.html", {"data": data,
-                                                                 "errors": errors})
+                errors.update({"school_error": "Unknown school selected."})
+                return render(request, "auth/signup_school_confirm.html", {"data": data,
+                                                                           "errors": errors})
         else:
-            if "province" in data:
-                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
-
-                return render(request, "auth/signup_form_normal.html", {"data": data,
-                                                                        "errors": errors,
-                                                                        "schools": filtered_schools})
-            else:
-                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
-
-    return resolve_http_method(request, [get, post])
-
-
-@available_space_required
-def signup_form_promath(request):
-    def get():
-        return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
-
-    def post():
-        data, errors = validate_sign_up_form(request.POST)
-        pro_data, pro_errors = validate_sign_up_form_promath(request.POST)
-        data.update(pro_data)
-        errors.update(pro_errors)
-
-        if not errors:
-            school = School.objects.get(id=data["school"])
-            # create learner
-            new_learner = create_learner(first_name=data["first_name"],
-                                         last_name=data["surname"],
-                                         mobile=data["cellphone"],
-                                         country="South Africa",
-                                         school=school,
-                                         grade=data["grade"])
-
-            classs = Class.objects.get(id=data["classs"])
-
-            # create participant
-            create_participant(new_learner, classs)
-
-            password = set_learner_password(new_learner)
-            send_welcome_sms(new_learner, password)
-
-            return render(request, "auth/signedup.html")
-        else:
-            if "province" in data:
-                filtered_schools = School.objects.filter(province=data["province"],
-                                                         open_type__in=(School.OT_CLOSED, School.OT_OPEN))
-                filtered_classes = Class.objects.filter(province=data["province"], type=Class.CT_TRADITIONAL)
-
-                return render(request, "auth/signup_form_promath.html", {"data": data,
-                                                                         "errors": errors,
-                                                                         "schools": filtered_schools,
-                                                                         "classes": filtered_classes})
+            if "school" in data:
+                return render(request, "auth/signup_school_confirm.html", {"data": data,
+                                                                           "errors": errors})
+            elif "province" in data:
+                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES})
             else:
                 return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
 
@@ -726,5 +745,71 @@ def reset_password(request, token):
                 "message": message
             }
         )
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_login_required
+def profile(request, state, user):
+    def get():
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            data = {
+                'first_name': learner.first_name,
+                'grade': learner.grade,
+                'last_name': learner.last_name,
+                'mobile': learner.mobile,
+                'province': learner.school.province,
+                'school': learner.school.name,
+            }
+        except Exception as e:
+            data = {}
+        return render(request, "auth/profile.html", {'data': data, 'user': user})
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_login_required
+def edit_profile(request, state, user):
+    def get():
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            data = {
+                'first_name': learner.first_name,
+                'grade': learner.grade,
+                'last_name': learner.last_name,
+                'mobile': learner.mobile,
+                'province': learner.school.province,
+                'school': learner.school.name,
+            }
+        except Exception as e:
+            data = {}
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'user': user})
+
+    def post():
+        try:
+            learner = Learner.objects.get(id=user['id'])
+            validated_data, errors = validate_profile_form(request.POST, learner)
+
+            if not errors or len(errors) == 0:
+                learner.first_name = validated_data['first_name']
+                learner.last_name = validated_data['last_name']
+                learner.mobile = validated_data['mobile']
+                learner.save()
+
+            data = {
+                'first_name': request.POST.get('first_name', learner.first_name),
+                'grade': request.POST.get('grade', learner.grade),
+                'last_name': request.POST.get('last_name', learner.last_name),
+                'mobile': request.POST.get('mobile', learner.mobile),
+                'province': request.POST.get('province', learner.school.province),
+                'school': request.POST.get('school', learner.school.name),
+            }
+
+        except Exception as e:
+            data = {}
+            errors = {}
+
+        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
 
     return resolve_http_method(request, [get, post])
