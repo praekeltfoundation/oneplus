@@ -76,7 +76,6 @@ button {
   display: inline-block;
   height: 100%;
   vertical-align: middle;
-//  width: 0;
 }
 
 .header-item {
@@ -203,6 +202,12 @@ input[type=text], input[type=password], select, textarea {
 
 .card-top-phrase {
   text-align: center;
+  text-decoration: no-underline;
+}
+
+.card-description {
+  padding: 1em;
+  text-align: center;
 }
 
 .card-table {
@@ -220,6 +225,18 @@ input[type=text], input[type=password], select, textarea {
     font-size: 200%;
     text-align: center;
   }
+}
+
+.comment-author {
+  color: lightgrey;
+  font-size: 75%;
+}
+
+.comment-list hr {
+  border: 0;
+  border-top: solid 2px $lightgrey;
+  margin: 0.5em 0;
+  width: 100%;
 }
 
 .login label { z-index: 1; display: block; }

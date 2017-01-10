@@ -45,7 +45,7 @@ table {
 /* border width */
 /* old colours */
 /* redesign colours */
-.amethyst-accent hr {
+.amethyst-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #ac5ac5; }
 .amethyst-accent.background-color-accent, .amethyst-accent .background-color-accent {
@@ -55,7 +55,7 @@ table {
 .amethyst-accent.color-accent, .amethyst-accent .color-accent {
   color: #ac5ac5; }
 
-.iris-accent hr {
+.iris-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #6075c4; }
 .iris-accent.background-color-accent, .iris-accent .background-color-accent {
@@ -65,7 +65,7 @@ table {
 .iris-accent.color-accent, .iris-accent .color-accent {
   color: #6075c4; }
 
-.pale-teal-accent hr {
+.pale-teal-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #68baa7; }
 .pale-teal-accent.background-color-accent, .pale-teal-accent .background-color-accent {
@@ -75,7 +75,7 @@ table {
 .pale-teal-accent.color-accent, .pale-teal-accent .color-accent {
   color: #68baa7; }
 
-.squash-accent hr {
+.squash-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #eca11a; }
 .squash-accent.background-color-accent, .squash-accent .background-color-accent {
@@ -85,7 +85,7 @@ table {
 .squash-accent.color-accent, .squash-accent .color-accent {
   color: #eca11a; }
 
-.sunflower-yellow-accent hr {
+.sunflower-yellow-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #f1e101; }
 .sunflower-yellow-accent.background-color-accent, .sunflower-yellow-accent .background-color-accent {
@@ -99,7 +99,7 @@ table {
 /* border width */
 /* old colours */
 /* redesign colours */
-.amethyst-accent hr {
+.amethyst-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #ac5ac5; }
 .amethyst-accent.background-color-accent, .amethyst-accent .background-color-accent {
@@ -109,7 +109,7 @@ table {
 .amethyst-accent.color-accent, .amethyst-accent .color-accent {
   color: #ac5ac5; }
 
-.iris-accent hr {
+.iris-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #6075c4; }
 .iris-accent.background-color-accent, .iris-accent .background-color-accent {
@@ -119,7 +119,7 @@ table {
 .iris-accent.color-accent, .iris-accent .color-accent {
   color: #6075c4; }
 
-.pale-teal-accent hr {
+.pale-teal-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #68baa7; }
 .pale-teal-accent.background-color-accent, .pale-teal-accent .background-color-accent {
@@ -129,7 +129,7 @@ table {
 .pale-teal-accent.color-accent, .pale-teal-accent .color-accent {
   color: #68baa7; }
 
-.squash-accent hr {
+.squash-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #eca11a; }
 .squash-accent.background-color-accent, .squash-accent .background-color-accent {
@@ -139,7 +139,7 @@ table {
 .squash-accent.color-accent, .squash-accent .color-accent {
   color: #eca11a; }
 
-.sunflower-yellow-accent hr {
+.sunflower-yellow-accent hr.hr-accent {
   border: 0;
   border-top: solid 2px #f1e101; }
 .sunflower-yellow-accent.background-color-accent, .sunflower-yellow-accent .background-color-accent {
@@ -415,6 +415,11 @@ input[type=text], input[type=password], select, textarea {
     padding: 1em; }
 
 .card-top-phrase {
+  text-align: center;
+  text-decoration: no-underline; }
+
+.card-description {
+  padding: 1em;
   text-align: center; }
 
 .card-table {
@@ -428,6 +433,16 @@ input[type=text], input[type=password], select, textarea {
     font-family: "Asap", sans-serif;
     font-size: 200%;
     text-align: center; }
+
+.comment-author {
+  color: lightgrey;
+  font-size: 75%; }
+
+.comment-list hr {
+  border: 0;
+  border-top: solid 2px #5b5b5b;
+  margin: 0.5em 0;
+  width: 100%; }
 
 .login label {
   z-index: 1;
