@@ -10,25 +10,24 @@
 </head>
 <body>
     {% load google_analytics_tags %}
-    <img src="{% google_analytics request %}" width="1" height="1" style="position:absolute;top:0;right:0;" />
+    <img src="{% google_analytics request %}" width="1px" height="1px" style="position:absolute;top:0;right:0;" />
 
     {% block header %}
-        <header class="header">
+        <header>
+            <div class="vert-placeholder"></div>
+            <div class="header-item" style="margin-right:auto;">
+                {% if user.name %}
+                    {% block menu_icon %}
+                        <a href="/menu" class="menu" ></a>
+                    {% endblock %}
+                {% else %}
+                    <a href="login" class="menu-login green-front">Sign In</a>
+                {% endif %}
+            </div>
 
-            {% if user.name %}
-                {% block menu_icon %}
-                    <a href="/menu" class="menu" ></a>
-                {% endblock %}
-            {% else %}
-                <a href="login" class="menu-login green-front">Sign In</a>
-            {% endif %}
-
-            <a href="/home" class="logo"></a>
-            {% if user.name %}
-                {% block home_icon %}
-                    <a href="/home" class="home" ></a>
-                {% endblock %}
-            {% endif %}
+            {% block page_descriptor %}
+                <div class="header-item page-descriptor">{% block page_descriptor_text %}{% endblock %}</div>
+            {% endblock %}
         </header>
     {% endblock %}
 
