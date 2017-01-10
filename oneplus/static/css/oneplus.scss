@@ -81,8 +81,8 @@ button {
 }
 
 .pale-teal-accent {
-  .border-color-accent {@include border-color-accent($pale-teal)}
-  .color-accent {@include color-accent($pale-teal)}
+  &.border-color-accent, .border-color-accent {@include border-color-accent($pale-teal)}
+  &.color-accent, .color-accent {@include color-accent($pale-teal)}
 }
 
 .vert-placeholder {
@@ -126,8 +126,17 @@ button {
   width: 100%;
 }
 
+form > label {
+  margin: 0.5em 0;
+}
+
+label > input, label > select, label > textarea {
+  margin: 0.25em 0;
+}
+
 form label, input[type=text], input[type=password], select, textarea {
   color: $black;
+  display: block;
   font-family: $font-family-secondary;
   width: 100%;
   @include background-transparent;
@@ -161,6 +170,18 @@ input[type=text], input[type=password], select, textarea {
 
 .spaced-links a {
     padding: 1em 0;
+}
+
+.radiogroup {
+  label {
+    display: inline-block;
+    padding: 0.25em;
+    width: auto;
+  }
+
+  input.block {
+    display: block;
+  }
 }
 
 .login label { z-index: 1; display: block; }

@@ -197,9 +197,9 @@ a {
 button {
   white-space: nowrap; }
 
-.pale-teal-accent .border-color-accent {
+.pale-teal-accent.border-color-accent, .pale-teal-accent .border-color-accent {
   border-color: #68baa7; }
-.pale-teal-accent .color-accent {
+.pale-teal-accent.color-accent, .pale-teal-accent .color-accent {
   color: #68baa7; }
 
 .vert-placeholder {
@@ -239,8 +239,15 @@ button {
   text-decoration: none;
   width: 100%; }
 
+form > label {
+  margin: 0.5em 0; }
+
+label > input, label > select, label > textarea {
+  margin: 0.25em 0; }
+
 form label, input[type=text], input[type=password], select, textarea {
   color: #000000;
+  display: block;
   font-family: "Lato", sans-serif;
   width: 100%;
   background-color: #ffffff;
@@ -274,6 +281,13 @@ input[type=text], input[type=password], select, textarea {
 
 .spaced-links a {
   padding: 1em 0; }
+
+.radiogroup label {
+  display: inline-block;
+  padding: 0.25em;
+  width: auto; }
+.radiogroup input.block {
+  display: block; }
 
 .login label {
   z-index: 1;
