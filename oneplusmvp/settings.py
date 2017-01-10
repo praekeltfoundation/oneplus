@@ -64,6 +64,7 @@ INSTALLED_APPS = (
     "djcelery",
     "organisation",
     "django_summernote",
+    "haystack",
     "south",
     "django_bleach",
     "bs4",
@@ -121,7 +122,7 @@ DATABASES = {
 
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'ENGINE': 'mobileu.haystack_custom.FuzzyEngine',
         'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
         'INDEX_NAME': 'haystack',
     },

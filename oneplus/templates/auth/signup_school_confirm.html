@@ -5,21 +5,23 @@
 {% block content %}
     <div class="content">
         <p class="center-font">To complete your sign up please select your school:</p>
-		<form action="signup_form_normal" method="post" class="signup">
+		<form action="signup_school_confirm" method="post" class="signup" >
 			{% csrf_token %}
+            <input type="hidden" name="page_num" id="id_page_num" value="2" />
             <input type="hidden" name="first_name" value="{{ data.first_name }}">
             <input type="hidden" name="surname" value="{{ data.surname }}">
             <input type="hidden" name="cellphone" value="{{ data.cellphone}}">
             <input type="hidden" name="grade" value="{{ data.grade }}">
             <input type="hidden" name="province" value="{{ data.province }}">
             <input type="hidden" name="enrolled" value="{{ data.enrolled }}">
+            <input type="hidden" name="school_dirty" value="{{ data.school_dirty }}">
 
             <p>
                 School:<br>
                 <select name="school" id="id_school">
                     <option value="0">Select school</option>
                     {% for school in school_list %}
-                        <option value="{{ school.id }}">{{ school.name }}</option>
+                        <option value="{{ school.object.id }}">{{ school.object.name }}</option>
                     {% endfor %}
                     {% comment %}<option value="other">Other</option>{% endcomment %}
                 </select>

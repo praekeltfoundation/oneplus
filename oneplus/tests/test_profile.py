@@ -102,6 +102,18 @@ class TestProfile(TestCase):
         self.assertContains(resp, '"%s"' % (self.school.name,))
         self.assertContains(resp, '"%s"' % (self.school.province,))
 
+    def test_profile_edit_get(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #no fields completed
+        resp = self.client.get(reverse('auth.edit_profile'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, '"%s"' % (self.learner.first_name,))
+        self.assertContains(resp, '"%s"' % (self.learner.last_name,))
+        self.assertContains(resp, '"%s"' % (self.learner.mobile,))
+        self.assertContains(resp, '"%s"' % (self.school.name,))
+        self.assertContains(resp, '"%s"' % (self.school.province,))
+
     def test_profile_edit_empty(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 

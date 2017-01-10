@@ -2582,7 +2582,6 @@ class GeneralTests(TestCase):
             )
 
             self.assertContains(resp, "Your message has been sent. We will get back to you in the next 24 hours")
-
             mock_mail_managers.assert_called()
 
     def test_get_week_day(self):
@@ -3438,7 +3437,7 @@ class GeneralTests(TestCase):
         self.assertEquals(i_mobile_4, None)
 
     def test_signup_form(self):
-        with patch("django.core.mail.mail_managers") as mock_mail_managers:
+        with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
             province_school = School.objects.get(name="Open School")
             self.course.name = settings.GRADE_10_COURSE_NAME
             self.course.save()
@@ -3454,7 +3453,7 @@ class GeneralTests(TestCase):
             resp = self.client.post(reverse('auth.signup_form'),
                                     data={},
                                     follow=True)
-            self.assertContains(resp, "This must be completed", count=6)
+            self.assertContains(resp, "This must be completed", count=4)
 
             # invalid cellphone, grade and province
             resp = self.client.post(reverse('auth.signup_form'),
@@ -3462,14 +3461,10 @@ class GeneralTests(TestCase):
                                         'first_name': self.learner.first_name,
                                         'surname': self.learner.last_name,
                                         'cellphone': '12345',
-                                        'grade': 'Grade 13',
-                                        'province': 'Wrong province name',
                                         'enrolled': 0,
                                     },
                                     follow=True)
             self.assertContains(resp, "Enter a valid cellphone number")
-            self.assertContains(resp, "Select your grade")
-            self.assertContains(resp, "Select your province")
 
             # registered cellphone
             resp = self.client.post(reverse('auth.signup_form'),
@@ -3503,44 +3498,61 @@ class GeneralTests(TestCase):
             self.assertContains(resp, '0')
 
             #get request
-            resp = self.client.get(reverse('auth.signup_form_promath'), follow=True)
+            resp = self.client.get(reverse('auth.signup_form_normal'), follow=True)
             self.assertContains(resp, "Sign Up")
 
             #no data
-            resp = self.client.post(reverse('auth.signup_form_promath'), follow=True)
+            resp = self.client.post(reverse('auth.signup_form_normal'), follow=True)
             self.assertContains(resp, "Sign Up")
 
-            #no school and class
-            resp = self.client.post(reverse('auth.signup_form_promath'),
-                                    data={
-                                        'first_name': "Bob",
-                                        'surname': "Bobby",
-                                        'cellphone': '0729876543',
-                                        'province': 'Gauteng',
-                                        'grade': 'Grade 10',
-                                        'enrolled': 0,
-                                    },
-                                    follow=True)
-            self.assertContains(resp, "This must be completed", count=2)
+            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
+                # non-empty search result
+                MockSearchSet().filter.return_value = [{'object': {'id': 1, 'name': 'Blargity School'}}]
+                resp = self.client.post(reverse('auth.signup_form_normal'),
+                                        data={
+                                            'first_name': "Bob",
+                                            'surname': "Bobby",
+                                            'cellphone': '0729876543',
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 10',
+                                            'enrolled': 1,
+                                            'school_dirty': 'blarg'},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'Blargity School')
+                MockSearchSet.clear()
+
+                # No search results
+                MockSearchSet().filter.return_value = []
+                resp = self.client.post(reverse('auth.signup_form_normal'),
+                                        data={
+                                            'first_name': "Bob",
+                                            'surname': "Bobby",
+                                            'cellphone': '0729876543',
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 10',
+                                            'enrolled': 1,
+                                            'school_dirty': 'blarg'},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'No schools were a close enough match')
 
             #invalid school and class
-            resp = self.client.post(reverse('auth.signup_form_promath'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Bob",
                                         'surname': "Bobby",
                                         'cellphone': '0729876543',
                                         'province': 'Gauteng',
                                         'grade': 'Grade 10',
-                                        'enrolled': 0,
-                                        'school': 999,
-                                        'classs': 999
+                                        'enrolled': 1,
+                                        'school': 999
                                     },
                                     follow=True)
-            self.assertContains(resp, "Select your school")
-            self.assertContains(resp, "Select your class")
+            self.assertContains(resp, "No such school exists")
 
             #valid data
-            resp = self.client.post(reverse('auth.signup_form_promath'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Bob",
                                         'surname': "Bobby",
@@ -3548,8 +3560,7 @@ class GeneralTests(TestCase):
                                         'province': 'Gauteng',
                                         'grade': 'Grade 10',
                                         'enrolled': 0,
-                                        'school': promaths_school.id,
-                                        'classs': promaths_class.id
+                                        'school': promaths_school.id
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -3559,7 +3570,7 @@ class GeneralTests(TestCase):
             # valid - not enrolled - grade 10 - no open class created
             self.school.province = "Gauteng"
             self.school.save()
-            resp = self.client.post(reverse('auth.signup_form_normal'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Koos",
                                         'surname': "Botha",
@@ -3580,7 +3591,7 @@ class GeneralTests(TestCase):
                 pass
 
             # valid - not enrolled - grade 10
-            resp = self.client.post(reverse('auth.signup_form_normal'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Willy",
                                         'surname': "Wolly",
@@ -3599,7 +3610,7 @@ class GeneralTests(TestCase):
             self.course.save()
 
             # valid - not enrolled - grade 11 - creaing open class
-            resp = self.client.post(reverse('auth.signup_form_normal'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Tom",
                                         'surname': "Tom",
@@ -3615,7 +3626,7 @@ class GeneralTests(TestCase):
             self.assertEquals('Tom', new_learner.first_name)
 
             # valid - not enrolled - grade 11
-            resp = self.client.post(reverse('auth.signup_form_normal'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Henky",
                                         'surname': "Tanky",
@@ -3630,14 +3641,14 @@ class GeneralTests(TestCase):
             new_learner = Learner.objects.get(username='0729876486')
             self.assertEquals('Henky', new_learner.first_name)
 
-            resp = self.client.get(reverse("auth.signup_form_promath"))
+            resp = self.client.get(reverse("auth.signup_form_normal"))
             self.assertContains(resp, 'To sign up please complete the following information:')
 
             self.course.name = settings.GRADE_12_COURSE_NAME
             self.course.save()
 
             # valid - not enrolled - grade 12 - creaing open class
-            resp = self.client.post(reverse('auth.signup_form_normal'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Rob",
                                         'surname': "Web",
@@ -3653,7 +3664,7 @@ class GeneralTests(TestCase):
             self.assertEquals('Rob', new_learner.first_name)
 
             # valid - not enrolled - grade 12
-            resp = self.client.post(reverse('auth.signup_form_normal'),
+            resp = self.client.post(reverse('auth.signup_school_confirm'),
                                     data={
                                         'first_name': "Kyle",
                                         'surname': "Evans",
@@ -3668,7 +3679,7 @@ class GeneralTests(TestCase):
             new_learner = Learner.objects.get(username='0729876444')
             self.assertEquals('Kyle', new_learner.first_name)
 
-            resp = self.client.get(reverse("auth.signup_form_promath"))
+            resp = self.client.get(reverse("auth.signup_form_normal"))
             self.assertContains(resp, 'To sign up please complete the following information:')
 
     def test_change_details(self):
