@@ -337,8 +337,7 @@ def validate_profile_form(post, learner):
                     if user.id != learner.id:
                         errors["mobile_error"] = "Cellphone number already taken"
                         break
-            else:
-                data["mobile"] = mobile
+            data["mobile"] = mobile
         else:
             errors["mobile_error"] = "Enter a valid cellphone number"
     else:
