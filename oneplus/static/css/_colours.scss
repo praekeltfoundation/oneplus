@@ -48,35 +48,35 @@ $background-color-primary: $white;
 }
 
 .amethyst-accent {
-  hr {@include hr-accent($amethyst)}
+  hr.hr-accent {@include hr-accent($amethyst)}
   &.background-color-accent, .background-color-accent {@include background-color-accent($amethyst)}
   &.border-color-accent, .border-color-accent {@include border-color-accent($amethyst)}
   &.color-accent, .color-accent {@include color-accent($amethyst)}
 }
 
 .iris-accent {
-  hr {@include hr-accent($iris)}
+  hr.hr-accent {@include hr-accent($iris)}
   &.background-color-accent, .background-color-accent {@include background-color-accent($iris)}
   &.border-color-accent, .border-color-accent {@include border-color-accent($iris)}
   &.color-accent, .color-accent {@include color-accent($iris)}
 }
 
 .pale-teal-accent {
-  hr {@include hr-accent($pale-teal)}
+  hr.hr-accent {@include hr-accent($pale-teal)}
   &.background-color-accent, .background-color-accent {@include background-color-accent($pale-teal)}
   &.border-color-accent, .border-color-accent {@include border-color-accent($pale-teal)}
   &.color-accent, .color-accent {@include color-accent($pale-teal)}
 }
 
 .squash-accent {
-  hr {@include hr-accent($squash)}
+  hr.hr-accent {@include hr-accent($squash)}
   &.background-color-accent, .background-color-accent {@include background-color-accent($squash)}
   &.border-color-accent, .border-color-accent {@include border-color-accent($squash)}
   &.color-accent, .color-accent {@include color-accent($squash)}
 }
 
 .sunflower-yellow-accent {
-  hr {@include hr-accent($sunflower-yellow)}
+  hr.hr-accent {@include hr-accent($sunflower-yellow)}
   &.background-color-accent, .background-color-accent {@include background-color-accent($sunflower-yellow)}
   &.border-color-accent, .border-color-accent {@include border-color-accent($sunflower-yellow)}
   &.color-accent, .color-accent {@include color-accent($sunflower-yellow)}
