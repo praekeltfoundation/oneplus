@@ -16,6 +16,7 @@ from core.models import Learner, ParticipantQuestionAnswer, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from haystack.exceptions import SearchBackendError
+from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
@@ -787,6 +788,7 @@ def edit_profile(request, state, user):
         return render(request, "auth/profile.html", {'data': data, 'editing': True, 'user': user})
 
     def post():
+        errors = None
         try:
             learner = Learner.objects.get(id=user['id'])
             validated_data, errors = validate_profile_form(request.POST, learner)
@@ -808,8 +810,11 @@ def edit_profile(request, state, user):
 
         except Exception as e:
             data = {}
-            errors = {}
+            errors = {'unknown_error': 'An unknown error has occurred.'}
 
-        return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
+        if not errors or len(errors) < 1:
+            return redirect(reverse("auth.profile"))
+        else:
+            return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
 
     return resolve_http_method(request, [get, post])
