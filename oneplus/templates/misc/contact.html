@@ -2,19 +2,18 @@
 
 {% block title %}CONTACT{% endblock %}
 
+{% block page_descriptor_text %}Contact{% endblock %}
+
 {% block content %}
 
-    <div class="text heading darkgrey-back lightgrey-front"><li class="icon contact"></li><p>Contact Us</p></div>
-
-    <div class="content padded darkgrey-back">
+    <article class="content pale-teal-accent">
+        <h1 class="color-accent">Need Help?</h1>
+        <h2>Send us a message with your query.</h2>
         {% if state.sent %}
             <div class="large-font green-front">
                 Your message has been sent. We will get back to you in the next 24 hours
             </div>
         {% else %}
-            <p class="white-front">For more information or to give us feedback, please email
-                <a href="mailto:info@dig-it.me" class="green-front bold-font">info@dig-it.me</a>
-                or send us a message</p>
             {% if state.valid_message > 1 %}
                 <div class="large-font green-front">
                 {% for message in state.valid_message %}
@@ -24,28 +23,12 @@
                 </div>
             {% endif %}
             <form name="contact_form" method="post" action="?" class="comment">{% csrf_token %}
-
-                Please enter your details so we can get back to you:<br><br/>
-                First name:
-                <input type="text" name="fname" value="{{ state.fname }}"><br><br/>
-                Last name:
-                <input type="text" name="sname" value="{{ state.sname }}"><br><br/>
-                Mobile number or email address:
-                <input type="text" name="contact" value="{{ state.contact }}"><br><br/>
-                Grade:
-                <select name="grade" value="{{ state.grade }}">
-                    <option value="">- - - - - - - -</option>
-                    {% for gr in state.grades %}
-                        <option value="{{ gr.id }}">{{ gr.text }}</option>
-                    {% endfor %}
-                </select><br><br/>
-                School:
-                <input type="text" name="school" value="{{ state.school }}"><br><br/>
-                Message:
-                <textarea type="text" name="comment" value="" ></textarea><br><br/>
-                <button type="submit" name="contact_button" class="button green-back grey-front" value="Submit">Submit</button>
+                <label labelfor="contact">Mobile number</label>
+                <input type="text" name="contact" placeholder="e.g. 073 276 1234" value="{{ state.contact }}"><br>
+                <textarea type="text" name="comment" placeholder="Type a message…" value="" ></textarea><br><br/>
+                <button type="submit" name="contact_button" class="button border-color-accent color-accent" value="Submit">Submit</button>
             </form>
         {% endif %}
-    </div>
+    </article>
 
 {% endblock %}

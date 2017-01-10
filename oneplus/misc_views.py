@@ -127,20 +127,6 @@ def contact(request, state, user):
         state['valid_message'] = ["Please complete the following fields:"]
 
         # Get contact details
-        if "fname" in request.POST.keys() and len(request.POST["fname"]) >= 3:
-            _fname = request.POST["fname"]
-            state['fname'] = _fname
-        else:
-            state['valid'] = False
-            state['valid_message'].append("First Name")
-
-        if "sname" in request.POST.keys() and len(request.POST["sname"]) >= 3:
-            _sname = request.POST["sname"]
-            state['sname'] = _sname
-        else:
-            state['valid'] = False
-            state['valid_message'].append("Last Name")
-
         if "contact" in request.POST.keys() and len(request.POST["contact"]) >= 3:
             _contact = request.POST["contact"]
             state['contact'] = _contact
@@ -155,24 +141,8 @@ def contact(request, state, user):
             state['valid'] = False
             state['valid_message'].append("Message")
 
-        if "grade" in request.POST.keys():
-            _grade = request.POST["grade"]
-        else:
-            _grade = ""
-        state['grade'] = _grade
-
-        if "school" in request.POST.keys():
-            _school = request.POST["school"]
-        else:
-            _school = ""
-        state['school'] = _school
-
         if state['valid']:
             message = "\n".join([
-                "First Name: " + _fname,
-                "Last Name: " + _sname,
-                "Grade: " + ("" if _grade == "" else "Grade " + _grade),
-                "School: " + _school,
                 "Contact: " + _contact,
                 _comment,
             ])
