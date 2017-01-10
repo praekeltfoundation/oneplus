@@ -72,19 +72,6 @@ button {
   white-space: nowrap;
 }
 
-@mixin border-color-accent($accent-color) {
-  border-color: $accent-color;
-}
-
-@mixin color-accent($accent-color) {
-  color: $accent-color;
-}
-
-.pale-teal-accent {
-  &.border-color-accent, .border-color-accent {@include border-color-accent($pale-teal)}
-  &.color-accent, .color-accent {@include color-accent($pale-teal)}
-}
-
 .vert-placeholder {
   display: inline-block;
   height: 100%;
@@ -162,6 +149,13 @@ input[type=text], input[type=password], select, textarea {
     font-weight: bold;
 }
 
+.link-inline {
+  div {
+    display: inline-block;
+    margin: auto;
+  }
+}
+
 .link-side-by {
   display: inline-block;
   float: left;
@@ -187,6 +181,45 @@ input[type=text], input[type=password], select, textarea {
 .subtle-info {
   color: $lightgrey;
   font-size: 66%;
+}
+
+.card {
+  border: solid $border-width-standard $black;
+  border-radius: $border-radius-standard;
+  display: block;
+  margin: 1em 0;
+  width: 100%;
+  @include background-transparent;
+  @include border-box;
+
+  .top {
+    padding: 1em;
+  }
+
+  .bottom {
+    padding: 1em;
+  }
+}
+
+.card-top-phrase {
+  text-align: center;
+}
+
+.card-table {
+  table-layout: fixed;
+  width: 100%;
+
+  td {
+    padding: 0.5em 0;
+    vertical-align: middle;
+    width: 50%;
+  }
+
+  .funky-number {
+    font-family: $font-family-primary;
+    font-size: 200%;
+    text-align: center;
+  }
 }
 
 .login label { z-index: 1; display: block; }
@@ -259,7 +292,6 @@ a.descriptor {
     height: 50px;
     width: 27px;
     margin: 0 0.5em;
-    background-color: #3a3a3a;
     border: none;
     background-repeat: no-repeat;
     background-position: 5px 18px;
@@ -293,7 +325,6 @@ a.descriptor {
     .header .menu {
         height: 50px;
         width: 50px;
-        background-color: #3a3a3a;
         border: none;
         float:left;
         background-image: url("../img/menu-white.png");
@@ -363,7 +394,6 @@ a.descriptor {
 }
 
 .menu {
-    background-color: #2a2a2a;
     width: 100%;
     border-top: solid 1px #5b5b5b;
 }
@@ -638,6 +668,10 @@ li.icon {
     height: 36pt;
     background-repeat: no-repeat;
     background-position: 50% 50%;
+}
+
+li.back {
+  background-image: url("../img/icn_back.png");
 }
 
 li.badges {

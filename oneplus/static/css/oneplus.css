@@ -41,10 +41,114 @@ table {
 
 /* border radius */
 /* border width */
+/* border radius */
+/* border width */
 /* old colours */
 /* redesign colours */
+.amethyst-accent hr {
+  border: 0;
+  border-top: solid 2px #ac5ac5; }
+.amethyst-accent.background-color-accent, .amethyst-accent .background-color-accent {
+  background-color: #ac5ac5; }
+.amethyst-accent.border-color-accent, .amethyst-accent .border-color-accent {
+  border-color: #ac5ac5; }
+.amethyst-accent.color-accent, .amethyst-accent .color-accent {
+  color: #ac5ac5; }
+
+.iris-accent hr {
+  border: 0;
+  border-top: solid 2px #6075c4; }
+.iris-accent.background-color-accent, .iris-accent .background-color-accent {
+  background-color: #6075c4; }
+.iris-accent.border-color-accent, .iris-accent .border-color-accent {
+  border-color: #6075c4; }
+.iris-accent.color-accent, .iris-accent .color-accent {
+  color: #6075c4; }
+
+.pale-teal-accent hr {
+  border: 0;
+  border-top: solid 2px #68baa7; }
+.pale-teal-accent.background-color-accent, .pale-teal-accent .background-color-accent {
+  background-color: #68baa7; }
+.pale-teal-accent.border-color-accent, .pale-teal-accent .border-color-accent {
+  border-color: #68baa7; }
+.pale-teal-accent.color-accent, .pale-teal-accent .color-accent {
+  color: #68baa7; }
+
+.squash-accent hr {
+  border: 0;
+  border-top: solid 2px #eca11a; }
+.squash-accent.background-color-accent, .squash-accent .background-color-accent {
+  background-color: #eca11a; }
+.squash-accent.border-color-accent, .squash-accent .border-color-accent {
+  border-color: #eca11a; }
+.squash-accent.color-accent, .squash-accent .color-accent {
+  color: #eca11a; }
+
+.sunflower-yellow-accent hr {
+  border: 0;
+  border-top: solid 2px #f1e101; }
+.sunflower-yellow-accent.background-color-accent, .sunflower-yellow-accent .background-color-accent {
+  background-color: #f1e101; }
+.sunflower-yellow-accent.border-color-accent, .sunflower-yellow-accent .border-color-accent {
+  border-color: #f1e101; }
+.sunflower-yellow-accent.color-accent, .sunflower-yellow-accent .color-accent {
+  color: #f1e101; }
+
+/* border radius */
+/* border width */
 /* old colours */
 /* redesign colours */
+.amethyst-accent hr {
+  border: 0;
+  border-top: solid 2px #ac5ac5; }
+.amethyst-accent.background-color-accent, .amethyst-accent .background-color-accent {
+  background-color: #ac5ac5; }
+.amethyst-accent.border-color-accent, .amethyst-accent .border-color-accent {
+  border-color: #ac5ac5; }
+.amethyst-accent.color-accent, .amethyst-accent .color-accent {
+  color: #ac5ac5; }
+
+.iris-accent hr {
+  border: 0;
+  border-top: solid 2px #6075c4; }
+.iris-accent.background-color-accent, .iris-accent .background-color-accent {
+  background-color: #6075c4; }
+.iris-accent.border-color-accent, .iris-accent .border-color-accent {
+  border-color: #6075c4; }
+.iris-accent.color-accent, .iris-accent .color-accent {
+  color: #6075c4; }
+
+.pale-teal-accent hr {
+  border: 0;
+  border-top: solid 2px #68baa7; }
+.pale-teal-accent.background-color-accent, .pale-teal-accent .background-color-accent {
+  background-color: #68baa7; }
+.pale-teal-accent.border-color-accent, .pale-teal-accent .border-color-accent {
+  border-color: #68baa7; }
+.pale-teal-accent.color-accent, .pale-teal-accent .color-accent {
+  color: #68baa7; }
+
+.squash-accent hr {
+  border: 0;
+  border-top: solid 2px #eca11a; }
+.squash-accent.background-color-accent, .squash-accent .background-color-accent {
+  background-color: #eca11a; }
+.squash-accent.border-color-accent, .squash-accent .border-color-accent {
+  border-color: #eca11a; }
+.squash-accent.color-accent, .squash-accent .color-accent {
+  color: #eca11a; }
+
+.sunflower-yellow-accent hr {
+  border: 0;
+  border-top: solid 2px #f1e101; }
+.sunflower-yellow-accent.background-color-accent, .sunflower-yellow-accent .background-color-accent {
+  background-color: #f1e101; }
+.sunflower-yellow-accent.border-color-accent, .sunflower-yellow-accent .border-color-accent {
+  border-color: #f1e101; }
+.sunflower-yellow-accent.color-accent, .sunflower-yellow-accent .color-accent {
+  color: #f1e101; }
+
 /* modular scale */
 /* font family declarations */
 /* font family selections */
@@ -197,11 +301,6 @@ a {
 button {
   white-space: nowrap; }
 
-.pale-teal-accent.border-color-accent, .pale-teal-accent .border-color-accent {
-  border-color: #68baa7; }
-.pale-teal-accent.color-accent, .pale-teal-accent .color-accent {
-  color: #68baa7; }
-
 .vert-placeholder {
   display: inline-block;
   height: 100%;
@@ -274,6 +373,10 @@ input[type=text], input[type=password], select, textarea {
   width: 100%;
   font-weight: bold; }
 
+.link-inline div {
+  display: inline-block;
+  margin: auto; }
+
 .link-side-by {
   display: inline-block;
   float: left;
@@ -292,6 +395,39 @@ input[type=text], input[type=password], select, textarea {
 .subtle-info {
   color: #5b5b5b;
   font-size: 66%; }
+
+.card {
+  border: solid 2px #000000;
+  border-radius: 8px;
+  display: block;
+  margin: 1em 0;
+  width: 100%;
+  background-color: #ffffff;
+  background-color: transparent;
+  -ms-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box; }
+  .card .top {
+    padding: 1em; }
+  .card .bottom {
+    padding: 1em; }
+
+.card-top-phrase {
+  text-align: center; }
+
+.card-table {
+  table-layout: fixed;
+  width: 100%; }
+  .card-table td {
+    padding: 0.5em 0;
+    vertical-align: middle;
+    width: 50%; }
+  .card-table .funky-number {
+    font-family: "Asap", sans-serif;
+    font-size: 200%;
+    text-align: center; }
 
 .login label {
   z-index: 1;
@@ -355,7 +491,6 @@ a.descriptor {
   height: 50px;
   width: 27px;
   margin: 0 0.5em;
-  background-color: #3a3a3a;
   border: none;
   background-repeat: no-repeat;
   background-position: 5px 18px;
@@ -384,7 +519,6 @@ a.descriptor {
   .header .menu {
     height: 50px;
     width: 50px;
-    background-color: #3a3a3a;
     border: none;
     float: left;
     background-image: url("../img/menu-white.png");
@@ -441,7 +575,6 @@ a.descriptor {
   background-color: #2a2a2a; }
 
 .menu {
-  background-color: #2a2a2a;
   width: 100%;
   border-top: solid 1px #5b5b5b; }
 
@@ -674,6 +807,9 @@ li.icon {
   height: 36pt;
   background-repeat: no-repeat;
   background-position: 50% 50%; }
+
+li.back {
+  background-image: url("../img/icn_back.png"); }
 
 li.badges {
   background-image: url("../img/icn_badges.png"); }
