@@ -1,18 +1,21 @@
 {% extends "core/main.html" %}
 
 {% block title %}HELLO{% endblock %}
+{% block header %}{% endblock %}
 
 {% block content %}
 
-    <div class="content">
-        <h1 class="green-front xlarge-font center-font">Hello</h1>
-        <p>dig-it is a maths challenge and revision portal for High School learners. Earn points, badges and even airtime by solving challenges. By revising your maths in small bits everyday, you'll be well prepared come exam time!</p>
-        <a href="login" class="button green-back grey-front">Sign In</a>
+    <article class="content pale-teal-accent">
+        <h1 class="color-accent">Welcome to dig-it.</h1>
+        <section>
+
+        </section>
+        <h2>Ready to improve your maths mark?</h2>
 
         {% if space %}
-            <p class="center-font">Don't have an account?</p>
-            <a href="signup" class="button green-back grey-front">Sign Up</a>
+            <a href="signup" class="button border-color-accent color-accent">Sign Up</a>
         {% endif %}
-    </div>
+        <a href="login" class="button">Log In</a>
+    </article>
 
 {% endblock %}
