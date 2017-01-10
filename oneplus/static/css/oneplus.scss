@@ -12,11 +12,6 @@ body {
     height: 100%;
 }
 
-input[type=submit], input[type=text], input[type=password], select {
-    -webkit-appearance: none;
-    border-radius: 0;
-}
-
 .white-front { color: $white; }
 .darkgrey-front { color: $darkgrey; }
 .grey-front { color: $grey; }
@@ -49,8 +44,11 @@ div {
   box-sizing: border-box;
 }
 
-footer {
+header, footer {
+  display: block;
+  min-height: 2em;
   padding: 0.5em 1.5em;
+  white-space: nowrap;
 }
 
 h1 {
@@ -66,7 +64,6 @@ a {
   display: block;
   color: $black;
   font-weight: bold;
-  padding: 0px 0px 5px 0px;
   text-align: left;
   text-decoration: underline;
 }
@@ -88,9 +85,33 @@ button {
   .color-accent {@include color-accent($pale-teal)}
 }
 
+.vert-placeholder {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+//  width: 0;
+}
+
+.header-item {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.page-descriptor {
+  color: $grey;
+  float: right;
+  font-family: $font-family-secondary;
+  font-size: 12px;
+  font-stretch: normal;
+  font-style: normal;
+  font-weight: bold;
+  letter-spacing: 0.2px;
+  line-height: 1.67;
+  text-align: right;
+}
+
 .button {
-  background-color: $white;
-  background-color: transparent;
+  @include background-transparent;
   border: solid $border-width-standard $black;
   border-radius: $border-radius-button;
   color: $black;
@@ -103,6 +124,20 @@ button {
   text-align: center;
   text-decoration: none;
   width: 100%;
+}
+
+form label, input[type=text], input[type=password], select, textarea {
+  color: $black;
+  font-family: $font-family-secondary;
+  width: 100%;
+  @include background-transparent;
+  @include border-box;
+}
+
+input[type=text], input[type=password], select, textarea {
+  border: solid $border-width-standard $black;
+  border-radius: $border-radius-standard;
+  padding: 10px;
 }
 
 .link {
@@ -120,16 +155,13 @@ button {
 
 .link-side-by {
   display: inline-block;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+  float: left;
+  padding: 0.5em;
 }
 
 .spaced-links a {
     padding: 1em 0;
 }
-
-input[type=text],input[type=password], select { width: 100%; background-color: #444444; height: 35px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
-textarea { width: 100%; background-color: #444444; height: 80px; border:none; color:#dbdbdb; padding-left:10px; padding-right:10px; -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
 
 .login label { z-index: 1; display: block; }
 
@@ -173,7 +205,6 @@ a.descriptor {
     float:left;
     font-size: 12pt;
     font-weight: bold;
-    margin: 0 0.5em;
     padding: 0px;
     position: absolute;
 }
