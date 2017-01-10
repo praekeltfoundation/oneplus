@@ -17,9 +17,14 @@
             <div class="vert-placeholder"></div>
             <div class="header-item" style="margin-right:auto;">
                 {% if user.name %}
-                    {% block menu_icon %}
-                        <a href="/menu" class="menu" ></a>
-                    {% endblock %}
+                    <a href="/menu" >
+                        {% block menu_icon %}
+                            <li class="icon back"></li>
+                        {% endblock %}
+                        {% block menu_text %}
+                            <div style="height:100%;vertical-align:middle;display:inline-block;">Menu</div>
+                        {% endblock %}
+                    </a>
                 {% else %}
                     <a href="login" class="menu-login green-front">Sign In</a>
                 {% endif %}
