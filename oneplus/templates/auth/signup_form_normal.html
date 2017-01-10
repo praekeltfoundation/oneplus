@@ -2,9 +2,12 @@
 
 {% block title %}Sign Up - School{% endblock %}
 
+{% block page_descriptor_text %}Sign up{% endblock %}
+
 {% block content %}
-    <div class="content">
-        <p class="center-font">To complete your sign up please select your school:</p>
+    <article class="content pale-teal-accent">
+        <h1 class="color-accent">Hello, {{ data.first_name }}.</h1>
+        <h2>We need a bit more info.</h2>
 		<form action="signup_form_normal" method="post" class="signup">
 			{% csrf_token %}
             <input type="hidden" name="page_num" id="id_page_num" value="1" />
@@ -13,53 +16,49 @@
             <input type="hidden" name="cellphone" value="{{ data.cellphone}}">
             <input type="hidden" name="enrolled" value="{{ data.enrolled }}">
 
-            <p>
-                What is your current grade?<br>
-                <input type="radio" name="grade" value="Grade 10"> Grade 10 <br>
-                <input type="radio" name="grade" value="Grade 11"> Grade 11 <br>
-                <input type="radio" name="grade" value="Grade 12"> Grade 12 <br>
+            <label>
+                Select your grade:
                 {% if errors.grade_error %}
-                    <span class="red-front">{{ errors.grade_error }}</span>
-                    <br>
+                    <div class="red-front">{{ errors.grade_error }}</div>
                 {% endif %}
-            </p>
+                <div class="radiogroup">
+                    <label><input class="block" type="radio" name="grade" value="Grade 10">10</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 11">11</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 12">12</label>
+                </div>
+            </label>
 
-            <p>
-                Select your province:<br>
+            <label>
+                Province
+                {% if errors.province_error %}
+                    <div class="red-front">{{ errors.province_error }}</div>
+                {% endif %}
                 <select name="province" id="id_province">
                     <option value="0">Select</option>
                     {% for province in provinces %}
                         <option value="{{ province }}">{{ province }}</option>
                     {% endfor %}
                 </select>
-                <br>
-                {% if errors.province_error %}
-                    <span class="red-front">{{ errors.province_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
+            </label>
 
-            <p>
-                School:<br>
-                <input type="text" name="school_dirty" id="id_school_dirty" value="{{ data.school_dirty }}" >
-                <br>
+            <label>
+                School
                 {% if errors.school_dirty_error %}
-                    <span class="red-front">{{ errors.school_dirty_error }}</span>
-                    <br>
+                    <div class="red-front">{{ errors.school_dirty_error }}</div>
                 {% endif %}
                 {% if errors.school_error %}
-                    <span class="red-front">{{ errors.school_error }}</span>
-                    <br>
+                    <div class="red-front">{{ errors.school_error }}</div>
                 {% endif %}
                 {% if errors.grade_course_error %}
-                    <span class="red-front">{{ errors.grade_course_error }}</span> -
+                    <div class="red-front">{{ errors.grade_course_error }}</div> -
                     <a href={% url 'misc.contact' %}>Contact us</a> to get connected.
-                    <br>
                 {% endif %}
-            </p>
+                <input type="text" name="school_dirty" id="id_school_dirty" value="{{ data.school_dirty }}" >
+                <div class="subtle-info">Please make sure your school’s name is spelled correctly.</div>
+            </label>
 
-            <input type="submit" value="Submit" class="button green-back grey-front" />
+            <input type="submit" value="Next" class="button border-color-accent color-accent" />
         </form>
-    </div>
+    </article>
 
 {% endblock %}

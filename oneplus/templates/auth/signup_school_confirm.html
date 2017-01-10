@@ -2,9 +2,11 @@
 
 {% block title %}Sign Up - School{% endblock %}
 
+{% block page_descriptor_text %}Sign up{% endblock %}
+
 {% block content %}
-    <div class="content">
-        <p class="center-font">To complete your sign up please select your school:</p>
+    <article class="content pale-teal-accent">
+        <h1>Please confirm which school is yours:</h1>
 		<form action="signup_school_confirm" method="post" class="signup" >
 			{% csrf_token %}
             <input type="hidden" name="page_num" id="id_page_num" value="2" />
@@ -16,16 +18,14 @@
             <input type="hidden" name="enrolled" value="{{ data.enrolled }}">
             <input type="hidden" name="school_dirty" value="{{ data.school_dirty }}">
 
-            <p>
-                School:<br>
-                <select name="school" id="id_school">
-                    <option value="0">Select school</option>
-                    {% for school in school_list %}
-                        <option value="{{ school.object.id }}">{{ school.object.name }}</option>
-                    {% endfor %}
-                    {% comment %}<option value="other">Other</option>{% endcomment %}
-                </select>
-                <br>
+            <div class="radiogroup">
+                {% for school in school_list %}
+                    <label>
+                        <input name="school" type="radio" value="{{ school.object.id }}" />
+                        {{ school.object.name }}
+                    </label>
+                {% endfor %}
+                {% comment %}<option value="other">Other</option>{% endcomment %}
                 {% if errors.school_error %}
                     <span class="red-front">{{ errors.school_error }}</span>
                     <br>
@@ -35,10 +35,10 @@
                     <a href={% url 'misc.contact' %}>Contact us</a> to get connected.
                     <br>
                 {% endif %}
-            </p>
+            </div>
 
-            <input type="submit" value="Submit" class="button green-back grey-front" />
+            <input type="submit" value="Submit" class="button border-color-accent color-accent" />
         </form>
-    </div>
+    </article>
 
 {% endblock %}
