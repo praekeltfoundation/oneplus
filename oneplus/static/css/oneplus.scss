@@ -198,6 +198,10 @@ input[type=text], input[type=password], select, textarea {
   .bottom {
     padding: 1em;
   }
+
+  .bottom-novert {
+    padding: 0 1em;
+  }
 }
 
 .card-top-phrase {
@@ -689,6 +693,10 @@ li.icon {
 
 li.back {
   background-image: url("../img/icn_back.png");
+}
+
+li.forward {
+  background-image: url("../img/icn_forward.png");
 }
 
 li.badges {

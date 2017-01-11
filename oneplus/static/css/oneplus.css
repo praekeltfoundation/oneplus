@@ -413,6 +413,8 @@ input[type=text], input[type=password], select, textarea {
     padding: 1em; }
   .card .bottom {
     padding: 1em; }
+  .card .bottom-novert {
+    padding: 0 1em; }
 
 .card-top-phrase {
   text-align: center;
@@ -825,6 +827,9 @@ li.icon {
 
 li.back {
   background-image: url("../img/icn_back.png"); }
+
+li.forward {
+  background-image: url("../img/icn_forward.png"); }
 
 li.badges {
   background-image: url("../img/icn_badges.png"); }
