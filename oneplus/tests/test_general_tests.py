@@ -3453,7 +3453,7 @@ class GeneralTests(TestCase):
             resp = self.client.post(reverse('auth.signup_form'),
                                     data={},
                                     follow=True)
-            self.assertContains(resp, "This must be completed", count=4)
+            self.assertContains(resp, "This must be completed", count=3)
 
             # invalid cellphone, grade and province
             resp = self.client.post(reverse('auth.signup_form'),

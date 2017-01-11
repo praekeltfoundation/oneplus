@@ -278,11 +278,14 @@ body {
 div {
   box-sizing: border-box; }
 
+header {
+  height: 36pt;
+  text-align: justify; }
+
 header, footer {
   display: block;
   min-height: 2em;
-  padding: 0.5em 1.5em;
-  white-space: nowrap; }
+  padding: 0.5em 1.5em; }
 
 h1 {
   margin: 16px 0px 16px 0px; }
@@ -311,6 +314,8 @@ button {
   vertical-align: middle; }
   .header-item li, .header-item a {
     vertical-align: middle; }
+  .header-item .header-link {
+    text-decoration: underline; }
 
 .page-descriptor {
   color: #2a2a2a;
@@ -477,6 +482,29 @@ input[type=text], input[type=password], select, textarea {
   display: inline-block;
   height: 0;
   width: 100%; }
+
+.main-menu a {
+  font-family: "Asap", sans-serif;
+  font-size: 150%;
+  font-weight: normal;
+  text-decoration: none; }
+.main-menu br {
+  border: 0;
+  border-top: solid 2px grey;
+  padding: 0;
+  margin: 0 0.5em; }
+
+a.wrap {
+  display: block;
+  margin: 0;
+  padding: 0;
+  text-decoration: none; }
+
+a.wrap-inline {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  text-decoration: none; }
 
 .login label {
   z-index: 1;
@@ -857,11 +885,32 @@ li.icon {
   background-repeat: no-repeat;
   background-position: 50% 50%; }
 
+li.chat {
+  background-image: url("../img/chat_groups_icon.png"); }
+
+li.contact {
+  background-image: url("../img/contact_icon.png"); }
+
+li.faq {
+  background-image: url("../img/faq_icon.png"); }
+
+li.profile {
+  background-image: url("../img/profile_icon.png"); }
+
+li.stories {
+  background-image: url("../img/stories_icon.png"); }
+
+li.inbox {
+  background-image: url("../img/inbox_icon.png"); }
+
 li.back {
-  background-image: url("../img/icn_back.png"); }
+  background-image: url("../img/arrow_backward_icon.png"); }
+
+li.close {
+  background-image: url("../img/close_icon.png"); }
 
 li.forward {
-  background-image: url("../img/icn_forward.png"); }
+  background-image: url("../img/arrow_forward_icon.png"); }
 
 li.badges {
   background-image: url("../img/icn_badges.png"); }
@@ -869,23 +918,11 @@ li.badges {
 li.blog {
   background-image: url("../img/icn_blog.png"); }
 
-li.chat {
-  background-image: url("../img/icn_chat.png"); }
-
-li.help {
-  background-image: url("../img/icn_help.png"); }
-
-li.inbox {
-  background-image: url("../img/icn_inbox_black.png"); }
-
 li.leaderboard {
   background-image: url("../img/icn_leaderboard_black.png"); }
 
 li.welcome {
   background-image: url("../img/icn_welcome.png"); }
-
-li.faq {
-  background-image: url("../img/icn_faq.png"); }
 
 li.ontrack {
   background-image: url("../img/icn_ontrack.png"); }
@@ -904,9 +941,6 @@ li.information {
 
 li.home {
   background-image: url("../img/icn_home.png"); }
-
-li.contact {
-  background-image: url("../img/icn_contact.png"); }
 
 li.change_number {
   background-image: url("../img/icn_chn_number.png"); }
@@ -1148,18 +1182,6 @@ table.borderless td {
     background-position: 50% 50%;
 }
 */
-.close {
-  width: 16px;
-  height: 16px;
-  position: absolute;
-  right: 25px;
-  margin: 0px;
-  padding: 0px;
-  background-image: url("../img/close.png");
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  border: none; }
-
 .blogimage {
   display: block;
   width: 100%;

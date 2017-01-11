@@ -14,23 +14,27 @@
 
     {% block header %}
         <header>
-            <div class="header-item">
-                {% if user.name %}
-                    <a href="/menu" >
-                        {% block menu_icon %}
-                            <li class="icon back"></li>
-                        {% endblock %}
-                        {% block menu_text %}
-                            <div class="header-item">Menu</div>
-                        {% endblock %}
-                    </a>
-                {% else %}
-                    <a href="login" class="menu-login">Sign In</a>
-                {% endif %}
-            </div>
+            {% block header_left %}
+                <div class="header-item">
+                    {% if user.name %}
+                        <a class="wrap-inline" href="/menu">
+                            {% block menu_icon %}
+                                <li class="icon back"></li>
+                            {% endblock %}
+                            {% block menu_text %}
+                                <div class="header-item header-link">Menu</div>
+                            {% endblock %}
+                        </a>
+                    {% else %}
+                        <a href="login" class="menu-login">Sign in</a>
+                    {% endif %}
+                </div>
+            {% endblock %}
 
             {% block page_descriptor %}
-                <div class="header-item page-descriptor">{% block page_descriptor_text %}{% endblock %}</div>
+                <div class="header-item">
+                    <span class="page-descriptor">{% block page_descriptor_text %}{% endblock %}</span>
+                </div>
             {% endblock %}
 
             <div class="justify-enforcer"></div>

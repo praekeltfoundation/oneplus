@@ -42,18 +42,6 @@
                 {% endif %}
             </p>
 
-            <p>
-                Are you currently enrolled in a ProMaths class?<br>
-                <input type="radio" name="enrolled" value="0"> Yes
-                <br>
-                <input type="radio" name="enrolled" value="1"> No
-                <br>
-                {% if errors.enrolled_error %}
-                    <span class="red-front">{{ errors.enrolled_error }}</span>
-                    <br>
-                {% endif %}
-            </p>
-
 			<input type="submit" value="Next" class="button border-color-accent color-accent" />
         </form>
     </article>

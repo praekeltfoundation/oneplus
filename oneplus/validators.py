@@ -232,11 +232,6 @@ def validate_sign_up_form(post):
     else:
         errors["cellphone_error"] = "This must be completed"
 
-    if "enrolled" in post and post["enrolled"]:
-        data["enrolled"] = post["enrolled"]
-    else:
-        errors["enrolled_error"] = "This must be completed"
-
     return data, errors
 
 
