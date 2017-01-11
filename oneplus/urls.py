@@ -10,11 +10,13 @@ from oneplus import result_views
 
 urlpatterns = [
     # Misc
-    url(r"^$", oneplus.misc_views.welcome, name="misc.welcome"),
+    url(r"^$", oneplus.misc_views.arrive, name="arrive"),
     url(r"^about$", oneplus.misc_views.about, name="misc.about"),
     url(r"^contact$", oneplus.misc_views.contact, name="misc.contact"),
-    url(r"^menu$", oneplus.core_views.menu, name="core.menu"),
     url(r"^faq$", oneplus.misc_views.faq, name="misc.faq"),
+    url(r"^landing$", oneplus.misc_views.welcome, name="misc.welcome"),
+    url(r"^menu$", oneplus.core_views.menu, name="core.menu"),
+    url(r"^onboarding$", oneplus.misc_views.onboarding, name="misc.onboarding"),
     url(r'^terms$', oneplus.misc_views.terms, name="misc.terms"),
 
     # Auth

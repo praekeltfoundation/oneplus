@@ -1,0 +1,28 @@
+{% extends "core/main.html" %}
+
+{% block title %}Dig-it{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block content %}
+    <article class="content {% if page.accent_color %}{{ page.accent_color }}-accent{% endif %}">
+        <article class="card border-color-accent">
+            <section class="top">
+                <img src="/media/img/welcome{% if page_num %}{{ page_num|add:'1' }}{% else %}1{% endif %}.png"
+                     width="100%" height="auto"/>
+                <br />
+                <h3 class="card-top-phrase">{{ page.message }}</h3>
+            </section>
+        </article>
+        <div class="center-font">
+            {% ifnotequal page_num 0 %}<a class="button half-button" href="{% url 'misc.onboarding' %}?p={{ page_num|add:'-1' }}" >Prev</a>{% endifnotequal %}
+            <a class="button half-button" href="{% url 'misc.onboarding' %}?p={{ page_num|add:'1' }}">Next</a>
+        </div>
+        <div class="progress-pips">
+            {% for i in page_range %}
+                <div class="pip {% ifequal i page_num %}background-color-accent{% endifequal %}" style="border-radius:50%;height:1em;width:1em;"></div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'misc.welcome' %}" class="inline-link center-font">Skip</a>
+    </article>
+{% endblock content %}

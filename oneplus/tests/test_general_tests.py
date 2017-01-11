@@ -1643,8 +1643,8 @@ class GeneralTests(TestCase):
             self.classs,
             datejoined=datetime.now())
 
-        resp = self.client.get(reverse('auth.reset_password', kwargs={'token': 'abc'}))
-        self.assertRedirects(resp, "/")
+        resp = self.client.get(reverse('auth.reset_password', kwargs={'token': 'abc'}), follow=True)
+        self.assertRedirects(resp, '/onboarding')
 
         new_learner.pass_reset_token = "abc"
         new_learner.pass_reset_token_expiry = datetime.now() + timedelta(days=1)

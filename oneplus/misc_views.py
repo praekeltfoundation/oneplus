@@ -8,7 +8,7 @@ import logging
 from django.db import connection
 from django.db.models import Count
 from django.core.urlresolvers import reverse
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import redirect, render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
@@ -84,6 +84,17 @@ def oneplus_check_user(f):
         else:
             return f(request, user=None, *args, **kwargs)
     return wrap
+
+
+@oneplus_state_required
+@oneplus_check_user
+def arrive(request, state, user):
+    def get():
+        if user:
+            return redirect('learn.home')
+        return redirect(reverse('misc.onboarding'))
+
+    return resolve_http_method(request, [get])
 
 
 @oneplus_state_required
@@ -166,6 +177,49 @@ def contact(request, state, user):
             request, "misc/contact.html", {"state": state, "user": user})
 
     return resolve_http_method(request, [get, post])
+
+
+onboarding_pages = (
+    {
+        'accent_color': 'pale-teal',
+        'message': 'What you achieve in maths, you achieve in life. Sign up to begin.'
+    },
+    {
+        'accent_color': 'sunflower-yellow',
+        'message': 'Looking to score? Get over 60% and score airtime each week.',
+    },
+    {
+        'accent_color': 'squash',
+        'message': 'Compete with your grade, other schools and the whole country.',
+    },
+    {
+        'accent_color': 'iris',
+        'message': 'Learn from the experts with weekly tutorials followed by a live Q&A.',
+    },
+    {
+        'accent_color': 'amethyst',
+        'message': 'Up your game. Earn points while your marks go next level.',
+    }
+)
+
+
+@oneplus_state_required
+def onboarding(request, state):
+    def get():
+        pages = onboarding_pages
+        page_max = len(pages)
+        page_num = int(request.GET.get('p', 0))
+        if page_num < 0:
+            page_num = 0
+        elif page_num >= page_max:
+            return redirect(reverse('misc.welcome'))
+
+        return render(request, 'misc/onboarding.html', {'state': state,
+                                                        'page_range': range(page_max),
+                                                        'page': pages[page_num],
+                                                        'page_num': page_num})
+
+    return resolve_http_method(request, [get])
 
 
 @user_passes_test(lambda u: u.is_staff)

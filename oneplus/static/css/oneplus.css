@@ -363,6 +363,25 @@ input[type=text], input[type=password], select, textarea {
   border-radius: 8px;
   padding: 10px; }
 
+.half-button {
+  display: inline-block;
+  margin: 0;
+  width: 45%; }
+
+.progress-pips {
+  padding: 0.5em;
+  text-align: center;
+  width: 100%; }
+
+.pip {
+  background-color: #ffffff;
+  border: solid 2px #000000;
+  border-radius: 50%;
+  display: inline-block;
+  height: 1em;
+  margin: 0.25em;
+  width: 1em; }
+
 .analytics-plug {
   height: 1px;
   position: absolute;
