@@ -110,6 +110,8 @@ class Participant(models.Model):
     Connects a learner to a class. Indicating the learners total points
     earned as well as individual point and badges earned.
     """
+    level_threshhold = 100
+
     learner = models.ForeignKey(Learner, verbose_name="Learner")
     classs = models.ForeignKey(Class, verbose_name="Class")
     datejoined = models.DateTimeField(verbose_name="Joined")
@@ -263,9 +265,10 @@ class Participant(models.Model):
         """
         Calculates the participant's level and remaining points to next level.
         Returns:
-            (level, point_remaining)
+            (level, points_remaining)
         """
-        return divmod(self.points, 100)
+        level_idx, points_mod = divmod(self.points, self.level_threshhold)
+        return level_idx + 1, self.level_threshhold - points_mod
 
     # Scenario's only apply to badges
     def award_scenario(self, event, module, special_rule=False):
