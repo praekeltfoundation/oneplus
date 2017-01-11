@@ -259,6 +259,14 @@ class Participant(models.Model):
         self.save()
         return points
 
+    def calc_level(self):
+        """
+        Calculates the participant's level and remaining points to next level.
+        Returns:
+            (level, point_remaining)
+        """
+        return divmod(self.points, 100)
+
     # Scenario's only apply to badges
     def award_scenario(self, event, module, special_rule=False):
 
