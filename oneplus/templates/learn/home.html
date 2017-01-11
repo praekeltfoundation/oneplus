@@ -57,6 +57,40 @@
             </section>
         </article>
 
+        {% comment %}Overall stats{% endcomment %}
+        <article class="card squash-accent border-color-accent">
+            <section class="top">
+                <img src="/media/img/welcome3.png" width="100%" height="auto"/>
+                <a class="button border-color-accent color-accent" href="{% url 'prog.badges' %}">See all badges</a>
+            </section>
+            <hr class="hr-accent" />
+            <section class="bottom">
+                <h1 class="center-font color-accent">Level</h1>
+                <div class="level-pip-container">
+                    {% for i in levels %}
+                        <div class="level-pip{% ifequal level i|add:"1" %} active background-color-accent{% endifequal %}">{{ i|add:"1" }}</div>
+                    {% endfor %}
+                    <div class="justify-enforcer"></div>
+                </div>
+                <div class="center-font">
+                    You're {{ points_remaining }} points away from Level {{ level|add:"1" }}.
+                </div>
+            </section>
+            <hr class="hr-accent" />
+            <section class="bottom">
+                <table class="card-table">
+                    <tr>
+                        <td class="funky-number color-accent">{{ 12 }}<sup>th</sup></td>
+                        <td>Place on the 'My Grade' leaderboard</td>
+                    </tr>
+                </table>
+            </section>
+            <hr class="hr-accent" />
+            <section class="bottom">
+                <a class="link-inline" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
+            </section>
+        </article>
+
         {% if state.home_tasks_today < state.home_required_tasks %}
             {% if not state.questions_complete %}
                 <div class="center-font">
