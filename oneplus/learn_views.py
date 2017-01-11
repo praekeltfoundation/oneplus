@@ -236,7 +236,7 @@ def nextchallenge(request, state, user, participant):
             answerdate__gte=date.today()
         ).distinct('participant', 'question').count() + 1
 
-    points = "%d points" % _learnerstate.active_question.points
+    points = _learnerstate.active_question.points
     show_point = Setting.get_setting(key="SHOW_POINT_ALLOCATION")
     if show_point:
         if show_point != "True" or _learnerstate.active_question.points is None:

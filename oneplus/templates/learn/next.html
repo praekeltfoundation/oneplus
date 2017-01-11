@@ -13,7 +13,7 @@
             </div>
         {% endif %}
         <h1 class="color-accent">Question {{ state.next_tasks_today }}/{{ state.total_tasks_today }}</h1>
-        <h2>{{ points }}</h2>
+        <h2>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</h2>
 
         {% if golden_egg and golden_egg.question == True %}
             <div class="text heading center-font"><p class="large-font">You’ve found the Golden Egg!</p></div>
