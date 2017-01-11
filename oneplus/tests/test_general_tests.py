@@ -279,8 +279,8 @@ class GeneralTests(TestCase):
             resp = self.client.get(reverse('learn.event_end_page'))
             self.assertEquals(resp.status_code, 200)
 
-            resp = self.client.get(reverse('learn.home'))
-            self.assertContains(resp, "Points: <b>5</b>")
+            # resp = self.client.get(reverse('learn.home'))
+            # self.assertContains(resp, "Points: <b>5</b>")
 
             for i in range(1, 15):
                 question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
@@ -2427,7 +2427,7 @@ class GeneralTests(TestCase):
             data={'answer': self.questionoption.id}, follow=True
         )
 
-        self.assertContains(resp, "Correct")
+        self.assertContains(resp, "Well done")
 
         # Post empty
         resp = c.post(
@@ -2443,7 +2443,7 @@ class GeneralTests(TestCase):
             data={'answer': option.id}, follow=True
         )
 
-        self.assertContains(resp, "Incorrect")
+        self.assertContains(resp, "Too bad")
 
     def test_right_view_adminpreview(self):
 
@@ -2470,7 +2470,7 @@ class GeneralTests(TestCase):
                 kwargs={
                     'questionid': self.question.id}))
 
-        self.assertContains(resp, "Correct")
+        self.assertContains(resp, "Well done")
 
     def test_wrong_view_adminpreview(self):
 
@@ -2499,7 +2499,7 @@ class GeneralTests(TestCase):
                 kwargs={
                     'questionid': self.question.id}))
 
-        self.assertContains(resp, "Incorrect")
+        self.assertContains(resp, "Too bad")
 
     def test_wrong_view(self):
         self.client.get(reverse(
@@ -2526,7 +2526,7 @@ class GeneralTests(TestCase):
             data={'answer': questionoption2.id},
             follow=True
         )
-        self.assertContains(resp, "Incorrect")
+        self.assertContains(resp, "Too bad")
 
     def test_welcome_screen(self):
         resp = self.client.get(reverse('misc.welcome'))
@@ -3642,7 +3642,7 @@ class GeneralTests(TestCase):
             self.assertEquals('Henky', new_learner.first_name)
 
             resp = self.client.get(reverse("auth.signup_form_normal"))
-            self.assertContains(resp, 'To sign up please complete the following information:')
+            self.assertContains(resp, 'Let\'s sign you up')
 
             self.course.name = settings.GRADE_12_COURSE_NAME
             self.course.save()
@@ -3680,7 +3680,7 @@ class GeneralTests(TestCase):
             self.assertEquals('Kyle', new_learner.first_name)
 
             resp = self.client.get(reverse("auth.signup_form_normal"))
-            self.assertContains(resp, 'To sign up please complete the following information:')
+            self.assertContains(resp, 'Let\'s sign you up')
 
     def test_change_details(self):
         self.client.get(reverse(
