@@ -81,11 +81,14 @@ button {
 .header-item {
   display: inline-block;
   vertical-align: middle;
+
+  li, a {
+    vertical-align: middle;
+  }
 }
 
 .page-descriptor {
   color: $grey;
-  float: right;
   font-family: $font-family-secondary;
   font-size: 12px;
   font-stretch: normal;

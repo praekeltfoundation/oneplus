@@ -13,26 +13,27 @@
     <img src="{% google_analytics request %}" width="1px" height="1px" style="position:absolute;top:0;right:0;" />
 
     {% block header %}
-        <header>
-            <div class="vert-placeholder"></div>
-            <div class="header-item" style="margin-right:auto;">
+        <header style="text-align:justify;height:36px;">
+            <div class="header-item">
                 {% if user.name %}
                     <a href="/menu" >
                         {% block menu_icon %}
                             <li class="icon back"></li>
                         {% endblock %}
                         {% block menu_text %}
-                            <div style="height:100%;vertical-align:middle;display:inline-block;">Menu</div>
+                            <div style="vertical-align:middle;display:inline;">Menu</div>
                         {% endblock %}
                     </a>
                 {% else %}
-                    <a href="login" class="menu-login green-front">Sign In</a>
+                    <a href="login" class="menu-login">Sign In</a>
                 {% endif %}
             </div>
 
             {% block page_descriptor %}
                 <div class="header-item page-descriptor">{% block page_descriptor_text %}{% endblock %}</div>
             {% endblock %}
+
+            <div style="display:inline-block;width:100%;"></div>
         </header>
     {% endblock %}
 
@@ -44,6 +45,10 @@
         <a class="link-side-by" href="/about">About</a>
         <a class="link-side-by" href="/contact">Contact</a>
         <a class="link-side-by" href="/terms">Terms</a>
+        {% if user.name %}
+            <a class="link-side-by" href="/signout">Log out</a>
+        {% endif %}
+
     </footer>
 </body>
 </html>
