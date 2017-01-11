@@ -12,7 +12,7 @@
     {% load humanize %}
     <section class="content">
         <hgroup class="pale-teal-accent">
-            <h1 class="color-accent" style="padding-top: 1em">Hello, {{ user.name }}.</h1>
+            <h1 class="color-accent">Hello, {{ user.name }}.</h1>
             <h2>Great to see you again.</h2>
         </hgroup>
 
@@ -85,14 +85,6 @@
 
 
         <div class="content">
-            <p><span class="green-front xlarge-font">{{ state.home_tasks|stringformat:"02d" }}</span> Tasks Completed</p>
-            <p><span class="green-front xlarge-font">{{ state.home_correct|stringformat:"02d" }}</span> Correct Answers</p>
-            {% if state.home_goal > 0 %}
-                <p class="green-front"><span class="green-front xlarge-font">{{ state.home_goal|stringformat:"02d" }}</span> To go to win Airtime</p>
-            {% else %}
-                <p class="green-front"><span class="green-front xlarge-font">R{{ 5|stringformat:"01d" }}</span> Airtime Won</p>
-            {% endif %}
-
         {% if not state.questions_complete %}
             {% if state.home_tasks_week >= 15 %}
                 <p class="white-front body-copy">This week's revision complete. Come back Monday for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
@@ -106,10 +98,8 @@
                 {% endif %}
             {%  endif %}
         {% else %}
-             <p class="white-front body-copy">You've finished all of the dig-it questions!
-                 See you next year!</p>
+             <p class="body-copy">You've finished all of the dig-it questions!</p>
         {% endif %}
-
         </div>
 
         {% if event_name and not sumit %}
@@ -124,26 +114,5 @@
                 </div>
             </form>
         {% endif %}
-
-        <div class="menu" style="margin-top:1em">
-            <a href="/badges">
-                <div class="item text grey-back darkgrey-front">
-                    <li class="icon badges-color"></li>
-                    <p class="white-front">Badges: <b>{{ state.home_badges }}</b></p>
-                </div>
-            </a>
-            <a href="/points">
-                <div class="item text grey-back darkgrey-front">
-                    <li class="icon points-color"></li>
-                    <p class="white-front">Points: <b>{{ state.home_points }}</b></p>
-                </div>
-            </a>
-            <a href="/leader">
-                <div class="item text grey-back darkgrey-front">
-                    <li class="icon leaderboard-color"></li>
-                    <p class="white-front">Place: <b>{{ state.home_position|ordinal }}</b></p>
-                </div>
-            </a>
-        </div>
     </section>
 {% endblock %}
