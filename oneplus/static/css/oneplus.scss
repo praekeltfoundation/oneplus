@@ -138,6 +138,28 @@ input[type=text], input[type=password], select, textarea {
   padding: 10px;
 }
 
+.half-button {
+  display: inline-block;
+  margin: 0;
+  width: 45%;
+}
+
+.progress-pips {
+  padding: 0.5em;
+  text-align: center;
+  width: 100%;
+}
+
+.pip {
+  background-color: $white;
+  border: solid $border-width-standard $black;
+  border-radius: 50%;
+  display: inline-block;
+  height: 1em;
+  margin: 0.25em;
+  width: 1em;
+}
+
 .analytics-plug {
   height: 1px;
   position: absolute;
