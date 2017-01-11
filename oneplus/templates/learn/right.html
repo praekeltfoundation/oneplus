@@ -5,108 +5,98 @@
 
 {% block content %}
     {% load humanize %}
+    <article class="content pale-teal-accent">
 
         {% if state.report_sent %}
-            <div class="content padded darkgrey-back pad-top">
+            <div class="content padded pad-top">
                 <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
             </div>
         {% endif %}
+        <h1 class="color-accent">Well done!</h1>
+        <h2>
+            That's the correct answer.
+            You've earned <b>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</b>.
+        </h2>
 
-        <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Challenge</p></div>
-        <div class="text heading darkgrey-back"><p>Q {{ state.right_tasks_today }}/{{ state.total_tasks_today }}</p></div>
-
-        {% autoescape off %}
-            {{ state.question_id }}
-            <div class="content padded white-back darkgrey-front">
-                <div>
-                    {% if golden_egg %}
-                        <div class="center-font"><img src="{{ golden_egg.url }}"></div>
-                    {% endif %}
-                    <div class="large-font-normal center-font">
-                        {% if not golden_egg %}
-                            Correct
-                        {% else %}
-                            Congratulations!
-                        {% endif %}
-                    <div class="center-font">
-                        {% if not golden_egg %}
-                            <span class="large-font center-font">
-                            {% if points %}
-                                {{ points }} point{{ points |pluralize }}
-                            {% else %}
-                                0 points
-                            {% endif %}
-                            </span> added.
-                        {% else %}
-                             <p>{{ golden_egg.message }}</p>
-                        {% endif %}
-                    </div>
-                    </div>
-                    {% if badge %}
-                            <div class="badge-layout">
-                            {% if badge.image %}<span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>{% endif %}
-                            <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
-                            </div>
-                    {% endif %}
-                    {% if not preview %}
-                        {% if state.right_tasks_today >= state.total_tasks_today %}
-                            <a class="button green-back grey-front" href="home">Done For Today</a>
-                        {% else %}
-                            <a class="button green-back grey-front" href="next">Next Question</a>
-                        {% endif %}
-                    {% endif %}
+        {% if golden_egg %}
+            <section>
+                <div class="center-font"><img src="{{ golden_egg.url }}"></div>
+                <h3 class="center-font">Congratulations!</h3>
+                <div class="center-font">
+                         <p>{{ golden_egg.message }}</p>
                 </div>
-
-                <h1 class="large-font-normal black-front">Question</h1>
-                <p>{{ question.question_content | format_content }}</p>
-
-                <h1 class="large-font-normal black-front">Options</h1>
-                {% for opt in question.testingquestionoption_set.all %}
-                    <label class="label-question" for="answer_{{ opt.id }}">
-                        <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
-                        {% if opt.content %}
-                            <div class="align-option">{{ opt.content | format_option  }}</div>
-                        {% else %}
-                            <div class="align-option">{{ opt.name }}</div>
-                        {% endif %}
-                    </label>
-                {% endfor %}
-
-                <h1 class="large-font-normal black-front">Correct Answer:</h1>
-                {% for opt in question.testingquestionoption_set.all %}
-                    {% if  opt.correct %}
-                        <p>Option {{ forloop.counter }}:
-                            {% if opt.content %}
-                                <div class="align-option">{{ opt.content | format_option  }}</div>
-                            {% else %}
-                                <div class="align-option">{{ opt.name }}</div>
-                            {% endif %}
-                        </p>
-                    {% endif %}
-                {% endfor %}
-
-                <h1 class="large-font-normal black-front">Solution</h1>
-                <p>{{ question.answer_content | format_content  }}</p>
-
-                {% if question.notes %}
-                    <h1 class="large-font-normal black-front">Addition Notes</h1>
-                    <p>{{ question.notes | format_content  }}</p>
-                {% endif %}
-            </div>
-        {% endautoescape %}
+            </section>
+        {% endif %}
+        {% if badge %}
+            <section>
+                <div class="badge-layout">
+                {% if badge.image %}<span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>{% endif %}
+                <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
+                </div>
+            </section>
+        {% endif %}
 
         {% if not preview %}
-            <div class="content padded darkgrey-back">
+            {% if state.right_tasks_today >= state.total_tasks_today %}
+                <a class="button border-color-accent color-accent" href="home">Done for today</a>
+            {% else %}
+                <a class="button border-color-accent color-accent" href="next">Next question</a>
+            {% endif %}
+        {% endif %}
+
+        <article class="card pale-teal-accent border-color-accent">
+            {% autoescape off %}
+            {{ state.question_id }}
+            <section class="top">
+                {{ question.question_content | format_content }}
+            </section>
+            <hr class="hr-accent" />
+            <section class="bottom-novert">
+                {% for opt in question.testingquestionoption_set.all %}
+                    <label class="label-question" for="answer_{{ opt.id }}">
+                        <input type="radio" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle"
+                               {% if opt.correct %}checked="true"{% endif %}>
+                        <div class="align-option">
+                            {% if opt.content %}{{ opt.content | format_option  }}{% else %}{{ opt.name }}{% endif %}
+                        </div>
+                    </label>
+                {% endfor %}
+            </section>
+            {% if question.answer_content %}
+                <hr class="hr-accent" />
+                <section class="bottom-novert">
+                    <h3 class="card-top-phrase">Solution</h3>
+                    <p>{{ question.answer_content | format_content  }}</p>
+                </section>
+            {% endif %}
+            {% if question.notes %}
+                <hr class="hr-accent" />
+                <section class="bottom-novert">
+                    <h3 class="card-top-phrase">Additional Notes</h3>
+                    <p>{{ question.notes | format_content  }}</p>
+                </section>
+            {% endif %}
+            {% endautoescape %}
+        </article>
+
+        {% if not preview %}
+            <div class="content">
                 <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/right"><b>here</b></a></p>
             </div>
         {% endif %}
 
+        {% if question.textbook_link %}
+            <a class="button border-color-accent color-accent" href="{{  question.textbook_link  }}">
+                Read textbook
+            </a>
+        {% endif %}
+
         {% if not state.banned and not preview%}
-            <div class="content padded darkgrey-back pad-top">
-                <div class="white-front bold-font">Discuss the Challenge</div>
+            <div class="padded">
+                <div class="bold-font">Discuss the Challenge</div>
                 <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                     <input type="text" name="comment" value="" />
-                    <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Submit</button>
+                    <button type="submit" name="comment_button" class="button" value="Submit">Submit</button>
                 </form>
                 {% if state.discussion_comment %}
                     <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
@@ -115,12 +105,12 @@
         {% endif %}
 
         {% if request.session.state.discussion_page_max > 0 or preview%}
-            <div class="menu grey-back">
+            <div class="menu">
                 {% for msg in messages %}
                     {% if msg.moderated %}
-                        <div class="item-large grey-back">
+                        <div class="item-large">
                             <div>
-                                <span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>
+                                <span class="bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>
                                 {% if not state.banned and not preview%}
                                     {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                         <form name="comment_response" method="post" action="?" class="inline">
@@ -132,7 +122,7 @@
                             </div>
 
                             {% if  msg.unmoderated_date == None %}
-                                <p class="white-front">{{ msg.content }}</p>
+                                <p>{{ msg.content }}</p>
 
                                 {% if not preview %}
                                     <form name="report_comment" method="post" action="?">
@@ -160,8 +150,8 @@
 
                         {% for rsp in msg.related_discussions.all reversed %}
                             {% if rsp.moderated %}
-                                <div class="item-large grey-back reply">
-                                    <div><span class="white-front bold-font">{{ rsp.author.first_name }}</span> <span class="lightgrey-front">{{ rsp.publishdate | naturaltime }}</span></div>
+                                <div class="item-large reply">
+                                    <div><span class="bold-font">{{ rsp.author.first_name }}</span> <span class="lightgrey-front">{{ rsp.publishdate | naturaltime }}</span></div>
                                     <p class="white-front">{{ rsp.content }}</p>
                                 </div>
                             {% endif %}
@@ -172,7 +162,7 @@
                 {% if not preview %}
                     <form name="more_form" method="post" action="?">
                         {% csrf_token %}
-                        <div class="item grey-back">
+                        <div class="item">
                             {{ state.discussion_page }} of {{ state.discussion_page_max }}
                             {% if state.discussion_page < state.discussion_page_max %}
                                 <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
@@ -184,4 +174,5 @@
 
             </div>
         {% endif %}
+    </article>
 {% endblock %}

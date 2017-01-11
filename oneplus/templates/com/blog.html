@@ -38,7 +38,7 @@
                                 <span class="comment-author">{{ comment.author.first_name }}</span>
                             </div>
                             {% if  comment.unmoderated_date == None %}
-                                <p class="">{{ comment.content }}</p>
+                                <p>{{ comment.content }}</p>
                                 <form name="report_comment" method="post" action="?">
                                     {% csrf_token %}
                                     <button type="submit" name="report_button" class="red-front bold link" value="">Report</button>
