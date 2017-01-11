@@ -88,6 +88,17 @@ def oneplus_check_user(f):
 
 @oneplus_state_required
 @oneplus_check_user
+def arrive(request, state, user):
+    def get():
+        if user:
+            return redirect('learn.home')
+        return redirect(reverse('misc.onboarding'))
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_state_required
+@oneplus_check_user
 def about(request, state, user):
     def get():
         return render(
