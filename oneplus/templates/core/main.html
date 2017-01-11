@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="//fonts.googleapis.com/css?family=Asap|Lato" rel="stylesheet">
     <title>DIG-IT | {% block title %}{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
@@ -8,40 +9,46 @@
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
 </head>
 <body>
-{% load google_analytics_tags %}
-<div style="display:none">
-    <img src="{% google_analytics request %}" width="0" height="0" />
-</div>
+    {% load google_analytics_tags %}
+    <img src="{% google_analytics request %}" class="analytics-plug" />
 
-<div class="header">
+    {% block header %}
+        <header>
+            <div class="header-item">
+                {% if user.name %}
+                    <a href="/menu" >
+                        {% block menu_icon %}
+                            <li class="icon back"></li>
+                        {% endblock %}
+                        {% block menu_text %}
+                            <div class="header-item">Menu</div>
+                        {% endblock %}
+                    </a>
+                {% else %}
+                    <a href="login" class="menu-login">Sign In</a>
+                {% endif %}
+            </div>
 
-    {% if user.name %}
-        {% block menu_icon %}
-            <a href="/menu" class="menu" ></a>
-        {% endblock %}
-    {% else %}
-        <a href="login" class="menu-login green-front">Sign In</a>
-    {% endif %}
+            {% block page_descriptor %}
+                <div class="header-item page-descriptor">{% block page_descriptor_text %}{% endblock %}</div>
+            {% endblock %}
 
-    <a href="/home" class="logo"></a>
-    {% if user.name %}
-        {% block home_icon %}
-            <a href="/home" class="home" ></a>
-        {% endblock %}
-    {% endif %}
-</div>
+            <div class="justify-enforcer"></div>
+        </header>
+    {% endblock %}
 
+    <article class="container">
+        {% block content %}{% endblock %}
+    </article>
 
+    <footer>
+        <a class="link-side-by" href="/about">About</a>
+        <a class="link-side-by" href="/contact">Contact</a>
+        <a class="link-side-by" href="/terms">Terms</a>
+        {% if user.name %}
+            <a class="link-side-by" href="/signout">Log out</a>
+        {% endif %}
 
-
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-
-
-    <div class="footer darkgrey-back">
-        <div class="center-font descriptor">dig-it is a collaboration between Investec & Praekelt.org</div>
-        <div class="center-font descriptor"><a href="/about">About</a> | <a href="/terms">Terms</a> | <a href="/contact">Contact</a></div>
-    </div>
+    </footer>
 </body>
 </html>

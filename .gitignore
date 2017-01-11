@@ -53,3 +53,8 @@ local_settings.py
 */media/*.png
 */media/*.gif
 htmlcov/*
+
+# ignore Sass temp files
+**/.sass-cache
+**/*.map
+**/_*.css

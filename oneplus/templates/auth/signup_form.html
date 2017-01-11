@@ -2,16 +2,17 @@
 
 {% block title %}Sign Up{% endblock %}
 
+{% block page_descriptor_text %}Sign up{% endblock %}
+
 {% block content %}
 
-    <div class="content">
-        <h1 class="green-front xlarge-font center-font">Sign Up</h1>
-        <p>To sign up please complete the following information:</p>
+    <article class="content pale-teal-accent">
+        <h1>Let's sign you up.</h1>
 		<form action="signup_form" method="post" class="signup">
 			{% csrf_token %}
 
             <p>
-                First Name:
+                Name
                 <input type="text" name="first_name" id="id_first_name" value="{{ data.first_name }}" >
                 {% if errors.first_name_error %}
                     <span class="red-front">{{ errors.first_name_error }}</span>
@@ -20,7 +21,7 @@
             </p>
 
             <p>
-                Surname:
+                Surname
                 <input type="text" name="surname" id="id_surname" value="{{ data.surname }}" >
                 {% if errors.surname_error %}
                     <span class="red-front">{{ errors.surname_error }}</span>
@@ -29,8 +30,8 @@
            </p>
 
             <p>
-                Cell Number (e.g. 0724391733):
-                <input type="text" name="cellphone" id="id_cellphone" value="{{ data.cellphone }}" >
+                Mobile number
+                <input type="text" name="cellphone" id="id_cellphone" placeholder="e.g. 072 439 1733" value="{{ data.cellphone }}" >
                 {% if errors.cellphone_error %}
                     {% if errors.cellphone_error == "registered" %}
                         <span class="red-front">This number has already been registered. Sign in <a href="/login" class="blue-front bold-font">here</a></span>
@@ -53,8 +54,8 @@
                 {% endif %}
             </p>
 
-			<input type="submit" value="Submit" class="button green-back grey-front" />
+			<input type="submit" value="Next" class="button border-color-accent color-accent" />
         </form>
-    </div>
+    </article>
 
 {% endblock %}

@@ -6,108 +6,113 @@
     <a href="/signout" class="home-signout">Logout</a>
 {% endblock %}
 
+{% block page_descriptor_text %}Dashboard{% endblock %}
+
 {% block content %}
     {% load humanize %}
+    <section class="content">
+        <hgroup class="pale-teal-accent">
+            <h1 class="color-accent">Hello, {{ user.name }}.</h1>
+            <h2>Great to see you again.</h2>
+        </hgroup>
 
-    {% if state.home_tasks_today < state.home_required_tasks %}
-        {% if not state.questions_complete %}
-            <div class="heading grey-back green-front center-font large-font-normal" style="padding-top: 1em">Hello {{ user.name }}.</div>
-            <div class="center-font">
-            {% if sumit %}
-                <p class="center-font">It's SUMit! Week, are you ready?</p>
-            {% else %}
-                <p class="center-font">Ready to take the challenge?</p>
+        {% comment %}Normal challenge{% endcomment %}
+        {% if state.home_tasks_today < state.home_required_tasks %}
+            {% if not state.questions_complete %}
+                <article class="card pale-teal-accent border-color-accent">
+                    <section class="top">
+                        <img src="/media/img/welcome1.png" width="100%" height="auto"/>
+                        <h3 class="card-top-phrase">Ready for today's challenge?</h3>
+                    </section>
+                    <hr class="hr-accent" />
+                    <section class="bottom">
+                        <a class="link-inline" href="next"><div>Take today's challenge</div></a>
+                    </section>
+                </article>
             {% endif %}
-            </div>
-        {% endif %}
-    {% endif %}
-    {%  if not sumit %}
-        <div class="dayheading">
-            <div class="text {% if state.home_day == 0 %} present {% elif state.home_day > 0 %} past {% elif state.home_day < 0 %} future {% endif %}"><p>DAY<br/>1</p></div>
-            <div class="text {% if state.home_day == 1 %} present {% elif state.home_day > 1 %} past {% elif state.home_day < 1 %} future {% endif %}"><p>DAY<br/>2</p></div>
-            <div class="text {% if state.home_day == 2 %} present {% elif state.home_day > 2 %} past {% elif state.home_day < 2 %} future {% endif %}"><p>DAY<br/>3</p></div>
-            <div class="text {% if state.home_day == 3 %} present {% elif state.home_day > 3 %} past {% elif state.home_day < 3 %} future {% endif %}"><p>DAY<br/>4</p></div>
-            <div class="text {% if state.home_day == 4 %} present {% elif state.home_day > 4 %} past {% elif state.home_day < 4 %} future {% endif %}"><p>DAY<br/>5</p></div>
-        </div>
-    {% endif %}
-
-    {% if sumit %}
-        <div class="center-font content darkgrey-back">
-            <div class="pad-bottom"><span class="large-font-normal">SUMit! Week</span></div>
-            <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
-            <div>
-                <span class="text-line">
-                    <p>Current level:
-                        <b class="{% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-front {% elif sumit.level == 'Foothills' %} yellow-front {% elif sumit.level == 'Cliffs' %} purple-front {% else %} cyan-front {% endif %}">{{ sumit.level }}</b>
-                    </p>
-                </span>
-            </div>
-        </div>
-    {% endif %}
-
-
-    <div class="content">
-        <p><span class="green-front xlarge-font">{{ state.home_tasks|stringformat:"02d" }}</span> Tasks Completed</p>
-        <p><span class="green-front xlarge-font">{{ state.home_correct|stringformat:"02d" }}</span> Correct Answers</p>
-        {% if state.home_goal > 0 %}
-            <p class="green-front"><span class="green-front xlarge-font">{{ state.home_goal|stringformat:"02d" }}</span> To go to win Airtime</p>
-        {% else %}
-            <p class="green-front"><span class="green-front xlarge-font">R{{ 5|stringformat:"01d" }}</span> Airtime Won</p>
         {% endif %}
 
-    {% if not state.questions_complete %}
-        {% if state.home_tasks_week >= 15 %}
-            <p class="white-front body-copy">This week's revision complete. Come back Monday for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
-        {% elif state.home_tasks_today >= state.home_required_tasks %}
-            <p class="white-front body-copy">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
-        {% else %}
-            {% if not sumit %}
-                <a class="button green-back grey-front" href="next">Take Challenge</a>
-            {% else %}
-                <a class="button green-back grey-front" href="sumit">Start SUMit!</a>
-            {% endif %}
-        {%  endif %}
-    {% else %}
-         <p class="white-front body-copy">You've finished all of the dig-it questions!
-             We'll send you an SMS when we have more questions for you.</p>
-    {% endif %}
+        {% comment %}Current challenge stats{% endcomment %}
+        <article class="card sunflower-yellow-accent border-color-accent">
+            <section class="top">
+                <img src="/media/img/welcome2.png" width="100%" height="auto"/>
+                <h3 class="card-top-phrase">Keep up the good work!</h3>
+            </section>
+            <hr class="hr-accent" />
+            <section class="bottom">
+                <table class="card-table">
+                    <tr>
+                        <td class="funky-number color-accent">{{ state.home_tasks|stringformat:"d" }}/{{ 15 }}</td>
+                        <td>Questions complete</td>
+                    </tr>
+                    <tr>
+                        <td class="funky-number color-accent">{{ state.home_correct|stringformat:"d" }}/{{ state.home_goal|stringformat:"d" }}</td>
+                        <td>Correct answers & {{ state.home_goal|stringformat:"d" }} more to win airtime</td>
+                    </tr>
+                </table>
+            </section>
+            <hr class="hr-accent" />
+            <section class="bottom">
+                <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+            </section>
+        </article>
 
-    </div>
-
-    {% if event_name and not sumit %}
-        <form name="event" action="#" method="post">
-            {% csrf_token %}
-            <div class="content">
-                {% if first_sitting %}
-                    <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+        {% if state.home_tasks_today < state.home_required_tasks %}
+            {% if not state.questions_complete %}
+                <div class="center-font">
+                {% if sumit %}
+                    <p class="center-font">It's SUMit! Week, are you ready?</p>
                 {% else %}
-                    <input class="button green-back grey-front" type="submit" name="take_event" value="Finish {{ event_name }}">
+                    <p class="center-font">Ready to take the challenge?</p>
                 {% endif %}
-            </div>
-        </form>
-    {% endif %}
+                </div>
+            {% endif %}
+        {% endif %}
 
-    <div class="menu" style="margin-top:1em">
-        <a href="/badges">
-            <div class="item text grey-back darkgrey-front">
-                <li class="icon badges-color"></li>
-                <p class="white-front">Badges: <b>{{ state.home_badges }}</b></p>
+        {% if sumit %}
+            <div class="center-font content darkgrey-back">
+                <div class="pad-bottom"><span class="large-font-normal">SUMit! Week</span></div>
+                <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
+                <div>
+                    <span class="text-line">
+                        <p>Current level:
+                            <b class="{% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-front {% elif sumit.level == 'Foothills' %} yellow-front {% elif sumit.level == 'Cliffs' %} purple-front {% else %} cyan-front {% endif %}">{{ sumit.level }}</b>
+                        </p>
+                    </span>
+                </div>
             </div>
-        </a>
-        <a href="/points">
-            <div class="item text grey-back darkgrey-front">
-                <li class="icon points-color"></li>
-                <p class="white-front">Points: <b>{{ state.home_points }}</b></p>
-            </div>
-        </a>
-        <a href="/leader">
-            <div class="item text grey-back darkgrey-front">
-                <li class="icon leaderboard-color"></li>
-                <p class="white-front">Place: <b>{{ state.home_position|ordinal }}</b></p>
-            </div>
-        </a>
+        {% endif %}
 
 
-    </div>
+        <div class="content">
+        {% if not state.questions_complete %}
+            {% if state.home_tasks_week >= 15 %}
+                <p class="white-front body-copy">This week's revision complete. Come back Monday for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
+            {% elif state.home_tasks_today >= state.home_required_tasks %}
+                <p class="white-front body-copy">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
+            {% else %}
+                {% if not sumit %}
+                    <a class="button green-back grey-front" href="next">Take Challenge</a>
+                {% else %}
+                    <a class="button green-back grey-front" href="sumit">Start SUMit!</a>
+                {% endif %}
+            {%  endif %}
+        {% else %}
+             <p class="body-copy">You've finished all of the dig-it questions!</p>
+        {% endif %}
+        </div>
 
+        {% if event_name and not sumit %}
+            <form name="event" action="#" method="post">
+                {% csrf_token %}
+                <div class="content">
+                    {% if first_sitting %}
+                        <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+                    {% else %}
+                        <input class="button green-back grey-front" type="submit" name="take_event" value="Finish {{ event_name }}">
+                    {% endif %}
+                </div>
+            </form>
+        {% endif %}
+    </section>
 {% endblock %}

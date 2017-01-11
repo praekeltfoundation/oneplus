@@ -1,78 +1,77 @@
 {% extends "core/main.html" %}
+
 {% block title %}Stories{% endblock %}
+
+{% block page_descriptor_text %}Stories{% endblock %}
 
 {% block content %}
     {% load humanize %}
-    <div class="menu">
-        <a href="/blog"><div class="text heading blue-back darkgrey-front"><li class="icon blog"></li><p>Stories</p></div></a>
-    </div>
-    <div class="text heading darkgrey-back"><p>What we have to tell you</p></div>
-
-    <div class="content padded white-back">
+    <article class="content amethyst-accent">
         {% if post.big_image %}
             <div class="blogimage" style="background-image: url('{{ post.big_image.url }}')"></div>
         {% endif %}
-        <div class="blue-front large-font-normal">{{ post.name }}</div>
-        <div class="descriptor superlightgrey-front" style="margin-bottom: 1em">{{ post.publishdate|date:"d M" }}</div>
-        <div class="post-content darkgrey-front">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
-    </div>
-
-        {% if state.post_page_max > 0 %}
-            <div class="menu darkgrey-back">
-                {% for comment in post_comments %}
-                    {% if comment.moderated %}
-                            <div class="item-large grey-back">
-                                <div>
-                                    <span class="white-front bold-font">{{ comment.author.first_name }}</span> <span class="lightgrey-front">{{ comment.publishdate | naturaltime }}</span>
-                                </div>
-                                {% if  comment.unmoderated_date == None %}
-                                    <p class="white-front">{{ comment.content }}</p>
-                                    <form name="report_comment" method="post" action="?">
-                                        {% csrf_token %}
-                                        <button type="submit" name="report_button" class="red-front bold link" value="">Report</button>
-                                        <input type="hidden" name="report" value="{{ comment.id }}" />
-                                    </form>
-                                {% else %}
-                                    <p class="red-front">{{ comment.content }}</p>
-                                {% endif %}
-                            </div>
-                    {% endif %}
-                {% endfor %}
-                <form name="more_comments" method="post" action="?">
-                    {% csrf_token %}
-                    <div class="item grey-back">
-                        <span>{{ request.session.state.post_page }} of {{ request.session.state.post_page_max }}</span>
-                        {% if request.session.state.post_page < request.session.state.post_page_max %}
-                            <button type="submit" name="more_button" class="green-front link" value="">See more comments &gt;</button>
-                            <input type="hidden" name="page" value="" />
-                        {% endif %}
-                    </div>
-                </form>
-            </div>
-        {% endif %}
+        <h1 class="color-accent">{{ post.name }}</h1>
+        <h2 style="padding-bottom:0.5em">{{ post.description }}</h2>
+        <div class="post-content">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
+    </article>
 
     {% if not state.banned and not preview%}
-        <div class="content padded darkgrey-back pad-bottom">
-            <div class="white-front bold-font">Post a Comment</div>
+        <article class="content padded pad-bottom amethyst-accent">
+            <h3 class="">Leave a comment</h3>
             <form name="comment_form" method="post" action="?" class="comment">
                 {% csrf_token %}
                 <input type="text" name="comment" value="">
-                <button type="submit" name="comment_button" class="button green-back grey-front">Post</button>
+                <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
             </form>
             {% if state.post_comment %}
-                <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
+                <p class="color-accent">Thank you for your contribution. Your message will display shortly!</p>
             {% endif %}
-        </div>
+        </article>
     {% endif %}
 
-    <div class="content padded white-back">
+    {% if state.post_page_max > 0 %}
+        <article class="content comment-list amethyst-accent">
+            {% for comment in post_comments %}
+                {% if comment.moderated %}
+                        <div class="item-large">
+                            <div>
+                                <span class="comment-author">{{ comment.author.first_name }}</span>
+                            </div>
+                            {% if  comment.unmoderated_date == None %}
+                                <p>{{ comment.content }}</p>
+                                <form name="report_comment" method="post" action="?">
+                                    {% csrf_token %}
+                                    <button type="submit" name="report_button" class="red-front bold link" value="">Report</button>
+                                    <input type="hidden" name="report" value="{{ comment.id }}" />
+                                </form>
+                            {% else %}
+                                <p class="red-front">{{ comment.content }}</p>
+                            {% endif %}
+                        </div>
+                        <hr />
+                {% endif %}
+            {% endfor %}
+            <form name="more_comments" method="post" action="?">
+                {% csrf_token %}
+                <div class="item">
+                    <span>{{ request.session.state.post_page }} of {{ request.session.state.post_page_max }}</span>
+                    {% if request.session.state.post_page < request.session.state.post_page_max %}
+                        <button type="submit" name="more_button" class="button" value="">See more comments</button>
+                        <input type="hidden" name="page" value="" />
+                    {% endif %}
+                </div>
+            </form>
+        </article>
+    {% endif %}
+
+    <article class="content padded amethyst-accent">
         {% if state.blog_previous %}
-            <a class="blue-front bold-font pull-left" href="/blog/{{ state.blog_previous }}">&lt; Previous</a>
+            <a class="color-accent pull-left" href="/blog/{{ state.blog_previous }}">&lt; Previous</a>
         {% endif %}
 
         {% if state.blog_next %}
-            <a class="blue-front bold-font pull-right" href="/blog/{{ state.blog_next }}">Next &gt;</a>
+            <a class="color-accent pull-right" href="/blog/{{ state.blog_next }}">Next &gt;</a>
         {% endif %}
         <div>&nbsp;</div>
-    </div>
+    </article>
 {% endblock %}

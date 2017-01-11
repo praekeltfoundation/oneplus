@@ -29,3 +29,17 @@ Run Tests
 
     $ source ve/bin/activate
     (ve)$ ./manage.py test
+
+Compile CSS
+~~~~~~~~~~~
+
+::
+
+    $ ./scripts/compile_css.sh
+
+Watch CSS for changes
+~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    $ ./scripts/watch_css.sh &

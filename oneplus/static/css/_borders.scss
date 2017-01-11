@@ -1,0 +1,16 @@
+/* border radius */
+$border-radius-standard: 8px;
+$border-radius-button: 100px;
+$border-radius-card: $border-radius-standard;
+
+/* border width */
+$border-width-standard: 2px;
+$border-width-card: $border-width-standard;
+
+@mixin border-box {
+  -ms-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}

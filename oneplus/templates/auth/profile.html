@@ -2,14 +2,19 @@
 
 {% block title %}Change Profile{% endblock %}
 
+{% block page_descriptor_text %}Profile{% endblock %}
+
 {% block content %}
-    <div class="menu">
-        <a href="/menu"><div class="text heading blue-back darkgrey-front"><li class="icon change_number"></li><p>Change Profile</p></div></a>
-    </div>
-    <div class="content">
-        <a href="{% url 'auth.edit_profile' %}">Edit</a>
+    <article class="content pale-teal-accent">
+        <h1>Want to edit your profile?</h1>
         <form action="edit_profile" method="post" class="">
             {% csrf_token %}
+
+            {% if editing %}
+                <input type="submit" value="Save" class="button border-color-accent color-accent" />
+            {% else %}
+                <a class="button border-color-accent color-accent" href="{% url 'auth.edit_profile' %}">Edit</a>
+            {% endif %}
 
             <div class="fieldWrapper">
                 <label class="bold-font" for="id_first_name">Name</label>
@@ -85,10 +90,6 @@
                     </p>
                 {% endif %}
             </div>
-
-            {% if editing %}
-                <input type="submit" value="Submit" class="button green-back grey-front" />
-            {% endif %}
         </form>
-    </div>
+    </article>
 {% endblock content %}

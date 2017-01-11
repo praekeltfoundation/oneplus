@@ -1,0 +1,83 @@
+@import "borders";
+
+/* old colours */
+$darkgrey: #191919;
+$grey: #2a2a2a;
+$lightgrey: #5b5b5b;
+$superlightgrey: #d5d5d5;
+$green: #28e690;
+$cyan: #46bbe1;
+$blue: #4688e1;
+$purple: #b848c9;
+$red: #e4263e;
+$orange: #f55d2c;
+$yellow: #e4c52f;
+
+/* redesign colours */
+$amethyst: #ac5ac5;
+$black: #000000;
+$faded-red: #de5762;
+$iris: #6075c4;
+$pale-teal: #68baa7;
+$squash: #eca11a;
+$sunflower-yellow: #f1e101;
+$white: #ffffff;
+
+$background-color-primary: $white;
+
+@mixin background-transparent {
+  background-color: $white;
+  background-color: transparent;
+}
+
+@mixin background-color-accent($accent-color) {
+  background-color: $accent-color;
+}
+
+@mixin border-color-accent($accent-color) {
+  border-color: $accent-color;
+}
+
+@mixin color-accent($accent-color) {
+  color: $accent-color;
+}
+
+@mixin hr-accent($accent-color) {
+  border: 0;
+  border-top: solid $border-width-standard $accent-color;
+}
+
+.amethyst-accent {
+  hr.hr-accent {@include hr-accent($amethyst)}
+  &.background-color-accent, .background-color-accent {@include background-color-accent($amethyst)}
+  &.border-color-accent, .border-color-accent {@include border-color-accent($amethyst)}
+  &.color-accent, .color-accent {@include color-accent($amethyst)}
+}
+
+.iris-accent {
+  hr.hr-accent {@include hr-accent($iris)}
+  &.background-color-accent, .background-color-accent {@include background-color-accent($iris)}
+  &.border-color-accent, .border-color-accent {@include border-color-accent($iris)}
+  &.color-accent, .color-accent {@include color-accent($iris)}
+}
+
+.pale-teal-accent {
+  hr.hr-accent {@include hr-accent($pale-teal)}
+  &.background-color-accent, .background-color-accent {@include background-color-accent($pale-teal)}
+  &.border-color-accent, .border-color-accent {@include border-color-accent($pale-teal)}
+  &.color-accent, .color-accent {@include color-accent($pale-teal)}
+}
+
+.squash-accent {
+  hr.hr-accent {@include hr-accent($squash)}
+  &.background-color-accent, .background-color-accent {@include background-color-accent($squash)}
+  &.border-color-accent, .border-color-accent {@include border-color-accent($squash)}
+  &.color-accent, .color-accent {@include color-accent($squash)}
+}
+
+.sunflower-yellow-accent {
+  hr.hr-accent {@include hr-accent($sunflower-yellow)}
+  &.background-color-accent, .background-color-accent {@include background-color-accent($sunflower-yellow)}
+  &.border-color-accent, .border-color-accent {@include border-color-accent($sunflower-yellow)}
+  &.color-accent, .color-accent {@include color-accent($sunflower-yellow)}
+}
