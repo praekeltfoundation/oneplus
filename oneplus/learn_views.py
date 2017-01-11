@@ -170,6 +170,8 @@ def home(request, state, user, participant):
             if questions:
                 redo = True
 
+    level, points_remaining = participant.calc_level()
+
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
@@ -190,12 +192,15 @@ def home(request, state, user, participant):
         if days_ago >= timedelta(days=2):
             update_metric("running.active.participants48", 1, "SUM")
 
-        return render(request, "learn/home.html", {"state": state,
-                                                   "user": user,
+        return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
-                                                   "event_name": event_name,
+                                                   "level": level,
+                                                   "levels": range(7),
+                                                   "points_remaining": points_remaining,
                                                    "redo": redo,
-                                                   "sumit": sumit})
+                                                   "state": state,
+                                                   "sumit": sumit,
+                                                   "user": user})
 
     def post():
         if "take_event" in request.POST.keys():
