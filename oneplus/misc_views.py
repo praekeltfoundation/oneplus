@@ -209,8 +209,9 @@ def onboarding(request, state):
         pages = onboarding_pages
         page_max = len(pages)
         page_num = int(request.GET.get('p', 0))
-
-        if page_num >= page_max:
+        if page_num < 0:
+            page_num = 0
+        elif page_num >= page_max:
             return redirect(reverse('misc.welcome'))
 
         return render(request, 'misc/onboarding.html', {'state': state,
