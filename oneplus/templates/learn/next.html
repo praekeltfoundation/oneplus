@@ -2,6 +2,7 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}NEXT{% endblock %}
+{% block page_descriptor_text %}Today's challenge{% endblock %}
 
 {% block content %}
     {% load humanize %}
@@ -15,8 +16,8 @@
         <h2>{{ points }}</h2>
 
         {% if golden_egg and golden_egg.question == True %}
-            <div class="text heading darkgrey-back center-font"><p class="large-font">You’ve found the Golden Egg!</p></div>
-            <div class="center-font darkgrey-back"><img src="{{ golden_egg.url }}"></div>
+            <div class="text heading center-font"><p class="large-font">You’ve found the Golden Egg!</p></div>
+            <div class="center-font"><img src="{{ golden_egg.url }}"></div>
         {% endif %}
         <article class="card pale-teal-accent border-color-accent">
             {% autoescape off %}
@@ -60,10 +61,10 @@
         {% endif %}
 
         {% if preview %}
-            <div class="menu grey-back">
+            <div class="menu">
                 {% for msg in messages %}
                     <div class="item-large">
-                        <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>
+                        <div><span class="bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span>
                             {% if not state.banned and not preview%}
                                 {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                     <form name="comment_response" method="post" action="?" class="inline">
@@ -77,7 +78,7 @@
                         {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                             <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                                 <input type="text" name="reply" value="" />
-                                <button type="submit" name="reply_button" class="button green-back" value="{{ msg.id }}">Reply</button>
+                                <button type="submit" name="reply_button" class="button background-color-accent color-accent" value="{{ msg.id }}">Reply</button>
                             </form>
                         {% endifequal %}
                         {% ifequal state.discussion_responded_id|add:"0" msg.id|add:"0" %}

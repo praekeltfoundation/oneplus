@@ -2,6 +2,7 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}WRONG{% endblock %}
+{% block page_descriptor_text %}Today's challenge{% endblock %}
 
 {% block content %}
    {% load humanize %}
@@ -153,7 +154,7 @@
                     </form>
                 {% endif %}
 
-            </div>
+            </article>
         {% endif %}
     </article>
 {% endblock %}
