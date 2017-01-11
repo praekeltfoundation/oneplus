@@ -10,10 +10,10 @@
 </head>
 <body>
     {% load google_analytics_tags %}
-    <img src="{% google_analytics request %}" width="1px" height="1px" style="position:absolute;top:0;right:0;" />
+    <img src="{% google_analytics request %}" class="analytics-plug" />
 
     {% block header %}
-        <header style="text-align:justify;height:36px;">
+        <header>
             <div class="header-item">
                 {% if user.name %}
                     <a href="/menu" >
@@ -21,7 +21,7 @@
                             <li class="icon back"></li>
                         {% endblock %}
                         {% block menu_text %}
-                            <div style="vertical-align:middle;display:inline;">Menu</div>
+                            <div class="header-item">Menu</div>
                         {% endblock %}
                     </a>
                 {% else %}
@@ -33,7 +33,7 @@
                 <div class="header-item page-descriptor">{% block page_descriptor_text %}{% endblock %}</div>
             {% endblock %}
 
-            <div style="display:inline-block;width:100%;"></div>
+            <div class="justify-enforcer"></div>
         </header>
     {% endblock %}
 

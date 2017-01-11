@@ -363,6 +363,13 @@ input[type=text], input[type=password], select, textarea {
   border-radius: 8px;
   padding: 10px; }
 
+.analytics-plug {
+  height: 1px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1px; }
+
 .link {
   background: none;
   border: none; }
@@ -445,6 +452,11 @@ input[type=text], input[type=password], select, textarea {
   border: 0;
   border-top: solid 2px #5b5b5b;
   margin: 0.5em 0;
+  width: 100%; }
+
+.justify-enforcer {
+  display: inline-block;
+  height: 0;
   width: 100%; }
 
 .login label {
