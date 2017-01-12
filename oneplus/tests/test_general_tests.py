@@ -2856,90 +2856,81 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
         # overall leaderboard is overall in class, not over all classes
-        resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+        resp = self.client.get(reverse('prog.leader'), follow=True)
 
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_20")
         self.assertContains(resp, "11th place")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
-
-        resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_20")
-        self.assertContains(resp, "11th place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
-
-        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_20")
-        self.assertContains(resp, "11th place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
+        self.assertContains(resp, "Grade Leaderboard")
+        self.assertContains(resp, "School Leaderboard")
+        self.assertContains(resp, "National Leaderboard")
+        self.assertContains(resp, "Show all", count=3)
 
         self.client.get(
             reverse('auth.autologin',
                     kwargs={'token': "14"})
         )
 
-        resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
+        resp = self.client.get(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
         self.assertContains(resp, "5th place")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
+        self.assertContains(resp, "Grade Leaderboard")
+        self.assertContains(resp, "School Leaderboard")
+        self.assertContains(resp, "National Leaderboard")
+        self.assertContains(resp, "Show all", count=3)
 
-        resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_14")
-        self.assertContains(resp, "5th place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
-
-        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "test_14")
-        self.assertContains(resp, "5th place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
-
+    def test_leaderboard_collapse(self):
         self.client.get(
             reverse('auth.autologin',
-                    kwargs={'token': "abc10"})
+                    kwargs={'token': self.learner.unique_token})
         )
 
-        resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class_10")
-        self.assertContains(resp, "12th place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
+        resp = self.client.get(reverse('prog.leader'), follow=True)
+        self.assertContains(resp, "Grade Leaderboard")
+        self.assertContains(resp, "School Leaderboard")
+        self.assertContains(resp, "National Leaderboard")
+        self.assertContains(resp, "Show all", count=3)
 
-        self.client.get(
-            reverse('auth.autologin',
-                    kwargs={'token': "abc16"})
-        )
+        resp = self.client.post(reverse('prog.leader'), follow=True)
+        self.assertContains(resp, "Grade Leaderboard")
+        self.assertContains(resp, "School Leaderboard")
+        self.assertContains(resp, "National Leaderboard")
+        self.assertContains(resp, "Show all", count=3)
 
-        resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class_16")
-        self.assertContains(resp, "6th place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
+        resp = self.client.post(reverse('prog.leader'), data={'board.class.active': 'true'}, follow=True)
+        self.assertContains(resp, "Show all", count=2)
+        self.assertContains(resp, "Show less", count=1)
 
-        resp = self.client.post(reverse('prog.leader'), data={'leader_menu': 'leader_menu'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        resp = self.client.post(reverse('prog.leader'), data={'region': 'region'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
+        resp = self.client.get(reverse('prog.leader'), follow=True)
+        self.assertContains(resp, "Show all", count=2)
+        self.assertContains(resp, "Show less", count=1)
+
+        resp = self.client.post(reverse('prog.leader'),
+                                data={
+                                    'board.class.active': 'true',
+                                    'board.school.active': 'true',
+                                    'board.national.active': 'true'},
+                                follow=True)
+        self.assertContains(resp, "Show all", count=0)
+        self.assertContains(resp, "Show less", count=3)
+
+        resp = self.client.get(reverse('prog.leader'), follow=True)
+        self.assertContains(resp, "Show all", count=0)
+        self.assertContains(resp, "Show less", count=3)
+
+        resp = self.client.post(reverse('prog.leader'),
+                                data={
+                                    'board.class.active': 'false',
+                                    'board.school.active': 'false',
+                                    'board.national.active': 'false'},
+                                follow=True)
+        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show less", count=0)
+
+        resp = self.client.get(reverse('prog.leader'), follow=True)
+        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show less", count=0)
 
     def test_leaderboard_with_almost_no_results(self):
         self.client.get(
@@ -2947,34 +2938,12 @@ class GeneralTests(TestCase):
                     kwargs={'token': self.learner.unique_token})
         )
 
-        resp = self.client.post(reverse('prog.leader'), data={'class': 'Class Leaderboard'}, follow=True)
+        resp = self.client.get(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "class name")
-        self.assertContains(resp, "1st place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-
-        resp = self.client.post(reverse('prog.leader'), data={'overall': 'Overall Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "1st place")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
-
-        resp = self.client.post(reverse('prog.leader'), data={'two_week': '2 Week Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "1st place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "3 Month Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
-
-        resp = self.client.post(reverse('prog.leader'), data={'three_month': '3 Month Leaderboard'}, follow=True)
-        self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "1st place")
-        self.assertContains(resp, "Overall Leaderboard")
-        self.assertContains(resp, "2 Week Leaderboard")
-        self.assertContains(resp, "Class Leaderboard")
+        self.assertContains(resp, "1st place", count=3)
+        self.assertContains(resp, "Grade Leaderboard")
+        self.assertContains(resp, "School Leaderboard")
+        self.assertContains(resp, "National Leaderboard")
 
     def test_ontrack_screen(self):
         self.client.get(

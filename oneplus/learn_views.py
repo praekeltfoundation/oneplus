@@ -25,6 +25,19 @@ from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
 
 
+def get_class_leaderboard_position(participant):
+    leaderboard = Participant.objects.filter(classs=participant.classs, is_active=True) \
+        .order_by("-points", 'learner__first_name')
+
+    position_counter = 0
+    for a in leaderboard:
+        position_counter += 1
+        if a.id == participant.id:
+            return position_counter
+
+    return None
+
+
 @oneplus_participant_required
 def home(request, state, user, participant):
     _participant = participant
@@ -170,6 +183,8 @@ def home(request, state, user, participant):
             if questions:
                 redo = True
 
+    level, points_remaining = participant.calc_level()
+
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
@@ -190,12 +205,16 @@ def home(request, state, user, participant):
         if days_ago >= timedelta(days=2):
             update_metric("running.active.participants48", 1, "SUM")
 
-        return render(request, "learn/home.html", {"state": state,
-                                                   "user": user,
+        return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
-                                                   "event_name": event_name,
+                                                   "level": level,
+                                                   "levels": range(7),
+                                                   "points_remaining": points_remaining,
+                                                   "position": get_class_leaderboard_position(_participant),
                                                    "redo": redo,
-                                                   "sumit": sumit})
+                                                   "state": state,
+                                                   "sumit": sumit,
+                                                   "user": user})
 
     def post():
         if "take_event" in request.POST.keys():

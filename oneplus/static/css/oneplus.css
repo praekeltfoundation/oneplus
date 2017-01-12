@@ -368,6 +368,10 @@ input[type=text], input[type=password], select, textarea {
   border-radius: 8px;
   padding: 10px; }
 
+form.no-pad {
+  margin: 0;
+  padding: 0; }
+
 .half-button {
   display: inline-block;
   margin: 0;
@@ -387,6 +391,26 @@ input[type=text], input[type=password], select, textarea {
   margin: 0.25em;
   width: 1em; }
 
+.level-pip-container {
+  padding: 0em 1em;
+  text-align: justify; }
+
+.level-pip {
+  border-radius: 50%;
+  color: #d5d5d5;
+  display: inline-block;
+  font-family: "Asap", sans-serif;
+  font-size: 125%;
+  height: 2em;
+  line-height: 2em;
+  margin: 0;
+  text-align: center;
+  vertical-align: middle;
+  width: 2em; }
+  .level-pip.active {
+    color: #ffffff;
+    font-weight: bold; }
+
 .analytics-plug {
   height: 1px;
   position: absolute;
@@ -397,6 +421,10 @@ input[type=text], input[type=password], select, textarea {
 .link {
   background: none;
   border: none; }
+
+.form-link {
+  font-weight: bold;
+  text-decoration: underline; }
 
 .link-button {
   background: none;
@@ -463,10 +491,11 @@ input[type=text], input[type=password], select, textarea {
     padding: 0.5em 0;
     vertical-align: middle;
     width: 50%; }
-  .card-table .funky-number {
-    font-family: "Asap", sans-serif;
-    font-size: 200%;
-    text-align: center; }
+
+.funky-number {
+  font-family: "Asap", sans-serif;
+  font-size: 200%;
+  text-align: center; }
 
 .comment-author {
   color: lightgrey;
