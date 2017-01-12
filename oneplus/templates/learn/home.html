@@ -76,15 +76,17 @@
                     You're {{ points_remaining }} points away from Level {{ level|add:"1" }}.
                 </div>
             </section>
-            <hr class="hr-accent" />
-            <section class="bottom">
-                <table class="card-table">
-                    <tr>
-                        <td class="funky-number color-accent">{{ 12 }}<sup>th</sup></td>
-                        <td>Place on the 'My Grade' leaderboard</td>
-                    </tr>
-                </table>
-            </section>
+            {% if position %}
+                <hr class="hr-accent" />
+                <section class="bottom">
+                    <table class="card-table">
+                        <tr>
+                            <td class="funky-number color-accent">{{ position|ordinal }}</td>
+                            <td>Place on the 'My Grade' leaderboard</td>
+                        </tr>
+                    </table>
+                </section>
+            {% endif %}
             <hr class="hr-accent" />
             <section class="bottom">
                 <a class="link-inline" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
