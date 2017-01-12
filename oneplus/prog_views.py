@@ -227,9 +227,6 @@ def leader(request, state, user, participant):
                 "class_board": class_board,
                 "school_board": school_board,
                 "national_board": national_board,
-                "buttons": get_buttons("overall"),
-                "header_1": "Leaderboard",
-                "header_2": "Well done you're in "
             }
         )
 
@@ -272,9 +269,6 @@ def leader(request, state, user, participant):
                 "class_board": class_board,
                 "school_board": school_board,
                 "national_board": national_board,
-                "buttons": get_buttons("overall"),
-                "header_1": "Leaderboard",
-                "header_2": "Well done you're in "
             }
         )
 
