@@ -63,7 +63,16 @@ def run_haystack_update():
 
 
 def run_haystack_update_body():
-    call_command('update_index', '--remove')
+    call_command('update_index')
+
+
+@celery.task
+def run_haystack_rebuild():
+    run_haystack_update_body()
+
+
+def run_haystack_rebuild_body():
+    call_command('rebuild_index', '--noinput')
 
 
 @celery.task
