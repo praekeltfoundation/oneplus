@@ -209,12 +209,14 @@ def leader(request, state, user, participant):
         return buttons
 
     def get():
-        request.session["state"]["leader_menu"] = False
-
         # Get leaderboard and position
         class_board = get_class_leaderboard()
         school_board = get_school_leaderboard()
         national_board = get_national_leaderboard()
+
+        class_board['active'] = request.session.get('leader_class_active', None)
+        school_board['active'] = request.session.get('leader_school_active', None)
+        national_board['active'] = request.session.get('leader_national_active', None)
 
         return render(
             request,
