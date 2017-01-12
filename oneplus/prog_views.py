@@ -232,7 +232,49 @@ def leader(request, state, user, participant):
         )
 
     def post():
-        return get()
+        request.session["state"]["leader_menu"] = False
+
+        # Get leaderboard and position
+        class_board = get_class_leaderboard()
+        school_board = get_school_leaderboard()
+        national_board = get_national_leaderboard()
+
+        if 'board.class.active' in request.POST:
+            if request.POST['board.class.active'] == 'true':
+                request.session['leader_class_active'] = True
+            else:
+                request.session['leader_class_active'] = False
+
+        if 'board.school.active' in request.POST:
+            if request.POST['board.school.active'] == 'true':
+                request.session['leader_school_active'] = True
+            else:
+                request.session['leader_school_active'] = False
+
+        if 'board.national.active' in request.POST:
+            if request.POST['board.national.active'] == 'true':
+                request.session['leader_national_active'] = True
+            else:
+                request.session['leader_national_active'] = False
+
+        class_board['active'] = request.session.get('leader_class_active', None)
+        school_board['active'] = request.session.get('leader_school_active', None)
+        national_board['active'] = request.session.get('leader_national_active', None)
+
+        return render(
+            request,
+            "prog/leader.html",
+            {
+                "state": state,
+                "user": user,
+                "class_board": class_board,
+                "school_board": school_board,
+                "national_board": national_board,
+                "buttons": get_buttons("overall"),
+                "header_1": "Leaderboard",
+                "header_2": "Well done you're in "
+            }
+        )
 
     return resolve_http_method(request, [get, post])
 
