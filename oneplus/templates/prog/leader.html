@@ -18,30 +18,38 @@
                     <img src="/media/img/welcome3.png" width="100%" height="auto"/>
                     <h3 class="card-top-phrase">Grade Leaderboard</h3>
                 </section>
-                <hr class="hr-accent" />
                 {% if class_board.position %}
+                    <hr class="hr-accent" />
                     <section class="bottom">
                         <div class="center-font">{{ user.name }}, you're currently in</div>
                         <div class="center-font color-accent funky-number">{{ class_board.position|ordinal }} place</div>
                     </section>
-                    <hr class="hr-accent" />
                 {% endif %}
-                <section class="bottom">
-                    <table class="card-table">
-                        {% for participant in class_board.board %}
-                            <tr>
-                                <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
-                                <td>{{ participant.name }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </section>
-                {% comment %}
+                {% if class_board.active %}
+                    <hr class="hr-accent" />
+                    <section class="bottom">
+                        <table class="card-table">
+                            {% for participant in class_board.board %}
+                                <tr>
+                                    <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
+                                    <td>{{ participant.name }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </section>
+                {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+                    <form class="no-pad" method="post">{% csrf_token %}
+                        {% if class_board.active %}
+                            <input type="hidden" name="board.class.active" value="false" />
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
+                        {% else %}
+                            <input type="hidden" name="board.class.active" value="true" />
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show all"></div>
+                        {% endif %}
+                    </form>
                 </section>
-                {% endcomment %}
             </article>
         {% endif %}
 
@@ -52,30 +60,38 @@
                     <img src="/media/img/welcome3.png" width="100%" height="auto"/>
                     <h3 class="card-top-phrase">School Leaderboard</h3>
                 </section>
-                <hr class="hr-accent" />
                 {% if school_board.position %}
+                    <hr class="hr-accent" />
                     <section class="bottom">
                         <div class="center-font">Your school is currently in</div>
                         <div class="center-font color-accent funky-number">{{ school_board.position|ordinal }} place</div>
                     </section>
-                    <hr class="hr-accent" />
                 {% endif %}
-                <section class="bottom">
-                    <table class="card-table">
-                        {% for participant in school_board.board %}
-                            <tr>
-                                <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
-                                <td>{{ participant.name }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </section>
-                {% comment %}
+                {% if school_board.active %}
+                    <hr class="hr-accent" />
+                    <section class="bottom">
+                        <table class="card-table">
+                            {% for participant in school_board.board %}
+                                <tr>
+                                    <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
+                                    <td>{{ participant.name }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </section>
+                {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+                    <form class="no-pad" method="post">{% csrf_token %}
+                        {% if school_board.active %}
+                            <input type="hidden" name="board.school.active" value="false" />
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
+                        {% else %}
+                            <input type="hidden" name="board.school.active" value="true" />
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show all"></div>
+                        {% endif %}
+                    </form>
                 </section>
-                {% endcomment %}
             </article>
         {% endif %}
 
@@ -84,64 +100,42 @@
             <article class="card border-color-accent">
                 <section class="top">
                     <img src="/media/img/welcome3.png" width="100%" height="auto"/>
-                    <h3 class="card-top-phrase">School Leaderboard</h3>
+                    <h3 class="card-top-phrase">National Leaderboard</h3>
                 </section>
-                <hr class="hr-accent" />
-                {% if school_board.position %}
+                {% if national_board.position %}
+                    <hr class="hr-accent" />
                     <section class="bottom">
                         <div class="center-font">{{ user.name }}, you're currently in</div>
                         <div class="center-font color-accent funky-number">{{ national_board.position|ordinal }} place</div>
                     </section>
-                    <hr class="hr-accent" />
                 {% endif %}
-                <section class="bottom">
-                    <table class="card-table">
-                        {% for participant in national_board.board %}
-                            <tr>
-                                <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
-                                <td>{{ participant.name }}</td>
-                            </tr>
-                        {% endfor %}
-                    </table>
-                </section>
-                {% comment %}
+                {% if national_board.active %}
+                    <hr class="hr-accent" />
+                    <section class="bottom">
+                        <table class="card-table">
+                            {% for participant in national_board.board %}
+                                <tr>
+                                    <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
+                                    <td>{{ participant.name }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </section>
+                {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+                    <form class="no-pad" method="post">{% csrf_token %}
+                        {% if national_board.active %}
+                            <input type="hidden" name="board.national.active" value="false" />
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
+                        {% else %}
+                            <input type="hidden" name="board.national.active" value="true" />
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show all"></div>
+                        {% endif %}
+                    </form>
                 </section>
-                {% endcomment %}
             </article>
         {% endif %}
-
-        {% comment %}
-        <div class="content padded">
-            {% if state.leader_menu %}
-                <div class="popup pull-right lightgrey-back">
-                    {% for region in state.leader_regions %}
-                        <form name="more_form" method="post" action="?">{% csrf_token %}<input type="hidden" name="region" value="{{ region.area }}" /><button type="submit" name="more_button" class="link">{{ region.area }}</button></form>
-                    {% endfor %}
-                </div>
-                <div class="clear"></div>
-            {% endif %}
-            <table class="borderless" width="100%" style="padding-bottom:1em;">
-            {% for participant in learners %}
-            <tr class="item grey-back {% if participant.me %}purple-front{% endif %}">
-                    <td class="body-copy vert-center slim-num-field">#{{ participant.position }}</td>
-                    <td class="body-copy vert-center wrap-words">{{ participant.name }}</td>
-                    <td class="body-copy text-right vert-center slim-num-field">{{ participant.points }}</td>
-            </tr>
-            {% endfor %}
-            </table>
-
-            {% for b in buttons %}
-                <form name="leaderboard" action="" method="post">
-                    {% csrf_token %}
-                    <input type="submit" name="{{ b.name }}" class="button green-back grey-front" value="{{ b.value }}">
-                </form>
-            {% endfor %}
-            </form>
-        </div>
-        {% endcomment %}
     </article>
 
 {% endblock %}
