@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
 from auth.models import Learner
+from organisation.models import School
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantBadgeTemplateRel
 from gamification.models import GamificationScenario
 from oneplus.views import oneplus_participant_required, COUNTRYWIDE
@@ -60,31 +61,76 @@ def leader(request, state, user, participant):
     # get learner state
     _participant = participant
 
-    def get_overall_leaderboard():
-        leaderboard = Participant.objects.filter(classs=_participant.classs,) \
+    def get_class_leaderboard():
+        leaderboard = Participant.objects.filter(classs=_participant.classs, is_active=True) \
             .order_by("-points", 'learner__first_name')
 
         learners = []
         position = None
-        i = 0
+        position_counter = 0
         for a in leaderboard:
-            i += 1
-            learner = {"id": a.id, "name": a.learner.first_name, "points": a.points, "position": i}
+            position_counter += 1
+            learner = {
+                "id": a.id,
+                "name": "%s %s" % (a.learner.first_name, a.learner.last_name),
+                "position": position_counter}
             if a.id == _participant.id:
                 learner['me'] = True
-                position = i
+                position = position_counter
             learners.append(learner)
 
-            if position is not None and i >= 10:
+            if position is not None and position_counter >= 10:
                 break
 
-        if position > 10 or position is None:
-            learner = {"id": _participant.id, "name": _participant.learner.first_name, "points": _participant.points,
-                       "me": True, "position": position}
-            learners.insert(10, learner)
-            return learners[:11], position
-        else:
-            return learners[:10], position
+        return {'board': learners[:10], 'position': position}
+
+    def get_school_leaderboard():
+        leaderboard = Participant.objects.filter(learner__grade=_participant.learner.grade, is_active=True)\
+            .values('learner__school_id', 'learner__school__name', 'points')\
+            .annotate(school_points=Sum('points'))\
+            .order_by('-school_points', 'learner__school__name')
+
+        schools = []
+        position = None
+        position_counter = 0
+        for a in leaderboard:
+            position_counter += 1
+            school = {
+                "id": a['learner__school_id'],
+                "name": a['learner__school__name'],
+                "position": position_counter}
+            if a['learner__school_id'] == _participant.learner.school_id:
+                school['me'] = True
+                position = position_counter
+            schools.append(school)
+
+            if position is not None and position_counter >= 10:
+                break
+
+        return {'board': schools[:10], 'position': position}
+
+    def get_national_leaderboard():
+        leaderboard = Participant.objects.filter(learner__grade=_participant.learner.grade, is_active=True) \
+            .order_by("-points", 'learner__first_name')
+
+        learners = []
+        position = None
+        position_counter = 0
+        for a in leaderboard:
+            position_counter += 1
+            learner = {
+                "id": a.id,
+                "name": "%s %s" % (a.learner.first_name, a.learner.last_name),
+                "position": position_counter}
+            if a.id == _participant.id:
+                learner['me'] = True
+                position = position_counter
+            learners.append(learner)
+
+            if position is not None and position_counter >= 10:
+                break
+
+        return {'board': learners[:10], 'position': position}
 
     def get_weeks_leaderboard(weeks):
         leaderboard = ParticipantQuestionAnswer.objects.values('participant__id', 'participant__learner__first_name') \
@@ -144,50 +190,6 @@ def leader(request, state, user, participant):
         else:
             return learners[:10], position
 
-    def get_class_leaderboard():
-        total_list = Class.objects.annotate(answered=Count("participant__participantquestionanswer"))
-        correct_list = Class.objects.filter(participant__participantquestionanswer__correct=True)\
-            .annotate(correct=Count("participant__participantquestionanswer"))
-
-        classes = []
-        position = None
-
-        for classs in Class.objects.all():
-            tl = total_list.filter(id=classs.id).first()
-            cl = correct_list.filter(id=classs.id).first()
-            percent = 0
-
-            if tl and cl and tl.answered != 0:
-                percent = int(cl.correct * 100 / tl.answered)
-
-            temp_class = {"name": classs.name, "points": percent}
-
-            if _participant.classs.id == classs.id:
-                temp_class["me"] = True
-
-            classes.append(temp_class)
-
-        classes = sorted(classes, key=lambda k: k['points'], reverse=True)
-
-        position_counter = 0
-        me_in_classes = None
-
-        for classs in classes:
-            position_counter += 1
-            classs["position"] = position_counter
-            classs["points"] = str(classs["points"]) + "%"
-
-            if "me" in classs and classs["me"]:
-                position = position_counter
-                me_in_classes = classs
-
-        if position > 10:
-            if me_in_classes:
-                classes.insert(10, me_in_classes)
-            return classes[:11], position
-        else:
-            return classes[:10], position
-
     def get_buttons(button_name):
         buttons = []
         overall = {"name": "overall", "value": "Overall Leaderboard"}
@@ -210,7 +212,9 @@ def leader(request, state, user, participant):
         request.session["state"]["leader_menu"] = False
 
         # Get leaderboard and position
-        _learners, position = get_overall_leaderboard()
+        class_board = get_class_leaderboard()
+        school_board = get_school_leaderboard()
+        national_board = get_national_leaderboard()
 
         return render(
             request,
@@ -218,8 +222,9 @@ def leader(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
-                "learners": _learners,
-                "position": position,
+                "class_board": class_board,
+                "school_board": school_board,
+                "national_board": national_board,
                 "buttons": get_buttons("overall"),
                 "header_1": "Leaderboard",
                 "header_2": "Well done you're in "
@@ -227,62 +232,7 @@ def leader(request, state, user, participant):
         )
 
     def post():
-        buttons = get_buttons("overall")
-        _learners, position = get_overall_leaderboard()
-        header_1 = "Leaderboard"
-        header_2 = "Well done you're in "
-
-        # show region menu?
-        if "leader_menu" in request.POST:
-            request.session["state"]["leader_menu"] \
-                = request.POST["leader_menu"] != 'True'
-
-        elif "region" in request.POST:
-            request.session["state"]["leader_menu"] = False
-            request.session["state"]["leader_region"] = request.POST["region"]
-
-        elif "overall" in request.POST:
-            buttons = get_buttons("overall")
-            _learners, position = get_overall_leaderboard()
-            header_1 = "Leaderboard"
-            header_2 = "Well done you're in "
-
-        elif "two_week" in request.POST:
-            buttons = get_buttons("two_week")
-            _learners, position = get_weeks_leaderboard(2)
-            header_1 = "2 Week Leaderboard"
-            header_2 = "In the last 2 weeks, you're in"
-
-        elif "three_month" in request.POST:
-            buttons = get_buttons("three_month")
-            _learners, position = get_weeks_leaderboard(12)
-            header_1 = "3 Month Leaderboard"
-            header_2 = "In the last 3 months, you're in"
-
-        elif "class" in request.POST:
-            buttons = get_buttons("class")
-            _learners, position = get_class_leaderboard()
-            header_1 = "Class Leaderboard"
-            header_2 = "%s, you're in" % _participant.classs.name
-
-        # Get unique regions
-        request.session["state"]["leader_regions"] \
-            = list([{"area": COUNTRYWIDE}]) \
-            + list(Learner.objects.values("area").distinct().all())
-
-        return render(
-            request,
-            "prog/leader.html",
-            {
-                "state": state,
-                "user": user,
-                "learners": _learners,
-                "position": position,
-                "buttons": buttons,
-                "header_1": header_1,
-                "header_2": header_2
-            }
-        )
+        return get()
 
     return resolve_http_method(request, [get, post])
 
