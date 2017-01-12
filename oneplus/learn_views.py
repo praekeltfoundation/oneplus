@@ -25,6 +25,19 @@ from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
 
 
+def get_class_leaderboard_position(participant):
+    leaderboard = Participant.objects.filter(classs=participant.classs, is_active=True) \
+        .order_by("-points", 'learner__first_name')
+
+    position_counter = 0
+    for a in leaderboard:
+        position_counter += 1
+        if a.id == participant.id:
+            return position_counter
+
+    return None
+
+
 @oneplus_participant_required
 def home(request, state, user, participant):
     _participant = participant
@@ -197,6 +210,7 @@ def home(request, state, user, participant):
                                                    "level": level,
                                                    "levels": range(7),
                                                    "points_remaining": points_remaining,
+                                                   "position": get_class_leaderboard_position(_participant),
                                                    "redo": redo,
                                                    "state": state,
                                                    "sumit": sumit,
