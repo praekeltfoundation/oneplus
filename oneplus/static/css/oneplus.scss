@@ -146,6 +146,11 @@ input[type=text], input[type=password], select, textarea {
   padding: 10px;
 }
 
+form.no-pad {
+  margin: 0;
+  padding: 0;
+}
+
 .half-button {
   display: inline-block;
   margin: 0;
@@ -203,6 +208,11 @@ input[type=text], input[type=password], select, textarea {
 .link {
     background: none;
     border:none;
+}
+
+.form-link {
+  font-weight: bold;
+  text-decoration: underline;
 }
 
 .link-button {
