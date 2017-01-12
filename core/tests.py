@@ -4,6 +4,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.test.runner import DiscoverRunner
 from datetime import datetime
+from django.utils import timezone
 from auth.models import Learner
 from organisation.models import Course, Module, School, Organisation, CourseModuleRel
 from core.models import Participant, Class, ParticipantBadgeTemplateRel, ParticipantQuestionAnswer, Setting
@@ -56,10 +57,11 @@ def create_learner(school, **kwargs):
     return Learner.objects.create(school=school, **kwargs)
 
 
-def create_participant(learner, classs, **kwargs):
+def create_participant(learner, classs, datejoined=timezone.now(), **kwargs):
     return Participant.objects.create(
         learner=learner,
         classs=classs,
+        datejoined=datejoined,
         **kwargs)
 
 
@@ -474,3 +476,44 @@ class TestClassMethods(TestCase):
 
         new_class = Class.get_or_create_class(Learner.GR_10, self.school)
         self.assertEqual(classs.id, new_class.id, 'Same class should be returned the second time.')
+
+
+class TestParticipantMethods(TestCase):
+    def setUp(self):
+        gr10_course = create_course(GRADE_10_COURSE_NAME)
+        self.module = create_module('module name', gr10_course)
+        self.classs = create_class('class name', gr10_course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+        self.learner = create_learner(self.school)
+        self.participant = create_participant(self.learner, self.classs)
+
+    def test_calc_level(self):
+        self.participant.points = 50
+        self.participant.save()
+        level, points_remaining = self.participant.calc_level()
+        self.assertEqual(level, 1)
+        self.assertEqual(points_remaining, 50)
+
+        self.participant.points = 182
+        self.participant.save()
+        level, points_remaining = self.participant.calc_level()
+        self.assertEqual(level, 2)
+        self.assertEqual(points_remaining, 18)
+
+    def test_calc_level_multilearner(self):
+        learner2 = create_learner(self.school, mobile='0823142598', username='0823142598')
+        participant2 = create_participant(learner2, self.classs)
+        participant2.points = 153
+        participant2.save()
+
+        self.participant.points = 281
+        self.participant.save()
+        level, points_remaining = self.participant.calc_level()
+        self.assertEqual(level, 3)
+        self.assertEqual(points_remaining, 19)
+
+        level, points_remaining = participant2.calc_level()
+        self.assertEqual(level, 2)
+        self.assertEqual(points_remaining, 47)
+
