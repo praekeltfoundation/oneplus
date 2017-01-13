@@ -1,25 +1,27 @@
 {% extends "core/main.html" %}
 
 {% block title %}CHAT GROUPS{% endblock %}
+{% block page_descriptor_text %}Chat groups{% endblock %}
 
 {% block content %}
     {% load humanize %}
-    <div class="menu">
-        <a href="/menu"><div class="text heading orange-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
-    </div>
-    <div class="text heading darkgrey-back"><p>Connect with others</p></div>
+    <article class="content iris-accent">
+        <h1>Connect with others</h1>
 
-    <div class="menu">
-    {% for grp in groups %}
-        <div class="item-large grey-back white-front">
-            <a href="chat/{{ grp.id }}">
-                <h1 class="white-front large-font">{{ grp.name }}</h1>
-            </a>
-            <div><span class="white-front bold-font">{{ grp.last_message.author.first_name }}</span> <span class="lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</span></div>
-            <p class="white-front">{{ grp.last_message.content }}</p>
-            <a href="chat/{{ grp.id }}" class="orange-front">See more Comments ></a>
-        </div>
-    {% endfor %}
-    </div>
-
+        <article>
+            {% for grp in groups %}
+                <div class="item-large">
+                    <a class="color-accent heading link undecorated" href="chat/{{ grp.id }}">{{ grp.name }}</a>
+                    <div class="justify-container ">
+                        <div class="comment-author inline">{{ grp.last_message.author.first_name }}</div>
+                        <div class="inline lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</div>
+                        <div class="justify-enforcer"></div>
+                    </div>
+                    <p>{{ grp.last_message.content }}</p>
+                    <a href="chat/{{ grp.id }}" class="button border-color-accent color-accent">See more comments</a>
+                    <hr />
+                </div>
+            {% endfor %}
+        </article>
+    </article>
 {% endblock %}
