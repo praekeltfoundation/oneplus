@@ -270,6 +270,8 @@ def signup_form_normal(request):
                         .values('pk', 'name')[:10]
                     for entry in school_list:
                         entry['id'] = entry.pop('pk')
+                except:
+                    school_list = None
                 finally:
                     if not school_list or len(school_list) == 0:
                         school_list = School.objects.filter(province=data['province'],
