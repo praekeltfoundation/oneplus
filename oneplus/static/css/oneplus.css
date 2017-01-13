@@ -433,6 +433,10 @@ form.no-pad {
 .link {
   background: none;
   border: none; }
+  .link.undecorated {
+    text-decoration: none; }
+  .link.wraps {
+    display: inline; }
 
 .link.undecorated {
   text-decoration: none; }
@@ -1166,7 +1170,7 @@ p {
 
 .grouped-titles p {
   margin: 0;
-  margin-bottom: 0.25em; }
+  margin-bottom: 0.5em; }
 
 .grouped-titles .title {
   margin-top: 1em; }

@@ -124,14 +124,14 @@
         <div class="content">
         {% if not state.questions_complete %}
             {% if state.home_tasks_week >= 15 %}
-                <p class="white-front body-copy">This week's revision complete. Come back Monday for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
+                <p>This week's revision complete. Come back Monday for more{% if redo %} or <a class="color-accent" href="redo">redo your incorrect answers</a>{% endif %}.</p>
             {% elif state.home_tasks_today >= state.home_required_tasks %}
-                <p class="white-front body-copy">Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="green-front" href="redo">redo your incorrect answers</a>{% endif %}.</p>
+                <p>Today's revision complete. Come back tomorrow for more{% if redo %} or <a class="color-accent" href="redo">redo your incorrect answers</a>{% endif %}.</p>
             {% else %}
                 {% if not sumit %}
-                    <a class="button green-back grey-front" href="next">Take Challenge</a>
+                    <a class="button border-color-accent color-accent" href="next">Take the challenge</a>
                 {% else %}
-                    <a class="button green-back grey-front" href="sumit">Start SUMit!</a>
+                    <a class="button border-color-accent color-accent" href="sumit">Start SUMit!</a>
                 {% endif %}
             {%  endif %}
         {% else %}
@@ -144,9 +144,9 @@
                 {% csrf_token %}
                 <div class="content">
                     {% if first_sitting %}
-                        <input class="button green-back grey-front" type="submit" name="take_event" value="Take the {{ event_name }}">
+                        <input class="button border-color-accent color-accent" type="submit" name="take_event" value="Take the {{ event_name }}">
                     {% else %}
-                        <input class="button green-back grey-front" type="submit" name="take_event" value="Finish {{ event_name }}">
+                        <input class="button border-color-accent color-accent" type="submit" name="take_event" value="Finish {{ event_name }}">
                     {% endif %}
                 </div>
             </form>

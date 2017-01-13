@@ -206,8 +206,16 @@ form.no-pad {
 }
 
 .link {
-    background: none;
-    border:none;
+  background: none;
+  border:none;
+
+  &.undecorated {
+    text-decoration: none;
+  }
+
+  &.wraps {
+    display: inline;
+  }
 }
 
 .link.undecorated {
@@ -1060,7 +1068,7 @@ p {font-size: $body-copy-size; line-height: 1.5em;}
 
 .grouped-titles p {
     margin: 0;
-    margin-bottom: 0.25em;
+    margin-bottom: 0.5em;
 }
 
 .grouped-titles .title  {
