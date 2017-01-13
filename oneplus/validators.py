@@ -267,6 +267,8 @@ def validate_sign_up_form_normal(post):
         except Course.DoesNotExist:
             data["grade"] = None
             errors["grade_course_error"] = "No course is assigned to your grade"
+    else:
+        errors["grade_error"] = "This must be completed"
 
     return data, errors
 
