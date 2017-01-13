@@ -1,52 +1,54 @@
 {% extends "core/main.html" %}
 
 {% block title %}CHAT{% endblock %}
+{% block page_descriptor_text %}Chat groups{% endblock %}
 
 {% block content %}
     {% load humanize %}
-<div class="menu">
-    <a href="/chat"><div class="text heading orange-back darkgrey-front"><li class="icon chat"></li><p>Chat Groups</p></div></a>
-</div>
-    <div class="text heading darkgrey-back"><p>{{ group.name }}</p></div>
+    <article class="content iris-accent">
+        <h1>Chat with your grade about maths</h1>
 
-    <div class="menu">
-        {% for msg in messages %}
-            {% if msg.moderated %}
-                <div class="item-large grey-back">
-                    <div><span class="white-front bold-font">{{ msg.author.first_name }}</span> <span class="lightgrey-front">{{ msg.publishdate | naturaltime }}</span></div>
-                    {% if  msg.unmoderated_date == None %}
-                        <p class="white-front">{{ msg.content }}</p>
-                        {% if ONEPLUS_278 %}
-                            <form name="report_comment" method="post" action="?">
-                                {% csrf_token %}
-                                <button type="submit" name="report_button" class="bold link" value="">Report Comment</button>
-                                <input type="hidden" name="report" value="{{ msg.id }}" />
-                            </form>
+        <div class="comment-list">
+            {% for msg in messages %}
+                {% if msg.moderated %}
+                    <div class="item-large">
+                        <div>
+                            <span class="comment-author">{{ msg.author.first_name }}</span>
+                        </div>
+                        {% if  msg.unmoderated_date == None %}
+                            <p>{{ msg.content }}</p>
+                            {% if ONEPLUS_278 %}
+                                <form name="report_comment" method="post" action="?">
+                                    {% csrf_token %}
+                                    <button type="submit" name="report_button" class="bold link" value="">Report Comment</button>
+                                    <input type="hidden" name="report" value="{{ msg.id }}" />
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <p class="red-front">{{ msg.content }}</p>
                         {% endif %}
-                    {% else %}
-                        <p class="red-front">{{ msg.content }}</p>
-                    {% endif %}
-                </div>
-            {% endif %}
-        {% endfor %}
+                    </div>
+                    <hr />
+                {% endif %}
+            {% endfor %}
 
-        <form name="more_form" method="post" action="?" class="item grey-back">{% csrf_token %}
-            {{ state.chat_page }} of {{ state.chat_page_max }}
-            {% if state.chat_page < state.chat_page_max %}
-            <button type="submit" name="more_button" class="orange-front link" value="">Load more Comments ></button>
-            <input type="hidden" name="page" value="" />
-            {% endif %}
-        </form>
-    </div>
-
-    {% if not state.banned and not preview%}
-        <div class="content padded darkgrey-back">
-            Post a comment
-            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                <input type="text" name="comment" value="" />
-                <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Post</button>
+            <form name="more_form" method="post" action="?" class="item">{% csrf_token %}
+                {% comment %}{{ state.chat_page }} of {{ state.chat_page_max }}{% endcomment %}
+                {% if state.chat_page < state.chat_page_max %}
+                <button type="submit" name="more_button" class="button" value="">Load more messages ></button>
+                <input type="hidden" name="page" value="" />
+                {% endif %}
             </form>
         </div>
-    {% endif %}
 
+        {% if not state.banned and not preview %}
+            <div class="padded">
+                Post a comment
+                <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+                    <textarea type="text" name="comment" value=""></textarea>
+                    <button type="submit" name="comment_button" class="button color-accent border-color-accent" value="Submit">Post</button>
+                </form>
+            </div>
+        {% endif %}
+    </article>
 {% endblock %}
