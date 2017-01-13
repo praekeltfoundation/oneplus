@@ -266,7 +266,10 @@ def signup_form_normal(request):
                 school_list = None
                 try:
                     school_list = SearchQuerySet()\
-                        .filter(province=data['province'], name__fuzzy=data['school_dirty']).values()[:10]
+                        .filter(province=data['province'], name__fuzzy=data['school_dirty'])\
+                        .values('pk', 'name')[:10]
+                    for entry in school_list:
+                        entry['id'] = entry.pop('pk')
                 finally:
                     if not school_list or len(school_list) == 0:
                         school_list = School.objects.filter(province=data['province'],
