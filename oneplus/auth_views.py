@@ -263,27 +263,41 @@ def signup_form_normal(request):
 
         if not errors:
             if "school_dirty" in data:
-                school_list = SearchQuerySet().filter(province=data['province'], name__fuzzy=data['school_dirty'])
+                school_list = None
+                try:
+                    school_list = SearchQuerySet()\
+                        .filter(province=data['province'], name__fuzzy=data['school_dirty']).values()[:10]
+                finally:
+                    if not school_list or len(school_list) == 0:
+                        school_list = School.objects.filter(province=data['province'],
+                                                            name__icontains=data['school_dirty']).values()[:10]
+
                 if len(school_list) > 0:
-                    return render(request, "auth/signup_school_confirm.html", {"data": data,
+                    return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                               "data": data,
                                                                                "school_list": school_list})
                 else:
                     errors.update({"school_dirty_error": "No schools were a close enough match."})
-                    return render(request, "auth/signup_form_normal.html", {"data": data,
+                    return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
+                                                                            "data": data,
                                                                             "errors": errors})
             else:
                 errors.update({"school_error": "Unknown school selected."})
-                return render(request, "auth/signup_form_normal.html", {"data": data,
+                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
+                                                                        "data": data,
                                                                         "errors": errors})
         else:
             if "province" in data:
                 filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
 
-                return render(request, "auth/signup_form_normal.html", {"data": data,
+                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
+                                                                        "data": data,
                                                                         "errors": errors,
                                                                         "schools": filtered_schools})
             else:
-                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
+                                                                 "data": data,
+                                                                 "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
@@ -341,16 +355,22 @@ def signup_school_confirm(request):
                 return render(request, "auth/signedup.html")
             else:
                 errors.update({"school_error": "Unknown school selected."})
-                return render(request, "auth/signup_school_confirm.html", {"data": data,
+                return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                           "data": data,
                                                                            "errors": errors})
         else:
             if "school" in data:
-                return render(request, "auth/signup_school_confirm.html", {"data": data,
+                return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                           "data": data,
                                                                            "errors": errors})
             elif "province" in data:
-                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES})
+                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
+                                                                        "data": data,
+                                                                        "errors": errors})
             else:
-                return render(request, "auth/signup_form.html", {"provinces": PROVINCES})
+                return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
+                                                                 "data": data,
+                                                                 "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
