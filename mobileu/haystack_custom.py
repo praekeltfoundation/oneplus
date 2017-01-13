@@ -64,7 +64,7 @@ class FuzzyBackend(ElasticsearchSearchBackend):
             if isinstance(fields, (list, set)):
                 fields = " ".join(fields)
 
-            kwargs['fields'] = fields
+            kwargs['stored_fields'] = fields
 
         if sort_by is not None:
             order_list = []
