@@ -303,7 +303,7 @@ h1 {
   margin: 16px 0px 16px 0px; }
 
 p {
-  margin: 16px 0px 16px 0px;
+  margin: 0px 0px 16px 0px;
   line-height: 1.1em; }
 
 a {
@@ -434,6 +434,13 @@ form.no-pad {
   background: none;
   border: none; }
 
+.link.undecorated {
+  text-decoration: none; }
+
+.link.heading {
+  font-family: "Asap", sans-serif;
+  font-size: 150%; }
+
 .form-link {
   font-weight: bold;
   text-decoration: underline; }
@@ -518,6 +525,11 @@ form.no-pad {
   border-top: solid 2px #5b5b5b;
   margin: 0.5em 0;
   width: 100%; }
+
+.justify-container {
+  display: block;
+  margin-bottom: -1em;
+  text-align: justify; }
 
 .justify-enforcer {
   display: inline-block;
