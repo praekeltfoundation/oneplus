@@ -2874,7 +2874,7 @@ class GeneralTests(TestCase):
         resp = self.client.get(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "test_14")
-        self.assertContains(resp, "5th place")
+        self.assertContains(resp, "5<sup>th</sup> place")
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")
@@ -2940,7 +2940,7 @@ class GeneralTests(TestCase):
 
         resp = self.client.get(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "1st place", count=3)
+        self.assertContains(resp, "1<sup>st</sup> place", count=3)
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")

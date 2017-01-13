@@ -3,6 +3,8 @@ from django import template
 import re
 import bleach
 from django.utils.html import remove_tags
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext as _
 
 register = template.Library()
 
@@ -88,3 +90,22 @@ allowed_styles = [
     'font-variant',
     'width',
     'height']
+
+
+@register.filter(name='ordinal_extra', is_safe=True)
+def ordinal_extra(value, flag=None):
+    """
+    Converts an integer to its ordinal as a string. 1 is '1st', 2 is '2nd',
+    3 is '3rd', etc. Works for any integer.
+    """
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return value
+    suffixes = (_('th'), _('st'), _('nd'), _('rd'), _('th'), _('th'), _('th'), _('th'), _('th'), _('th'))
+    if value % 100 in (11, 12, 13):  # special case
+        return mark_safe("%d%s" % (value, suffixes[0]))
+    # Mark value safe so i18n does not break with <sup> or <sub> see #19988
+    if flag == 'sup':
+        return mark_safe("%d<sup>%s</sup>" % (value, suffixes[value % 10]))
+    return mark_safe("%d%s" % (value, suffixes[value % 10]))

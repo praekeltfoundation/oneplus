@@ -10,6 +10,7 @@
 
 {% block content %}
     {% load humanize %}
+    {% load oneplus_extras %}
     <section class="content">
         <hgroup class="pale-teal-accent">
             <h1 class="color-accent">Hello, {{ user.name }}.</h1>
@@ -81,7 +82,7 @@
                 <section class="bottom">
                     <table class="card-table">
                         <tr>
-                            <td class="funky-number color-accent">{{ position|ordinal }}</td>
+                            <td class="funky-number color-accent">{{ position|ordinal_extra:'sup' }}</td>
                             <td>Place on the 'My Grade' leaderboard</td>
                         </tr>
                     </table>
