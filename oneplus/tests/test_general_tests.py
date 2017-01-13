@@ -3505,6 +3505,23 @@ class GeneralTests(TestCase):
                                         follow=True)
                 MockSearchSet.assert_called()
                 self.assertContains(resp, 'No schools were a close enough match')
+                MockSearchSet.clear()
+
+                # Failed ElasticSearch
+                MockSearchSet().filter().values.side_effect = Exception('LOL! ERROR.')
+                resp = self.client.post(reverse('auth.signup_form_normal'),
+                                        data={
+                                            'first_name': "Bob",
+                                            'surname': "Bobby",
+                                            'cellphone': '0729876543',
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 10',
+                                            'enrolled': 1,
+                                            'school_dirty': self.school.name},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'No schools were a close enough match')
+                MockSearchSet.clear()
 
             #invalid school and class
             resp = self.client.post(reverse('auth.signup_school_confirm'),
