@@ -22,9 +22,12 @@
                     <div class="red-front">{{ errors.grade_error }}</div>
                 {% endif %}
                 <div class="radiogroup">
-                    <label><input class="block" type="radio" name="grade" value="Grade 10">10</label>
-                    <label><input class="block" type="radio" name="grade" value="Grade 11">11</label>
-                    <label><input class="block" type="radio" name="grade" value="Grade 12">12</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 10"
+                            {% ifequal data.grade 'Grade 10' %}checked{% endifequal %}>10</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 11"
+                            {% ifequal data.grade 'Grade 11' %}checked{% endifequal %}>11</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 12"
+                            {% ifequal data.grade 'Grade 12' %}checked{% endifequal %}>12</label>
                 </div>
             </label>
 

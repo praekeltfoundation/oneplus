@@ -21,8 +21,8 @@
             <div class="radiogroup">
                 {% for school in school_list %}
                     <label>
-                        <input name="school" type="radio" value="{{ school.object.id }}" />
-                        {{ school.object.name }}
+                        <input name="school" type="radio" value="{{ school.id }}" />
+                        {{ school.name }}
                     </label>
                 {% endfor %}
                 {% comment %}<option value="other">Other</option>{% endcomment %}
