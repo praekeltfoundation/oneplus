@@ -5,10 +5,11 @@
 
 {% block content %}
     {% load humanize %}
+    {% load oneplus_extras %}
     <article class="content squash-accent">
         <div class="text heading">
             {% if position %}
-                <p>{{ header_2 }} <span class="purple-front">{{ position|ordinal }} place</span></p>
+                <p>{{ header_2 }} <span class="purple-front">{{ position|ordinal_extra:'sup' }} place</span></p>
             {% endif %}
         </div>
 
@@ -22,7 +23,7 @@
                     <hr class="hr-accent" />
                     <section class="bottom">
                         <div class="center-font">{{ user.name }}, you're currently in</div>
-                        <div class="center-font color-accent funky-number">{{ class_board.position|ordinal }} place</div>
+                        <div class="center-font color-accent funky-number">{{ class_board.position|ordinal_extra:'sup' }} place</div>
                     </section>
                 {% endif %}
                 {% if class_board.active %}
@@ -64,7 +65,7 @@
                     <hr class="hr-accent" />
                     <section class="bottom">
                         <div class="center-font">Your school is currently in</div>
-                        <div class="center-font color-accent funky-number">{{ school_board.position|ordinal }} place</div>
+                        <div class="center-font color-accent funky-number">{{ school_board.position|ordinal_extra:'sup' }} place</div>
                     </section>
                 {% endif %}
                 {% if school_board.active %}
@@ -106,7 +107,7 @@
                     <hr class="hr-accent" />
                     <section class="bottom">
                         <div class="center-font">{{ user.name }}, you're currently in</div>
-                        <div class="center-font color-accent funky-number">{{ national_board.position|ordinal }} place</div>
+                        <div class="center-font color-accent funky-number">{{ national_board.position|ordinal_extra:'sup' }} place</div>
                     </section>
                 {% endif %}
                 {% if national_board.active %}
