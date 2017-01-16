@@ -1053,14 +1053,14 @@ li.change_number-color {
 
 .badge-counter {
   border-radius: 100%;
+  color: #ffffff;
   height: 28px;
-  width: 28px !important;
   left: 42px;
-  text-align: center;
   line-height: 28px;
-  border: 1px solid black;
-  position: relative;
   margin-top: 0px !important;
+  position: relative;
+  text-align: center;
+  width: 28px !important;
   z-index: 5; }
 
 img.badge {
@@ -1077,7 +1077,7 @@ img.badge {
   width: 100%; }
 
 .disabled-badge {
-  color: #ffffff;
+  color: #d5d5d5;
   opacity: 0.20;
   filter: alpha(opacity=15);
   /* msie */ }

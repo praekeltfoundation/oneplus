@@ -1,29 +1,29 @@
 {% extends "core/main.html" %}
 
-{% block title %}BADGES{% endblock %}
+{% block title %}Badges{% endblock %}
+{% block page_descriptor_text %}Badges{% endblock %}
 
 {% block content %}
-<div class="menu">
-    <a href="/menu"><div class="text heading purple-back darkgrey-front"><li class="icon badges"></li><p>Badges</p></div></a>
-</div>
-    <div class="text heading darkgrey-back"><p>The badges you've earned</p></div>
+    <article class="content squash-accent">
+        <h1>All badges</h1>
 
-    <div class="content">
-        {% for badge in badges %}
-            <div class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
-                {% if badge.achieved %}
-                    <div class="badge-counter purple-back">{{ badge.count }}</div>
-                {% endif %}
-                {% if badge.image %}
-                    <img class="badge" src="{{ badge.image.url }}">
-{#                    <li class="badge" style="background-image: url('{{ badge.image.url }}')"></li>#}
-                {% else %}
-                    <li class="badge" style="background-image: url('/static/img/icn_badges.png')"></li>
-                {% endif %}
-                <div class="text center-font badge-name"><p>{{ badge.name }}</p></div>
-            </div>
-        {% endfor %}
-        <div class="clear"></div>
-    </div>
+        <div>
+            {% for badge in badges %}
+                <div class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
+                    {% if badge.achieved %}
+                        <div class="badge-counter background-color-accent">{{ badge.count }}</div>
+                    {% endif %}
+                    {% if badge.image %}
+                        <img class="badge" src="{{ badge.image.url }}">
+    {#                    <li class="badge" style="background-image: url('{{ badge.image.url }}')"></li>#}
+                    {% else %}
+                        <li class="badge" style="background-image: url('/static/img/icn_badges.png')"></li>
+                    {% endif %}
+                    <div class="text center-font badge-name"><p>{{ badge.name }}</p></div>
+                </div>
+            {% endfor %}
+            <div class="clear"></div>
+        </div>
+    </article>
 
 {% endblock %}
