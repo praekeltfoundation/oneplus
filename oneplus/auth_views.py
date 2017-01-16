@@ -380,6 +380,14 @@ def signup_school_confirm(request):
     return resolve_http_method(request, [get, post])
 
 
+def no_sms(request):
+
+    def get():
+        return render(request, "auth/no_sms.html")
+
+    return resolve_http_method(request, [get])
+
+
 @oneplus_state_required
 def signout(request, state):
     logout(request)
