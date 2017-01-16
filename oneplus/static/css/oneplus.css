@@ -405,6 +405,7 @@ form.no-pad {
   width: 1em; }
 
 .level-pip-container {
+  margin-bottom: 1em;
   padding: 0 1em;
   text-align: center; }
 
