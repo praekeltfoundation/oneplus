@@ -170,7 +170,9 @@ def home(request, state, user, participant):
             correct=True,
             answer_date__gte=_start_of_week
         ).count()
-    request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
+    request.session["state"]["home_goal"] = settings.ONEPLUS_WIN_REQUIRED
+    request.session["state"]["home_goal_remaining"] = \
+        settings.ONEPLUS_WIN_REQUIRED - request.session["state"]["home_correct"]
 
     redo = None
     redo_active = Setting.get_setting("REPEATING_QUESTIONS_ACTIVE")
