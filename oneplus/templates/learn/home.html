@@ -52,10 +52,12 @@
                     </tr>
                 </table>
             </section>
-            <hr class="hr-accent" />
-            <section class="bottom">
-                <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
-            </section>
+            {% if redo %}
+                <hr class="hr-accent" />
+                <section class="bottom">
+                    <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+                </section>
+            {% endif %}
         </article>
 
         {% comment %}Overall stats{% endcomment %}
