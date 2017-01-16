@@ -356,6 +356,9 @@ button {
   text-align: center;
   text-decoration: none;
   width: 100%; }
+  .button.inline {
+    padding-left: 1em;
+    padding-right: 1em; }
 
 form > label {
   margin: 0.5em 0; }
@@ -564,6 +567,9 @@ a.wrap-inline {
   margin: 0;
   padding: 0;
   text-decoration: none; }
+
+.item-large.reply {
+  margin-left: 1em; }
 
 .login label {
   z-index: 1;

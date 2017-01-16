@@ -122,6 +122,11 @@ button {
   text-align: center;
   text-decoration: none;
   width: 100%;
+
+  &.inline {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
 }
 
 form > label {
@@ -377,6 +382,10 @@ a.wrap-inline {
   margin: 0;
   padding: 0;
   text-decoration: none;
+}
+
+.item-large.reply {
+  margin-left: 1em;
 }
 
 .login label { z-index: 1; display: block; }
