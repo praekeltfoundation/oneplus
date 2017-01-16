@@ -379,6 +379,15 @@ a.wrap-inline {
   text-decoration: none;
 }
 
+ol.numbered {
+  list-style: decimal inside;
+  margin: 1em 0;
+
+  li {
+    margin-bottom: 1em;
+  }
+}
+
 .login label { z-index: 1; display: block; }
 
 .text {

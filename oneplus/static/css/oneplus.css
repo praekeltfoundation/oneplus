@@ -565,6 +565,12 @@ a.wrap-inline {
   padding: 0;
   text-decoration: none; }
 
+ol.numbered {
+  list-style: decimal inside;
+  margin: 1em 0; }
+  ol.numbered li {
+    margin-bottom: 1em; }
+
 .login label {
   z-index: 1;
   display: block; }
