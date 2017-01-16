@@ -240,9 +240,8 @@ def validate_sign_up_form_normal(post):
     errors = {}
 
     if "province" in post and post["province"]:
-        if post["province"] in PROVINCES:
-            data["province"] = post["province"]
-        else:
+        data["province"] = post["province"]
+        if post["province"] not in PROVINCES:
             errors["province_error"] = "Select your province"
     else:
         errors["province_error"] = "This must be completed"

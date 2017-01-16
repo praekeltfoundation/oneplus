@@ -38,8 +38,8 @@
                 {% endif %}
                 <select name="province" id="id_province">
                     <option value="0">Select</option>
-                    {% for province in provinces %}
-                        <option value="{{ province }}">{{ province }}</option>
+                    {% for province_name in provinces %}
+                        <option value="{{ province_name }}"{% ifequal data.province province_name %} selected="selected"{% endifequal %}>{{ province_name }}</option>
                     {% endfor %}
                 </select>
             </label>
