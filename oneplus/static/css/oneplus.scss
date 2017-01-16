@@ -51,6 +51,7 @@ header {
 
 header, footer {
   display: block;
+  max-width: 960px;
   min-height: 2em;
   padding: 0.5em 1.5em;
 }
@@ -622,7 +623,8 @@ a.descriptor {
 }
 
 .content {
-    padding: 0 1.5em;
+  max-width: 960px;
+  padding: 0 1.5em;
 }
 
 @media (min-width: 30em) {
