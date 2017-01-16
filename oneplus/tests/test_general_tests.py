@@ -2618,7 +2618,7 @@ class GeneralTests(TestCase):
             follow=True
         )
 
-        self.assertContains(resp, "SIGN IN")
+        self.assertContains(resp, "Sign in")
 
         password = 'mypassword'
         my_admin = CustomUser.objects.create_superuser(
@@ -3468,11 +3468,11 @@ class GeneralTests(TestCase):
 
             #get request
             resp = self.client.get(reverse('auth.signup_form_normal'), follow=True)
-            self.assertContains(resp, "Sign Up")
+            self.assertContains(resp, "Register")
 
             #no data
             resp = self.client.post(reverse('auth.signup_form_normal'), follow=True)
-            self.assertContains(resp, "Sign Up")
+            self.assertContains(resp, "Register")
 
             with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
                 # non-empty search result
