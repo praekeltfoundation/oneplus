@@ -176,7 +176,20 @@ except ImportError as e:
     pass
 
 try:
-    from oneplusmvp.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_12_COURSE_NAME, \
-        GRADE_10_OPEN_CLASS_NAME, GRADE_11_OPEN_CLASS_NAME, GRADE_12_OPEN_CLASS_NAME
+    from oneplusmvp.settings import GRADE_10_COURSE_NAME, GRADE_11_COURSE_NAME, GRADE_12_COURSE_NAME
 except ImportError as e:
-    pass
+    GRADE_10_COURSE_NAME = "One Plus Grade 10"
+    GRADE_11_COURSE_NAME = "One Plus Grade 11"
+    GRADE_12_COURSE_NAME = "One Plus Grade 12"
+
+try:
+    from oneplusmvp.settings import GRADE_10_OPEN_CLASS_NAME, GRADE_11_OPEN_CLASS_NAME, GRADE_12_OPEN_CLASS_NAME
+except ImportError as e:
+    GRADE_10_OPEN_CLASS_NAME = "Grade 10 - Open Class"
+    GRADE_11_OPEN_CLASS_NAME = "Grade 11 - Open Class"
+    GRADE_12_OPEN_CLASS_NAME = "Grade 12 - Open Class"
+
+try:
+    from oneplusmvp.settings import OPEN_SCHOOL
+except ImportError as e:
+    OPEN_SCHOOL = "Open School"
