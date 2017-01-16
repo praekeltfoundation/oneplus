@@ -65,47 +65,49 @@
         {% endif %}
 
         {% if not state.banned and not preview%}
-            <div class="content padded darkgrey-back pad-top">
-                <div class="white-front bold-font">Discuss the Challenge</div>
+            <div class="padded">
+                <div class="bold-font">Discuss the Challenge</div>
                 <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                     <input type="text" name="comment" value="" />
-                    <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Submit</button>
+                    <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
                 </form>
                 {% if state.discussion_comment %}
-                    <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
+                    <p class="color-accent">Thank you for your contribution. Your message will display shortly!</p>
                 {% endif %}
             </div>
         {% endif %}
 
-        {% if request.session.state.discussion_page_max > 0 or  preview %}
-            <article class="comment-list">
+        {% if request.session.state.discussion_page_max > 0 or preview%}
+            <article class="content comment-list">
                 {% for msg in messages %}
                     {% if msg.moderated %}
                         <div class="item-large">
                             <div>
                                 <span class="comment-author">{{ msg.author.first_name }}</span>
-                                {% if not state.banned and not preview%}
-                                    {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                                        <form name="comment_response" method="post" action="?" class="inline">
-                                            {% csrf_token %}
-                                            <button type="submit" name="reply_button" class="link green-front" value="{{ msg.id }}">Reply</button>
-                                        </form>
-                                    {% endifnotequal %}
-                                {% endif %}
                             </div>
 
                             {% if  msg.unmoderated_date == None %}
                                 <p>{{ msg.content }}</p>
+                                <div>
 
-                                {% if not preview %}
-                                    <form name="report_comment" method="post" action="?">
-                                        {% csrf_token %}
-                                        <button type="submit" name="report_button" class="bold link" value="">Report Comment</button>
-                                        <input type="hidden" name="report" value="{{ msg.id }}" />
-                                    </form>
-                                {% endif %}
+                                    {% if not preview %}
+                                        {% if not state.banned %}
+                                            {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
+                                                <form name="comment_response" method="post" action="?" class="inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" name="comment_response_button" class="button border-color-accent color-accent inline" value="{{ msg.id }}">Reply</button>
+                                                </form>
+                                            {% endifnotequal %}
+                                        {% endif %}
+                                        <form name="report_comment" method="post" action="?" class="inline">
+                                            {% csrf_token %}
+                                            <button type="submit" name="report_button" class="button inline" value="">Report Comment</button>
+                                            <input type="hidden" name="report" value="{{ msg.id }}" />
+                                        </form>
+                                    {% endif %}
+                                </div>
 
-                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
+                               {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                     <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                                         <input type="text" name="reply" value="" />
                                         <button type="submit" name="reply_button" class="button border-color-accent color-accent" value="{{ msg.id }}">Reply</button>
@@ -124,21 +126,24 @@
                         {% for rsp in msg.related_discussions.all reversed %}
                             {% if rsp.moderated %}
                                 <div class="item-large reply">
-                                    <div><span class="bold-font">{{ rsp.author.first_name }}</span></div>
+                            <div>
+                                <span class="comment-author">{{ msg.author.first_name }}</span>
+                            </div>
                                     <p>{{ rsp.content }}</p>
                                 </div>
                             {% endif %}
                         {% endfor %}
                     {% endif %}
+                    <hr />
                 {% endfor %}
 
                 {% if not preview %}
-                    <form name="more_form" method="post" action="?" class="item">
+                    <form name="more_form" method="post" action="?">
                         {% csrf_token %}
                         <div class="item">
                             {{ state.discussion_page }} of {{ state.discussion_page_max }}
                             {% if state.discussion_page < state.discussion_page_max %}
-                                <button type="submit" name="more_button" class="green-front link" value="">Load more Comments ></button>
+                                <button type="submit" name="more_button" class="button" value="">See more comments</button>
                                 <input type="hidden" name="page" value="" />
                             {% endif %}
                         </div>
