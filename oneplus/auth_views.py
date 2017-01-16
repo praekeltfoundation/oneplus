@@ -293,12 +293,9 @@ def signup_form_normal(request):
                                                                         "errors": errors})
         else:
             if "province" in data:
-                filtered_schools = School.objects.filter(province=data["province"], open_type=School.OT_OPEN)
-
                 return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
                                                                         "data": data,
-                                                                        "errors": errors,
-                                                                        "schools": filtered_schools})
+                                                                        "errors": errors})
             else:
                 return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
                                                                  "data": data,
