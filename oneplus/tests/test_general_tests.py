@@ -21,7 +21,6 @@ from oneplus.learn_views import get_points_awarded, get_badge_awarded
 from oneplus.models import LearnerState
 from oneplus.tasks import update_perc_correct_answers_worker
 from oneplus.templatetags.oneplus_extras import format_content, format_option
-from oneplus.validators import validate_mobile
 from oneplus.views import get_week_day
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 from oneplus.tasks import reset_learner_states
@@ -3375,35 +3374,6 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('auth.signup'), data={'no': "Not interested right now"}, follow=True)
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "<title>DIG-IT | HELLO</title>")
-
-    def test_validate_mobile(self):
-        v_mobile_1 = "0721234567"
-        v_mobile_1 = validate_mobile(v_mobile_1)
-        self.assertEquals(v_mobile_1, "0721234567")
-
-        v_mobile_2 = "+27721234569"
-        v_mobile_2 = validate_mobile(v_mobile_2)
-        self.assertEquals(v_mobile_2, "+27721234569")
-
-        v_mobile_3 = "+123721234567"
-        v_mobile_3 = validate_mobile(v_mobile_3)
-        self.assertEquals(v_mobile_3, "+123721234567")
-
-        i_mobile_1 = "072123456"
-        i_mobile_1 = validate_mobile(i_mobile_1)
-        self.assertEquals(i_mobile_1, None)
-
-        i_mobile_2 = "07212345678"
-        i_mobile_2 = validate_mobile(i_mobile_2)
-        self.assertEquals(i_mobile_2, None)
-
-        i_mobile_3 = "+2821234567"
-        i_mobile_3 = validate_mobile(i_mobile_3)
-        self.assertEquals(i_mobile_3, None)
-
-        i_mobile_4 = "+1237212345678"
-        i_mobile_4 = validate_mobile(i_mobile_4)
-        self.assertEquals(i_mobile_4, None)
 
     def test_signup_form(self):
         with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
