@@ -11,7 +11,7 @@ requests_testadapter
 mock
 xlwt
 python-dateutil
-coverage
+coverage==4.2
 django-boolean-sum
 elasticsearch
 django-haystack==2.4.1
