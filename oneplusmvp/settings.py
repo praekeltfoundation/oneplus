@@ -209,7 +209,7 @@ BLEACH_STRIP_TAGS = True
 BLEACH_STRIP_COMMENTS = False
 
 # The number of correct answers in a week required to win airtime
-ONEPLUS_WIN_REQUIRED = 9
+ONEPLUS_WIN_REQUIRED = 12
 
 # Airtime to win per week in Rands
 ONEPLUS_WIN_AIRTIME = 5
