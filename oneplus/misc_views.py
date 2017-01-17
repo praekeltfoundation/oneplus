@@ -182,7 +182,7 @@ def contact(request, state, user):
 onboarding_pages = (
     {
         'accent_color': 'pale-teal',
-        'message': 'What you achieve in maths, you achieve in life. Sign up to begin.'
+        'message': 'What you achieve in maths, you achieve in life. Register to begin.'
     },
     {
         'accent_color': 'sunflower-yellow',

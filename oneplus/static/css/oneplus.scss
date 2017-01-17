@@ -122,6 +122,11 @@ button {
   text-align: center;
   text-decoration: none;
   width: 100%;
+
+  &.inline {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
 }
 
 form > label {
@@ -386,6 +391,10 @@ ol.numbered {
   li {
     margin-bottom: 1em;
   }
+}
+
+.item-large.reply {
+  margin-left: 1em;
 }
 
 .login label { z-index: 1; display: block; }
