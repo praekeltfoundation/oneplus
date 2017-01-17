@@ -292,14 +292,9 @@ def signup_form_normal(request):
                                                                         "data": data,
                                                                         "errors": errors})
         else:
-            if "province" in data:
-                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
-                                                                        "data": data,
-                                                                        "errors": errors})
-            else:
-                return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
-                                                                 "data": data,
-                                                                 "errors": errors})
+            return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
+                                                                    "data": data,
+                                                                    "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
@@ -361,18 +356,9 @@ def signup_school_confirm(request):
                                                                            "data": data,
                                                                            "errors": errors})
         else:
-            if "school" in data:
-                return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
-                                                                           "data": data,
-                                                                           "errors": errors})
-            elif "province" in data:
-                return render(request, "auth/signup_form_normal.html", {"provinces": PROVINCES,
-                                                                        "data": data,
-                                                                        "errors": errors})
-            else:
-                return render(request, "auth/signup_form.html", {"provinces": PROVINCES,
-                                                                 "data": data,
-                                                                 "errors": errors})
+            return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                       "data": data,
+                                                                       "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
