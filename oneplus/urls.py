@@ -27,7 +27,7 @@ urlpatterns = [
     url(r"^profile$", oneplus.auth_views.profile, name="auth.profile"),
     url(r"^edit_profile$", oneplus.auth_views.edit_profile, name="auth.edit_profile"),
     url(r'^signup$', oneplus.auth_views.signup, name="auth.signup"),
-    url(r'^signup_form$$', oneplus.auth_views.signup_form, name="auth.signup_form"),
+    url(r'^signup_form$', oneplus.auth_views.signup_form, name="auth.signup_form"),
     url(r'^signup_school_confirm$', oneplus.auth_views.signup_school_confirm,
         name="auth.signup_school_confirm"),
     url(r'^signup_form_normal$', oneplus.auth_views.signup_form_normal, name="auth.signup_form_normal"),
