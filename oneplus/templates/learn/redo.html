@@ -1,24 +1,29 @@
 {% extends "core/main.html" %}
 {% load bleach_tags %}
 {% load oneplus_extras %}
-{% block title %}NEXT{% endblock %}
+{% block title %}Next{% endblock %}
 
 {% block content %}
     {% load humanize %}
+    <article class="content pale-teal-accent">
         {% if state.report_sent %}
-            <div class="content padded darkgrey-back pad-top">
+            <div class="pad-top">
                 <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
             </div>
         {% endif %}
 
-        <div class="text heading green-back darkgrey-front"><li class="icon ontrack"></li><p>Today's Repeat Questions</p></div>
-        <div class="text heading darkgrey-back"><p>Q {{ state.next_tasks_today }}/{{ state.total_tasks_today }}</p></div>
+        <h1 class="color-accent">Question {{ state.next_tasks_today }}/{{ state.total_tasks_today }}</h1>
+        <h2>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</h2>
 
-        {% autoescape off %}
+        <article class="card pale-teal-accent border-color-accent">
+            {% autoescape off %}
             {{ state.question_id }}
-            <div class="content padded white-back darkgrey-front">
-                <form action="redo" method="post">{% csrf_token %}
-                    <p>{{ question.question_content | format_content }}</p>
+            <section class="top">
+                {{ question.question_content | format_content }}
+            </section>
+            <hr class="hr-accent" />
+            <form action="redo" method="post" style="padding:0;margin:0">{% csrf_token %}
+                <section class="bottom-novert">
                     {% for opt in question.testingquestionoption_set.all %}
                         <label class="label-question" for="answer_{{ opt.id }}">
                             <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
@@ -29,15 +34,18 @@
                             {% endif %}
                         </label>
                     {% endfor %}
-                    <br/>
-                    <div>
-                        <input type="submit" class="button green-back grey-front" value="Submit Answer"/>
-                    </div>
-                </form>
-            </div>
-        {% endautoescape %}
+                </section>
+                <hr class="hr-accent" />
+                <section class="bottom-novert center-font">
+                    <input type="submit" class="link" style="vertical-align:middle" value="Submit answer"/>
+                    <li class="icon forward" style="vertical-align:middle"></li>
+                </section>
+            </form>
+            {% endautoescape %}
+        </article>
 
-        <div class="content padded darkgrey-back pad-top">
-            <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/next"><b>here</b></a></p>
+        <div class="padded">
+            <p>Find a mistake? <a href="/report_question/{{ question.id }}/next">Report it here</a></p>
         </div>
+    </article>
 {% endblock %}
