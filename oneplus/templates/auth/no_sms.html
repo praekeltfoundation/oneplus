@@ -1,0 +1,24 @@
+{% extends "core/main.html" %}
+
+{% block title %}Thank you{% endblock %}
+
+{% block page_descriptor_text %}Sign up{% endblock %}
+
+{% block content %}
+
+    <article class="content pale-teal-accent">
+        <h1 class="color-accent">Didn't receive an SMS?</h1>
+        <h2>Here are some reasons why this might occur:</h2>
+        <ol class="numbered">
+            <li>The mobile number entered was incorrect</li>
+            <li>Network problems</li>
+            <li>SMS might take up to 5 minutes to come through</li>
+        </ol>
+        <p>
+            If you have not received your SMS, and the number you entered was correct, please
+            <a href="{% url 'misc.contact' %}">contact</a> us for help.
+        </p>
+        <a class="button border-color-accent color-accent" href="{% url 'auth.login' %}">Back to login</a>
+    </article>
+
+{% endblock %}

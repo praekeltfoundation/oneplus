@@ -384,6 +384,15 @@ a.wrap-inline {
   text-decoration: none;
 }
 
+ol.numbered {
+  list-style: decimal inside;
+  margin: 1em 0;
+
+  li {
+    margin-bottom: 1em;
+  }
+}
+
 .item-large.reply {
   margin-left: 1em;
 }
