@@ -27,7 +27,7 @@
                     </section>
                     <hr class="hr-accent" />
                     <section class="bottom">
-                        <a class="link-inline" href="next"><div>Take today's challenge</div></a>
+                        <a class="link-inline center-font" href="next"><div>Take today's challenge</div></a>
                     </section>
                 </article>
             {% endif %}
@@ -55,7 +55,7 @@
             {% if redo %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+                    <a class="link-inline center-font" href="next"><div>Redo incorrect answers</div></a>
                 </section>
             {% endif %}
         </article>
@@ -91,9 +91,24 @@
             {% endif %}
             <hr class="hr-accent" />
             <section class="bottom">
-                <a class="link-inline" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
+                <a class="link-inline center-font" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
             </section>
         </article>
+
+        {% comment %}Latest story{% endcomment %}
+        {% if post %}
+            <article class="card amethyst-accent border-color-accent">
+                <section class="top">
+                    <img src="/media/img/dashboard/motivate_yourself.png" width="100%" height="auto"/>
+                    <h3 class="card-top-phrase">{{ post.name }}</h3>
+                    <div class="card-description">{{ post.description|truncatechars:50 }}</div>
+                </section>
+                <hr />
+                <section class="bottom">
+                    <a class="link-inline center-font" href="/blog/{{ post.id }}"><div>Read story</div></a>
+                </section>
+            </article>
+        {% endif %}
 
         {% if state.home_tasks_today < state.home_required_tasks %}
             {% if not state.questions_complete %}

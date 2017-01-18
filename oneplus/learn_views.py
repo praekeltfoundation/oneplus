@@ -9,7 +9,7 @@ from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from auth.models import Learner
-from communication.models import Discussion, Report
+from communication.models import CoursePostRel, Discussion, Post, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage, SUMitLevel, SUMit
@@ -187,6 +187,15 @@ def home(request, state, user, participant):
 
     level, points_remaining = participant.calc_level()
 
+    _course = participant.classs.course
+    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
+    try:
+        _post = Post.objects.filter(
+            id__in=post_list
+        ).latest(field_name='publishdate')
+    except:
+        _post = None
+
     def get():
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
@@ -213,6 +222,7 @@ def home(request, state, user, participant):
                                                    "levels": range(7),
                                                    "points_remaining": points_remaining,
                                                    "position": get_class_leaderboard_position(_participant),
+                                                   "post": _post,
                                                    "redo": redo,
                                                    "state": state,
                                                    "sumit": sumit,
