@@ -120,7 +120,7 @@ def leader(request, state, user, participant):
             position_counter += 1
             learner = {
                 "id": a.id,
-                "name": "%s %s" % (a.learner.first_name, a.learner.last_name),
+                "name": "%s %s, %s" % (a.learner.first_name, a.learner.last_name, a.learner.school.name),
                 "position": position_counter}
             if a.id == _participant.id:
                 learner['me'] = True
