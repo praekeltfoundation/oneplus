@@ -1,20 +1,24 @@
 {% extends "core/main.html" %}
 
-{% block title %}REPORT THIS QUESTION{% endblock %}
+{% block title %}Report This Question{% endblock %}
 
 {% block content %}
-    <div class="menu">
-        <div class="text heading green-back grey-front"><p>Report Question</p></div>
-        <div class="text heading green-back grey-front"><p>Q{{ question_number }}</p></div>
-    </div>
-    <div class="content padded darkgrey-back">
-        <p>Think there is something wrong with this question or the answers? Please let us know by completing this form.</p>
+    <article class="content pale-teal-accent">
+        <hgroup>
+            <h1 class="color-accent">Something wrong with the question?</h1>
+            <h2>Let us know below.</h2>
+            {% if question_number %}<h3 class="left-font pad-top">Question {{ question_number }}</h3>{% endif %}
+        </hgroup>
         <form name="report_question_form" method="post" action="?" class="">{% csrf_token %}
-            <p>What is wrong with the question?</p>
-            <input type="text" name="issue" value="" />
-            <p>How can we fix the problem?</p>
-            <input type="text" name="fix" value="" />
-            <button type="submit" name="report_button" class="button green-back grey-front" value="Submit">Submit</button>
+            <label>
+                What is wrong with the question?
+                <input type="text" name="issue" value="" />
+            </label>
+            <label>
+                How can we fix the problem?
+                <input type="text" name="fix" value="" />
+            </label>
+            <button type="submit" name="report_button" class="button border-color-accent color-accent" value="Submit">Submit</button>
         </form>
-    </div>
+    </article>
 {% endblock %}
