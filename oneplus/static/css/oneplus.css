@@ -574,6 +574,11 @@ ol.numbered {
   ol.numbered li {
     margin-bottom: 1em; }
 
+ul.unnumbered {
+  list-style: disc inside;
+  padding-left: 1em;
+  text-indent: -1em; }
+
 .item-large.reply {
   margin-left: 1em; }
 
