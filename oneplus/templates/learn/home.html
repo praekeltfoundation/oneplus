@@ -95,6 +95,21 @@
             </section>
         </article>
 
+        {% comment %}Latest story{% endcomment %}
+        {% if post %}
+            <article class="card amethyst-accent border-color-accent">
+                <section class="top">
+                    <img src="/media/img/dashboard/motivate_yourself.png" width="100%" height="auto"/>
+                    <h3 class="card-top-phrase">{{ post.name }}</h3>
+                    <div class="card-description">{{ post.description|truncatechars:50 }}</div>
+                </section>
+                <hr />
+                <section class="bottom">
+                    <a class="link-inline" href="/blog/{{ post.id }}"><div>Read story</div></a>
+                </section>
+            </article>
+        {% endif %}
+
         {% if state.home_tasks_today < state.home_required_tasks %}
             {% if not state.questions_complete %}
                 <div class="center-font">
