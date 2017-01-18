@@ -27,7 +27,7 @@
                     </section>
                     <hr class="hr-accent" />
                     <section class="bottom">
-                        <a class="link-inline" href="next"><div>Take today's challenge</div></a>
+                        <a class="link-inline center-font" href="next"><div>Take today's challenge</div></a>
                     </section>
                 </article>
             {% endif %}
@@ -55,7 +55,7 @@
             {% if redo %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <a class="link-inline" href="next"><div>Redo incorrect answers</div></a>
+                    <a class="link-inline center-font" href="next"><div>Redo incorrect answers</div></a>
                 </section>
             {% endif %}
         </article>
@@ -91,7 +91,7 @@
             {% endif %}
             <hr class="hr-accent" />
             <section class="bottom">
-                <a class="link-inline" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
+                <a class="link-inline center-font" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
             </section>
         </article>
 
@@ -105,7 +105,7 @@
                 </section>
                 <hr />
                 <section class="bottom">
-                    <a class="link-inline" href="/blog/{{ post.id }}"><div>Read story</div></a>
+                    <a class="link-inline center-font" href="/blog/{{ post.id }}"><div>Read story</div></a>
                 </section>
             </article>
         {% endif %}
