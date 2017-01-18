@@ -10,6 +10,7 @@ from django.db.models import Count
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render, HttpResponse
 from django.http import HttpResponseRedirect
+from django.conf import settings
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
@@ -186,7 +187,8 @@ onboarding_pages = (
     },
     {
         'accent_color': 'sunflower-yellow',
-        'message': 'Looking to score? Get over 60% and score airtime each week.',
+        'message': 'Looking to score? Get over %d%% and score airtime each week.' %
+                   (100 * settings.ONEPLUS_WIN_REQUIRED / 15,),
     },
     {
         'accent_color': 'squash',
