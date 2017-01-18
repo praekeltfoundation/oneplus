@@ -183,25 +183,30 @@ def contact(request, state, user):
 onboarding_pages = (
     {
         'accent_color': 'pale-teal',
-        'message': 'What you achieve in maths, you achieve in life. Register to begin.'
+        'message': 'What you achieve in maths, you achieve in life. Register to begin.',
+        'img_url': '/media/img/onboarding/welcome1.png',
     },
     {
         'accent_color': 'sunflower-yellow',
-        'message': 'Looking to score? Get over %d%% and score airtime each week.' %
-                   (100 * settings.ONEPLUS_WIN_REQUIRED / 15,),
+        'message': ('Looking to score? Get over %d%% and score airtime each week.' %
+                    (100 * settings.ONEPLUS_WIN_REQUIRED / 15,)),
+        'img_url': '/media/img/onboarding/welcome2.png',
     },
     {
         'accent_color': 'squash',
         'message': 'Compete with your grade, other schools and the whole country.',
+        'img_url': '/media/img/onboarding/welcome3.png',
     },
-    {
-        'accent_color': 'iris',
-        'message': 'Learn from the experts with weekly tutorials followed by a live Q&A.',
-    },
+    # {
+    #     'accent_color': 'iris',
+    #     'message': 'Learn from the experts with weekly tutorials followed by a live Q&A.',
+    #     'img_url': '/media/img/onboarding/welcome4.png',
+    # },
     {
         'accent_color': 'amethyst',
         'message': 'Up your game. Earn points while your marks go next level.',
-    }
+        'img_url': '/media/img/onboarding/welcome5.png',
+    },
 )
 
 
