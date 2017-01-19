@@ -6,8 +6,21 @@
 
     <article class="content pale-teal-accent">
         <h1 class="color-accent">Sign in</h1>
+        {% if username_error %}<div class="red-front">{{ username_error }}</div>{% endif %}
         <form action="login" method="post" class="login">{% csrf_token %}
-            {{ form.as_p }}
+            {% for field in form %}
+                <label class="fieldWrapper">
+                    {{ field.label }}
+                    {% if field.errors %}
+                        <div class="red-front">
+                            {% for err in field.errors %}
+                                {{ err }}<br />
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {{ field }}
+                </label>
+            {% endfor %}
             <input type="submit" value="Sign in" class="button border-color-accent color-accent" />
         </form>
         <div class="center-font spaced-links">
