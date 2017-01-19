@@ -8,8 +8,9 @@
     <article class="content {% if page.accent_color %}{{ page.accent_color }}-accent{% endif %}">
         <article class="card border-color-accent">
             <section class="top">
-                <img src="{{ page.img_url }}"
-                     width="100%" height="auto"/>
+                <div class="img-container">
+                    <img class="limit-size" src="{{ page.img_url }}"/>
+                </div>
                 <br />
                 <h3 class="card-top-phrase">{{ page.message }}</h3>
             </section>

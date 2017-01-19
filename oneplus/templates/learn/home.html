@@ -22,7 +22,9 @@
             {% if not state.questions_complete %}
                 <article class="card pale-teal-accent border-color-accent">
                     <section class="top">
-                        <img src="/media/img/dashboard/test_yourself.png" width="100%" height="auto"/>
+                        <div class="img-container">
+                            <img class="limit-size" src="/media/img/dashboard/test_yourself.png" width="100%" height="auto"/>
+                        </div>
                         <h3 class="card-top-phrase">Ready for today's challenge?</h3>
                     </section>
                     <hr class="hr-accent" />
@@ -36,7 +38,9 @@
         {% comment %}Current challenge stats{% endcomment %}
         <article class="card sunflower-yellow-accent border-color-accent">
             <section class="top">
-                <img src="/media/img/dashboard/evaluate_yourself.png" width="100%" height="auto"/>
+                <div class="img-container">
+                    <img class="limit-size" src="/media/img/dashboard/evaluate_yourself.png" width="100%" height="auto"/>
+                </div>
                 <h3 class="card-top-phrase">Keep up the good work!</h3>
             </section>
             <hr class="hr-accent" />
@@ -63,7 +67,9 @@
         {% comment %}Overall stats{% endcomment %}
         <article class="card squash-accent border-color-accent">
             <section class="top">
-                <img src="/media/img/onboarding/welcome3.png" width="100%" height="auto"/>
+                <div class="img-container">
+                    <img class="limit-size" src="/media/img/onboarding/welcome3.png" width="100%" height="auto"/>
+                </div>
                 <a class="button border-color-accent color-accent" href="{% url 'prog.badges' %}">See all badges</a>
             </section>
             <hr class="hr-accent" />
@@ -99,11 +105,13 @@
         {% if post %}
             <article class="card amethyst-accent border-color-accent">
                 <section class="top">
-                    <img src="/media/img/dashboard/motivate_yourself.png" width="100%" height="auto"/>
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/dashboard/motivate_yourself.png" width="100%" height="auto"/>
+                    </div>
                     <h3 class="card-top-phrase">{{ post.name }}</h3>
                     <div class="card-description">{{ post.description|truncatechars:50 }}</div>
                 </section>
-                <hr />
+                <hr class="hr-accent" />
                 <section class="bottom">
                     <a class="link-inline center-font" href="/blog/{{ post.id }}"><div>Read story</div></a>
                 </section>
