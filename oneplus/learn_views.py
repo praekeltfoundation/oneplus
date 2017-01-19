@@ -462,6 +462,7 @@ def redo_right(request, state, user, participant):
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
+    redo_count = _learnerstate.get_redo_questions().count()
 
     if _learnerstate.redo_question:
         question_id = _learnerstate.redo_question.id
@@ -501,11 +502,12 @@ def redo_right(request, state, user, participant):
                 request,
                 "learn/redo_right.html",
                 {
+                    "has_next": redo_count > 0,
+                    "messages": _messages,
+                    "question": _learnerstate.redo_question,
+                    "questions": questions,
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.redo_question,
-                    "messages": _messages,
-                    "questions": questions
                 }
             )
         else:
@@ -580,10 +582,11 @@ def redo_right(request, state, user, participant):
                 request,
                 "learn/redo_right.html",
                 {
+                    "has_next": redo_count > 0,
+                    "messages": _messages,
+                    "question": _learnerstate.redo_question,
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.redo_question,
-                    "messages": _messages,
                 }
             )
         else:
@@ -599,6 +602,7 @@ def redo_wrong(request, state, user, participant):
     _learnerstate = LearnerState.objects.filter(
         participant=_participant
     ).first()
+    redo_count = _learnerstate.get_redo_questions().count()
 
     if _learnerstate.redo_question:
         question_id = _learnerstate.redo_question.id
@@ -634,12 +638,14 @@ def redo_wrong(request, state, user, participant):
             return render(
                 request,
                 "learn/redo_wrong.html",
-                {"state": state,
-                 "user": user,
-                 "question": _learnerstate.redo_question,
-                 "messages": _messages,
-                 "questions": questions
-                 }
+                {
+                    "has_next": redo_count > 0,
+                    "messages": _messages,
+                    "question": _learnerstate.redo_question,
+                    "questions": questions,
+                    "state": state,
+                    "user": user,
+                }
             )
         else:
             return HttpResponseRedirect("redo_right")
@@ -713,10 +719,11 @@ def redo_wrong(request, state, user, participant):
                 request,
                 "learn/redo_wrong.html",
                 {
+                    "has_next": redo_count > 0,
+                    "messages": _messages,
+                    "question": _learnerstate.redo_question,
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.redo_question,
-                    "messages": _messages
                 }
             )
         else:

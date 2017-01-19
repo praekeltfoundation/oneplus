@@ -19,10 +19,10 @@
         </h2>
 
         {% if not preview %}
-            {% if state.right_tasks_today >= state.total_tasks_today %}
-                <a class="button border-color-accent color-accent" href="home">Done for today</a>
-            {% else %}
+            {% if has_next %}
                 <a class="button border-color-accent color-accent" href="redo">Next question</a>
+            {% else %}
+                <a class="button border-color-accent color-accent" href="home">Done for today</a>
             {% endif %}
         {% endif %}
 

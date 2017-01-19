@@ -17,6 +17,14 @@
             That's not the correct answer.
         </h2>
 
+
+        {% if not preview %}
+            {% if has_next %}
+                <a class="button border-color-accent color-accent" href="redo">Next question</a>
+            {% else %}
+                <a class="button border-color-accent color-accent" href="home">Done for today</a>
+            {% endif %}
+        {% endif %}
         <article class="card pale-teal-accent border-color-accent">
             {% autoescape off %}
             {{ state.question_id }}
@@ -53,9 +61,7 @@
         </article>
 
         {% if not preview %}
-            <div class="content padded darkgrey-back">
-                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/wrong">here</a></p>
-            </div>
+            <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/wrong">here</a></p>
         {% endif %}
 
         {% if question.textbook_link %}
