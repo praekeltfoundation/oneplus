@@ -317,6 +317,9 @@ a {
 button {
   white-space: nowrap; }
 
+hgroup {
+  margin-bottom: 1em; }
+
 .vert-placeholder {
   display: inline-block;
   height: 100%;

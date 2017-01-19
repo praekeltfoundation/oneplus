@@ -4,23 +4,24 @@
 
 {% block content %}
     <article class="content iris-accent">
-        <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
-        <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
+        <hgroup>
+            <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
+            <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
+        </hgroup>
 
         <div>
             {% autoescape off %}
                 {% if message_count > 0 %}
                     {% for msg in messages %}
                         <div class="item-large">
+                            <a class="{% if not msg.viewed %}color-accent{% endif %}" href="/inbox/{{ msg.id }}">{{ msg.name }}</a>
+                            <div>{{ msg.content|striptags|truncatechars:50 }} <a class="link wraps" href="/inbox/{{ msg.id }}">Read More</a></div>
                             <form name="DOTHEMENU" method="post" action="?" class="no-pad">{% csrf_token %}
-                                <button type="submit" name="hide" value="{{ msg.id }}" class="close"></button>
+                                <button type="submit" name="hide" value="{{ msg.id }}" class="button close icon">Delete</button>
                             </form>
-
-                            <a class="{% if not msg.viewed %}yellow-front{% else %}white-front{% endif %}" href="/inbox/{{ msg.id }}">{{ msg.name }}</a>
-                            <p>{{ msg.content|striptags|truncatechars:50 }} <a class="link wraps" href="/inbox/{{ msg.id }}">Read More</a></p>
                         </div>
                     {% endfor %}
-                    <br />
+                    <hr />
                 {% else %}
                     <div class="item-large">
                         <div class="message_heading">Sorry!</div>

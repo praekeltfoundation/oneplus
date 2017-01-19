@@ -3,22 +3,23 @@
 {% block title %}INBOX{% endblock %}
 
 {% block content %}
-<div class="menu">
-    <a href="/inbox"><div class="text heading yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox ({{ state.inbox_unread }})</p></div></a>
-</div>
-    <div class="text heading darkgrey-back"><p>Something to say? <a href="/inbox_send" class="yellow-front">Send us a message</a></p></div>
+    <article class="content iris-accent">
+        <hgroup>
+            <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
+            <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
+        </hgroup>
 
-    <div class="menu">
-        {% autoescape off %}
-            <div class="item-large grey-back white-front">
-                <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
-                    <button type="submit" name="hide" value="{{ message.id }}" class="close grey-back"></button>
-                </form>
-
-                <div>{{ message.name }}</div>
-                <p>{{ message.content }}</p>
-            </div>
-        {% endautoescape %}
-    </div>
+        <div class="padded">
+            {% autoescape off %}
+                <div class="item-large">
+                    <div class="bold-font">{{ message.name }}</div>
+                    <p>{{ message.content }}</p>
+                    <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
+                        <button type="submit" name="hide" value="{{ message.id }}" class="button">Delete</button>
+                    </form>
+                </div>
+            {% endautoescape %}
+        </div>
+    </article>
 
 {% endblock %}
