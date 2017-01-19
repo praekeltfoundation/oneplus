@@ -3,24 +3,23 @@
 {% block title %}INBOX{% endblock %}
 
 {% block content %}
-<div class="menu">
-    <a href="/inbox"><div class="text heading yellow-back darkgrey-front"><li class="icon inbox"></li><p>Inbox ({{ state.inbox_unread }})</p></div></a>
-</div>
-    <div class="text heading darkgrey-back"><p>Something to say?</p></div>
+    <article class="content iris-accent">
+        <hgroup>
+            <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
+            <h2>Something to say?</h2>
+        </hgroup>
 
-    {% if not state.inbox_sent %}
-        <div class="content padded darkgrey-back">
-            Send us a Message
+        {% if not state.inbox_sent %}
             <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
-                <input type="text" name="comment" value="" />
-                <button type="submit" name="comment_button" class="button green-back grey-front" value="Submit">Submit</button>
+                <textarea type="text" name="comment" placeholder="Enter message here..."></textarea>
+                <button type="submit" name="comment_button" class="button border-color-accent color-accent" value="Submit">Submit</button>
             </form>
-        </div>
-    {% else %}
-        <div class="item-large grey-back white-front">
-            <div class="message_heading">Thank You!</div>
-            <div class="message">Your message had been sent</div>
-        </div>
-    {% endif %}
+        {% else %}
+            <div class="item-large grey-back white-front">
+                <div class="message_heading">Thank You!</div>
+                <div class="message">Your message has been sent</div>
+            </div>
+        {% endif %}
 
+    </article>
 {% endblock %}
