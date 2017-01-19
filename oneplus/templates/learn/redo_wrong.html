@@ -53,9 +53,7 @@
         </article>
 
         {% if not preview %}
-            <div class="content padded darkgrey-back">
-                <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/wrong">here</a></p>
-            </div>
+            <p>Find a mistake? Report it <a href="/report_question/{{ question.id }}/wrong">here</a></p>
         {% endif %}
 
         {% if question.textbook_link %}
