@@ -3,42 +3,42 @@
 {% block title %}GET CONNECTED{% endblock %}
 
 {% block content %}
-<div class="text heading darkgrey-back lightgrey-front"><p>Get Connected</p></div>
-<div class="content padded darkgrey-back">
-{% if user_lockout %}
-<p>Your account has been locked out because of too many failed login attempts.
-    Please wait 15 minutes before trying again.</p>
-{% else %}
-    {% if exists %}
-        {% if wrong_password %}
-            <p>
-                You seem to have entered an incorrect password.
-                Please click  <a href={% url 'auth.login' %}>here</a> to try again or
-                click <a href={% url 'auth.sms_reset_password' %}>here</a>
-                to reset your password.
-            </p>
+    <article class="content pale-teal-accent">
+        <h1 class="color-accent">Get connected.</h1>
+        {% if user_lockout %}
+        <p>Your account has been locked out because of too many failed login attempts.
+            Please wait 15 minutes before trying again.</p>
         {% else %}
-            <p>
-                You are not currently linked to a class - <a href={% url 'misc.contact' %}>Contact us</a>
-                to get connected.
-            </p>
+            {% if exists %}
+                {% if wrong_password %}
+                    <p>
+                        You seem to have entered an incorrect password.
+                        Please click  <a href={% url 'auth.login' %}>here</a> to try again or
+                        click <a href={% url 'auth.sms_reset_password' %}>here</a>
+                        to reset your password.
+                    </p>
+                {% else %}
+                    <p>
+                        You are not currently linked to a class - <a href={% url 'misc.contact' %}>Contact us</a>
+                        to get connected.
+                    </p>
+                {% endif %}
+            {% else %}
+                <p>
+                    dig-it is currently in test phase and has a closed user group.
+                    As your cell number is not registered,
+                    you are not able to access the platform.
+                    If you believe you should have access and are registered,
+                    please reach out to us <a href={% url 'misc.contact' %}>here</a>.
+                </p>
+                <p>
+                    For more information about dig-it please email
+                    <a href="mailto:info@dig-it.me" class="link">
+                        info@dig-it.me
+                    </a>
+                </p>
+            {% endif %}
         {% endif %}
-    {% else %}
-        <p>
-            dig-it is currently in test phase and has a closed user group.
-            As your cell number is not registered,
-            you are not able to access the platform.
-            If you believe you should have access and are registered,
-            please reach out to us <a href={% url 'misc.contact' %}>here</a>.
-        </p>
-        <p>
-            For more information about dig-it please email
-            <a href="mailto:info@dig-it.me" class="green-front bold-font">
-                info@dig-it.me
-            </a>
-        </p>
-    {% endif %}
-{% endif %}
-</div>
+    </article>
 
 {% endblock %}
