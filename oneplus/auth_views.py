@@ -135,7 +135,8 @@ def login(request, state):
                 request.session["wrong_password"] = True
                 return redirect("auth.getconnected")
         else:
-            return get()
+            return render(request, "auth/login.html", {"state": state,
+                                                       "form": form})
 
     return resolve_http_method(request, [get, post])
 
