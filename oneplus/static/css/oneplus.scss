@@ -403,6 +403,17 @@ ul.unnumbered {
   margin-left: 1em;
 }
 
+.img-container {
+  text-align: center;
+  width: 100%;
+}
+
+img.limit-size {
+  position: relative;
+  max-width: 256px;
+  width: 100%;
+}
+
 .login label { z-index: 1; display: block; }
 
 .text {

@@ -16,7 +16,9 @@
         {% if class_board %}
             <article class="card border-color-accent">
                 <section class="top">
-                    <img src="/media/img/leaderboard/leaderboard_class.png" width="100%" height="auto"/>
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_class.png" width="100%" height="auto"/>
+                    </div>
                     <h3 class="card-top-phrase">Grade Leaderboard</h3>
                 </section>
                 {% if class_board.position %}
@@ -58,7 +60,9 @@
         {% if school_board %}
             <article class="card border-color-accent">
                 <section class="top">
-                    <img src="/media/img/leaderboard/leaderboard_school.png" width="100%" height="auto"/>
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_school.png" width="100%" height="auto"/>
+                    </div>
                     <h3 class="card-top-phrase">School Leaderboard</h3>
                 </section>
                 {% if school_board.position %}
@@ -100,7 +104,9 @@
         {% if national_board %}
             <article class="card border-color-accent">
                 <section class="top">
-                    <img src="/media/img/leaderboard/leaderboard_national.png" width="100%" height="auto"/>
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_national.png" width="100%" height="auto"/>
+                    </div>
                     <h3 class="card-top-phrase">National Leaderboard</h3>
                 </section>
                 {% if national_board.position %}
