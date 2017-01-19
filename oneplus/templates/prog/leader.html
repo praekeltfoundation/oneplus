@@ -14,7 +14,7 @@
         </div>
 
         {% if class_board %}
-            <article class="card border-color-accent">
+            <article class="card border-color-accent" id="class-leaderboard">
                 <section class="top">
                     <div class="img-container">
                         <img class="limit-size" src="/media/img/leaderboard/leaderboard_class.png" width="100%" height="auto"/>
@@ -43,13 +43,13 @@
                 {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <form class="no-pad" method="post">{% csrf_token %}
+                    <form action="#national-leaderboard" class="no-pad" method="post">{% csrf_token %}
                         {% if class_board.active %}
                             <input type="hidden" name="board.class.active" value="false" />
                             <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
                         {% else %}
                             <input type="hidden" name="board.class.active" value="true" />
-                            <div class="center-font"><input class="link form-link" type="submit" value="Show all"></div>
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show more"></div>
                         {% endif %}
                     </form>
                 </section>
@@ -58,7 +58,7 @@
 
 
         {% if school_board %}
-            <article class="card border-color-accent">
+            <article class="card border-color-accent" id="school-leaderboard">
                 <section class="top">
                     <div class="img-container">
                         <img class="limit-size" src="/media/img/leaderboard/leaderboard_school.png" width="100%" height="auto"/>
@@ -87,13 +87,13 @@
                 {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <form class="no-pad" method="post">{% csrf_token %}
+                    <form action="#school-leaderboard" class="no-pad" method="post">{% csrf_token %}
                         {% if school_board.active %}
                             <input type="hidden" name="board.school.active" value="false" />
                             <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
                         {% else %}
                             <input type="hidden" name="board.school.active" value="true" />
-                            <div class="center-font"><input class="link form-link" type="submit" value="Show all"></div>
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show more"></div>
                         {% endif %}
                     </form>
                 </section>
@@ -102,7 +102,7 @@
 
 
         {% if national_board %}
-            <article class="card border-color-accent">
+            <article class="card border-color-accent" id="national-leaderboard">
                 <section class="top">
                     <div class="img-container">
                         <img class="limit-size" src="/media/img/leaderboard/leaderboard_national.png" width="100%" height="auto"/>
@@ -131,13 +131,13 @@
                 {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <form class="no-pad" method="post">{% csrf_token %}
+                    <form action="#national-leaderboard" class="no-pad" method="post">{% csrf_token %}
                         {% if national_board.active %}
                             <input type="hidden" name="board.national.active" value="false" />
                             <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
                         {% else %}
                             <input type="hidden" name="board.national.active" value="true" />
-                            <div class="center-font"><input class="link form-link" type="submit" value="Show all"></div>
+                            <div class="center-font"><input class="link form-link" type="submit" value="Show more"></div>
                         {% endif %}
                     </form>
                 </section>

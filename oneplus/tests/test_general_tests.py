@@ -2866,7 +2866,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")
-        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show more", count=3)
 
         self.client.get(
             reverse('auth.autologin',
@@ -2880,7 +2880,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")
-        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show more", count=3)
 
     def test_leaderboard_collapse(self):
         self.client.get(
@@ -2892,20 +2892,20 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")
-        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show more", count=3)
 
         resp = self.client.post(reverse('prog.leader'), follow=True)
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")
-        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show more", count=3)
 
         resp = self.client.post(reverse('prog.leader'), data={'board.class.active': 'true'}, follow=True)
-        self.assertContains(resp, "Show all", count=2)
+        self.assertContains(resp, "Show more", count=2)
         self.assertContains(resp, "Show less", count=1)
 
         resp = self.client.get(reverse('prog.leader'), follow=True)
-        self.assertContains(resp, "Show all", count=2)
+        self.assertContains(resp, "Show more", count=2)
         self.assertContains(resp, "Show less", count=1)
 
         resp = self.client.post(reverse('prog.leader'),
@@ -2914,11 +2914,11 @@ class GeneralTests(TestCase):
                                     'board.school.active': 'true',
                                     'board.national.active': 'true'},
                                 follow=True)
-        self.assertContains(resp, "Show all", count=0)
+        self.assertContains(resp, "Show more", count=0)
         self.assertContains(resp, "Show less", count=3)
 
         resp = self.client.get(reverse('prog.leader'), follow=True)
-        self.assertContains(resp, "Show all", count=0)
+        self.assertContains(resp, "Show more", count=0)
         self.assertContains(resp, "Show less", count=3)
 
         resp = self.client.post(reverse('prog.leader'),
@@ -2927,11 +2927,11 @@ class GeneralTests(TestCase):
                                     'board.school.active': 'false',
                                     'board.national.active': 'false'},
                                 follow=True)
-        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show more", count=3)
         self.assertContains(resp, "Show less", count=0)
 
         resp = self.client.get(reverse('prog.leader'), follow=True)
-        self.assertContains(resp, "Show all", count=3)
+        self.assertContains(resp, "Show more", count=3)
         self.assertContains(resp, "Show less", count=0)
 
     def test_leaderboard_with_almost_no_results(self):
