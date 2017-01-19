@@ -85,10 +85,11 @@ def leader(request, state, user, participant):
         return {'board': learners[:10], 'position': position}
 
     def get_school_leaderboard():
-        leaderboard = Participant.objects.filter(learner__grade=_participant.learner.grade, is_active=True)\
-            .values('learner__school_id', 'learner__school__name', 'points')\
-            .annotate(school_points=Sum('points'))\
-            .order_by('-school_points', 'learner__school__name')
+        leaderboard = School.objects.filter(learner__grade=_participant.learner.grade,
+                                            learner__participant__is_active=True)\
+            .values('id', 'name')\
+            .annotate(points=Sum('learner__participant__points'))\
+            .order_by('-points', 'name')
 
         schools = []
         position = None
@@ -96,10 +97,10 @@ def leader(request, state, user, participant):
         for a in leaderboard:
             position_counter += 1
             school = {
-                "id": a['learner__school_id'],
-                "name": a['learner__school__name'],
+                "id": a['id'],
+                "name": a['name'],
                 "position": position_counter}
-            if a['learner__school_id'] == _participant.learner.school_id:
+            if a['id'] == _participant.learner.school_id:
                 school['me'] = True
                 position = position_counter
             schools.append(school)
