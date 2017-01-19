@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
+from django.utils import timezone
+
+from django.db.models import Count, Sum
 import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment, \
@@ -2943,6 +2946,58 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Grade Leaderboard")
         self.assertContains(resp, "School Leaderboard")
         self.assertContains(resp, "National Leaderboard")
+
+    def test_leaderboard_school_multiple_entrants(self):
+        school = self.create_school('Some Random School', self.organisation)
+        learner1 = self.create_learner(school,
+                                       first_name="learner_1",
+                                       grade="Grade 11",
+                                       mobile="1111111111",
+                                       unique_token='blargity',
+                                       unique_token_expiry=datetime.now() + timedelta(days=30),
+                                       username="1111111111")
+        learner2 = self.create_learner(school,
+                                       first_name="learner_2",
+                                       grade="Grade 11",
+                                       mobile="2222222222",
+                                       username="2222222222")
+        learner3 = self.create_learner(school,
+                                       first_name="learner_3",
+                                       grade="Grade 11",
+                                       mobile="3333333333",
+                                       username="3333333333")
+
+        participant1 = self.create_participant(learner1,
+                                               self.classs,
+                                               datejoined=timezone.now(),
+                                               is_active=True,
+                                               points=5)
+        particpiant2 = self.create_participant(learner2,
+                                               self.classs,
+                                               datejoined=timezone.now(),
+                                               is_active=True,
+                                               points=10)
+        particpiant3 = self.create_participant(learner3,
+                                               self.classs,
+                                               datejoined=timezone.now(),
+                                               is_active=True,
+                                               points=15)
+
+        self.school.name = 'First School'
+        self.school.save()
+        self.learner.grade = 'Grade 11'
+        self.learner.save()
+        self.participant.points = 1
+        self.participant.save()
+
+        self.client.get(
+            reverse('auth.autologin',
+                    kwargs={'token': learner1.unique_token})
+        )
+        resp = self.client.post(reverse('prog.leader'), data={'board.school.active': 'true'}, follow=True)
+
+        self.assertContains(resp, school.name, count=1)
+        self.assertContains(resp, self.school.name, count=1)
 
     def test_ontrack_screen(self):
         self.client.get(
