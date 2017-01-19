@@ -1,8 +1,15 @@
 from django import forms
+from django.core.validators import ValidationError
+from validators import validate_mobile
+
+
+def validate_username(username):
+        if not validate_mobile(username):
+            raise ValidationError('Please enter a valid cellphone number.')
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(label="Phone Number")
+    username = forms.CharField(label="Phone Number", validators=[validate_username])
     password = forms.CharField(
         label="Password",
         widget=forms.PasswordInput
