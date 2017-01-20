@@ -423,10 +423,13 @@ def redo(request, state, user, participant):
                                                   + str(question_id) + "-->"
 
     def get():
+        done_count, total_count = _learnerstate.get_redo_question_count()
         return render(request, "learn/redo.html", {
-            "state": state,
-            "user": user,
             "question": _learnerstate.redo_question,
+            "question_number": done_count + 1,
+            "state": state,
+            "question_total": total_count,
+            "user": user,
         })
 
     def post():

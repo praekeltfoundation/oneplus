@@ -12,7 +12,7 @@
             </div>
         {% endif %}
 
-        <h1 class="color-accent">Question {{ state.next_tasks_today }}/{{ state.total_tasks_today }}</h1>
+        <h1 class="color-accent">Question {{ question_number }}/{{ question_total }}</h1>
         <h2>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</h2>
 
         <article class="card pale-teal-accent border-color-accent">
