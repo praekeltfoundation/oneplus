@@ -528,6 +528,9 @@ form.no-pad {
   font-size: 200%;
   text-align: center; }
 
+td.num, th.num {
+  text-align: right; }
+
 .comment-author {
   color: lightgrey;
   font-size: 75%; }
