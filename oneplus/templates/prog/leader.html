@@ -32,10 +32,12 @@
                     <hr class="hr-accent" />
                     <section class="bottom">
                         <table class="card-table">
+                            <tr><th></th><th></th><th class="superlightgrey-front">points</th></tr>
                             {% for participant in class_board.board %}
                                 <tr>
                                     <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
-                                    <td>{{ participant.name }}</td>
+                                    <td{% if participant.me %} class="color-accent"{% endif %}>{{ participant.name }}</td>
+                                    <td{% if participant.me %} class="color-accent"{% endif %}>{{ participant.points }}</td>
                                 </tr>
                             {% endfor %}
                         </table>
@@ -79,7 +81,8 @@
                             {% for participant in school_board.board %}
                                 <tr>
                                     <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
-                                    <td>{{ participant.name }}</td>
+                                    <td{% if participant.me %} class="color-accent"{% endif %}>{{ participant.name }}</td>
+                                    <td{% if participant.me %} class="color-accent"{% endif %}>{{ participant.points }}</td>
                                 </tr>
                             {% endfor %}
                         </table>
@@ -123,7 +126,8 @@
                             {% for participant in national_board.board %}
                                 <tr>
                                     <td class="funky-number color-accent">{{ participant.position|stringformat:"d" }}</td>
-                                    <td>{{ participant.name }}</td>
+                                    <td{% if participant.me %} class="color-accent"{% endif %}>{{ participant.name }}</td>
+                                    <td{% if participant.me %} class="color-accent"{% endif %}>{{ participant.points }}</td>
                                 </tr>
                             {% endfor %}
                         </table>
