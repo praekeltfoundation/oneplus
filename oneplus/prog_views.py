@@ -73,6 +73,7 @@ def leader(request, state, user, participant):
             learner = {
                 "id": a.id,
                 "name": "%s %s" % (a.learner.first_name, a.learner.last_name),
+                "points": a.points,
                 "position": position_counter}
             if a.id == _participant.id:
                 learner['me'] = True
@@ -99,6 +100,7 @@ def leader(request, state, user, participant):
             school = {
                 "id": a['id'],
                 "name": a['name'],
+                "points": a['points'],
                 "position": position_counter}
             if a['id'] == _participant.learner.school_id:
                 school['me'] = True
@@ -122,6 +124,7 @@ def leader(request, state, user, participant):
             learner = {
                 "id": a.id,
                 "name": "%s %s, %s" % (a.learner.first_name, a.learner.last_name, a.learner.school.name),
+                "points": a.points,
                 "position": position_counter}
             if a.id == _participant.id:
                 learner['me'] = True
