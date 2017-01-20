@@ -186,6 +186,9 @@ def home(request, state, user, participant):
                 redo = True
 
     level, points_remaining = participant.calc_level()
+    if level >= settings.MAX_LEVEL:
+        level = settings.MAX_LEVEL
+        points_remaining = 0
 
     _course = participant.classs.course
     post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
@@ -219,7 +222,8 @@ def home(request, state, user, participant):
         return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
                                                    "level": level,
-                                                   "levels": range(7),
+                                                   "level_max": settings.MAX_LEVEL,
+                                                   "levels": range(1, settings.MAX_LEVEL + 1),
                                                    "points_remaining": points_remaining,
                                                    "position": get_class_leaderboard_position(_participant),
                                                    "post": _post,
