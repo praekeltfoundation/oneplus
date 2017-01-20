@@ -269,6 +269,8 @@ GRADE_11_OPEN_CLASS_NAME = "Grade 11 - Open Class"
 GRADE_12_OPEN_CLASS_NAME = "Grade 12 - Open Class"
 OPEN_SCHOOL = "Open School"
 
+MAX_LEVEL = 7
+
 try:
     from local_settings import *
 except ImportError as e:
