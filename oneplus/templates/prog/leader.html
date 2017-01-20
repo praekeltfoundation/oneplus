@@ -43,7 +43,7 @@
                 {% endif %}
                 <hr class="hr-accent" />
                 <section class="bottom">
-                    <form action="#national-leaderboard" class="no-pad" method="post">{% csrf_token %}
+                    <form action="#class-leaderboard" class="no-pad" method="post">{% csrf_token %}
                         {% if class_board.active %}
                             <input type="hidden" name="board.class.active" value="false" />
                             <div class="center-font"><input class="link form-link" type="submit" value="Show less"></div>
