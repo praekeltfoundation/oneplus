@@ -200,6 +200,11 @@ class Participant(models.Model):
             correct=option.correct,
             answerdate=today()
         )
+
+        # Award points to participant
+        if option.correct:
+            self.points += question.points
+            self.save()
         answer.save()
 
     def can_take_event(self, event):
@@ -228,6 +233,9 @@ class Participant(models.Model):
         answers = ParticipantQuestionAnswer.objects.filter(
             participant=self,
             correct=True)
+        redo_answers = ParticipantRedoQuestionAnswer.objects.filter(
+            participant=self,
+            correct=True)
         sumit_answers = EventQuestionAnswer.objects.filter(
             event__type=Event.ET_SUMIT,
             participant=self,
@@ -243,6 +251,8 @@ class Participant(models.Model):
         points = 0
         for answer in answers:
             points += answer.question.points
+        for redo_answer in redo_answers:
+            points += redo_answer.question.points
         for sumit_answer in sumit_answers:
                 points += sumit_answer.question.points
         for event in events:
