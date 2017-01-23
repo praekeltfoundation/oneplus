@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.utils import override_settings
 from go_http.tests.test_send import RecordingHandler
 
 from auth.models import Learner, CustomUser
@@ -136,6 +137,7 @@ def fake_update_all_perc_correct_answers():
     update_perc_correct_answers_worker('32days', 32)
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class ChallengeTest(TestCase):
     def setUp(self):
 
@@ -186,7 +188,7 @@ class ChallengeTest(TestCase):
 
         #no questions
         resp = self.client.get(reverse('learn.next'), follow=True)
-        self.assertRedirects(resp, "home", status_code=302, target_status_code=200)
+        self.assertRedirects(resp, reverse("learn.home"), status_code=302, target_status_code=200)
         self.assertContains(resp, "DIG-IT | WELCOME")
 
         #with question
@@ -229,7 +231,7 @@ class ChallengeTest(TestCase):
 
         #no event
         resp = self.client.get(reverse('learn.event'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #create event
         event = create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
@@ -244,7 +246,7 @@ class ChallengeTest(TestCase):
 
         #no event questions
         resp = self.client.get(reverse('learn.event'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #add question to event
         question = create_test_question("Event Question", event_module, state=3)
@@ -305,7 +307,7 @@ class ChallengeTest(TestCase):
         s.save()
 
         resp = self.client.get(reverse("learn.event_right"))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
     def test_event_wrong(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -315,26 +317,26 @@ class ChallengeTest(TestCase):
         s.save()
 
         resp = self.client.get(reverse("learn.event_wrong"))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
     def test_sumit(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
         #no sumit
         resp = self.client.get(reverse('learn.sumit'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         resp = self.client.get(reverse('learn.sumit_end_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         resp = self.client.get(reverse('learn.sumit_level_up'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         resp = self.client.get(reverse('learn.sumit_right'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         resp = self.client.get(reverse('learn.sumit_wrong'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #create event
         sumit_badge = GamificationBadgeTemplate.objects.create(name="SUMit Badge")
@@ -347,11 +349,11 @@ class ChallengeTest(TestCase):
         start_page = create_event_start_page(event, "Test Start Page", "Test Paragraph")
 
         resp = self.client.get(reverse('learn.sumit_level_up'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #no sumit questions
         resp = self.client.get(reverse('learn.sumit'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #add question to sumit
         easy_options = dict()
@@ -573,7 +575,7 @@ class ChallengeTest(TestCase):
 
         #go to end page before all the questions are answered
         resp = self.client.get(reverse('learn.sumit_end_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         for i in range(1, 6):
             #Advanced Questions
@@ -609,7 +611,7 @@ class ChallengeTest(TestCase):
         self.assertIsNotNone(pbtr)
 
         resp = self.client.get(reverse('learn.sumit_end_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #reset result_recieved
         rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
@@ -631,7 +633,7 @@ class ChallengeTest(TestCase):
 
         #answered all the question
         resp = self.client.get(reverse('learn.sumit'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #reset result_recieved
         rel = EventParticipantRel.objects.filter(event=event, participant=self.participant).first()
@@ -692,7 +694,7 @@ class ChallengeTest(TestCase):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
         resp = self.client.get(reverse("learn.redo"))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         for i in range(1, 15):
             question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
@@ -798,7 +800,7 @@ class ChallengeTest(TestCase):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
         resp = self.client.get(reverse("learn.redo"))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         questions = {}
 
@@ -849,7 +851,7 @@ class ChallengeTest(TestCase):
             redo_correct_count += 1
 
         resp = self.client.get(reverse("learn.redo"), follow=True)
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
     def test_rightanswer(self):
         self.client.get(
@@ -965,7 +967,7 @@ class ChallengeTest(TestCase):
 
         #no event
         resp = self.client.get(reverse('learn.event_splash_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #create event
         event = create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
@@ -986,7 +988,7 @@ class ChallengeTest(TestCase):
         EventParticipantRel.objects.create(event=event, participant=self.participant, sitting_number=1)
 
         resp = self.client.get(reverse('learn.event_splash_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         event.type = 0
         event.save()
@@ -1008,7 +1010,7 @@ class ChallengeTest(TestCase):
 
         #no event
         resp = self.client.get(reverse('learn.event_start_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #create event
         event = create_event("Test Event", self.course, activation_date=datetime.now() - timedelta(days=1),
@@ -1035,7 +1037,7 @@ class ChallengeTest(TestCase):
 
         #attempt to load start page again
         resp = self.client.get(reverse("learn.event_start_page"))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         #change to multiple sittings
         event.number_sittings = 2
@@ -1074,7 +1076,7 @@ class ChallengeTest(TestCase):
         s.save()
 
         resp = self.client.get(reverse('learn.event_end_page'))
-        self.assertRedirects(resp, "home")
+        self.assertRedirects(resp, reverse("learn.home"))
 
         spot_test = GamificationBadgeTemplate.objects.create(name="Spot Test 1")
         badge = GamificationScenario.objects.create(name="Spot Test 1", badge=spot_test, event="SPOT_TEST_1",
