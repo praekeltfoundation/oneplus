@@ -140,6 +140,9 @@ class LearnerState(models.Model):
                 self.redo_question = questions.order_by('?')[0]
                 self.active_redo_result = None
                 self.save()
+            else:
+                self.redo_question = None
+                self.save()
 
         return self.redo_question
 
