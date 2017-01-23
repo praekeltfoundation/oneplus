@@ -140,6 +140,9 @@ class LearnerState(models.Model):
                 self.redo_question = questions.order_by('?')[0]
                 self.active_redo_result = None
                 self.save()
+            else:
+                self.redo_question = None
+                self.save()
 
         return self.redo_question
 
@@ -151,3 +154,14 @@ class LearnerState(models.Model):
             .distinct().values_list('question__id', flat=True)
 
         return TestingQuestion.objects.filter(id__in=wrong).exclude(id__in=redo_correct)
+
+    def get_redo_question_count(self):
+        wrong_count = ParticipantQuestionAnswer.objects.filter(participant=self.participant, correct=False)\
+            .distinct()\
+            .count()
+
+        redo_correct_count = ParticipantRedoQuestionAnswer.objects.filter(participant=self.participant, correct=True)\
+            .distinct()\
+            .count()
+
+        return redo_correct_count, wrong_count
