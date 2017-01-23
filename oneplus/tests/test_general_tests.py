@@ -1047,6 +1047,63 @@ class GeneralTests(TestCase):
 
         self.assertEquals(resp.status_code, 200)
 
+    def test_redo_counts(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        resp = self.client.get(reverse("learn.redo"))
+        self.assertRedirects(resp, "home")
+
+        questions = {}
+
+        for i in range(1, 15):
+            correct = i % 2 == 0
+            question = TestingQuestion.objects.create(name="Question %d" % i, module=self.module)
+            correct_option = TestingQuestionOption.objects.create(name="Option %d.1" % i, question=question,
+                                                                  correct=True)
+            incorrect_option = TestingQuestionOption.objects.create(name="Option %d.2" % i, question=question,
+                                                                    correct=False)
+            ParticipantQuestionAnswer.objects.create(participant=self.participant,
+                                                     question=question,
+                                                     option_selected=correct_option if correct else incorrect_option,
+                                                     correct=correct)
+            questions[question.id] = {
+                'question_id': question.id,
+                'correct_id': correct_option.id,
+                'incorrect_id': incorrect_option.id,
+                'correct': correct}
+
+        lstate = LearnerState.objects.get(participant_id=self.participant.id)
+        incorrect_count = ParticipantQuestionAnswer.objects.filter(correct=False).count()
+        redo_correct_count = 0
+        for i in range(incorrect_count):
+            resp = self.client.get(reverse("learn.redo"), follow=True)
+            self.assertContains(
+                resp,
+                ('Question %d/%d' % (redo_correct_count + 1, incorrect_count)),
+                count=1)
+            lstate = LearnerState.objects.get(pk=lstate.pk)
+            item = questions[lstate.redo_question_id]
+
+            resp = self.client.post(reverse('learn.redo'),
+                                    data={'answer': item['incorrect_id']},
+                                    follow=True)
+
+            resp = self.client.get(reverse("learn.redo"), follow=True)
+            self.assertContains(
+                resp,
+                ('Question %d/%d' % (redo_correct_count + 1, incorrect_count)),
+                count=1)
+            lstate = LearnerState.objects.get(pk=lstate.pk)
+            item = questions[lstate.redo_question_id]
+
+            resp = self.client.post(reverse('learn.redo'),
+                                    data={'answer': item['correct_id']},
+                                    follow=True)
+            redo_correct_count += 1
+
+        resp = self.client.get(reverse("learn.redo"), follow=True)
+        self.assertRedirects(resp, "home")
+
     def fake_update_all_perc_correct_answers():
         update_perc_correct_answers_worker('24hr', 1)
         update_perc_correct_answers_worker('48hr', 2)
