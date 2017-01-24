@@ -384,8 +384,8 @@ class ParticipantRedoQuestionAnswer(models.Model):
         return self.participant.learner.username
 
     class Meta:
-        verbose_name = "Participant Question Response"
-        verbose_name_plural = "Participant Question Responses"
+        verbose_name = "Participant Redo Question Response"
+        verbose_name_plural = "Participant Redo Question Responses"
 
 
 class Setting(models.Model):
