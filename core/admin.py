@@ -4,7 +4,8 @@ from core.filters import FirstNameFilter, LastNameFilter, LearnerFilter, MobileF
 
 from core.forms import MoveParticipantsForm, ParticipantCreationForm
 
-from core.models import BadgeAwardLog, Class, Participant, ParticipantQuestionAnswer, Setting, TaskLogger
+from core.models import BadgeAwardLog, Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer,\
+    Setting, TaskLogger
 
 from django import template
 
@@ -107,6 +108,43 @@ class ParticipantQuestionAnswerAdmin(admin.ModelAdmin):
 class ParticipantPointInline(admin.TabularInline):
     model = Participant.pointbonus.through
     list_display = ("pointbonus", "scenario")
+
+
+class ParticipantRedoQuestionAnswerAdmin(admin.ModelAdmin):
+    list_display = (
+        "participant",
+        "get_firstname",
+        "get_lastname",
+        "get_mobile",
+        "question",
+        "answerdate",
+        "option_selected",
+        "correct")
+    list_filter = (
+        ParticipantFilter,
+        "question",
+        FirstNameFilter,
+        LastNameFilter,
+        MobileFilter)
+    search_fields = ('participant__learner__first_name',
+                     'participant__learner__last_name',
+                     'participant__learner__mobile')
+    inline = (ParticipantInline,)
+
+    def get_firstname(self, obj):
+        return obj.participant.learner.first_name
+    get_firstname.short_description = 'First Name'
+    get_firstname.admin_order_field = 'participant__learner__first_name'
+
+    def get_lastname(self, obj):
+        return obj.participant.learner.last_name
+    get_lastname.short_description = 'Last Name'
+    get_lastname.admin_order_field = 'participant__learner__last_name'
+
+    def get_mobile(self, obj):
+        return obj.participant.learner.mobile
+    get_mobile.short_description = 'Mobile'
+    get_mobile.admin_order_field = 'participant__learner__mobile'
 
 
 def move_participants(modeladmin, request, queryset):
@@ -246,6 +284,7 @@ class TaskLoggerAdmin(admin.ModelAdmin):
 # Organisation
 admin.site.register(Class, ClassAdmin)
 admin.site.register(ParticipantQuestionAnswer, ParticipantQuestionAnswerAdmin)
+admin.site.register(ParticipantRedoQuestionAnswer, ParticipantRedoQuestionAnswerAdmin)
 admin.site.register(Participant, ParticipantAdmin)
 admin.site.register(Setting, SettingAdmin)
 admin.site.register(BadgeAwardLog, BadgeAwardLogAdmin)

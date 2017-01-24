@@ -271,7 +271,7 @@ class LearnerChangeForm(forms.ModelForm):
 
     class Meta:
         model = Learner
-        fields = ("classs", )
+        fields = ("classs", "enrolled")
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.

@@ -268,7 +268,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
                                "school", "classs")}),
         ("Opt-In Communications", {"fields": ("optin_sms", "optin_email")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
-        ("Grade", {"fields": ("grade",)})
+        ("Grade", {"fields": ("grade",)}),
+        ("Enrollment", {"fields": ("enrolled",)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
@@ -277,7 +278,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Access", {"fields": ("username", "password1",
                                "password2")}),
         ("Region", {"fields": ("country", "area", "school")}),
-        ("Grade", {"fields": ("grade",)})
+        ("Grade", {"fields": ("grade",)}),
+        ("Enrollment", {"fields": ("enrolled",)}),
     )
 
     actions = [send_sms, send_message]
