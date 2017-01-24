@@ -20,7 +20,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_school_confirm,  validate_profile_form
+    validate_sign_up_form_school_confirm, validate_sign_up_form_return,  validate_profile_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -360,6 +360,139 @@ def signup_school_confirm(request):
             return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
                                                                        "data": data,
                                                                        "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_login_required
+def return_signup(request, state, user):
+    def get():
+        data = {
+            "cellphone": user.mobile,
+            "first_name": user.first_name,
+            "grade": user.grade,
+            "province": user.province,
+            "surname": user.first_name,
+            "username": user.username,
+        }
+        return render(request, "auth/return_signup.html", {"provinces": PROVINCES, "data": data})
+
+    def post():
+        data, errors = validate_sign_up_form_return(request.POST, user.mobile)
+        if errors:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
+        data.update(normal_data)
+        errors.update(normal_errors)
+        if normal_errors:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+        school_data, school_errors = validate_sign_up_form_school_confirm(request.POST)
+        data.update(school_data)
+        errors.update(school_errors)
+
+        if not errors:
+            if "school_dirty" in data:
+                school_list = None
+                try:
+                    school_list = SearchQuerySet()\
+                        .filter(province=data['province'], name__fuzzy=data['school_dirty'])\
+                        .values('pk', 'name')[:10]
+                    for entry in school_list:
+                        entry['id'] = entry.pop('pk')
+                except:
+                    school_list = None
+                finally:
+                    if not school_list or len(school_list) == 0:
+                        school_list = School.objects.filter(province=data['province'],
+                                                            name__icontains=data['school_dirty']).values()[:10]
+
+                if len(school_list) > 0:
+                    return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                                      "data": data,
+                                                                                      "school_list": school_list})
+                else:
+                    errors.update({"school_dirty_error": "No schools were a close enough match."})
+                    return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                                       "data": data,
+                                                                       "errors": errors})
+            else:
+                errors.update({"school_error": "Unknown school selected."})
+                return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                                   "data": data,
+                                                                   "errors": errors})
+        else:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_login_required
+def return_signup_school_confirm(request, state, user):
+    def get():
+        return redirect("auth/return_signup.html")
+
+    def post():
+        data, errors = validate_sign_up_form_return(request.POST, )
+        if errors:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
+        data.update(normal_data)
+        errors.update(normal_errors)
+        if normal_errors:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+        school_data, school_errors = validate_sign_up_form_school_confirm(request.POST)
+        data.update(school_data)
+        errors.update(school_errors)
+
+        if not errors:
+            if data["school"] != "other":
+                school = School.objects.get(id=data["school"])
+                class_name = "%s - %s" % (school.name, data['grade'])
+                try:
+                    classs = Class.objects.get(name=class_name)
+                except ObjectDoesNotExist:
+                    course = data["course"]
+                    classs = Class.objects.create(
+                        name=class_name,
+                        description="%s open class for %s" % (school.name, data['grade']),
+                        province=data["province"],
+                        type=Class.CT_OPEN,
+                        course=course)
+
+                # update learner
+                user.first_name = data["first_name"]
+                user.last_name = data["surname"]
+                user.mobile = data["cellphone"]
+                user.username = data["cellphone"]
+                user.country = "South Africa"
+                user.school = school
+                user.grade = data["grade"]
+                user.enrolled = 1
+                user.save()
+
+                # create participant
+                create_participant(user, classs)
+
+                return redirect(reverse("learn.home"))
+            else:
+                errors.update({"school_error": "Unknown school selected."})
+                return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                                  "data": data,
+                                                                                  "errors": errors})
+        else:
+            return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                              "data": data,
+                                                                              "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
