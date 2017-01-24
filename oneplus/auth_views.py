@@ -715,7 +715,7 @@ def resolve_http_method(request, methods):
 
 def is_registered(user):
     # Check learner is registered
-    return Participant.objects.filter(learner=user.learner).latest('datejoined')
+    return Participant.objects.filter(learner=user.learner, is_active=True).latest('datejoined')
 
 
 def save_user_session(request, registered, user):
@@ -727,6 +727,17 @@ def save_user_session(request, registered, user):
         = registered.id
     request.session["user"]["place"] = 0  # TODO
     registered.award_scenario("LOGIN", None, special_rule=True)
+
+    # update last login date
+    user.last_login = datetime.now()
+    user.save()
+
+
+def save_user_session_no_participant(request, user):
+    request.session["user"] = {}
+    request.session["user"]["id"] = user.learner.id
+    request.session["user"]["name"] = user.learner.first_name
+    request.session["user"]["place"] = 0  # TODO
 
     # update last login date
     user.last_login = datetime.now()
