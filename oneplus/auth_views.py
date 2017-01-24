@@ -58,10 +58,19 @@ def login(request, state):
 
             if user is not None and user.is_active:
                 try:
-                    registered = is_registered(user)
+                    try:
+                        registered = is_registered(user)
+                    except:
+                        save_user_session_no_participant(request, user)
+                        if Learner.objects.filter(id=request.session['user']['id'], enrolled="0").exists():
+                            return redirect("auth.return_signup")
+                        else:
+                            raise
                     class_active = is_class_active(user)
                     if registered is not None and class_active:
                         save_user_session(request, registered, user)
+                        if Learner.objects.filter(id=request.session['user']['id'], enrolled="0").exists():
+                            return redirect("auth.return_signup")
 
                         usr = Learner.objects.filter(username=form.cleaned_data["username"])
                         par = Participant.objects.filter(learner=usr, is_active=True)
@@ -118,11 +127,7 @@ def login(request, state):
                             allowed, event_participant_rel = par.first().can_take_event(event)
                             if allowed:
                                 return redirect("learn.event_splash_page")
-
-                        if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
-                            return redirect("learn.first_time")
-                        else:
-                            return redirect("learn.home")
+                        return redirect("learn.home")
                     else:
                         return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
