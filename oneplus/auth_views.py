@@ -20,7 +20,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_school_confirm, validate_sign_up_form_return,  validate_profile_form
+    validate_sign_up_form_school_confirm,  validate_profile_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -387,29 +387,14 @@ def return_signup(request, state):
             province = None
 
         data = {
-            "cellphone": learner.mobile,
-            "first_name": learner.first_name,
             "grade": learner.grade,
             "province": province,
             "school_dirty": school,
-            "surname": learner.first_name,
-            "username": learner.username,
         }
         return render(request, "auth/return_signup.html", {"provinces": PROVINCES, "data": data})
 
     def post():
-        data, errors = validate_sign_up_form_return(request.POST, learner.mobile)
-        if errors:
-            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
-                                                               "data": data,
-                                                               "errors": errors})
-        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
-        data.update(normal_data)
-        errors.update(normal_errors)
-        if normal_errors:
-            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
-                                                               "data": data,
-                                                               "errors": errors})
+        data, errors = validate_sign_up_form_normal(request.POST)
 
         if not errors:
             if "school_dirty" in data:
@@ -459,18 +444,11 @@ def return_signup_school_confirm(request, state):
     learner = Learner.objects.get(id=user['id'])
 
     def get():
-        return redirect("auth/return_signup.html")
+        return redirect("auth.return_signup")
 
     def post():
-        data, errors = validate_sign_up_form_return(request.POST, learner.mobile)
+        data, errors = validate_sign_up_form_normal(request.POST)
         if errors:
-            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
-                                                               "data": data,
-                                                               "errors": errors})
-        normal_data, normal_errors = validate_sign_up_form_normal(request.POST)
-        data.update(normal_data)
-        errors.update(normal_errors)
-        if normal_errors:
             return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
                                                                "data": data,
                                                                "errors": errors})
@@ -494,11 +472,6 @@ def return_signup_school_confirm(request, state):
                         course=course)
 
                 # update learner
-                learner.first_name = data["first_name"]
-                learner.last_name = data["surname"]
-                learner.mobile = data["cellphone"]
-                learner.username = data["cellphone"]
-                learner.country = "South Africa"
                 learner.school = school
                 learner.grade = data["grade"]
                 learner.enrolled = "1"

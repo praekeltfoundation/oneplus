@@ -235,36 +235,6 @@ def validate_sign_up_form(post):
     return data, errors
 
 
-def validate_sign_up_form_return(post, existing_mobile):
-    data = {}
-    errors = {}
-
-    if "first_name" in post and post["first_name"]:
-        data["first_name"] = post["first_name"]
-    else:
-        errors["first_name_error"] = "This must be completed"
-
-    if "surname" in post and post["surname"]:
-        data["surname"] = post["surname"]
-    else:
-        errors["surname_error"] = "This must be completed"
-
-    if "cellphone" in post and post["cellphone"]:
-        cellphone = post["cellphone"]
-        if validate_mobile(cellphone):
-            if CustomUser.objects.filter(Q(mobile=cellphone) | Q(username=cellphone))\
-                    .exclude(Q(mobile=existing_mobile) | Q(username=existing_mobile)).exists():
-                errors["cellphone_error"] = "registered"
-            else:
-                data["cellphone"] = cellphone
-        else:
-            errors["cellphone_error"] = "Enter a valid cellphone number"
-    else:
-        errors["cellphone_error"] = "This must be completed"
-
-    return data, errors
-
-
 def validate_sign_up_form_normal(post):
     data = {}
     errors = {}
