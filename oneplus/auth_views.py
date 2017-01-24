@@ -201,9 +201,9 @@ def create_learner(first_name, last_name, mobile, country, school, grade):
 
 
 def create_participant(learner, classs):
-    Participant.objects.create(learner=learner,
-                               classs=classs,
-                               datejoined=datetime.now())
+    return Participant.objects.create(learner=learner,
+                                      classs=classs,
+                                      datejoined=datetime.now())
 
 
 def set_learner_password(learner):
@@ -369,21 +369,36 @@ def signup_school_confirm(request):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def return_signup(request, state, user):
+@oneplus_state_required
+def return_signup(request, state):
+    user = request.session.get("user", None)
+    if not user:
+        return redirect('auth.login')
+    if Learner.objects.filter(id=user['id'], enrolled='1').exists():
+        return redirect('learn.home')
+    learner = Learner.objects.get(id=user['id'])
+
     def get():
+        try:
+            school = learner.school
+            province = school.province
+        except:
+            school = None
+            province = None
+
         data = {
-            "cellphone": user.mobile,
-            "first_name": user.first_name,
-            "grade": user.grade,
-            "province": user.province,
-            "surname": user.first_name,
-            "username": user.username,
+            "cellphone": learner.mobile,
+            "first_name": learner.first_name,
+            "grade": learner.grade,
+            "province": province,
+            "school_dirty": school,
+            "surname": learner.first_name,
+            "username": learner.username,
         }
         return render(request, "auth/return_signup.html", {"provinces": PROVINCES, "data": data})
 
     def post():
-        data, errors = validate_sign_up_form_return(request.POST, user.mobile)
+        data, errors = validate_sign_up_form_return(request.POST, learner.mobile)
         if errors:
             return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
                                                                "data": data,
@@ -395,9 +410,6 @@ def return_signup(request, state, user):
             return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
                                                                "data": data,
                                                                "errors": errors})
-        school_data, school_errors = validate_sign_up_form_school_confirm(request.POST)
-        data.update(school_data)
-        errors.update(school_errors)
 
         if not errors:
             if "school_dirty" in data:
@@ -437,13 +449,20 @@ def return_signup(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
-def return_signup_school_confirm(request, state, user):
+@oneplus_state_required
+def return_signup_school_confirm(request, state):
+    user = request.session.get("user", None)
+    if not user:
+        return redirect('auth.login')
+    if Learner.objects.filter(id=user['id'], enrolled='1').exists():
+        return redirect('learn.home')
+    learner = Learner.objects.get(id=user['id'])
+
     def get():
         return redirect("auth/return_signup.html")
 
     def post():
-        data, errors = validate_sign_up_form_return(request.POST, )
+        data, errors = validate_sign_up_form_return(request.POST, learner.mobile)
         if errors:
             return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
                                                                "data": data,
@@ -475,20 +494,21 @@ def return_signup_school_confirm(request, state, user):
                         course=course)
 
                 # update learner
-                user.first_name = data["first_name"]
-                user.last_name = data["surname"]
-                user.mobile = data["cellphone"]
-                user.username = data["cellphone"]
-                user.country = "South Africa"
-                user.school = school
-                user.grade = data["grade"]
-                user.enrolled = 1
-                user.save()
+                learner.first_name = data["first_name"]
+                learner.last_name = data["surname"]
+                learner.mobile = data["cellphone"]
+                learner.username = data["cellphone"]
+                learner.country = "South Africa"
+                learner.school = school
+                learner.grade = data["grade"]
+                learner.enrolled = "1"
+                learner.save()
 
                 # create participant
-                create_participant(user, classs)
-
-                return redirect(reverse("learn.home"))
+                Participant.objects.filter(learner=learner, is_active=True).update(is_active=False)
+                participant = create_participant(learner, classs)
+                request.session["user"]["participant_id"] = participant.id
+                return redirect("learn.home")
             else:
                 errors.update({"school_error": "Unknown school selected."})
                 return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
