@@ -2687,6 +2687,58 @@ class GeneralTests(TestCase):
             resp = self.client.get(reverse("auth.signup_form_normal"))
             self.assertContains(resp, 'Let\'s sign you up')
 
+    # @override_settings(GRADE_11_COURSE_NAME='Grade 11 Course')
+    def test_signup_return(self):
+        with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
+            self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+            self.learner.first_name = 'Blarg'
+            self.learner.last_name = 'Honk'
+            self.learner.enrolled = '0'
+            self.learner.save()
+
+            self.course.name = settings.GRADE_11_COURSE_NAME
+            self.course.save()
+
+            resp = self.client.get(reverse('learn.home'), folow=True)
+            self.assertRedirects(resp, reverse('auth.return_signup'))
+
+            # no data given
+            resp = self.client.post(reverse('auth.return_signup'),
+                                    data={
+                                        'cellphone': self.learner.mobile,
+                                        'first_name': self.learner.first_name,
+                                        'surname': self.learner.last_name},
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=3)
+
+            # correct data given (p1)
+            resp = self.client.post(reverse('auth.return_signup'),
+                                    data={
+                                        'cellphone': self.learner.mobile,
+                                        'first_name': self.learner.first_name,
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school_dirty': self.school.name,
+                                        'surname': self.learner.last_name},
+                                    follow=True)
+            self.assertContains(resp, self.school.name)
+
+            # correct data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={
+                                        'cellphone': self.learner.mobile,
+                                        'first_name': self.learner.first_name,
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school': self.school.id,
+                                        'surname': self.learner.last_name},
+                                    follow=True)
+            self.assertRedirects(resp, reverse('learn.home'))
+            self.participant = Participant.objects.get(pk=self.participant.pk)
+            self.assertFalse(self.participant.is_active)
+            self.assertNotEqual(Participant.objects.get(learner=self.learner, is_active=True).pk, self.participant.pk)
+            self.assertEqual(self.learner.enrolled, "0")
+
     def test_change_details(self):
         self.client.get(reverse(
             'auth.autologin',
