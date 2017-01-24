@@ -1,0 +1,63 @@
+{% extends "core/main.html" %}
+
+{% block title %}Registration - School{% endblock %}
+
+{% block page_descriptor_text %}Register{% endblock %}
+
+{% block content %}
+    <article class="content pale-teal-accent">
+        <h1 class="color-accent">Hello, {{ data.first_name }}.</h1>
+        <h2>We need a bit more info.</h2>
+		<form action="return_signup" method="post" class="signup">
+			{% csrf_token %}
+            <input type="hidden" name="page_num" id="id_page_num" value="1" />
+
+            <label>
+                Select your grade:
+                {% if errors.grade_error %}
+                    <div class="red-front">{{ errors.grade_error }}</div>
+                {% endif %}
+                <div class="radiogroup">
+                    <label><input class="block" type="radio" name="grade" value="Grade 10"
+                            {% ifequal data.grade 'Grade 10' %}checked{% endifequal %}>10</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 11"
+                            {% ifequal data.grade 'Grade 11' %}checked{% endifequal %}>11</label>
+                    <label><input class="block" type="radio" name="grade" value="Grade 12"
+                            {% ifequal data.grade 'Grade 12' %}checked{% endifequal %}>12</label>
+                </div>
+            </label>
+
+            <label>
+                Province
+                {% if errors.province_error %}
+                    <div class="red-front">{{ errors.province_error }}</div>
+                {% endif %}
+                <select name="province" id="id_province">
+                    <option value="0">Select</option>
+                    {% for province_name in provinces %}
+                        <option value="{{ province_name }}"{% ifequal data.province province_name %} selected="selected"{% endifequal %}>{{ province_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                School
+                {% if errors.school_dirty_error %}
+                    <div class="red-front">{{ errors.school_dirty_error }}</div>
+                {% endif %}
+                {% if errors.school_error %}
+                    <div class="red-front">{{ errors.school_error }}</div>
+                {% endif %}
+                {% if errors.grade_course_error %}
+                    <div class="red-front">{{ errors.grade_course_error }}</div> -
+                    <a href={% url 'misc.contact' %}>Contact us</a> to get connected.
+                {% endif %}
+                <input type="text" name="school_dirty" id="id_school_dirty" value="{{ data.school_dirty }}" >
+                <div class="subtle-info">Please make sure your school’s name is spelled correctly.</div>
+            </label>
+
+            <input type="submit" value="Next" class="button border-color-accent color-accent" />
+        </form>
+    </article>
+
+{% endblock %}

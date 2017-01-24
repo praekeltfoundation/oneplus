@@ -2687,6 +2687,94 @@ class GeneralTests(TestCase):
             resp = self.client.get(reverse("auth.signup_form_normal"))
             self.assertContains(resp, 'Let\'s sign you up')
 
+    # @override_settings(GRADE_11_COURSE_NAME='Grade 11 Course')
+    def test_signup_return(self):
+        with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
+            # test not logged in
+            resp = self.client.get(reverse('auth.return_signup'))
+            self.assertRedirects(resp, reverse('auth.login'))
+            resp = self.client.get(reverse('auth.return_signup_school_confirm'))
+            self.assertRedirects(resp, reverse('auth.login'))
+
+            # test user not enrolled
+            self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+            resp = self.client.get(reverse('auth.return_signup'))
+            self.assertRedirects(resp, reverse('learn.home'))
+            resp = self.client.get(reverse('auth.return_signup_school_confirm'))
+            self.assertRedirects(resp, reverse('learn.home'))
+
+            self.learner.first_name = 'Blarg'
+            self.learner.last_name = 'Honk'
+            self.learner.enrolled = '0'
+            self.learner.save()
+
+            self.course.name = settings.GRADE_11_COURSE_NAME
+            self.course.save()
+
+            resp = self.client.get(reverse('learn.home'), folow=True)
+            self.assertRedirects(resp, reverse('auth.return_signup'))
+
+            # no data given
+            resp = self.client.post(reverse('auth.return_signup'),
+                                    data={},
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=3)
+
+            # correct data given (p1)
+            resp = self.client.post(reverse('auth.return_signup'),
+                                    data={
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school_dirty': self.school.name},
+                                    follow=True)
+            self.assertContains(resp, self.school.name)
+
+            # test ElasticSearch succeeds
+            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
+                # non-empty search result
+                MockSearchSet().filter().values.return_value = [{'pk': 1, 'name': 'Blargity School'}]
+                resp = self.client.post(reverse('auth.return_signup'),
+                                        data={
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 11',
+                                            'school_dirty': 'blarg'},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'Blargity School')
+                MockSearchSet.clear()
+
+            # get redirect (p2)
+            resp = self.client.get(reverse('auth.return_signup_school_confirm'), follow=True)
+            self.assertRedirects(resp, reverse('auth.return_signup'))
+
+            # incomplete data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={},
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=3)
+
+            # incorrect data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school': 'other'},
+                                    follow=True)
+            self.assertContains(resp, 'No such school')
+
+            # correct data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school': self.school.id},
+                                    follow=True)
+            self.assertRedirects(resp, reverse('learn.home'))
+            self.participant = Participant.objects.get(pk=self.participant.pk)
+            self.assertFalse(self.participant.is_active)
+            self.assertNotEqual(Participant.objects.get(learner=self.learner, is_active=True).pk, self.participant.pk)
+            self.assertEqual(self.learner.enrolled, "0")
+
     def test_change_details(self):
         self.client.get(reverse(
             'auth.autologin',

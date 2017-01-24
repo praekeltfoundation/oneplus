@@ -58,10 +58,19 @@ def login(request, state):
 
             if user is not None and user.is_active:
                 try:
-                    registered = is_registered(user)
+                    try:
+                        registered = is_registered(user)
+                    except:
+                        save_user_session_no_participant(request, user)
+                        if Learner.objects.filter(id=request.session['user']['id'], enrolled="0").exists():
+                            return redirect("auth.return_signup")
+                        else:
+                            raise
                     class_active = is_class_active(user)
                     if registered is not None and class_active:
                         save_user_session(request, registered, user)
+                        if Learner.objects.filter(id=request.session['user']['id'], enrolled="0").exists():
+                            return redirect("auth.return_signup")
 
                         usr = Learner.objects.filter(username=form.cleaned_data["username"])
                         par = Participant.objects.filter(learner=usr, is_active=True)
@@ -118,11 +127,7 @@ def login(request, state):
                             allowed, event_participant_rel = par.first().can_take_event(event)
                             if allowed:
                                 return redirect("learn.event_splash_page")
-
-                        if ParticipantQuestionAnswer.objects.filter(participant=par).count() == 0:
-                            return redirect("learn.first_time")
-                        else:
-                            return redirect("learn.home")
+                        return redirect("learn.home")
                     else:
                         return redirect("auth.getconnected")
                 except ObjectDoesNotExist:
@@ -196,9 +201,9 @@ def create_learner(first_name, last_name, mobile, country, school, grade):
 
 
 def create_participant(learner, classs):
-    Participant.objects.create(learner=learner,
-                               classs=classs,
-                               datejoined=datetime.now())
+    return Participant.objects.create(learner=learner,
+                                      classs=classs,
+                                      datejoined=datetime.now())
 
 
 def set_learner_password(learner):
@@ -360,6 +365,132 @@ def signup_school_confirm(request):
             return render(request, "auth/signup_school_confirm.html", {"provinces": PROVINCES,
                                                                        "data": data,
                                                                        "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+def return_signup(request, state):
+    user = request.session.get("user", None)
+    if not user:
+        return redirect('auth.login')
+    if Learner.objects.filter(id=user['id'], enrolled='1').exists():
+        return redirect('learn.home')
+    learner = Learner.objects.get(id=user['id'])
+
+    def get():
+        try:
+            school = learner.school
+            province = school.province
+        except:
+            school = None
+            province = None
+
+        data = {
+            "grade": learner.grade,
+            "province": province,
+            "school_dirty": school,
+        }
+        return render(request, "auth/return_signup.html", {"provinces": PROVINCES, "data": data})
+
+    def post():
+        data, errors = validate_sign_up_form_normal(request.POST)
+
+        if not errors:
+            if "school_dirty" in data:
+                school_list = None
+                try:
+                    school_list = SearchQuerySet()\
+                        .filter(province=data['province'], name__fuzzy=data['school_dirty'])\
+                        .values('pk', 'name')[:10]
+                    for entry in school_list:
+                        entry['id'] = entry.pop('pk')
+                except:
+                    school_list = None
+                finally:
+                    if not school_list or len(school_list) == 0:
+                        school_list = School.objects.filter(province=data['province'],
+                                                            name__icontains=data['school_dirty']).values()[:10]
+
+                if len(school_list) > 0:
+                    return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                                      "data": data,
+                                                                                      "school_list": school_list})
+                else:
+                    errors.update({"school_dirty_error": "No schools were a close enough match."})
+                    return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                                       "data": data,
+                                                                       "errors": errors})
+            else:
+                errors.update({"school_error": "Unknown school selected."})
+                return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                                   "data": data,
+                                                                   "errors": errors})
+        else:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+
+    return resolve_http_method(request, [get, post])
+
+
+@oneplus_state_required
+def return_signup_school_confirm(request, state):
+    user = request.session.get("user", None)
+    if not user:
+        return redirect('auth.login')
+    if Learner.objects.filter(id=user['id'], enrolled='1').exists():
+        return redirect('learn.home')
+    learner = Learner.objects.get(id=user['id'])
+
+    def get():
+        return redirect("auth.return_signup")
+
+    def post():
+        data, errors = validate_sign_up_form_normal(request.POST)
+        if errors:
+            return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
+                                                               "data": data,
+                                                               "errors": errors})
+        school_data, school_errors = validate_sign_up_form_school_confirm(request.POST)
+        data.update(school_data)
+        errors.update(school_errors)
+
+        if not errors:
+            if data["school"] != "other":
+                school = School.objects.get(id=data["school"])
+                class_name = "%s - %s" % (school.name, data['grade'])
+                try:
+                    classs = Class.objects.get(name=class_name)
+                except ObjectDoesNotExist:
+                    course = data["course"]
+                    classs = Class.objects.create(
+                        name=class_name,
+                        description="%s open class for %s" % (school.name, data['grade']),
+                        province=data["province"],
+                        type=Class.CT_OPEN,
+                        course=course)
+
+                # update learner
+                learner.school = school
+                learner.grade = data["grade"]
+                learner.enrolled = "1"
+                learner.save()
+
+                # create participant
+                Participant.objects.filter(learner=learner, is_active=True).update(is_active=False)
+                participant = create_participant(learner, classs)
+                request.session["user"]["participant_id"] = participant.id
+                return redirect("learn.home")
+            else:
+                errors.update({"school_error": "Unknown school selected."})
+                return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                                  "data": data,
+                                                                                  "errors": errors})
+        else:
+            return render(request, "auth/return_signup_school_confirm.html", {"provinces": PROVINCES,
+                                                                              "data": data,
+                                                                              "errors": errors})
 
     return resolve_http_method(request, [get, post])
 
@@ -582,7 +713,7 @@ def resolve_http_method(request, methods):
 
 def is_registered(user):
     # Check learner is registered
-    return Participant.objects.filter(learner=user.learner).latest('datejoined')
+    return Participant.objects.filter(learner=user.learner, is_active=True).latest('datejoined')
 
 
 def save_user_session(request, registered, user):
@@ -594,6 +725,17 @@ def save_user_session(request, registered, user):
         = registered.id
     request.session["user"]["place"] = 0  # TODO
     registered.award_scenario("LOGIN", None, special_rule=True)
+
+    # update last login date
+    user.last_login = datetime.now()
+    user.save()
+
+
+def save_user_session_no_participant(request, user):
+    request.session["user"] = {}
+    request.session["user"]["id"] = user.learner.id
+    request.session["user"]["name"] = user.learner.first_name
+    request.session["user"]["place"] = 0  # TODO
 
     # update last login date
     user.last_login = datetime.now()

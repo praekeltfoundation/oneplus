@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from core.stats import question_answered, question_answered_correctly, percentage_question_answered_correctly
 from organisation.models import Course
 from content.models import TestingQuestion
-from core.models import Class, Participant
+from core.models import Class, Learner, Participant
 
 COUNTRYWIDE = "Countrywide"
 
@@ -23,7 +23,11 @@ def oneplus_login_required(f):
     def wrap(request, *args, **kwargs):
         if "user" not in request.session.keys():
             return redirect("auth.login")
-        return f(request, user=request.session["user"], *args, **kwargs)
+        else:
+            user = request.session["user"]
+            if Learner.objects.filter(id=user['id'], enrolled='0').exists():
+                return redirect("auth.return_signup")
+        return f(request, user=user, *args, **kwargs)
     return wrap
 
 

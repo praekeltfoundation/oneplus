@@ -1,0 +1,40 @@
+{% extends "core/main.html" %}
+
+{% block title %}Registration - School selection{% endblock %}
+
+{% block page_descriptor_text %}Register{% endblock %}
+
+{% block content %}
+    <article class="content pale-teal-accent">
+        <h1>Please confirm which school is yours:</h1>
+		<form action="return_signup_school_confirm" method="post" class="signup" >
+			{% csrf_token %}
+            <input type="hidden" name="page_num" id="id_page_num" value="2" />
+            <input type="hidden" name="grade" value="{{ data.grade }}">
+            <input type="hidden" name="province" value="{{ data.province }}">
+            <input type="hidden" name="school_dirty" value="{{ data.school_dirty }}">
+
+            <div class="radiogroup">
+                {% for school in school_list %}
+                    <label>
+                        <input name="school" type="radio" value="{{ school.id }}" />
+                        {{ school.name }}
+                    </label>
+                {% endfor %}
+                {% comment %}<option value="other">Other</option>{% endcomment %}
+                {% if errors.school_error %}
+                    <span class="red-front">{{ errors.school_error }}</span>
+                    <br>
+                {% endif %}
+                {% if errors.grade_course_error %}
+                    <span class="red-front">{{ errors.grade_course_error }}</span> -
+                    <a href={% url 'misc.contact' %}>Contact us</a> to get connected.
+                    <br>
+                {% endif %}
+            </div>
+
+            <input type="submit" value="Submit" class="button border-color-accent color-accent" />
+        </form>
+    </article>
+
+{% endblock %}
