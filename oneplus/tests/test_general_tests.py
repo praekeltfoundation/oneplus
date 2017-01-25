@@ -2714,11 +2714,16 @@ class GeneralTests(TestCase):
             resp = self.client.get(reverse('learn.home'), folow=True)
             self.assertRedirects(resp, reverse('auth.return_signup'))
 
+            # plain get
+            resp = self.client.get(reverse('auth.return_signup'), folow=True)
+            self.assertContains(resp, 'Hello, %s.' % self.learner.first_name, count=1)
+
             # no data given
             resp = self.client.post(reverse('auth.return_signup'),
                                     data={},
                                     follow=True)
             self.assertContains(resp, "This must be completed", count=3)
+            self.assertContains(resp, 'Hello, %s' % self.learner.first_name, count=1)
 
             # correct data given (p1)
             resp = self.client.post(reverse('auth.return_signup'),
@@ -2746,6 +2751,7 @@ class GeneralTests(TestCase):
             # get redirect (p2)
             resp = self.client.get(reverse('auth.return_signup_school_confirm'), follow=True)
             self.assertRedirects(resp, reverse('auth.return_signup'))
+            self.assertContains(resp, 'Hello, %s' % self.learner.first_name, count=1)
 
             # incomplete data given (p2)
             resp = self.client.post(reverse('auth.return_signup_school_confirm'),

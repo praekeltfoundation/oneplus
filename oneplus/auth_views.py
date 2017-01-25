@@ -387,6 +387,7 @@ def return_signup(request, state):
             province = None
 
         data = {
+            "first_name": learner.first_name,
             "grade": learner.grade,
             "province": province,
             "school_dirty": school,
@@ -395,6 +396,7 @@ def return_signup(request, state):
 
     def post():
         data, errors = validate_sign_up_form_normal(request.POST)
+        data.update({"first_name": learner.first_name})
 
         if not errors:
             if "school_dirty" in data:
@@ -448,6 +450,7 @@ def return_signup_school_confirm(request, state):
 
     def post():
         data, errors = validate_sign_up_form_normal(request.POST)
+        data.update({"first_name": learner.first_name})
         if errors:
             return render(request, "auth/return_signup.html", {"provinces": PROVINCES,
                                                                "data": data,
