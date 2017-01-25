@@ -38,14 +38,14 @@
             </section>
             {% if question.answer_content %}
                 <hr class="hr-accent" />
-                <section class="bottom-novert">
+                <section class="bottom">
                     <h3 class="card-top-phrase">Solution</h3>
                     <p class="solution-content">{{ question.answer_content | format_content  }}</p>
                 </section>
             {% endif %}
             {% if question.notes %}
                 <hr class="hr-accent" />
-                <section class="bottom-novert">
+                <section class="bottom">
                     <h3 class="card-top-phrase">Additional Notes</h3>
                     <p class="solution-content">{{ question.notes | format_content  }}</p>
                 </section>
