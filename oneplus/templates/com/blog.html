@@ -39,9 +39,9 @@
                             </div>
                             {% if  comment.unmoderated_date == None %}
                                 <p>{{ comment.content }}</p>
-                                <form name="report_comment" method="post" action="?">
+                                <form class="pull-up" name="report_comment" method="post" action="?">
                                     {% csrf_token %}
-                                    <button type="submit" name="report_button" class="red-front bold link" value="">Report</button>
+                                    <button type="submit" name="report_button" class="link stack-horz" value="">Report</button>
                                     <input type="hidden" name="report" value="{{ comment.id }}" />
                                 </form>
                             {% else %}
