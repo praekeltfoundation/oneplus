@@ -37,7 +37,7 @@
                 {% for opt in question.testingquestionoption_set.all %}
                     <label class="label-question" for="answer_{{ opt.id }}">
                         <input type="radio" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle"
-                               {% if opt.correct %}checked="true"{% endif %}>
+                               {% if opt.correct %}checked="true"{% endif %} disabled>
                         <div class="align-option">
                             {% if opt.content %}{{ opt.content | format_option  }}{% else %}{{ opt.name }}{% endif %}
                         </div>
@@ -48,14 +48,14 @@
                 <hr class="hr-accent" />
                 <section class="bottom-novert">
                     <h3 class="card-top-phrase">Solution</h3>
-                    <p>{{ question.answer_content | format_content  }}</p>
+                    <p class="solution-content">{{ question.answer_content | format_content  }}</p>
                 </section>
             {% endif %}
             {% if question.notes %}
                 <hr class="hr-accent" />
                 <section class="bottom-novert">
                     <h3 class="card-top-phrase">Additional Notes</h3>
-                    <p>{{ question.notes | format_content  }}</p>
+                    <p class="solution-content">{{ question.notes | format_content  }}</p>
                 </section>
             {% endif %}
             {% endautoescape %}

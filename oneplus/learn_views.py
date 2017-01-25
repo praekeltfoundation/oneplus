@@ -395,7 +395,7 @@ def nextchallenge(request, state, user, participant):
             else:
                 return redirect("learn.wrong")
         else:
-            return redirect("learn.home")
+            return get()
 
     return resolve_http_method(request, [get, post])
 
@@ -458,7 +458,7 @@ def redo(request, state, user, participant):
             else:
                 return redirect("learn.redo_wrong")
         else:
-            return redirect("learn.home")
+            return get()
 
     return resolve_http_method(request, [get, post])
 

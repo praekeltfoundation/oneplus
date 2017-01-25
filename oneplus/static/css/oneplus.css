@@ -597,6 +597,9 @@ img.limit-size {
   max-width: 256px;
   width: 100%; }
 
+.solution-content {
+  overflow-x: scroll; }
+
 .login label {
   z-index: 1;
   display: block; }
