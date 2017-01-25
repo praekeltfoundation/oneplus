@@ -1439,7 +1439,7 @@ class GeneralTests(TestCase):
             data={'answer': option.id}, follow=True
         )
 
-        self.assertContains(resp, "Too bad")
+        self.assertContains(resp, "Next time")
 
     def test_right_view_adminpreview(self):
 
@@ -1495,7 +1495,7 @@ class GeneralTests(TestCase):
                 kwargs={
                     'questionid': self.question.id}))
 
-        self.assertContains(resp, "Too bad")
+        self.assertContains(resp, "Next time")
 
     def test_wrong_view(self):
         self.client.get(reverse(
@@ -1522,7 +1522,7 @@ class GeneralTests(TestCase):
             data={'answer': questionoption2.id},
             follow=True
         )
-        self.assertContains(resp, "Too bad")
+        self.assertContains(resp, "Next time")
 
     def test_welcome_screen(self):
         resp = self.client.get(reverse('misc.welcome'))
