@@ -726,6 +726,8 @@ class ChallengeTest(TestCase):
 
         resp = self.client.post(reverse("learn.redo_right"))
         self.assertEquals(resp.status_code, 200)
+        redo_question = LearnerState.objects.get(participant=self.participant).redo_question
+        self.assertContains(resp, "%d point" % (redo_question.points,))
 
         resp = self.client.post(reverse("learn.redo_right"),
                                 data={"comment": "test"},

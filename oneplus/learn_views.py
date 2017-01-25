@@ -425,6 +425,7 @@ def redo(request, state, user, participant):
     def get():
         done_count, total_count = _learnerstate.get_redo_question_count()
         return render(request, "learn/redo.html", {
+            "points": redo_question.points,
             "question": _learnerstate.redo_question,
             "question_number": done_count + 1,
             "state": state,
@@ -511,6 +512,7 @@ def redo_right(request, state, user, participant):
                 {
                     "has_next": redo_count > 0,
                     "messages": _messages,
+                    "points": _learnerstate.redo_question.points if _learnerstate.redo_question else None,
                     "question": _learnerstate.redo_question,
                     "questions": questions,
                     "state": state,
@@ -590,6 +592,7 @@ def redo_right(request, state, user, participant):
                 "learn/redo_right.html",
                 {
                     "has_next": redo_count > 0,
+                    "points": _learnerstate.redo_question.points if _learnerstate.redo_question else None,
                     "messages": _messages,
                     "question": _learnerstate.redo_question,
                     "state": state,
