@@ -6,7 +6,7 @@
     <article class="content iris-accent">
         <hgroup>
             <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
-            <h2>Something to say?</h2>
+            <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
         </hgroup>
 
         {% if not state.inbox_sent %}
@@ -15,7 +15,7 @@
                 <button type="submit" name="comment_button" class="button border-color-accent color-accent" value="Submit">Submit</button>
             </form>
         {% else %}
-            <div class="item-large grey-back white-front">
+            <div class="item-large">
                 <div class="message_heading">Thank You!</div>
                 <div class="message">Your message has been sent</div>
             </div>
