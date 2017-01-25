@@ -219,6 +219,7 @@ form.no-pad {
 .link {
   background: none;
   border:none;
+  font-family: $font-family-secondary;
 
   &.undecorated {
     text-decoration: none;
@@ -326,6 +327,11 @@ form.no-pad {
     vertical-align: middle;
     width: 50%;
   }
+}
+
+.card-link {
+  font-size: $ms-base;
+  font-weight: bold;
 }
 
 .funky-number {

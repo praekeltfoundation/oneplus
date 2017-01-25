@@ -29,6 +29,9 @@ blockquote:before, blockquote:after, q:before, q:after {
 :focus {
   outline: 0; }
 
+hr {
+  margin: 0; }
+
 ins {
   text-decoration: none; }
 
@@ -440,7 +443,8 @@ form.no-pad {
 
 .link {
   background: none;
-  border: none; }
+  border: none;
+  font-family: "Lato", sans-serif; }
   .link.undecorated {
     text-decoration: none; }
   .link.wraps {
@@ -522,6 +526,10 @@ form.no-pad {
     padding: 0.5em 0;
     vertical-align: middle;
     width: 50%; }
+
+.card-link {
+  font-size: 16px;
+  font-weight: bold; }
 
 .funky-number {
   font-family: "Asap", sans-serif;
