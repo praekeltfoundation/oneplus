@@ -18,14 +18,6 @@
             That's not the correct answer.
         </h2>
 
-        {% if not preview %}
-            {% if state.right_tasks_today >= state.total_tasks_today %}
-                <a class="button border-color-accent color-accent" href="home">Done for today</a>
-            {% else %}
-                <a class="button border-color-accent color-accent" href="next">Next question</a>
-            {% endif %}
-        {% endif %}
-
         <article class="card pale-teal-accent border-color-accent">
             {% autoescape off %}
             {{ state.question_id }}
@@ -60,6 +52,14 @@
             {% endif %}
             {% endautoescape %}
         </article>
+
+        {% if not preview %}
+            {% if state.right_tasks_today >= state.total_tasks_today %}
+                <a class="button border-color-accent color-accent" href="home">Done for today</a>
+            {% else %}
+                <a class="button border-color-accent color-accent" href="next">Next question</a>
+            {% endif %}
+        {% endif %}
 
         {% if not preview %}
             <div class="padded">
