@@ -6,7 +6,7 @@
 
 {% block content %}
     <article class="content pale-teal-accent">
-        <h1 class="color-accent">Hello, {{ data.first_name }}.</h1>
+        <h1 class="color-accent">Hello, {% if data.first_name %}{{ data.first_name }}{% else %}learner{% endif %}.</h1>
         <h2>We need a bit more info.</h2>
 		<form action="return_signup" method="post" class="signup">
 			{% csrf_token %}
