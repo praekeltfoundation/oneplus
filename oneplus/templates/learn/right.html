@@ -108,7 +108,7 @@
         {% endif %}
 
         {% if request.session.state.discussion_page_max > 0 or preview%}
-            <article class="content comment-list">
+            <article class="comment-list">
                 {% for msg in messages %}
                     {% if msg.moderated %}
                         <div class="item-large">
@@ -118,20 +118,20 @@
 
                             {% if  msg.unmoderated_date == None %}
                                 <p>{{ msg.content }}</p>
-                                <div>
+                                <div class="pull-up">
 
                                     {% if not preview %}
                                         {% if not state.banned %}
                                             {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                                 <form name="comment_response" method="post" action="?" class="inline">
                                                     {% csrf_token %}
-                                                    <button type="submit" name="comment_response_button" class="button border-color-accent color-accent inline" value="{{ msg.id }}">Reply</button>
+                                                    <button type="submit" name="comment_response_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                                 </form>
                                             {% endifnotequal %}
                                         {% endif %}
                                         <form name="report_comment" method="post" action="?" class="inline">
                                             {% csrf_token %}
-                                            <button type="submit" name="report_button" class="button inline" value="">Report Comment</button>
+                                            <button type="submit" name="report_button" class="link stack-horz" value="">Report Comment</button>
                                             <input type="hidden" name="report" value="{{ msg.id }}" />
                                         </form>
                                     {% endif %}
@@ -140,7 +140,7 @@
                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                     <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                                         <input type="text" name="reply" value="" />
-                                        <button type="submit" name="reply_button" class="button border-color-accent color-accent" value="{{ msg.id }}">Reply</button>
+                                        <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>
                                 {% endifequal %}
 

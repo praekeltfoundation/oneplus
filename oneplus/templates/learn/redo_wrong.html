@@ -101,13 +101,13 @@
                                             {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                                 <form name="comment_response" method="post" action="?" class="inline">
                                                     {% csrf_token %}
-                                                    <button type="submit" name="comment_response_button" class="button border-color-accent color-accent inline" value="{{ msg.id }}">Reply</button>
+                                                    <button type="submit" name="comment_response_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                                 </form>
                                             {% endifnotequal %}
                                         {% endif %}
                                         <form name="report_comment" method="post" action="?" class="inline">
                                             {% csrf_token %}
-                                            <button type="submit" name="report_button" class="button inline" value="">Report Comment</button>
+                                            <button type="submit" name="report_button" class="link stack-horz" value="">Report Comment</button>
                                             <input type="hidden" name="report" value="{{ msg.id }}" />
                                         </form>
                                     {% endif %}
@@ -116,7 +116,7 @@
                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
                                     <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
                                         <input type="text" name="reply" value="" />
-                                        <button type="submit" name="reply_button" class="button border-color-accent color-accent" value="{{ msg.id }}">Reply</button>
+                                        <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>
                                 {% endifequal %}
 
