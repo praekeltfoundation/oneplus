@@ -28,7 +28,7 @@
                 {% for opt in question.testingquestionoption_set.all %}
                     <label class="label-question" for="answer_{{ opt.id }}">
                         <input type="radio" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle"
-                               {% if opt.correct %}checked="true"{% endif %}>
+                               {% if opt.correct %}checked="true"{% endif %} disabled>
                         <div class="align-option">
                             {% if opt.content %}{{ opt.content | format_option  }}{% else %}{{ opt.name }}{% endif %}
                         </div>
