@@ -208,6 +208,10 @@ class ChallengeTest(TestCase):
         self.assertContains(resp, 'test question')
         self.assertContains(resp, 'questionanswer1')
 
+        # empty answer should stay on page
+        self.client.post(reverse('learn.next'))
+        self.assertEqual(resp.status_code, 200)
+
         resp = self.client.post(
             reverse('learn.next'),
             data={'page': 1},
