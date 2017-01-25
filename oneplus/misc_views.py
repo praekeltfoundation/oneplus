@@ -26,6 +26,16 @@ from content.models import SUMit, EventParticipantRel, EventQuestionAnswer
 logger = logging.getLogger(__name__)
 
 
+def oneplus_check_user(f):
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        if "user" in request.session.keys():
+            return f(request, user=request.session["user"], *args, **kwargs)
+        else:
+            return f(request, user=None, *args, **kwargs)
+    return wrap
+
+
 @oneplus_state_required
 def welcome(request, state):
     def get():
@@ -51,8 +61,14 @@ def first_time(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
+@oneplus_state_required
+@oneplus_check_user
 def faq(request, state, user):
+    if 'user' in request.session.keys():
+        user = request.session['user']
+    else:
+        user = None
+
     def get():
         return render(request, "misc/faq.html", {"state": state,
                                                  "user": user})
@@ -64,8 +80,10 @@ def faq(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_login_required
+@oneplus_state_required
+@oneplus_check_user
 def terms(request, state, user):
+
     def get():
         return render(request, "misc/terms.html", {"state": state,
                                                    "user": user})
@@ -75,16 +93,6 @@ def terms(request, state, user):
                                                    "user": user})
 
     return resolve_http_method(request, [get, post])
-
-
-def oneplus_check_user(f):
-    @wraps(f)
-    def wrap(request, *args, **kwargs):
-        if "user" in request.session.keys():
-            return f(request, user=request.session["user"], *args, **kwargs)
-        else:
-            return f(request, user=None, *args, **kwargs)
-    return wrap
 
 
 @oneplus_state_required
