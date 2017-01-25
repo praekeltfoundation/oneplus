@@ -334,6 +334,15 @@ form.no-pad {
   font-weight: bold;
 }
 
+.link.stack-horz {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.pull-up {
+  margin-top: -1em;
+}
+
 .funky-number {
   font-family: $font-family-primary;
   font-size: 200%;

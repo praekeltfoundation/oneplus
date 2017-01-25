@@ -531,6 +531,13 @@ form.no-pad {
   font-size: 16px;
   font-weight: bold; }
 
+.link.stack-horz {
+  margin-left: 0;
+  padding-left: 0; }
+
+.pull-up {
+  margin-top: -1em; }
+
 .funky-number {
   font-family: "Asap", sans-serif;
   font-size: 200%;
