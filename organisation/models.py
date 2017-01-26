@@ -47,6 +47,10 @@ class School(models.Model):
     OT_OPEN = 1
     OT_CLOSED = 2
     OT_TEST = 3
+    OPEN_TYPE_CHOICES = (
+        (OT_OPEN, "Open"),
+        (OT_CLOSED, "Closed"),
+        (OT_TEST, "Test"))
 
     name = models.CharField(
         "Name", max_length=500, null=True, blank=False, unique=True)
@@ -55,10 +59,7 @@ class School(models.Model):
     website = models.URLField("Website", max_length=200, blank=True)
     email = models.EmailField("E-Mail", max_length=75, blank=True)
     province = models.CharField("Province", max_length=20, null=True, blank=True, choices=PROVINCE_CHOICES)
-    open_type = models.PositiveIntegerField("Open status", default=OT_OPEN, choices=(
-        (OT_OPEN, "Open"),
-        (OT_CLOSED, "Closed"),
-        (OT_TEST, "Test")))
+    open_type = models.PositiveIntegerField("Open status", default=OT_OPEN, choices=OPEN_TYPE_CHOICES)
 
     def __str__(self):
         return self.name
