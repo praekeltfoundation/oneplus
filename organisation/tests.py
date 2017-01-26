@@ -51,4 +51,4 @@ class TestOrganisation(TestCase):
         self.assertEqual(School.objects.all().count(), old_count + 3)
         School.objects.get(name='Nu School 1')
         School.objects.get(name='Nu School 2')
-        School.objects.get(name='Nu School 3'))
+        School.objects.get(name='Nu School 3')
