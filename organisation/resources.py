@@ -26,8 +26,14 @@ class SchoolResource(resources.ModelResource):
             'open_type',
         )
 
-    def get_or_init_instance(self, instance_loader, row):
-        row[u'is_staff'] = False
+    def dehydrate_organisation(self, school):
+        if school.organisation:
+            return school.organisation.name
+        else:
+            return ''
 
-        return super(resources.ModelResource, self) \
-            .get_or_init_instance(instance_loader, row)
+    def dehydrate_open_type(self, school):
+        for ot in School.OPEN_TYPE_CHOICES:
+            if school.open_type == ot[0]:
+                return ot[1]
+        return ''
