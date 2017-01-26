@@ -1,7 +1,9 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
 from .models import *
-from gamification.models import GamificationScenario
+from .resources import SchoolResource
 from core.models import Class, Participant
+from gamification.models import GamificationScenario
 
 
 class SchoolInline(admin.TabularInline):
@@ -34,7 +36,8 @@ class OrganisationAdmin(admin.ModelAdmin):
     ordering = ("name", )
 
 
-class SchoolAdmin(admin.ModelAdmin):
+class SchoolAdmin(ImportExportModelAdmin):
+    resource_class = SchoolResource
     list_display = ("organisation", "name", "description", "open_type")
     list_filter = ("organisation", )
     search_fields = ("name", "description")
