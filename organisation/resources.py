@@ -57,3 +57,6 @@ class SchoolResource(resources.ModelResource):
                         data['open_type'] = ot[0]
 
         return super(resources.ModelResource, self).import_obj(obj, data, dry_run)
+
+    def skip_row(self, instance, original):
+        return School.objects.filter(name=instance.name).exists()
