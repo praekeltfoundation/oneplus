@@ -353,6 +353,15 @@ td.num, th.num {
   text-align: right;
 }
 
+.overflow-auto-scroll {
+  -moz-overflow: auto;
+  -ms-overflow: auto;
+  -o-overflow: auto;
+  -webkit-overflow: auto;
+  overflow: auto;
+  word-break: break-word;
+}
+
 .comment-author {
   color: lightgrey;
   font-size: 75%;
