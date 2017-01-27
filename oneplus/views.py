@@ -5,6 +5,7 @@ import json
 from django.shortcuts import HttpResponse, redirect
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import user_passes_test
+from django.db.models import Q
 from communication.utils import contains_profanity, get_replacement_content
 from report_utils import get_csv_report, get_xls_report
 from django.core.urlresolvers import reverse
@@ -25,7 +26,7 @@ def oneplus_login_required(f):
             return redirect("auth.login")
         else:
             user = request.session["user"]
-            if Learner.objects.filter(id=user['id'], enrolled='0').exists():
+            if Learner.objects.filter((Q(enrolled='0') | Q(grade=None) | Q(grade='')) & Q(id=user['id'])).exists():
                 return redirect("auth.return_signup")
         return f(request, user=user, *args, **kwargs)
     return wrap

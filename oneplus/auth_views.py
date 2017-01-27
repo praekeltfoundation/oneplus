@@ -15,6 +15,7 @@ from communication.models import SmsQueue
 from core.models import Learner, ParticipantQuestionAnswer, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
+from django.db.models import Q
 from haystack.exceptions import SearchBackendError
 from django.core.urlresolvers import reverse
 from datetime import datetime
@@ -62,7 +63,8 @@ def login(request, state):
                         registered = is_registered(user)
                     except:
                         save_user_session_no_participant(request, user)
-                        if Learner.objects.filter(id=request.session['user']['id'], enrolled="0").exists():
+                        if Learner.objects.filter((Q(enrolled='0') | Q(grade=None) | Q(grade='')) &
+                                                  Q(id=request.session['user']['id'])).exists():
                             return redirect("auth.return_signup")
                         else:
                             raise
@@ -374,7 +376,7 @@ def return_signup(request, state):
     user = request.session.get("user", None)
     if not user:
         return redirect('auth.login')
-    if Learner.objects.filter(id=user['id'], enrolled='1').exists():
+    if Learner.objects.filter(id=user['id']).exclude(Q(enrolled='0') | Q(grade=None) | Q(grade='')).exists():
         return redirect('learn.home')
     learner = Learner.objects.get(id=user['id'])
 
@@ -441,7 +443,7 @@ def return_signup_school_confirm(request, state):
     user = request.session.get("user", None)
     if not user:
         return redirect('auth.login')
-    if Learner.objects.filter(id=user['id'], enrolled='1').exists():
+    if Learner.objects.filter(id=user['id']).exclude(Q(enrolled='0') | Q(grade=None) | Q(grade='')).exists():
         return redirect('learn.home')
     learner = Learner.objects.get(id=user['id'])
 
