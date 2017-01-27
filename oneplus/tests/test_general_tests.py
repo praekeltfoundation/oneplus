@@ -58,6 +58,8 @@ class GeneralTests(TestCase):
             name=name, organisation=organisation, **kwargs)
 
     def create_learner(self, school, **kwargs):
+        if 'grade' not in kwargs:
+            kwargs['grade'] = 'Grade 11'
         return Learner.objects.create(school=school, **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):
@@ -1638,6 +1640,7 @@ class GeneralTests(TestCase):
         learner = Learner.objects.create_user(
             username="+27231231231",
             mobile="+27231231231",
+            grade='Grade 11',
             password='1234'
         )
         learner.save()

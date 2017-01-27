@@ -59,6 +59,8 @@ def create_school(name, organisation, **kwargs):
 
 
 def create_learner(school, **kwargs):
+    if 'grade' not in kwargs:
+        kwargs['grade'] = 'Grade 11'
     return Learner.objects.create(school=school, **kwargs)
 
 
