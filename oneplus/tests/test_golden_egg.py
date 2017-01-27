@@ -44,6 +44,8 @@ class GoldenEggTest(TestCase):
             name=name, organisation=organisation, **kwargs)
 
     def create_learner(self, school, **kwargs):
+        if 'grade' not in kwargs:
+            kwargs['grade'] = 'Grade 11'
         return Learner.objects.create(school=school, **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):
