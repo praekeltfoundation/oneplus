@@ -205,6 +205,13 @@ class Learner(CustomUser):
         choices=ENROLLED_CHOICES,
         default=1)
 
+    public_share = models.BooleanField(
+        verbose_name="Has given permission to share to social media?",
+        blank=False,
+        default=False,
+        null=False,
+    )
+
     def get_class(self, active_only=False):
         part_set = self.participant_set.all()
         if active_only:
