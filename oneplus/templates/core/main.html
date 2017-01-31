@@ -7,6 +7,9 @@
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    <meta property="og:description" content="A site that teaches maths the fun way." />
+    <meta property="og:title" content="Dig-it" />
+    <meta property="og:type" content="website" />
 </head>
 <body>
     {% load google_analytics_tags %}
@@ -52,7 +55,11 @@
         {% if user.name %}
             <a class="link-side-by" href="/signout">Log out</a>
         {% endif %}
-
+        <a class="link-side-by vert-center" id="fb-share" style="display:none"
+           href="https://www.facebook.com/dialog/share?app_id=1400713283294375&display=popup&href=http%3A%2F%2Fdig-it.me&redirect_uri=http%3A%2F%2Fdig-it.me">
+            <li class="icon fb-logo vert-center" style="margin:-6px"></li>Tell your friends about us!
+        </a>
+        <script>document.getElementById("fb-share").style.display = "inline-block";</script>
     </footer>
 </body>
 </html>
