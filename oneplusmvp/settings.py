@@ -271,6 +271,15 @@ OPEN_SCHOOL = "Open School"
 
 MAX_LEVEL = 7
 
+# Social media
+FB_APP_NUM = '1400713283294375'
+FB_REDIRECT = 'http://dig-it.me'
+FB_SITE_TITLE = 'dig-it'
+FB_SITE_DESC = 'dig-it is a mobisite designed to support Grade 10 - Grade 12 maths learners. ' + \
+               'Our fun, gamified, environment lets you practice and revise maths - with no pressure.'
+
+TEMPLATE_CONTEXT_PROCESSORS += ('oneplus.context_processors.social_media',)
+
 try:
     from local_settings import *
 except ImportError as e:
