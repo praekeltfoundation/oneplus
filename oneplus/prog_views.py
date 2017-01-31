@@ -78,7 +78,8 @@ def leader(request, state, user, participant):
             if a.id == _participant.id:
                 learner['me'] = True
                 position = position_counter
-            learners.append(learner)
+            if learner["points"] > 0:
+                learners.append(learner)
 
             if position is not None and position_counter >= 10:
                 break
@@ -105,7 +106,8 @@ def leader(request, state, user, participant):
             if a['id'] == _participant.learner.school_id:
                 school['me'] = True
                 position = position_counter
-            schools.append(school)
+            if school["points"] > 0:
+                schools.append(school)
 
             if position is not None and position_counter >= 10:
                 break
@@ -130,7 +132,8 @@ def leader(request, state, user, participant):
             if a.id == _participant.id:
                 learner['me'] = True
                 position = position_counter
-            learners.append(learner)
+            if learner["points"] > 0:
+                learners.append(learner)
 
             if position is not None and position_counter >= 10:
                 break
