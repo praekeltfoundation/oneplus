@@ -271,6 +271,12 @@ OPEN_SCHOOL = "Open School"
 
 MAX_LEVEL = 7
 
+# Social media
+FB_APP_NUM = '1400713283294375'
+FB_REDIRECT = 'http://dig-it.me'
+
+TEMPLATE_CONTEXT_PROCESSORS += ('oneplus.context_processors.social_media',)
+
 try:
     from local_settings import *
 except ImportError as e:
