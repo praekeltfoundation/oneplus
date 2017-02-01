@@ -101,7 +101,7 @@ def question_difficulty_report(request, mode):
 @user_passes_test(lambda u: u.is_staff)
 def get_users(request, classs):
     if classs == 'all':
-        participants = Participant.objects.all()
+        participants = Participant.objects.filter(is_active=True)
     else:
         try:
             classs = int(classs)
@@ -109,7 +109,7 @@ def get_users(request, classs):
             current_class = Class.objects.get(id=classs)
             if current_class:
                 current_class = Class.objects.get(id=classs)
-                participants = Participant.objects.all().filter(classs=current_class)
+                participants = Participant.objects.filter(is_active=True, classs=current_class)
         except (ValueError, Class.DoesNotExist):
             participants = None
 
