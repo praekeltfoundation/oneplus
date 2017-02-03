@@ -2358,16 +2358,16 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
-        resp = c.get('/users/all')
+        resp = c.get('/users/?class=all')
         self.assertContains(resp, '"name": "+27123456789"')
 
-        resp = c.get('/users/%s' % self.classs.id)
+        resp = c.get('/users/?class=%s' % self.classs.id)
         self.assertContains(resp, '"name": "+27123456789"')
 
-        resp = c.get('/users/abc')
+        resp = c.get('/users/?class=abc')
         self.assertEquals(resp.status_code, 200)
 
-        resp = c.get('/users/%s' % 99)
+        resp = c.get('/users/?class=%s' % 99)
         self.assertEquals(resp.status_code, 200)
 
     def test_space_available(self):
