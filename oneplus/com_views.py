@@ -2,6 +2,7 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
+from django.db.models import Q
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
 from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
@@ -612,6 +613,7 @@ def add_sms(request):
         time = None
         message = None
         users = False
+        active_only = request.POST.get('active_only', None)
 
         course_error, course = validate_to_course(request.POST)
         class_error, classs = validate_to_class(request.POST)
@@ -641,50 +643,48 @@ def add_sms(request):
                 if classs == "all":
                     if course == "all":
                         #All registered learners
-                        all_courses = Course.objects.all()
-
-                        for _course in all_courses:
-                            all_classes = Class.objects.filter(course=_course)
-
-                            for _classs in all_classes:
-                                all_users = Participant.objects.filter(classs=_classs)
-
-                                for usr in all_users:
-                                    create_sms(usr.learner.mobile, dt, message)
+                        all_users = Learner.objects.filter(is_active=True)\
+                                                   .exclude(Q(participant__class=None) |
+                                                            Q(participant__class__course=None))
+                        if active_only:
+                            all_users.filter(participant__is_active=True)
+                        if all_users.exists():
+                            bulk_create_sms(all_users, dt, message)
                     else:
                         #All users registered in this course
                         course_obj = Course.objects.get(id=course)
-                        all_classes = Class.objects.filter(course=course_obj)
-
-                        for c in all_classes:
-                            all_users = Participant.objects.filter(classs=c)
-
-                            for u in all_users:
-                                create_sms(u.learner.mobile, dt, message)
+                        all_users = Participant.objects.filter(participant__class__course_id=course_obj)\
+                                               .exclude(participant__class=None)
+                        if active_only:
+                            all_users.filter(participant__is_active=True)
+                        if all_users.exists():
+                            bulk_create_sms(all_users, dt, message)
                 else:
                     #All learners in specific class
                     classs_obj = Class.objects.get(id=classs)
-                    all_users = Participant.objects.filter(classs=classs_obj)
-
-                    for u in all_users:
-                        create_sms(u.learner.mobile, dt, message)
+                    all_users = Learner.objects.filter(participant__classs_id=classs_obj.id)
+                    if active_only:
+                        all_users.filter(participant__is_active=True)
+                    if all_users.exists():
+                        bulk_create_sms(all_users, dt, message)
             else:
                 #Specific learners
-                for u in users:
-                    usr = Learner.objects.get(id=u)
-                    create_sms(usr.learner.mobile, dt, message)
+                all_users = Learner.objects.filter(id__in=users)
+                if all_users.exists():
+                    bulk_create_sms(all_users, dt, message)
 
         if "_save" in request.POST.keys():
             return HttpResponseRedirect('/admin/communication/smsqueue/')
         else:
             return HttpResponseRedirect('/smsqueue/add/')
 
-    def create_sms(identifier, send_date, message):
-        SmsQueue.objects.create(
-            msisdn=identifier,
-            send_date=send_date,
-            message=message
-        )
+    def bulk_create_sms(learners, send_date, message):
+        SmsQueue.objects.bulk_create([
+            SmsQueue.objects.create(
+                msisdn=l.mobile,
+                send_date=send_date,
+                message=message
+            ) for l in learners])
 
     return resolve_http_method(request, [get, post])
 
