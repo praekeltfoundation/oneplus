@@ -23,6 +23,7 @@ from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
 from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
+from django.utils import timezone
 
 
 def get_class_leaderboard_position(participant):
@@ -190,8 +191,9 @@ def home(request, state, user, participant):
         level = settings.MAX_LEVEL
         points_remaining = 0
 
+    dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
     try:
         _post = Post.objects.filter(
             id__in=post_list
