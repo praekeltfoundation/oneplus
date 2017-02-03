@@ -103,10 +103,9 @@ def get_users(request):
     classs = request.GET.get('class', 'all')
     only_active = request.GET.get('only_active', None)
 
+    learners = Learner.objects.filter(is_active=True)
     if only_active:
-        participants = Participant.objects.filter(is_active=True)
-    else:
-        participants = Participant.objects.all()
+        learners = learners.filter(participant__is_active=True)
 
     if classs != 'all':
         try:
@@ -115,15 +114,13 @@ def get_users(request):
             current_class = Class.objects.get(id=classs)
             if current_class:
                 current_class = Class.objects.get(id=classs)
-                participants = participants.filter(classs=current_class)
+                learners = learners.filter(participant__classs_id=current_class.id)
         except (ValueError, Class.DoesNotExist):
-            participants = None
+            learners = None
 
     data = []
-    if participants:
-        for p in participants:
-            line = {"id": p.learner.id, "name": p.learner.mobile}
-            data.append(line)
+    if learners:
+        data = [{"id": l['id'], "name": l['mobile']} for l in learners.values('id', 'mobile').distinct('id')]
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
