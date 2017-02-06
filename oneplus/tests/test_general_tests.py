@@ -6,7 +6,7 @@ from django.db.models import Count, Sum
 import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment, \
-    CoursePostRel
+    CoursePostRel, SmsQueue
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
     EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitLevel
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
@@ -28,6 +28,12 @@ from oneplus.views import get_week_day
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 from oneplus.tasks import reset_learner_states
 from communication.utils import contains_profanity
+
+
+def append_query_params(url, params):
+    if len(params) < 1:
+        return url
+    return '%s?%s' % (url, '&'.join([('%s=%s' % (idx, params[idx])) for idx in params.keys()]))
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -2369,6 +2375,57 @@ class GeneralTests(TestCase):
 
         resp = c.get('/users/?class=%s' % 99)
         self.assertEquals(resp.status_code, 200)
+
+    def test_add_sms(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        # empty request
+        old_count = SmsQueue.objects.all().count()
+        resp = c.post(reverse('com.add_sms'), {})
+        self.assertEqual(resp.status_code, 200)
+        new_count = SmsQueue.objects.all().count()
+        self.assertEqual(new_count, old_count)
+
+        # send to all, single learner
+        old_count = SmsQueue.objects.all().count()
+        resp = c.post(reverse('com.add_sms'), {
+            'users': 'all',
+            'to_class': 'all',
+            'to_course': 'all',
+            'message': 'Ceci n\'est pas une message.',
+            'date_sent_0': str(timezone.now().date()),
+            'date_sent_1': str(timezone.now().time())})
+        self.assertEqual(resp.status_code, 302)
+        new_count = SmsQueue.objects.all().count()
+        self.assertEqual(new_count, old_count + Learner.objects.all().count())
+
+        # send to all learners in class
+        num_learn_gen = 16
+        class_2 = self.create_class('Wrong Class', self.course)
+        for i in xrange(num_learn_gen):
+            l = self.create_learner(
+                self.school,
+                first_name='Learner %d' % (i,),
+                username=('learn_%d' % (i,)),
+                mobile=('082564%4.0d' % (i,)))
+            p = self.create_participant(
+                l,
+                self.classs if i % 2 == 0 else class_2,
+                datejoined=timezone.now())
+        old_count = SmsQueue.objects.all().count()
+        resp = c.post(reverse('com.add_sms'), {
+            'users': 'all',
+            'to_class': self.classs.id,
+            'to_course': 'all',
+            'message': 'Ceci n\'est pas une message.',
+            'date_sent_0': str(timezone.now().date()),
+            'date_sent_1': str(timezone.now().time())})
+        self.assertEqual(resp.status_code, 302)
+        new_count = SmsQueue.objects.all().count()
+        self.assertEqual(
+            new_count,
+            old_count + Learner.objects.filter(participant__classs_id=self.classs.id).distinct('id').count())
 
     def test_space_available(self):
         maximum = int(Setting.objects.get(key="MAX_NUMBER_OF_LEARNERS").value)
