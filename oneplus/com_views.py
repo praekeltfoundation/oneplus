@@ -680,7 +680,7 @@ def add_sms(request):
 
     def bulk_create_sms(learners, send_date, message):
         SmsQueue.objects.bulk_create([
-            SmsQueue.objects.create(
+            SmsQueue(
                 msisdn=l.mobile,
                 send_date=send_date,
                 message=message
