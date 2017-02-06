@@ -644,8 +644,8 @@ def add_sms(request):
                     if course == "all":
                         #All registered learners
                         all_users = Learner.objects.filter(is_active=True)\
-                                                   .exclude(Q(participant__class=None) |
-                                                            Q(participant__class__course=None))
+                                                   .exclude(Q(participant__classs=None) |
+                                                            Q(participant__classs__course=None))
                         if active_only:
                             all_users.filter(participant__is_active=True)
                         if all_users.exists():
@@ -653,8 +653,8 @@ def add_sms(request):
                     else:
                         #All users registered in this course
                         course_obj = Course.objects.get(id=course)
-                        all_users = Participant.objects.filter(participant__class__course_id=course_obj)\
-                                               .exclude(participant__class=None)
+                        all_users = Participant.objects.filter(participant__classs__course_id=course_obj)\
+                                               .exclude(participant__classs=None)
                         if active_only:
                             all_users.filter(participant__is_active=True)
                         if all_users.exists():
