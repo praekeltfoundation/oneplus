@@ -653,8 +653,8 @@ def add_sms(request):
                     else:
                         #All users registered in this course
                         course_obj = Course.objects.get(id=course)
-                        all_users = Participant.objects.filter(participant__classs__course_id=course_obj)\
-                                               .exclude(participant__classs=None)
+                        all_users = Learner.objects.filter(participant__classs__course_id=course_obj)\
+                            .exclude(participant__classs=None)
                         if active_only:
                             all_users.filter(participant__is_active=True)
                         if all_users.exists():
