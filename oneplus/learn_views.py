@@ -1469,7 +1469,8 @@ def right(request, state, user, participant):
                 )
                 _message.save()
                 messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly!")
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
