@@ -68,6 +68,17 @@ def oneplus_participant_required(f):
     return wrap
 
 
+def oneplus_check_user(f):
+    @oneplus_state_required
+    @wraps(f)
+    def wrap(request, *args, **kwargs):
+        if "user" in request.session.keys():
+            return f(request, user=request.session["user"], *args, **kwargs)
+        else:
+            return f(request, user=None, *args, **kwargs)
+    return wrap
+
+
 def get_week_day():
     home_day = date.today().weekday()
     if home_day == 5 or home_day == 6:
