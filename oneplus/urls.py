@@ -6,6 +6,7 @@ import oneplus.core_views
 import oneplus.learn_views
 import oneplus.misc_views
 import oneplus.prog_views
+import oneplus.public_views
 from oneplus import result_views
 
 urlpatterns = [
@@ -127,6 +128,9 @@ urlpatterns = [
         name="prog.leader.id"),
     url(r"^badges$", oneplus.prog_views.badges, name="prog.badges"),
     url(r'^djga/', include('google_analytics.urls')),
+
+    # Public
+    url(r"^ontrack$", oneplus.public_views.badges, name="public.badges"),
 
     # Dashboard
     url(r'^dashboard_data$', oneplus.misc_views.dashboard_data, name="dash.data"),
