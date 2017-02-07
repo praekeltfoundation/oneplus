@@ -6,7 +6,7 @@ from django.db.models import Count, Sum
 import logging
 from auth.models import Learner, CustomUser
 from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment, \
-    CoursePostRel
+    CoursePostRel, SmsQueue
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
     EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitLevel
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
@@ -28,6 +28,12 @@ from oneplus.views import get_week_day
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 from oneplus.tasks import reset_learner_states
 from communication.utils import contains_profanity
+
+
+def append_query_params(url, params):
+    if len(params) < 1:
+        return url
+    return '%s?%s' % (url, '&'.join([('%s=%s' % (idx, params[idx])) for idx in params.keys()]))
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -2352,22 +2358,6 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
         resp = c.get('/classes/%s' % 999)
-        self.assertEquals(resp.status_code, 200)
-
-    def test_get_users(self):
-        c = Client()
-        c.login(username=self.admin_user.username, password=self.admin_user_password)
-
-        resp = c.get('/users/all')
-        self.assertContains(resp, '"name": "+27123456789"')
-
-        resp = c.get('/users/%s' % self.classs.id)
-        self.assertContains(resp, '"name": "+27123456789"')
-
-        resp = c.get('/users/abc')
-        self.assertEquals(resp.status_code, 200)
-
-        resp = c.get('/users/%s' % 99)
         self.assertEquals(resp.status_code, 200)
 
     def test_space_available(self):

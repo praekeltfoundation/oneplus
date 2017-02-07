@@ -99,25 +99,28 @@ def question_difficulty_report(request, mode):
 
 
 @user_passes_test(lambda u: u.is_staff)
-def get_users(request, classs):
-    if classs == 'all':
-        participants = Participant.objects.all()
-    else:
+def get_users(request):
+    classs = request.GET.get('class', 'all')
+    only_active = request.GET.get('only_active', None)
+
+    learners = Learner.objects.filter(is_active=True)
+    if only_active:
+        learners = learners.filter(participant__is_active=True)
+
+    if classs != 'all':
         try:
             classs = int(classs)
 
             current_class = Class.objects.get(id=classs)
             if current_class:
                 current_class = Class.objects.get(id=classs)
-                participants = Participant.objects.all().filter(classs=current_class)
+                learners = learners.filter(participant__classs_id=current_class.id)
         except (ValueError, Class.DoesNotExist):
-            participants = None
+            learners = None
 
     data = []
-    if participants:
-        for p in participants:
-            line = {"id": p.learner.id, "name": p.learner.mobile}
-            data.append(line)
+    if learners:
+        data = [{"id": l['id'], "name": l['mobile']} for l in learners.values('id', 'mobile').distinct('id')]
 
     return HttpResponse(json.dumps(data), content_type="application/javascript")
 
