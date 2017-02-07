@@ -92,7 +92,7 @@
 
         {% if request.session.state.discussion_page_max > 0 or preview%}
             <article class="comment-list">
-                {% for msg in messages %}
+                {% for msg in comment_messages %}
                     {% if msg.moderated %}
                         <div class="item-large">
                             <div>
