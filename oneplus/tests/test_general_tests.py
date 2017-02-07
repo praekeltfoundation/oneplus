@@ -3088,3 +3088,80 @@ class TestFlashMessage(TestCase):
                                 data={'comment': empty_message},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
+
+
+class TestCommentsOnLatestBlog(TestCase):
+    def create_learner(self, school, **kwargs):
+        if 'grade' not in kwargs:
+            kwargs['grade'] = 'Grade 11'
+        return Learner.objects.create(school=school, **kwargs)
+
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_course(self, name="course name", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(
+            name=name, organisation=organisation, **kwargs)
+
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
+    def create_participant(self, learner, classs, **kwargs):
+        participant = Participant.objects.create(
+            learner=learner, classs=classs, **kwargs)
+        return participant
+
+    def setUp(self):
+        self.organisation = Organisation.objects.get(name='One Plus')
+        self.school = self.create_school('Death Dome', self.organisation)
+        self.learner = self.create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        self.course = self.create_course('Hunger Games')
+        self.classs = self.create_class('District 12',self.course)
+        self.participant = self.create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+
+    def test_blog(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #Creating the first blog post and commenting should be allowed to happen
+        blog_first_created = Post.objects.create(name='Round1', publishdate=datetime.now() - timedelta(days=1))
+        CoursePostRel.objects.create(course=self.course, post=blog_first_created)
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_first_created.id}), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('com.blog', kwargs={'blogid': blog_first_created.id}), data={'comment': 'CookiePant'}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        message = "message will display"
+        self.assertContains(resp, message)
+
+        #Create second blog now this is the latest and commenting should only be allowed here and not on the first blog
+        blog_second_created = Post.objects.create(name='Round2', publishdate=datetime.now())
+        CoursePostRel.objects.create(course=self.course, post=blog_second_created)
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_second_created.id}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('com.blog', kwargs={'blogid': blog_second_created.id}), data={'comment': 'Tuna Cake'}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        message = "message will display"
+        self.assertContains(resp, message)
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_first_created.id}))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Comment", count=0)
