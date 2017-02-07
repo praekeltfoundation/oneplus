@@ -5,6 +5,7 @@ from core.models import Class, Participant
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.test import TestCase, Client
+from django.utils import timezone
 from organisation.models import Organisation, School, Course
 
 
@@ -40,11 +41,35 @@ class SMSQueueTest(TestCase):
         self.course = self.create_course()
         self.classs = self.create_class("class1", self.course)
 
-    def test_add_sms(self):
-        password = "12345"
-        admin = self.create_admin("asdf", password, "+27123456789")
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
+
+    def test_get_users(self):
         c = Client()
-        c.login(username=admin.username, password=password)
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+        learner = self.create_learner(self.school, mobile='+27123456789', username='+27123456789')
+        participant = self.create_participant(learner, classs=self.classs, datejoined=timezone.now())
+
+
+        resp = c.get('/users/?class=all')
+        self.assertContains(resp, '"name": "+27123456789"')
+
+        resp = c.get('/users/?class=%s' % self.classs.id)
+        self.assertContains(resp, '"name": "+27123456789"')
+
+        resp = c.get('/users/?class=abc')
+        self.assertEquals(resp.status_code, 200)
+
+        resp = c.get('/users/?class=%s' % 99)
+        self.assertEquals(resp.status_code, 200)
+
+    def test_add_sms(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
 
         # create a participant in course 1 class 1
         learner_1 = self.create_learner(self.school, mobile="+27987654321", country="country", username="+27987654321")
@@ -169,6 +194,57 @@ class SMSQueueTest(TestCase):
 
         resp = c.post(reverse('com.add_sms'), follow=True)
         self.assertContains(resp, 'This field is required')
+
+    def test_add_sms_2(self):
+        c = Client()
+        c.login(username=self.admin_user.username, password=self.admin_user_password)
+
+        # empty request
+        old_count = SmsQueue.objects.all().count()
+        resp = c.post(reverse('com.add_sms'), {})
+        self.assertEqual(resp.status_code, 200)
+        new_count = SmsQueue.objects.all().count()
+        self.assertEqual(new_count, old_count)
+
+        # send to all, single learner
+        old_count = SmsQueue.objects.all().count()
+        resp = c.post(reverse('com.add_sms'), {
+            'users': 'all',
+            'to_class': 'all',
+            'to_course': 'all',
+            'message': 'Ceci n\'est pas une message.',
+            'date_sent_0': str(timezone.now().date()),
+            'date_sent_1': str(timezone.now().time())})
+        self.assertEqual(resp.status_code, 302)
+        new_count = SmsQueue.objects.all().count()
+        self.assertEqual(new_count, old_count + Learner.objects.all().count())
+
+        # send to all learners in class
+        num_learn_gen = 16
+        class_2 = self.create_class('Wrong Class', self.course)
+        for i in xrange(num_learn_gen):
+            l = self.create_learner(
+                self.school,
+                first_name='Learner %d' % (i,),
+                username=('learn_%d' % (i,)),
+                mobile=('082564%4.0d' % (i,)))
+            p = self.create_participant(
+                l,
+                self.classs if i % 2 == 0 else class_2,
+                datejoined=timezone.now())
+        old_count = SmsQueue.objects.all().count()
+        resp = c.post(reverse('com.add_sms'), {
+            'users': 'all',
+            'to_class': self.classs.id,
+            'to_course': 'all',
+            'message': 'Ceci n\'est pas une message.',
+            'date_sent_0': str(timezone.now().date()),
+            'date_sent_1': str(timezone.now().time())})
+        self.assertEqual(resp.status_code, 302)
+        new_count = SmsQueue.objects.all().count()
+        self.assertEqual(
+            new_count,
+            old_count + Learner.objects.filter(participant__classs_id=self.classs.id).distinct('id').count())
 
     def test_view_sms(self):
         password = "12345"
