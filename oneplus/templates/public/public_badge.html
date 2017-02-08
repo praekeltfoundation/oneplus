@@ -1,0 +1,60 @@
+{% extends "public/public_main.html" %}
+
+{% block title %}
+    {% if no_public %}
+        Badges Not Shared
+    {% else %}
+        {% if learner.first_name and learner.last_name %}
+            {{ learner.first_name }} {{ learner.last_name }}'s Badges
+        {% elif learner.first_name %}
+            {{ learner.first_name }}'s
+        {% else %}
+            Anon's
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <article class="content squash-accent">
+        {% if no_public %}
+            <h1 class="color-accent">No one's home.</h1>
+            <p>Either this learner doesn't exist, or they haven't made their badges public.</p>
+        {% else %}
+            <article class="card border-color-accent">
+                <section class="top">
+                    <div class="img-container">
+                        <div class="{% if not badge.achieved %}disabled-badge{% endif %}">
+                            {% if badge.achieved %}
+                                <div class="badge-counter background-color-accent">{{ badge.count }}</div>
+                            {% endif %}
+                            {% if badge.image %}
+                                <img class="badge" src="{{ badge.image.url }}">
+                            {% else %}
+                                <li class="badge" style="background-image: url('/static/img/icn_badges.png')"></li>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+                <section class="bottom">
+                    {% if badge.name %}
+                        <div class="center-font">
+                            {% if learner.first_name and learner.last_name %}
+                                {{ learner.first_name }} {{ learner.last_name }}
+                            {% elif learner.first_name %}
+                                {{ learner.first_name }}
+                            {% else %}
+                                Anon
+                            {% endif %}
+                            {% if badge.achieved %}
+                                has earned
+                            {% else %}
+                                hasn't earned
+                            {% endif %}
+                        </div>
+                        <h3 class="card-top-phrase{% if badge.achieved %} color-accent{% endif %}">{{ badge.name }}</h3>
+                    {% endif %}
+                </section>
+            </article>
+        {% endif %}
+    </article>
+{% endblock %}
