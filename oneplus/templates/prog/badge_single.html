@@ -1,0 +1,30 @@
+{% extends "core/main.html" %}
+
+{% block title %}Change Profile{% endblock %}
+
+{% block page_descriptor_text %}Profile{% endblock %}
+
+{% block content %}
+    <article class="content squash-accent">
+        <h1 class="center-font">
+            {% if badge.achieved %}Your badges{% else %}Still coming{% endif %}
+        </h1>
+
+        <article class="card border-color-accent">
+            <section class="top">
+                <div class="img-container">
+                    <div class="{% if not badge.achieved %}semi-transparent{% endif %}">
+                        {% if badge.image %}
+                            <img class="lonely-badge" src="{{ badge.image.url }}" />
+                        {% else %}
+                            <img class="lonely-badge" src="/static/img/icn_badges.png" style="{# background-image: url('/static/img/icn_badges.png'); #}" />
+                        {% endif %}
+                    </div>
+                </div>
+                <h3 class="center-font">{{ badge.name }}</h3>
+            </section>
+        </article>
+
+        <a href="{% url 'prog.badges' %}" class="button border-color-accent color-accent">See all badges</a>
+    </article>
+{% endblock content %}
