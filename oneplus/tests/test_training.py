@@ -2,9 +2,10 @@
 from datetime import datetime, timedelta
 from auth.models import Learner
 from content.models import TestingQuestion, TestingQuestionOption
-from core.models import Class, Participant, ParticipantQuestionAnswer
+from core.models import Participant, ParticipantQuestionAnswer, Class
 from django.test import TestCase
 from mock import patch
+from organisation.models import Module, CourseModuleRel, School, Course, Organisation
 from oneplus.models import LearnerState
 
 
@@ -16,6 +17,14 @@ def create_learner(school, **kwargs):
     if 'grade' not in kwargs:
         kwargs['grade'] = 'Grade 11'
     return Learner.objects.create(school=school, **kwargs)
+
+
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
 
 
 def create_participant(learner, classs, **kwargs):
@@ -67,7 +76,46 @@ def create_and_answer_questions(num_questions, module, participant, prefix, date
     return answers
 
 
+def create_school(name, organisation, **kwargs):
+    return School.objects.create(
+        name=name, organisation=organisation, **kwargs)
+
+
+def create_course(name="course name", **kwargs):
+    return Course.objects.create(name=name, **kwargs)
+
+
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
+
+
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
+
+
 class TestTraining(TestCase):
+
+    def setUp(self):
+
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+
+        self.participant = create_participant(
+            self.learner,
+            self.classs,
+            datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
 
     @patch.object(LearnerState, 'today')
     def test_training_sunday(self, mock_get_today):
