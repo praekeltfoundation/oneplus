@@ -12,7 +12,7 @@
         <meta property="fb:app_id" content="{{ FB_APP_NUM }}" />
     {% endif %}
     {% if fb.description %}
-        <meta property="og:description" content="{{ fb.description }}" />
+        <meta property="og:description" content="{{ fb.description|urlencode:'' }}" />
     {% endif %}
     {% if fb.title %}
         <meta property="og:title" content="{{ fb.title }}" />
