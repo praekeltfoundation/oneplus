@@ -131,6 +131,7 @@ urlpatterns = [
         oneplus.prog_views.leader,
         name="prog.leader.id"),
     url(r"^badges$", oneplus.prog_views.badges, name="prog.badges"),
+    url(r"^badges/(?P<badge_id>\d+)$", oneplus.prog_views.badges, name="prog.badges_single"),
     url(r'^djga/', include('google_analytics.urls')),
 
     # Public

@@ -254,8 +254,12 @@ def points(request, state, user, participant):
 
 
 @oneplus_participant_required
-def badges(request, state, user, participant):
+def badges(request, state, user, participant, badge_id=None):
     # get learner state
+    if badge_id and unicode.isdigit(badge_id):
+        badge_id = int(badge_id)
+    else:
+        badge_id = None
     _participant = participant
     _course = _participant.classs.course
     _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
@@ -276,6 +280,16 @@ def badges(request, state, user, participant):
             x.count = rel.first().awardcount
 
     def get():
+        if badge_id:
+            for b in _badges:
+                if b.id == badge_id:
+                    return render(request, "prog/badge_single.html", {
+                        "badge": b,
+                        "participant": _participant,
+                        "state": state,
+                        "user": user})
+            return redirect('prog.badges')
+
         return render(request, "prog/badges.html", {
             "state": state,
             "user": user,
@@ -284,16 +298,7 @@ def badges(request, state, user, participant):
         })
 
     def post():
-        return render(
-            request,
-            "prog/badges.html",
-            {
-                "state": state,
-                "user": user,
-                "badges": _badges,
-                "participant": _participant
-            }
-        )
+        return get()
 
     return resolve_http_method(request, [get, post])
 
