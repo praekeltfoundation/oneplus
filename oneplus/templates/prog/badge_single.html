@@ -26,5 +26,29 @@
         </article>
 
         <a href="{% url 'prog.badges' %}" class="button border-color-accent color-accent">See all badges</a>
+        <article class="card border-color-accent">
+            <section class="top{% if not badge.achieved %} semi-transparent{% endif %}">
+                <div>Share this with your friends and family:</div>
+                <ul class="center-font">
+                    <li id="fb-share-badge" style="display:none">
+                        <a class="vert-center center-font"
+                           href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT |urlencode:'' }}{{ share_url|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}">
+                            <span class="icon fb-logo vert-center" style="margin:-6px"></span>Share on Facebook
+                        </a>
+                        <script>document.getElementById("fb-share-badge").style.display = "block";</script>
+                    </li>
+                    <li id="wa-share-badge">
+                        <a class="vert-center center-font"
+                           href="whatsapp://send?text={{ 'I earned a badge on dig-it! '|urlencode }}{{ FB_REDIRECT |urlencode:'' }}{{ share_url|urlencode:'' }}">
+                            <span class="icon wa-logo vert-center" style="margin:-6px"></span>Share on WhatsApp
+                        </a>
+                    </li>
+                    <li class="center-font">
+                        <a href="{% url 'public:badges'%}?p={{ participant.id }}&b={{ badge.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
+                        <input type="text" value="{{ FB_REDIRECT|urlencode:':/' }}{% url 'public:badges'%}?p={{ participant.id }}&b={{ badge.id }}" />
+                    </li>
+                </ul>
+            </section>
+        </article>
     </article>
 {% endblock content %}
