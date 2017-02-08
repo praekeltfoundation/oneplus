@@ -144,19 +144,6 @@ class TestBadgeAwarding(TestCase):
             module=self.module,
             badge=self.badge_template
         )
-        # self.outgoing_vumi_text = []
-        # self.outgoing_vumi_metrics = []
-        # self.handler = RecordingHandler()
-        # logger = logging.getLogger('DEBUG')
-        # logger.setLevel(logging.INFO)
-        # logger.addHandler(self.handler)
-        #
-        # self.admin_user_password = 'mypassword'
-        # self.admin_user = CustomUser.objects.create_superuser(
-        #     username='asdf33',
-        #     email='asdf33@example.com',
-        #     password=self.admin_user_password,
-        #     mobile='+27111111133')
 
     def test_badge_awarding(self):
         new_learner = create_learner(self.school,
