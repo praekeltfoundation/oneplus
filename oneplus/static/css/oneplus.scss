@@ -450,6 +450,20 @@ img.limit-size {
   overflow-x: scroll;
 }
 
+.semi-transparent {
+    color: $superlightgrey;
+    opacity: 0.20;
+    filter: alpha(opacity=15); /* msie */
+}
+
+.lonely-badge {
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  border: 0;
+  height: 48px;
+  width: 48px;
+}
+
 .login label { z-index: 1; display: block; }
 
 .text {
