@@ -1,43 +1,15 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from auth.models import Learner
-from communication.models import Message
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Class, Participant, ParticipantQuestionAnswer
 from django.test import TestCase
-from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
 from mock import patch
 from oneplus.models import LearnerState
-from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 
 
 def create_test_question(name, module, **kwargs):
         return TestingQuestion.objects.create(name=name, module=module, **kwargs)
-
-
-def create_course(name="course name", **kwargs):
-    return Course.objects.create(name=name, **kwargs)
-
-
-def create_module(name, course, **kwargs):
-    module = Module.objects.create(name=name, **kwargs)
-    rel = CourseModuleRel.objects.create(course=course, module=module)
-    module.save()
-    rel.save()
-    return module
-
-
-def create_class(name, course, **kwargs):
-    return Class.objects.create(name=name, course=course, **kwargs)
-
-
-def create_organisation(name='organisation name', **kwargs):
-    return Organisation.objects.create(name=name, **kwargs)
-
-
-def create_school(name, organisation, **kwargs):
-    return School.objects.create(
-        name=name, organisation=organisation, **kwargs)
 
 
 def create_learner(school, **kwargs):
@@ -50,28 +22,6 @@ def create_participant(learner, classs, **kwargs):
     participant = Participant.objects.create(
         learner=learner, classs=classs, **kwargs)
     return participant
-
-
-def create_badgetemplate(name='badge template name', **kwargs):
-    return GamificationBadgeTemplate.objects.create(
-        name=name,
-        image="none",
-        **kwargs)
-
-
-def create_gamification_point_bonus(name, value, **kwargs):
-    return GamificationPointBonus.objects.create(
-        name=name,
-        value=value,
-        **kwargs)
-
-
-def create_gamification_scenario(**kwargs):
-    return GamificationScenario.objects.create(**kwargs)
-
-
-def create_message(author, course, **kwargs):
-    return Message.objects.create(author=author, course=course, **kwargs)
 
 
 def create_test_question_option(name, question, correct=True):
