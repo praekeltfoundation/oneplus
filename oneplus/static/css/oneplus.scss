@@ -905,7 +905,7 @@ p a { display: inline;}
     margin: 16px 16px 0px 16px;
 }
 
-li.icon {
+.icon {
     display: inline-block;
     width: 36pt;
     height: 36pt;
@@ -951,6 +951,10 @@ li.forward {
 
 .icon.fb-logo {
   background-image: url("../img/fb_logo_blue_icon.png");
+}
+
+.icon.wa-logo {
+  background-image: url("../img/wa_logo_green_icon.png");
 }
 
 li.badges {
