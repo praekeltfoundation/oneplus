@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.conf import settings
 from datetime import datetime
 from auth.models import CustomUser, Learner
-from core.models import Participant, TestingQuestion
+from core.models import Participant, ParticipantBadgeTemplateRel, TestingQuestion
 from gamification.models import GamificationBadgeTemplate
 from oneplus.auth_views import resolve_http_method
 from oneplus.views import oneplus_check_user
@@ -37,6 +37,9 @@ def badges(request, state, user):
         badge = None
         if badge_id and GamificationBadgeTemplate.objects.filter(id=badge_id).exists():
             badge = GamificationBadgeTemplate.objects.get(id=badge_id)
+            if ParticipantBadgeTemplateRel.objects.filter(participant_id=participant_id,
+                                                          badgetemplate_id=badge_id).exists():
+                badge.achieved = True
         else:
             return render(request,
                           template_name='public/public_badge.html',
