@@ -2,16 +2,14 @@
 from datetime import datetime, timedelta
 import logging
 from auth.models import Learner, CustomUser
-from communication.models import Message, Post, PostComment, \
-    CoursePostRel
-from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
-    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitLevel
+from communication.models import Post, PostComment, CoursePostRel
+from content.models import TestingQuestion, TestingQuestionOption, Event, EventStartPage, EventEndPage, EventQuestionRel
 from core.models import Class, Participant, ParticipantQuestionAnswer, Setting
 from django.core.urlresolvers import reverse
 from django.db.models import Count
 from django.test import TestCase, Client
 from django.test.utils import override_settings
-from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
+from gamification.models import GamificationBadgeTemplate, GamificationScenario
 from go_http.tests.test_send import RecordingHandler
 from mock import patch
 from oneplus.auth_views import space_available
@@ -74,21 +72,6 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-def create_gamification_point_bonus(name, value, **kwargs):
-    return GamificationPointBonus.objects.create(
-        name=name,
-        value=value,
-        **kwargs)
-
-
-def create_gamification_scenario(**kwargs):
-    return GamificationScenario.objects.create(**kwargs)
-
-
-def create_message(author, course, **kwargs):
-    return Message.objects.create(author=author, course=course, **kwargs)
-
-
 def create_test_question_option(name, question, correct=True):
     return TestingQuestionOption.objects.create(
         name=name, question=question, correct=correct)
@@ -137,22 +120,12 @@ def create_event(name, course, activation_date, deactivation_date, **kwargs):
                                 deactivation_date=deactivation_date, **kwargs)
 
 
-def create_sumit(name, course, activation_date, deactivation_date, **kwargs):
-    return SUMit.objects.create(name=name, course=course, activation_date=activation_date,
-                                deactivation_date=deactivation_date, **kwargs)
-
-
 def create_event_start_page(event, header, paragraph):
     return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
 
 
 def create_event_end_page(event, header, paragraph):
     return EventEndPage.objects.create(event=event, header=header, paragraph=paragraph)
-
-
-def create_event_splash_page(event, order_number, header, paragraph):
-    return EventSplashPage.objects.create(event=event, order_number=order_number, header=header,
-                                          paragraph=paragraph)
 
 
 def create_event_question(event, question, order):
@@ -218,7 +191,6 @@ class GeneralTests(TestCase):
         self.assertEquals(learnerstate.active_question.name, 'question1')
 
     def test_home(self):
-        with patch("django.core.mail.mail_managers") as mock_mail_managers:
             self.client.get(reverse(
                 'auth.autologin',
                 kwargs={'token': self.learner.unique_token})

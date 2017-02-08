@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-import logging
 from auth.models import Learner, CustomUser
 from content.models import TestingQuestion, TestingQuestionOption, SUMit, EventQuestionRel, EventParticipantRel, \
     EventQuestionAnswer, SUMitLevel
 from core.models import Class, Participant, ParticipantQuestionAnswer
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
-from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
-from go_http.tests.test_send import RecordingHandler
+from gamification.models import GamificationBadgeTemplate, GamificationScenario
 from oneplus.models import LearnerState
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 
@@ -73,46 +71,11 @@ def create_class(name, course, **kwargs):
     return Class.objects.create(name=name, course=course, **kwargs)
 
 
-def create_and_answer_questions(num_questions, module, participant, prefix, date):
-    answers = []
-    for x in range(0, num_questions):
-        # Create a question
-        question = create_test_question(
-            'q' + prefix + str(x), module)
-
-        question.save()
-        option = create_test_question_option(
-            'option_' + prefix + str(x),
-            question)
-        option.save()
-        answer = create_test_answer(
-            participant=participant,
-            question=question,
-            option_selected=option,
-            answerdate=date
-        )
-        answer.save()
-        answers.append(answer)
-
-    return answers
-
-
 def create_badgetemplate(name='badge template name', **kwargs):
     return GamificationBadgeTemplate.objects.create(
         name=name,
         image="none",
         **kwargs)
-
-
-def create_gamification_point_bonus(name, value, **kwargs):
-    return GamificationPointBonus.objects.create(
-        name=name,
-        value=value,
-        **kwargs)
-
-
-def create_gamification_scenario(**kwargs):
-    return GamificationScenario.objects.create(**kwargs)
 
 
 def create_sumit(name, course, activation_date, deactivation_date, **kwargs):
@@ -149,13 +112,6 @@ class TestReports(TestCase):
             module=self.module,
             badge=self.badge_template
         )
-        self.outgoing_vumi_text = []
-        self.outgoing_vumi_metrics = []
-        self.handler = RecordingHandler()
-        logger = logging.getLogger('DEBUG')
-        logger.setLevel(logging.INFO)
-        logger.addHandler(self.handler)
-
         self.admin_user_password = 'mypassword'
         self.admin_user = CustomUser.objects.create_superuser(
             username='asdf33',

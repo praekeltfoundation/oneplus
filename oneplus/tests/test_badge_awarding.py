@@ -6,7 +6,6 @@ from django.core.urlresolvers import reverse
 from datetime import datetime, timedelta
 from auth.models import Learner
 from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
-from communication.models import Message
 
 
 def create_test_question(name, module, **kwargs):
@@ -68,10 +67,6 @@ def create_gamification_scenario(**kwargs):
     return GamificationScenario.objects.create(**kwargs)
 
 
-def create_message(author, course, **kwargs):
-    return Message.objects.create(author=author, course=course, **kwargs)
-
-
 def create_test_question_option(name, question, correct=True):
     return TestingQuestionOption.objects.create(
         name=name, question=question, correct=correct)
@@ -89,30 +84,6 @@ def create_test_answer(
         answerdate=answerdate,
         correct=False
     )
-
-
-def create_and_answer_questions(num_questions, module, participant, prefix, date):
-    answers = []
-    for x in range(0, num_questions):
-        # Create a question
-        question = create_test_question(
-            'q' + prefix + str(x), module)
-
-        question.save()
-        option = create_test_question_option(
-            'option_' + prefix + str(x),
-            question)
-        option.save()
-        answer = create_test_answer(
-            participant=participant,
-            question=question,
-            option_selected=option,
-            answerdate=date
-        )
-        answer.save()
-        answers.append(answer)
-
-    return answers
 
 
 class TestBadgeAwarding(TestCase):

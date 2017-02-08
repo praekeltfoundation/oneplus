@@ -1,8 +1,6 @@
 from django.test import TestCase
-from django.test.utils import override_settings
 from django.conf import settings
 from core.common import PROVINCES
-from core.models import Setting
 from organisation.models import Course, Organisation, School
 from oneplus.validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
     validate_sign_up_form_school_confirm

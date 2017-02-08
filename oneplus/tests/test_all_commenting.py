@@ -70,30 +70,6 @@ def create_class(name, course, **kwargs):
     return Class.objects.create(name=name, course=course, **kwargs)
 
 
-def create_and_answer_questions(num_questions, module, participant, prefix, date):
-    answers = []
-    for x in range(0, num_questions):
-        # Create a question
-        question = create_test_question(
-            'q' + prefix + str(x), module)
-
-        question.save()
-        option = create_test_question_option(
-            'option_' + prefix + str(x),
-            question)
-        option.save()
-        answer = create_test_answer(
-            participant=participant,
-            question=question,
-            option_selected=option,
-            answerdate=date
-        )
-        answer.save()
-        answers.append(answer)
-
-    return answers
-
-
 class TestCommentsOnLatestBlog(TestCase):
 
     def setUp(self):

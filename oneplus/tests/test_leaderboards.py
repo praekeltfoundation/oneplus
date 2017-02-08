@@ -2,11 +2,11 @@
 from datetime import datetime, timedelta
 from auth.models import Learner
 from content.models import TestingQuestion, TestingQuestionOption
-from core.models import Participant, ParticipantQuestionAnswer, Class
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
 from django.utils import timezone
+from core.models import Class, Participant, ParticipantQuestionAnswer
 
 
 def create_test_question(name, module, **kwargs):
@@ -67,30 +67,6 @@ def create_organisation(name='organisation name', **kwargs):
 
 def create_class(name, course, **kwargs):
     return Class.objects.create(name=name, course=course, **kwargs)
-
-
-def create_and_answer_questions(num_questions, module, participant, prefix, date):
-    answers = []
-    for x in range(0, num_questions):
-        # Create a question
-        question = create_test_question(
-            'q' + prefix + str(x), module)
-
-        question.save()
-        option = create_test_question_option(
-            'option_' + prefix + str(x),
-            question)
-        option.save()
-        answer = create_test_answer(
-            participant=participant,
-            question=question,
-            option_selected=option,
-            answerdate=date
-        )
-        answer.save()
-        answers.append(answer)
-
-    return answers
 
 
 class TestLeaderboards(TestCase):

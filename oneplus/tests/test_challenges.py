@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 from datetime import datetime, timedelta
-
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.utils import override_settings
 from go_http.tests.test_send import RecordingHandler
-
 from auth.models import Learner, CustomUser
-from communication.models import Message, Discussion
+from communication.models import Discussion
 from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
     EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
@@ -16,7 +14,6 @@ from core.models import Class, Participant, ParticipantQuestionAnswer, Participa
 from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
 from oneplus.models import LearnerState
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
-
 from oneplus.tasks import update_perc_correct_answers_worker, reset_learner_states
 
 
@@ -71,38 +68,9 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-def create_gamification_point_bonus(name, value, **kwargs):
-    return GamificationPointBonus.objects.create(
-        name=name,
-        value=value,
-        **kwargs)
-
-
-def create_gamification_scenario(**kwargs):
-    return GamificationScenario.objects.create(**kwargs)
-
-
-def create_message(author, course, **kwargs):
-    return Message.objects.create(author=author, course=course, **kwargs)
-
-
 def create_test_question_option(name, question, correct=True):
     return TestingQuestionOption.objects.create(
         name=name, question=question, correct=correct)
-
-
-def create_test_answer(
-        participant,
-        question,
-        option_selected,
-        answerdate):
-    return ParticipantQuestionAnswer.objects.create(
-        participant=participant,
-        question=question,
-        option_selected=option_selected,
-        answerdate=answerdate,
-        correct=False
-    )
 
 
 def create_event(name, course, activation_date, deactivation_date, **kwargs):
@@ -117,10 +85,6 @@ def create_sumit(name, course, activation_date, deactivation_date, **kwargs):
 
 def create_event_start_page(event, header, paragraph):
     return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
-
-
-def create_event_end_page(event, header, paragraph):
-    return EventEndPage.objects.create(event=event, header=header, paragraph=paragraph)
 
 
 def create_event_splash_page(event, order_number, header, paragraph):
