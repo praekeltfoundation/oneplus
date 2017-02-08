@@ -1,5 +1,6 @@
 from __future__ import division
 from datetime import datetime, timedelta
+from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
 from auth.models import Learner
@@ -283,9 +284,13 @@ def badges(request, state, user, participant, badge_id=None):
         if badge_id:
             for b in _badges:
                 if b.id == badge_id:
+                    share_url = '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'),
+                                                               participant.id,
+                                                               badge_id)
                     return render(request, "prog/badge_single.html", {
                         "badge": b,
                         "participant": _participant,
+                        "share_url": share_url,
                         "state": state,
                         "user": user})
             return redirect('prog.badges')
