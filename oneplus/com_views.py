@@ -5,6 +5,7 @@ from django.core.mail import mail_managers
 from django.db.models import Q
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
+from django.utils import timezone
 from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
 from core.models import Class, Course, Learner, Participant
 from .validators import validate_content, validate_course, validate_date_and_time, validate_direction, \
@@ -271,8 +272,9 @@ def chat(request, state, user, chatid):
 @oneplus_participant_required
 def blog_hero(request, state, user, participant):
     # get blog entry
+    dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] = Post.objects.filter(
         id__in=post_list
     ).count()
@@ -309,8 +311,9 @@ def blog_hero(request, state, user, participant):
 @oneplus_participant_required
 def blog_list(request, state, user, participant):
     # get blog entry
+    dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] \
         = Post.objects.filter(id__in=post_list).count()
 
@@ -348,10 +351,12 @@ def blog_list(request, state, user, participant):
 
 @oneplus_participant_required
 def blog(request, participant, state, user, blogid):
+    dt = timezone.now()
     # get blog entry
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
     _post = Post.objects.get(pk=blogid)
+
     _next = Post.objects.filter(
         id__in=post_list,
         publishdate__gt=_post.publishdate
@@ -371,6 +376,8 @@ def blog(request, participant, state, user, blogid):
     else:
         state["blog_previous"] = None
 
+    latest = Post.objects.filter(publishdate__lt=dt).latest("publishdate")
+
     request.session["state"]["post_comment"] = False
 
     _usr = Learner.objects.get(pk=user["id"])
@@ -381,6 +388,8 @@ def blog(request, participant, state, user, blogid):
         request.session["state"]["banned"] = False
     else:
         request.session["state"]["banned"] = True
+
+    allow_commenting = _post.id == latest.id
 
     def get():
         request.session["state"]["post_page_max"] = \
@@ -402,7 +411,8 @@ def blog(request, participant, state, user, blogid):
                 "state": state,
                 "user": user,
                 "post": _post,
-                "post_comments": post_comments
+                "post_comments": post_comments,
+                "allow_commenting": allow_commenting
             }
         )
 
@@ -443,7 +453,8 @@ def blog(request, participant, state, user, blogid):
                 "state": state,
                 "user": user,
                 "post": _post,
-                "post_comments": post_comments
+                "post_comments": post_comments,
+                "allow_commenting": allow_commenting
             }
         )
 

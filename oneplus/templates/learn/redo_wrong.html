@@ -77,8 +77,12 @@
                     <input type="text" name="comment" value="" />
                     <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
                 </form>
-                {% if state.discussion_comment %}
-                    <p class="color-accent">Thank you for your contribution. Your message will display shortly!</p>
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <li class="color-accent">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
             </div>
         {% endif %}

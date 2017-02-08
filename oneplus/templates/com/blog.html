@@ -15,7 +15,7 @@
         <div class="post-content">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
     </article>
 
-    {% if not state.banned and not preview%}
+    {% if not state.banned and not preview and allow_commenting %}
         <article class="content padded pad-bottom amethyst-accent">
             <h3 class="">Leave a comment</h3>
             <form name="comment_form" method="post" action="?" class="comment">
