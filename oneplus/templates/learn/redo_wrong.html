@@ -89,9 +89,9 @@
 
         {% if request.session.state.discussion_page_max > 0 or preview%}
             <article class="content comment-list">
-                {% for msg in messages %}
+                {% for msg in comment_messages %}
                     {% if msg.moderated %}
-                        <div class="item-large">
+                        <div class="item-large" id="{{ msg.id }}">
                             <div>
                                 <span class="comment-author">{{ msg.author.first_name }}</span>
                             </div>
@@ -103,7 +103,7 @@
                                     {% if not preview %}
                                         {% if not state.banned %}
                                             {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                                                <form name="comment_response" method="post" action="?" class="inline">
+                                                <form name="comment_response" method="post" action="?#active-comment" class="inline">
                                                     {% csrf_token %}
                                                     <button type="submit" name="comment_response_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                                 </form>
@@ -118,15 +118,11 @@
                                 </div>
 
                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                                    <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+                                    <form name="comment_form" method="post" id="active-comment" action="?" class="comment">{% csrf_token %}
                                         <input type="text" name="reply" value="" />
                                         <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>
-                                {% endifequal %}
-
-                                {% ifequal state.discussion_responded_id|add:"0" msg.id|add:"0" %}
-                                    <p class="green-front">Thank you for your contribution. Your message will display shortly!</p>
-                                {% endifequal %}
+                               {% endifequal %}
 
                             {% else %}
                                 <p class="red-front">{{ msg.content }}</p>

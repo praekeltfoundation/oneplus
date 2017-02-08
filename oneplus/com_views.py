@@ -4,6 +4,9 @@ from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.db.models import Q
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
 from datetime import datetime
 from django.utils import timezone
 from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
@@ -354,7 +357,8 @@ def blog(request, participant, state, user, blogid):
     dt = timezone.now()
     # get blog entry
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course,
+                                             post__publishdate__lt=dt).values_list('post__id', flat=True)
     _post = Post.objects.get(pk=blogid)
 
     _next = Post.objects.filter(
@@ -376,7 +380,7 @@ def blog(request, participant, state, user, blogid):
     else:
         state["blog_previous"] = None
 
-    latest = Post.objects.filter(publishdate__lt=dt).latest("publishdate")
+    latest = Post.objects.filter(id__in=post_list).latest("publishdate")
 
     request.session["state"]["post_comment"] = False
 
@@ -389,7 +393,7 @@ def blog(request, participant, state, user, blogid):
     else:
         request.session["state"]["banned"] = True
 
-    allow_commenting = _post.id == latest.id
+    allow_commenting = latest and (_post.id == latest.id)
 
     def get():
         request.session["state"]["post_page_max"] = \
@@ -430,8 +434,12 @@ def blog(request, participant, state, user, blogid):
                     moderated=True
                 )
                 _post_comment.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_post_comment)
                 request.session["state"]["post_comment"] = True
+                return redirect('com.blog', blogid)
         elif "page" in request.POST.keys():
             request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:

@@ -501,6 +501,9 @@ def redo_right(request, state, user, participant):
             # Discussion page?
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
+            messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
 
             # Messages for discussion page
             _messages = \
@@ -546,10 +549,14 @@ def redo_right(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
+
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
-
+                return redirect(reverse("learn.redo_right"))
             elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
@@ -565,11 +572,15 @@ def redo_right(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
+
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
-
+                return redirect(reverse("learn.redo_right"))
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
@@ -684,10 +695,13 @@ def redo_wrong(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
-
+                return redirect(reverse("learn.redo_wrong"))
             elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
@@ -703,11 +717,14 @@ def redo_wrong(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
+
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
-
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
@@ -1471,6 +1488,7 @@ def right(request, state, user, participant):
                 messages.add_message(request, messages.SUCCESS,
                                      "Thank you for your contribution. Your message will display shortly! "
                                      "If not already")
+
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
@@ -1491,11 +1509,14 @@ def right(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
-
+                return redirect(reverse("learn.right"))
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
@@ -1610,10 +1631,13 @@ def wrong(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
-
+                return redirect(reverse("learn.wrong"))
             elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
                 _parent = Discussion.objects.get(
@@ -1629,11 +1653,14 @@ def wrong(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
-
+                return redirect(reverse("learn.wrong"))
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
