@@ -11,9 +11,9 @@
         </h1>
 
         <article class="card border-color-accent">
-            <section class="top">
+            <section class="top{% if not badge.achieved %} semi-transparent{% endif %}">
                 <div class="img-container">
-                    <div class="{% if not badge.achieved %}semi-transparent{% endif %}">
+                    <div class="">
                         {% if badge.image %}
                             <img class="lonely-badge" src="{{ badge.image.url }}" />
                         {% else %}
