@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
-from communication.models import ChatGroup, ChatMessage
+from communication.models import Message, ChatGroup, ChatMessage, Profanity
 from organisation.models import Course, Organisation, School, Module, CourseModuleRel
 from core.models import Class, Participant
 from datetime import datetime, timedelta
@@ -45,6 +45,10 @@ def create_module(name, course, **kwargs):
     module.save()
     rel.save()
     return module
+
+
+def create_message(author, course, **kwargs):
+    return Message.objects.create(author=author, course=course, **kwargs)
 
 
 @override_settings(VUMI_GO_FAKE=True)
@@ -148,3 +152,113 @@ class TestCommunicationToUser(TestCase):
 
         resp = self.client.post(reverse('com.chatgroups'))
         self.assertEquals(resp.status_code, 200)
+
+    def test_inbox(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+        msg = create_message(
+            self.learner,
+            self.course, name="msg",
+            publishdate=datetime.now(),
+            content='test message'
+        )
+
+        resp = self.client.get(reverse('com.inbox'))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'test message')
+
+        resp = self.client.post(
+            reverse('com.inbox'),
+            data={'hide': msg.id})
+        self.assertEquals(resp.status_code, 200)
+
+    def test_inbox_detail(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token})
+        )
+        msg = create_message(
+            self.learner,
+            self.course, name="msg",
+            publishdate=datetime.now(),
+            content='test message'
+        )
+
+        resp = self.client.get(reverse('com.inbox_detail', kwargs={'messageid': msg.id}))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'test message')
+
+        resp = self.client.post(
+            reverse('com.inbox_detail',
+                    kwargs={'messageid': msg.id}),
+            data={'hide': 'yes'})
+        self.assertEquals(resp.status_code, 302)
+
+    def test_chat(self):
+        self.client.get(reverse('auth.autologin',
+                                kwargs={'token': self.learner.unique_token}))
+        chatgroup = ChatGroup.objects.create(
+            name='testchatgroup',
+            course=self.course
+        )
+        chatmsg1 = ChatMessage.objects.create(
+            chatgroup=chatgroup,
+            author=self.learner,
+            content='chatmsg1content',
+            publishdate=datetime.now(),
+            moderated=True
+        )
+
+        resp = self.client.get(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id})
+        )
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, 'chatmsg1content')
+
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
+            data={'comment': 'test'},
+            follow=True
+        )
+
+        self.assertContains(resp, 'test')
+
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
+            data={'page': 1},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
+            data={'report': chatmsg1.id},
+            follow=True
+        )
+
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "This comment has been reported")
+
+        Profanity.objects.create(
+            word="crap"
+        )
+
+        self.client.post(
+            reverse('com.chat',
+                    kwargs={'chatid': chatgroup.id}),
+            data={'comment': 'crap'},
+            follow=True
+        )
+
+        cm = ChatMessage.objects.all().last()
+        self.assertEquals(cm.content, "This comment includes a banned word so has been removed.")
+        self.assertEquals(cm.original_content, "crap")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from oneplus.templatetags.oneplus_extras import format_content, format_option
 from django.test import TestCase
-from content.models import TestingQuestion
+from content.models import TestingQuestion, TestingQuestionOption
 
 
 class TestHtmlFormatting(TestCase):
@@ -99,3 +99,15 @@ class TestHtmlFormatting(TestCase):
                           u'If you draw out one card, '
                           u'the probability '
                           u'that it will be a King is: </div>')
+
+    def test_save_then_display2(self):
+        question_option = TestingQuestionOption.objects.create(correct=True)
+        question_option.content = "<img>"
+        question_option.save()
+
+        self.assertEquals(question_option.content,
+                          u'<img style="vertical-align:middle"/>')
+
+        content = format_option(question_option.content)
+
+        self.assertEquals(content, u'<img style="vertical-align:middle"/>')
