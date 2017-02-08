@@ -36,131 +36,149 @@ def append_query_params(url, params):
     return '%s?%s' % (url, '&'.join([('%s=%s' % (idx, params[idx])) for idx in params.keys()]))
 
 
-@override_settings(VUMI_GO_FAKE=True)
-class GeneralTests(TestCase):
-    def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name,
-                                              module=module,
-                                              **kwargs)
+def create_test_question(name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name, module=module, **kwargs)
 
-    def create_course(self, name="course name", **kwargs):
-        return Course.objects.create(name=name, **kwargs)
 
-    def create_module(self, name, course, **kwargs):
-        module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        module.save()
-        rel.save()
-        return module
+def create_course(name="course name", **kwargs):
+    return Course.objects.create(name=name, **kwargs)
 
-    def create_class(self, name, course, **kwargs):
-        return Class.objects.create(name=name, course=course, **kwargs)
 
-    def create_organisation(self, name='organisation name', **kwargs):
-        return Organisation.objects.create(name=name, **kwargs)
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
 
-    def create_school(self, name, organisation, **kwargs):
-        return School.objects.create(
-            name=name, organisation=organisation, **kwargs)
 
-    def create_learner(self, school, **kwargs):
-        if 'grade' not in kwargs:
-            kwargs['grade'] = 'Grade 11'
-        return Learner.objects.create(school=school, **kwargs)
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
 
-    def create_participant(self, learner, classs, **kwargs):
-        participant = Participant.objects.create(
-            learner=learner, classs=classs, **kwargs)
 
-        return participant
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
 
-    def create_badgetemplate(self, name='badge template name', **kwargs):
-        return GamificationBadgeTemplate.objects.create(
-            name=name,
-            image="none",
-            **kwargs)
 
-    def create_gamification_point_bonus(self, name, value, **kwargs):
-        return GamificationPointBonus.objects.create(
-            name=name,
-            value=value,
-            **kwargs)
+def create_school(name, organisation, **kwargs):
+    return School.objects.create(
+        name=name, organisation=organisation, **kwargs)
 
-    def create_gamification_scenario(self, **kwargs):
-        return GamificationScenario.objects.create(**kwargs)
 
-    def create_message(self, author, course, **kwargs):
-        return Message.objects.create(author=author, course=course, **kwargs)
+def create_learner(school, **kwargs):
+    if 'grade' not in kwargs:
+        kwargs['grade'] = 'Grade 11'
+    return Learner.objects.create(school=school, **kwargs)
 
-    def create_test_question_option(self, name, question, correct=True):
-        return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=correct)
 
-    def create_test_answer(
-            self,
-            participant,
-            question,
-            option_selected,
-            answerdate):
-        return ParticipantQuestionAnswer.objects.create(
+def create_participant(learner, classs, **kwargs):
+    participant = Participant.objects.create(
+        learner=learner, classs=classs, **kwargs)
+    return participant
+
+
+def create_badgetemplate(name='badge template name', **kwargs):
+    return GamificationBadgeTemplate.objects.create(
+        name=name,
+        image="none",
+        **kwargs)
+
+
+def create_gamification_point_bonus(name, value, **kwargs):
+    return GamificationPointBonus.objects.create(
+        name=name,
+        value=value,
+        **kwargs)
+
+
+def create_gamification_scenario(**kwargs):
+    return GamificationScenario.objects.create(**kwargs)
+
+
+def create_message(author, course, **kwargs):
+    return Message.objects.create(author=author, course=course, **kwargs)
+
+
+def create_test_question_option(name, question, correct=True):
+    return TestingQuestionOption.objects.create(
+        name=name, question=question, correct=correct)
+
+
+def create_test_answer(
+        participant,
+        question,
+        option_selected,
+        answerdate):
+    return ParticipantQuestionAnswer.objects.create(
+        participant=participant,
+        question=question,
+        option_selected=option_selected,
+        answerdate=answerdate,
+        correct=False
+    )
+
+
+def create_and_answer_questions(num_questions, module, participant, prefix, date):
+    answers = []
+    for x in range(0, num_questions):
+        # Create a question
+        question = create_test_question(
+            'q' + prefix + str(x), module)
+
+        question.save()
+        option = create_test_question_option(
+            'option_' + prefix + str(x),
+            question)
+        option.save()
+        answer = create_test_answer(
             participant=participant,
             question=question,
-            option_selected=option_selected,
-            answerdate=answerdate,
-            correct=False
+            option_selected=option,
+            answerdate=date
         )
+        answer.save()
+        answers.append(answer)
 
-    def create_and_answer_questions(self, num_questions, prefix, date):
-        answers = []
-        for x in range(0, num_questions):
-            # Create a question
-            question = self.create_test_question(
-                'q' + prefix + str(x), self.module)
+    return answers
 
-            question.save()
-            option = self.create_test_question_option(
-                'option_' + prefix + str(x),
-                question)
-            option.save()
-            answer = self.create_test_answer(
-                participant=self.participant,
-                question=question,
-                option_selected=option,
-                answerdate=date
-            )
-            answer.save()
-            answers.append(answer)
 
-        return answers
+def create_event(name, course, activation_date, deactivation_date, **kwargs):
+    return Event.objects.create(name=name, course=course, activation_date=activation_date,
+                                deactivation_date=deactivation_date, **kwargs)
 
-    def create_event(self, name, course, activation_date, deactivation_date, **kwargs):
-        return Event.objects.create(name=name, course=course, activation_date=activation_date,
-                                    deactivation_date=deactivation_date, **kwargs)
 
-    def create_sumit(self, name, course, activation_date, deactivation_date, **kwargs):
-        return SUMit.objects.create(name=name, course=course, activation_date=activation_date,
-                                    deactivation_date=deactivation_date, **kwargs)
+def create_sumit(name, course, activation_date, deactivation_date, **kwargs):
+    return SUMit.objects.create(name=name, course=course, activation_date=activation_date,
+                                deactivation_date=deactivation_date, **kwargs)
 
-    def create_event_start_page(self, event, header, paragraph):
-        return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
 
-    def create_event_end_page(self, event, header, paragraph):
-        return EventEndPage.objects.create(event=event, header=header, paragraph=paragraph)
+def create_event_start_page(event, header, paragraph):
+    return EventStartPage.objects.create(event=event, header=header, paragraph=paragraph)
 
-    def create_event_splash_page(self, event, order_number, header, paragraph):
-        return EventSplashPage.objects.create(event=event, order_number=order_number, header=header,
-                                              paragraph=paragraph)
 
-    def create_event_question(self, event, question, order):
-        return EventQuestionRel.objects.create(event=event, question=question, order=order)
+def create_event_end_page(event, header, paragraph):
+    return EventEndPage.objects.create(event=event, header=header, paragraph=paragraph)
+
+
+def create_event_splash_page(event, order_number, header, paragraph):
+    return EventSplashPage.objects.create(event=event, order_number=order_number, header=header,
+                                          paragraph=paragraph)
+
+
+def create_event_question(event, question, order):
+    return EventQuestionRel.objects.create(event=event, question=question, order=order)
+
+
+@override_settings(VUMI_GO_FAKE=True)
+class GeneralTests(TestCase):
 
     def setUp(self):
 
-        self.course = self.create_course()
-        self.classs = self.create_class('class name', self.course)
-        self.organisation = self.create_organisation()
-        self.school = self.create_school('school name', self.organisation)
-        self.learner = self.create_learner(
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+        self.learner = create_learner(
             self.school,
             username="+27123456789",
             mobile="+27123456789",
@@ -169,10 +187,10 @@ class GeneralTests(TestCase):
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
-        self.module = self.create_module('module name', self.course)
-        self.badge_template = self.create_badgetemplate()
+        self.module = create_module('module name', self.course)
+        self.badge_template = create_badgetemplate()
 
         self.scenario = GamificationScenario.objects.create(
             name='scenario name',
@@ -196,7 +214,7 @@ class GeneralTests(TestCase):
             mobile='+27111111133')
 
     def test_get_next_question(self):
-        self.create_test_question('question1', self.module, state=3)
+        create_test_question('question1', self.module, state=3)
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=None
@@ -221,7 +239,7 @@ class GeneralTests(TestCase):
             self.assertEquals(resp.status_code, 200)
 
             #with questions
-            self.create_test_question('question1', self.module, state=3)
+            create_test_question('question1', self.module, state=3)
             LearnerState.objects.create(
                 participant=self.participant,
                 active_question=None,
@@ -234,17 +252,17 @@ class GeneralTests(TestCase):
             self.assertEquals(resp.status_code, 200)
 
             #with event active
-            event_module = self.create_module("event_module", self.course, type=2)
-            event = self.create_event("event_name", self.course, datetime.now() - timedelta(days=1),
-                                      datetime.now() + timedelta(days=1), number_sittings=2, event_points=5, type=1)
-            start_page = self.create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
-            end_page = self.create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
-            question_1 = self.create_test_question("question_1", event_module, state=3)
-            question_option_1 = self.create_test_question_option("question_1_option", question_1)
-            self.create_event_question(event, question_1, 1)
-            question_2 = self.create_test_question("question_2", event_module, state=3)
-            question_option_2 = self.create_test_question_option("question_2_option", question_2)
-            self.create_event_question(event, question_2, 2)
+            event_module = create_module("event_module", self.course, type=2)
+            event = create_event("event_name", self.course, datetime.now() - timedelta(days=1),
+                                 datetime.now() + timedelta(days=1), number_sittings=2, event_points=5, type=1)
+            start_page = create_event_start_page(event, "Test Start Page", "Test Start Page Paragraph")
+            end_page = create_event_end_page(event, "Test End Page", "Test Start Page Paragraph")
+            question_1 = create_test_question("question_1", event_module, state=3)
+            question_option_1 = create_test_question_option("question_1_option", question_1)
+            create_event_question(event, question_1, 1)
+            question_2 = create_test_question("question_2", event_module, state=3)
+            question_option_2 = create_test_question_option("question_2_option", question_2)
+            create_event_question(event, question_2, 2)
 
             resp = self.client.get(reverse('learn.home'))
             self.assertEquals(resp.status_code, 200)
@@ -401,8 +419,7 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        self.learner.last_active_date = (
-            datetime.now() - timedelta(days=2, hours=4))
+        self.learner.last_active_date = (datetime.now() - timedelta(days=2, hours=4))
         self.learner.save()
         self.client.get(reverse('learn.home'))
         self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
@@ -415,8 +432,7 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        self.learner.last_active_date = (
-            datetime.now() - timedelta(days=8, hours=4))
+        self.learner.last_active_date = (datetime.now() - timedelta(days=8, hours=4))
         self.learner.save()
         self.client.get(reverse('learn.home'))
         self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
@@ -430,8 +446,7 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        self.learner.last_active_date = (
-            datetime.now() - timedelta(hours=4))
+        self.learner.last_active_date = (datetime.now() - timedelta(hours=4))
         self.learner.save()
         self.client.get(reverse('learn.home'))
         self.assert_not_in_metric_logs('running.active.participants24', 'sum', 1)
@@ -445,7 +460,7 @@ class GeneralTests(TestCase):
                 'auth.autologin',
                 kwargs={'token': self.learner.unique_token})
         )
-        msg = self.create_message(
+        msg = create_message(
             self.learner,
             self.course, name="msg",
             publishdate=datetime.now(),
@@ -467,15 +482,14 @@ class GeneralTests(TestCase):
                 'auth.autologin',
                 kwargs={'token': self.learner.unique_token})
         )
-        msg = self.create_message(
+        msg = create_message(
             self.learner,
             self.course, name="msg",
             publishdate=datetime.now(),
             content='test message'
         )
 
-        resp = self.client.get(
-            reverse('com.inbox_detail', kwargs={'messageid': msg.id}))
+        resp = self.client.get(reverse('com.inbox_detail', kwargs={'messageid': msg.id}))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, 'test message')
 
@@ -637,12 +651,12 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Link has been SMSed to you.")
 
     def test_reset_password(self):
-        new_learner = self.create_learner(
+        new_learner = create_learner(
             self.school,
             username="0701234567",
             mobile="0701234567")
 
-        new_participant = self.create_participant(
+        new_participant = create_participant(
             new_learner,
             self.classs,
             datejoined=datetime.now())
@@ -727,8 +741,7 @@ class GeneralTests(TestCase):
     def test_training_sunday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 20, 0, 0, 0)
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -741,8 +754,7 @@ class GeneralTests(TestCase):
     def test_training_saturday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 19, 0, 0, 0)
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
 
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -756,8 +768,7 @@ class GeneralTests(TestCase):
     def test_monday_first_week_no_training(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 21, 0, 0, 0)
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -769,13 +780,14 @@ class GeneralTests(TestCase):
     def test_monday_first_week_with_training(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 21, 0, 0, 0)
 
-        self.create_and_answer_questions(
+        create_and_answer_questions(
             3,
+            self.module,
+            self.participant,
             'sunday',
             datetime(2014, 7, 20, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -787,13 +799,14 @@ class GeneralTests(TestCase):
     def test_tuesday_with_monday(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 22, 1, 1, 1)
 
-        self.create_and_answer_questions(
+        create_and_answer_questions(
             3,
+            self.module,
+            self.participant,
             'sunday',
             datetime(2014, 7, 21, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -805,8 +818,7 @@ class GeneralTests(TestCase):
     def test_miss_a_day_during_week(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 22, 0, 0, 0)
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -817,8 +829,7 @@ class GeneralTests(TestCase):
     @patch.object(LearnerState, 'today')
     def test_miss_multiple_days_during_week(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 23, 0, 0, 0)
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -835,13 +846,14 @@ class GeneralTests(TestCase):
         mock_get_today.return_value = tuesday
 
         # Answer only 2 questions on Monday the 21st of July
-        answers = self.create_and_answer_questions(
+        answers = create_and_answer_questions(
             2,
+            self.module,
+            self.participant,
             'monday',
             datetime(2014, 7, 21, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -861,17 +873,12 @@ class GeneralTests(TestCase):
     def test_forget_a_single_days_till_weekend(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 26, 0, 0, 0)
 
-        self.create_and_answer_questions(3, 'monday',
-                                         datetime(2014, 7, 21, 1, 1, 1))
-        self.create_and_answer_questions(3, 'tuesday',
-                                         datetime(2014, 7, 22, 1, 1, 1))
-        self.create_and_answer_questions(3, 'wednesday',
-                                         datetime(2014, 7, 23, 1, 1, 1))
-        self.create_and_answer_questions(3, 'thursday',
-                                         datetime(2014, 7, 24, 1, 1, 1))
+        create_and_answer_questions(3, self.module, self.participant, 'monday', datetime(2014, 7, 21, 1, 1, 1))
+        create_and_answer_questions(3, self.module, self.participant, 'tuesday', datetime(2014, 7, 22, 1, 1, 1))
+        create_and_answer_questions(3, self.module, self.participant, 'wednesday', datetime(2014, 7, 23, 1, 1, 1))
+        create_and_answer_questions(3, self.module, self.participant, 'thursday', datetime(2014, 7, 24, 1, 1, 1))
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -883,10 +890,8 @@ class GeneralTests(TestCase):
     def test_miss_all_days_till_weekend_except_training(self, mock_get_today):
         mock_get_today.return_value = datetime(2014, 7, 26, 0, 0, 0)
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
-        self.create_and_answer_questions(3, 'training',
-                                         datetime(2014, 7, 20, 1, 1, 1))
+        question1 = create_test_question('question1', self.module, question_content='test question')
+        create_and_answer_questions(3, self.module, self.participant, 'training', datetime(2014, 7, 20, 1, 1, 1))
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -899,12 +904,10 @@ class GeneralTests(TestCase):
         # Sunday the 28th
         mock_get_today.return_value = datetime(2014, 7, 28, 0, 0)
 
-        question1 = self.create_test_question('question1', self.module,
-                                              question_content='test question')
+        question1 = create_test_question('question1', self.module, question_content='test question')
 
         # Answered 3 questions at training on Sunday the 20th
-        self.create_and_answer_questions(3, 'training',
-                                         datetime(2014, 7, 20, 1, 1, 1))
+        create_and_answer_questions(3, self.module, self.participant, 'training', datetime(2014, 7, 20, 1, 1, 1))
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
             active_question=question1,
@@ -914,27 +917,25 @@ class GeneralTests(TestCase):
 
     @patch.object(LearnerState, "today")
     def test_saturday_no_questions_not_training(self, mock_get_today):
-        learner = self.learner = self.create_learner(
-            self.school,
-            username="+27123456999",
-            mobile="+2712345699",
-            country="country",
-            area="Test_Area",
-            unique_token='abc1233',
-            unique_token_expiry=datetime.now() + timedelta(days=30),
-            is_staff=True)
-        self.participant = self.create_participant(
+        learner = self.learner = create_learner(self.school,
+                                                username="+27123456999",
+                                                mobile="+2712345699",
+                                                country="country",
+                                                area="Test_Area",
+                                                unique_token='abc1233',
+                                                unique_token_expiry=datetime.now() + timedelta(days=30),
+                                                is_staff=True)
+        self.participant = create_participant(
             learner, self.classs,
             datejoined=datetime(2014, 8, 22, 0, 0, 0))
 
         mock_get_today.return_value = datetime(2014, 8, 23, 0, 0)
 
         # Create question
-        question1 = self.create_test_question('q1', self.module)
+        question1 = create_test_question('q1', self.module)
 
         # Create and answer 2 other questions earlier in the day
-        self.create_and_answer_questions(2, 'training',
-                                         datetime(2014, 8, 23, 1, 22, 0))
+        create_and_answer_questions(2, self.module, self.participant, 'training',  datetime(2014, 8, 23, 1, 22, 0))
 
         learnerstate = LearnerState.objects.create(
             participant=self.participant,
@@ -1057,10 +1058,8 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        question = self.create_test_question('question1', self.module,
-                                             question_content='test question', state=3)
-        questionoption = self.create_test_question_option('questionoption1',
-                                                          question)
+        question = create_test_question('question1', self.module, question_content='test question', state=3)
+        questionoption = create_test_question_option('questionoption1', question)
 
         # Post a correct answer
         self.client.post(
@@ -1073,14 +1072,13 @@ class GeneralTests(TestCase):
         self.assertEqual(badge, self.badge_template)
 
     def test_badge_awarding(self):
-        new_learner = self.create_learner(
-            self.school,
-            username="+27123456999",
-            mobile="+2712345699",
-            unique_token='xyz',
-            unique_token_expiry=datetime.now() + timedelta(days=30))
+        new_learner = create_learner(self.school,
+                                     username="+27123456999",
+                                     mobile="+2712345699",
+                                     unique_token='xyz',
+                                     unique_token_expiry=datetime.now() + timedelta(days=30))
 
-        new_participant = self.create_participant(
+        new_participant = create_participant(
             new_learner,
             self.classs,
             datejoined=datetime.now())
@@ -1091,30 +1089,30 @@ class GeneralTests(TestCase):
         )
 
         ten = 10
-        gpb1 = self.create_gamification_point_bonus("Point Bonus", ten)
+        gpb1 = create_gamification_point_bonus("Point Bonus", ten)
 
         # create the badges we want to win
-        bt1 = self.create_badgetemplate(
+        bt1 = create_badgetemplate(
             name="1st Correct",
             description="1st Correct"
         )
 
-        bt2 = self.create_badgetemplate(
+        bt2 = create_badgetemplate(
             name="15 Correct",
             description="15 Correct"
         )
 
-        bt3 = self.create_badgetemplate(
+        bt3 = create_badgetemplate(
             name="30 Correct",
             description="30 Correct"
         )
 
-        bt4 = self.create_badgetemplate(
+        bt4 = create_badgetemplate(
             name="100 Correct",
             description="100 Correct"
         )
 
-        sc1 = self.create_gamification_scenario(
+        sc1 = create_gamification_scenario(
             name="1st correct",
             course=self.course,
             module=self.module,
@@ -1123,7 +1121,7 @@ class GeneralTests(TestCase):
             point=gpb1
         )
 
-        sc2 = self.create_gamification_scenario(
+        sc2 = create_gamification_scenario(
             name="15 correct",
             course=self.course,
             module=self.module,
@@ -1131,7 +1129,7 @@ class GeneralTests(TestCase):
             event="15_CORRECT",
         )
 
-        sc3 = self.create_gamification_scenario(
+        sc3 = create_gamification_scenario(
             name="30 correct",
             course=self.course,
             module=self.module,
@@ -1139,7 +1137,7 @@ class GeneralTests(TestCase):
             event="30_CORRECT",
         )
 
-        sc4 = self.create_gamification_scenario(
+        sc4 = create_gamification_scenario(
             name="100 correct",
             course=self.course,
             module=self.module,
@@ -1149,20 +1147,13 @@ class GeneralTests(TestCase):
 
         fifteen = 15
         for i in range(0, fifteen):
-            question = self.create_test_question('q_15_%s' % i,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
-
-            question_option = self.create_test_question_option('q_15_%s_O_1' % i, question)
-
+            question = create_test_question('q_15_%s' % i, self.module, question_content='test question', state=3)
+            question_option = create_test_question_option('q_15_%s_O_1' % i, question)
             self.client.get(reverse('learn.next'))
             self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
 
-        _total_correct = ParticipantQuestionAnswer.objects.filter(
-            participant=new_participant,
-            correct=True
-        ).count()
+        _total_correct = ParticipantQuestionAnswer.objects.filter(participant=new_participant,
+                                                                  correct=True).count()
 
         participant = Participant.objects.get(id=new_participant.id)
         self.assertEquals(participant.points, ten + fifteen)
@@ -1171,12 +1162,12 @@ class GeneralTests(TestCase):
 
         thirty = 30
         for i in range(fifteen, thirty):
-            question = self.create_test_question('q_30_%s' % i,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
+            question = create_test_question('q_30_%s' % i,
+                                            self.module,
+                                            question_content='test question',
+                                            state=3)
 
-            question_option = self.create_test_question_option('q_30_%s_O_1' % i, question)
+            question_option = create_test_question_option('q_30_%s_O_1' % i, question)
 
             self.client.get(reverse('learn.next'))
             self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
@@ -1190,12 +1181,9 @@ class GeneralTests(TestCase):
 
         hundred = 100
         for i in range(thirty, hundred):
-            question = self.create_test_question('q_100_%s' % i,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
+            question = create_test_question('q_100_%s' % i, self.module, question_content='test question', state=3)
 
-            question_option = self.create_test_question_option('q_100_%s_O_1' % i, question)
+            question_option = create_test_question_option('q_100_%s_O_1' % i, question)
 
             self.client.get(reverse('learn.next'))
             self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
@@ -1236,14 +1224,14 @@ class GeneralTests(TestCase):
         self.assertEquals(cnt, 1)
 
     def test_badge_awarding_2(self):
-        new_learner = self.create_learner(
+        new_learner = create_learner(
             self.school,
             username="+27123456999",
             mobile="+2712345699",
             unique_token='xyz',
             unique_token_expiry=datetime.now() + timedelta(days=30))
 
-        new_participant = self.create_participant(
+        new_participant = create_participant(
             new_learner,
             self.classs,
             datejoined=datetime.now())
@@ -1254,22 +1242,22 @@ class GeneralTests(TestCase):
         )
 
         # create the badges we want to win
-        bt1 = self.create_badgetemplate(
+        bt1 = create_badgetemplate(
             name="15 Correct",
             description="15 Correct"
         )
 
-        bt2 = self.create_badgetemplate(
+        bt2 = create_badgetemplate(
             name="30 Correct",
             description="30 Correct"
         )
 
-        bt3 = self.create_badgetemplate(
+        bt3 = create_badgetemplate(
             name="100 Correct",
             description="100 Correct"
         )
 
-        sc1 = self.create_gamification_scenario(
+        sc1 = create_gamification_scenario(
             name="15 correct",
             course=self.course,
             module=self.module,
@@ -1277,7 +1265,7 @@ class GeneralTests(TestCase):
             event="15_CORRECT",
         )
 
-        sc2 = self.create_gamification_scenario(
+        sc2 = create_gamification_scenario(
             name="30 correct",
             course=self.course,
             module=self.module,
@@ -1285,7 +1273,7 @@ class GeneralTests(TestCase):
             event="30_CORRECT",
         )
 
-        sc3 = self.create_gamification_scenario(
+        sc3 = create_gamification_scenario(
             name="100 correct",
             course=self.course,
             module=self.module,
@@ -1295,107 +1283,60 @@ class GeneralTests(TestCase):
 
         fifteen = 14
         for i in range(0, fifteen):
-            question = self.create_test_question('q_15_%s' % i,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
-
-            question_option = self.create_test_question_option('q_15_%s_O_1' % i, question)
-
+            question = create_test_question('q_15_%s' % i, self.module, question_content='test question', state=3)
+            question_option = create_test_question_option('q_15_%s_O_1' % i, question)
             new_participant.answer(question, question_option)
 
-        question = self.create_test_question('q_15_16',
-                                             self.module,
-                                             question_content='test question',
-                                             state=3)
-
-        question_option = self.create_test_question_option('q_15_16_O_1', question)
-
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt1,
-            scenario=sc1
-        ).count()
+        question = create_test_question('q_15_16', self.module, question_content='test question', state=3)
+        question_option = create_test_question_option('q_15_16_O_1', question)
+        cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                         badgetemplate=bt1, scenario=sc1).count()
         self.assertEquals(cnt, 0)
 
         self.client.get(reverse('learn.next'))
         self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
 
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt1,
-            scenario=sc1
-        ).count()
+        cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                         badgetemplate=bt1, scenario=sc1).count()
         self.assertEquals(cnt, 1)
 
         thirty = 29
         for i in range(fifteen + 1, thirty):
-            question = self.create_test_question('q_30_%s' % i,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
-
-            question_option = self.create_test_question_option('q_30_%s_O_1' % i, question)
-
+            question = create_test_question('q_30_%s' % i, self.module, question_content='test question', state=3)
+            question_option = create_test_question_option('q_30_%s_O_1' % i, question)
             new_participant.answer(question, question_option)
 
-        question = self.create_test_question('q_30_31',
-                                             self.module,
-                                             question_content='test question',
-                                             state=3)
-
-        question_option = self.create_test_question_option('q_30_31_O_1', question)
-
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt2,
-            scenario=sc2
-        ).count()
+        question = create_test_question('q_30_31', self.module, question_content='test question', state=3)
+        question_option = create_test_question_option('q_30_31_O_1', question)
+        cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                         badgetemplate=bt2, scenario=sc2).count()
         self.assertEquals(cnt, 0)
 
         self.client.get(reverse('learn.next'))
         self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
 
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt2,
-            scenario=sc2
-        ).count()
+        cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                         badgetemplate=bt2, scenario=sc2).count()
         self.assertEquals(cnt, 1)
 
         hundred = 99
         for i in range(thirty + 1, hundred):
-            question = self.create_test_question('q_100_%s' % i,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
-
-            question_option = self.create_test_question_option('q_100_%s_O_1' % i, question)
-
+            question = create_test_question('q_100_%s' % i, self.module, question_content='test question', state=3)
+            question_option = create_test_question_option('q_100_%s_O_1' % i, question)
             new_participant.answer(question, question_option)
 
-        question = self.create_test_question('q_100_101',
-                                             self.module,
-                                             question_content='test question',
-                                             state=3)
+        question = create_test_question('q_100_101', self.module, question_content='test question', state=3)
+        question_option = create_test_question_option('q_100_101_O_1', question)
 
-        question_option = self.create_test_question_option('q_100_101_O_1', question)
-
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt3,
-            scenario=sc3
-        ).count()
+        cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                         badgetemplate=bt3, scenario=sc3).count()
         self.assertEquals(cnt, 0)
 
         self.client.get(reverse('learn.next'))
         self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
 
-        cnt = ParticipantBadgeTemplateRel.objects.filter(
-            participant=new_participant,
-            badgetemplate=bt3,
-            scenario=sc3
-        ).count()
+        cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                         badgetemplate=bt3, scenario=sc3).count()
         self.assertEquals(cnt, 1)
 
     def test_view_adminpreview(self):
@@ -1409,19 +1350,16 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=my_admin.username, password=password)
 
-        self.question = self.create_test_question(
+        self.question = create_test_question(
             'question1',
             self.module,
             question_content='test question')
-        self.questionoption = self.create_test_question_option(
+        self.questionoption = create_test_question_option(
             'questionoption1',
             self.question)
 
         resp = c.get(
-            reverse(
-                'learn.preview',
-                kwargs={
-                    'questionid': self.question.id}))
+            reverse('learn.preview', kwargs={'questionid': self.question.id}))
 
         self.assertContains(resp, "test question")
 
@@ -1441,7 +1379,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
         # Post a incorrect answer
-        option = self.create_test_question_option("wrong", self.question, False)
+        option = create_test_question_option("wrong", self.question, False)
         resp = c.post(
             reverse('learn.preview', kwargs={'questionid': self.question.id}),
             data={'answer': option.id}, follow=True
@@ -1460,13 +1398,8 @@ class GeneralTests(TestCase):
         c = Client()
         resp = c.login(username=my_admin.username, password=password)
 
-        self.question = self.create_test_question(
-            'question1',
-            self.module,
-            question_content='test question')
-        self.questionoption = self.create_test_question_option(
-            'questionoption1',
-            self.question)
+        self.question = create_test_question('question1', self.module, question_content='test question')
+        self.questionoption = create_test_question_option('questionoption1', self.question)
 
         resp = c.get(
             reverse(
@@ -1487,21 +1420,18 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=my_admin.username, password=password)
 
-        self.question = self.create_test_question(
+        self.question = create_test_question(
             'question1',
             self.module,
             question_content='test question',
             state=3)
 
-        self.questionoption = self.create_test_question_option(
+        self.questionoption = create_test_question_option(
             'questionoption1',
             self.question)
 
         resp = c.get(
-            reverse(
-                'learn.preview.wrong',
-                kwargs={
-                    'questionid': self.question.id}))
+            reverse('learn.preview.wrong', kwargs={'questionid': self.question.id}))
 
         self.assertContains(resp, "Next time")
 
@@ -1510,16 +1440,14 @@ class GeneralTests(TestCase):
             'auth.autologin',
             kwargs={'token': self.learner.unique_token})
         )
-        question = self.create_test_question(
+        question = create_test_question(
             'question1', self.module,
             question_content='test question',
             state=3)
 
-        self.create_test_question_option(
-            'questionoption1',
-            question)
+        create_test_question_option('questionoption1', question)
 
-        questionoption2 = self.create_test_question_option(
+        questionoption2 = create_test_question_option(
             "questionoption2",
             question,
             correct=False)
@@ -1676,10 +1604,7 @@ class GeneralTests(TestCase):
         learner.is_active = True
         learner.save()
 
-        self.create_participant(
-            learner,
-            self.classs,
-            datejoined=datetime.now())
+        create_participant(learner, self.classs, datejoined=datetime.now())
 
         resp = c.post(
             reverse('auth.login'),
@@ -1701,16 +1626,8 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, "WELCOME")
 
-        question1 = self.create_test_question(
-            'question1',
-            self.module,
-            question_content='test question'
-        )
-        option1 = self.create_test_question_option(
-            name="option1",
-            question=question1,
-            correct=True
-        )
+        question1 = create_test_question('question1', self.module, question_content='test question')
+        option1 = create_test_question_option(name="option1", question=question1, correct=True)
 
         LearnerState.objects.create(
             participant=self.participant,
@@ -1729,11 +1646,7 @@ class GeneralTests(TestCase):
 
         self.assertContains(resp, "WELCOME")
 
-        self.create_participant(
-            learner,
-            self.classs,
-            datejoined=datetime.now()
-        )
+        create_participant(learner, self.classs, datejoined=datetime.now())
 
         resp = c.post(
             reverse('auth.login'),
@@ -1755,11 +1668,8 @@ class GeneralTests(TestCase):
             mobile="+27891234567",
             password='1234'
         )
-        self.create_participant(
-            learner,
-            self.classs,
-            datejoined=datetime.now()
-        )
+
+        create_participant(learner, self.classs, datejoined=datetime.now())
         self.client.post(
             reverse('auth.login'),
             data={
@@ -1775,8 +1685,7 @@ class GeneralTests(TestCase):
 
     def test_points_screen(self):
         self.client.get(
-            reverse('auth.autologin',
-                    kwargs={'token': self.learner.unique_token})
+            reverse('auth.autologin', kwargs={'token': self.learner.unique_token})
         )
         resp = self.client.get(reverse('prog.points'))
         self.assertEquals(resp.status_code, 200)
@@ -1790,12 +1699,12 @@ class GeneralTests(TestCase):
         question_option_wrong_list = list()
 
         for x in range(0, 11):
-            question = self.create_test_question('question_%s' % x,
-                                                 self.module,
-                                                 question_content='test question',
-                                                 state=3)
-            question_option = self.create_test_question_option('question_option_%s' % x, question)
-            question_wrong_option = self.create_test_question_option('question_option_w_%s' % x, question, False)
+            question = create_test_question('question_%s' % x,
+                                            self.module,
+                                            question_content='test question',
+                                            state=3)
+            question_option = create_test_question_option('question_option_%s' % x, question)
+            question_wrong_option = create_test_question_option('question_option_w_%s' % x, question, False)
 
             question_list.append(question)
             question_option_list.append(question_option)
@@ -1808,36 +1717,36 @@ class GeneralTests(TestCase):
         counter = 0
         password = "12345"
 
-        test_class = self.create_class('test_class', self.course)
+        test_class = create_class('test_class', self.course)
 
         for x in range(10, 21):
-            all_learners.append(self.create_learner(self.school,
-                                                    first_name="test_%s" % x,
-                                                    username="07612345%s" % x,
-                                                    mobile="07612345%s" % x,
-                                                    unique_token='%s' % x,
-                                                    unique_token_expiry=datetime.now() + timedelta(days=30)))
+            all_learners.append(create_learner(self.school,
+                                               first_name="test_%s" % x,
+                                               username="07612345%s" % x,
+                                               mobile="07612345%s" % x,
+                                               unique_token='%s' % x,
+                                               unique_token_expiry=datetime.now() + timedelta(days=30)))
             all_learners[counter].set_password(password)
 
-            all_particpants.append(self.create_participant(all_learners[counter],
-                                                           test_class, datejoined=datetime.now()))
+            all_particpants.append(
+                create_participant(all_learners[counter], test_class, datejoined=datetime.now()))
 
             for y in range(0, counter+1):
                 all_particpants[y].answer(question_list[y], question_option_list[y])
                 all_particpants[y].answer(question_list[y], question_option_list[y])
 
             #data for class leaderboard
-            new_class = self.create_class('class_%s' % x, self.course)
-            all_learners_classes.append(self.create_learner(self.school,
-                                                            first_name="test_b_%s" % x,
-                                                            username="08612345%s" % x,
-                                                            mobile="08612345%s" % x,
-                                                            unique_token='abc%s' % x,
-                                                            unique_token_expiry=datetime.now() + timedelta(days=30)))
+            new_class = create_class('class_%s' % x, self.course)
+            all_learners_classes.append(create_learner(self.school,
+                                                       first_name="test_b_%s" % x,
+                                                       username="08612345%s" % x,
+                                                       mobile="08612345%s" % x,
+                                                       unique_token='abc%s' % x,
+                                                       unique_token_expiry=datetime.now() + timedelta(days=30)))
             all_learners_classes[counter].set_password(password)
 
-            all_particpants_classes.append(self.create_participant(all_learners_classes[counter],
-                                                                   new_class, datejoined=datetime.now()))
+            all_particpants_classes.append(create_participant(all_learners_classes[counter],
+                                                              new_class, datejoined=datetime.now()))
 
             for y in range(0, counter+1):
                 all_particpants_classes[y].answer(question_list[y], question_option_wrong_list[y])
@@ -1850,9 +1759,7 @@ class GeneralTests(TestCase):
             counter += 1
 
         self.client.get(
-            reverse('auth.autologin',
-                    kwargs={'token': "20"})
-        )
+            reverse('auth.autologin', kwargs={'token': "20"}))
 
         resp = self.client.get(reverse('prog.leader'))
         self.assertEquals(resp.status_code, 200)
@@ -1872,9 +1779,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Show more", count=3)
 
         self.client.get(
-            reverse('auth.autologin',
-                    kwargs={'token': "14"})
-        )
+            reverse('auth.autologin', kwargs={'token': "14"}))
 
         resp = self.client.get(reverse('prog.leader'), follow=True)
         self.assertEquals(resp.status_code, 200)
@@ -1951,40 +1856,44 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "National Leaderboard")
 
     def test_leaderboard_school_multiple_entrants(self):
-        school = self.create_school('Some Random School', self.organisation)
-        learner1 = self.create_learner(school,
-                                       first_name="learner_1",
-                                       grade="Grade 11",
-                                       mobile="1111111111",
-                                       unique_token='blargity',
-                                       unique_token_expiry=datetime.now() + timedelta(days=30),
-                                       username="1111111111")
-        learner2 = self.create_learner(school,
-                                       first_name="learner_2",
-                                       grade="Grade 11",
-                                       mobile="2222222222",
-                                       username="2222222222")
-        learner3 = self.create_learner(school,
-                                       first_name="learner_3",
-                                       grade="Grade 11",
-                                       mobile="3333333333",
-                                       username="3333333333")
+        school = create_school('Some Random School', self.organisation)
+        learner1 = create_learner(school,
+                                  first_name="learner_1",
+                                  grade="Grade 11",
+                                  mobile="1111111111",
+                                  unique_token='blargity',
+                                  unique_token_expiry=datetime.now() + timedelta(days=30),
+                                  username="1111111111")
 
-        participant1 = self.create_participant(learner1,
-                                               self.classs,
-                                               datejoined=timezone.now(),
-                                               is_active=True,
-                                               points=5)
-        particpiant2 = self.create_participant(learner2,
-                                               self.classs,
-                                               datejoined=timezone.now(),
-                                               is_active=True,
-                                               points=10)
-        particpiant3 = self.create_participant(learner3,
-                                               self.classs,
-                                               datejoined=timezone.now(),
-                                               is_active=True,
-                                               points=15)
+        learner2 = create_learner(school,
+                                  first_name="learner_2",
+                                  grade="Grade 11",
+                                  mobile="2222222222",
+                                  username="2222222222")
+
+        learner3 = create_learner(school,
+                                  first_name="learner_3",
+                                  grade="Grade 11",
+                                  mobile="3333333333",
+                                  username="3333333333")
+
+        participant1 = create_participant(learner1,
+                                          self.classs,
+                                          datejoined=timezone.now(),
+                                          is_active=True,
+                                          points=5)
+
+        participant2 = create_participant(learner2,
+                                          self.classs,
+                                          datejoined=timezone.now(),
+                                          is_active=True,
+                                          points=10)
+
+        participant3 = create_participant(learner3,
+                                          self.classs,
+                                          datejoined=timezone.now(),
+                                          is_active=True,
+                                          points=15)
 
         self.school.name = 'First School'
         self.school.save()
@@ -1994,8 +1903,7 @@ class GeneralTests(TestCase):
         self.participant.save()
 
         self.client.get(
-            reverse('auth.autologin',
-                    kwargs={'token': learner1.unique_token})
+            reverse('auth.autologin', kwargs={'token': learner1.unique_token})
         )
         resp = self.client.post(reverse('prog.leader'), data={'board.school.active': 'true'}, follow=True)
 
@@ -2004,8 +1912,7 @@ class GeneralTests(TestCase):
 
     def test_ontrack_screen(self):
         self.client.get(
-            reverse('auth.autologin',
-                    kwargs={'token': self.learner.unique_token})
+            reverse('auth.autologin', kwargs={'token': self.learner.unique_token})
         )
 
         resp = self.client.get(reverse('prog.ontrack'))
@@ -2015,15 +1922,12 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
         #more than 10 answered
-        self.create_and_answer_questions(11, "name", datetime.now())
+        create_and_answer_questions(11, self.module, self.participant, "name", datetime.now())
         resp = self.client.get(reverse('prog.ontrack'))
         self.assertEquals(resp.status_code, 200)
 
     def test_bloglist_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
         resp = self.client.get(reverse('com.bloglist'))
         self.assertEquals(resp.status_code, 200)
 
@@ -2039,10 +1943,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_bloghero_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
         resp = self.client.get(reverse('com.bloghero'))
         self.assertEquals(resp.status_code, 200)
 
@@ -2050,10 +1951,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_badge_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
         resp = self.client.get(reverse('prog.badges'))
         self.assertEquals(resp.status_code, 200)
 
@@ -2061,10 +1959,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
     def test_signout_screen(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
         resp = self.client.get(reverse('auth.signout'))
         self.assertEquals(resp.status_code, 302)
 
@@ -2094,11 +1989,11 @@ class GeneralTests(TestCase):
             file_name = '%s_%s.%s' % (file_name_base, d, ftype)
             return 'attachment; filename="%s"' % file_name
 
-        question1 = self.create_test_question(
+        question1 = create_test_question(
             'question1',
             self.module,
             question_content='test question')
-        option1 = self.create_test_question_option(
+        option1 = create_test_question_option(
             name="option1",
             question=question1,
             correct=True
@@ -2140,11 +2035,11 @@ class GeneralTests(TestCase):
             file_name = '%s_%s.%s' % (file_name_base, d, ftype)
             return 'attachment; filename="%s"' % file_name
 
-        question1 = self.create_test_question(
+        question1 = create_test_question(
             'question1',
             self.module,
             question_content='test question')
-        option1 = self.create_test_question_option(
+        option1 = create_test_question_option(
             name="option1",
             question=question1,
             correct=True
@@ -2194,36 +2089,36 @@ class GeneralTests(TestCase):
         self.assertContains(resp, 'Test_Area')
 
     def test_sumit_report(self):
-        learner = self.create_learner(self.school, first_name='John', last_name='Smit', mobile='0791234567',
-                                      unique_token='qwerty',
-                                      unique_token_expiry=datetime.now() + timedelta(days=30))
-        course = self.create_course('Maths Course')
-        module = self.create_module('Maths Module', course, type=Module.EVENT)
-        classs = self.create_class('A class', course)
-        participant = self.create_participant(learner, classs, datejoined=datetime.now())
-        sumit = self.create_sumit('First Summit', course, datetime.now(), datetime.now() + timedelta(days=2))
+        learner = create_learner(self.school, first_name='John', last_name='Smit', mobile='0791234567',
+                                 unique_token='qwerty',
+                                 unique_token_expiry=datetime.now() + timedelta(days=30))
+        course = create_course('Maths Course')
+        module = create_module('Maths Module', course, type=Module.EVENT)
+        classs = create_class('A class', course)
+        participant = create_participant(learner, classs, datejoined=datetime.now())
+        sumit = create_sumit('First Summit', course, datetime.now(), datetime.now() + timedelta(days=2))
 
         question_option_set = list()
         for i in range(1, 16):
-            question = self.create_test_question('easy_question_%2d' % i, module, difficulty=TestingQuestion.DIFF_EASY,
-                                                 state=TestingQuestion.PUBLISHED)
-            correct_option = self.create_test_question_option('easy_question_%2d_o_1' % i, question)
+            question = create_test_question('easy_question_%2d' % i, module, difficulty=TestingQuestion.DIFF_EASY,
+                                            state=TestingQuestion.PUBLISHED)
+            correct_option = create_test_question_option('easy_question_%2d_o_1' % i, question)
             question_option_set.append((question, correct_option))
             EventQuestionRel.objects.create(order=i, event=sumit, question=question)
 
         for i in range(16, 27):
-            question = self.create_test_question('normal_question_%2d' % i, module,
-                                                 difficulty=TestingQuestion.DIFF_NORMAL,
-                                                 state=TestingQuestion.PUBLISHED)
-            correct_option = self.create_test_question_option('normal_question_%2d_o_1' % i, question)
+            question = create_test_question('normal_question_%2d' % i, module,
+                                            difficulty=TestingQuestion.DIFF_NORMAL,
+                                            state=TestingQuestion.PUBLISHED)
+            correct_option = create_test_question_option('normal_question_%2d_o_1' % i, question)
             question_option_set.append((question, correct_option))
             EventQuestionRel.objects.create(order=i-15, event=sumit, question=question)
 
         for i in range(27, 32):
-            question = self.create_test_question('advanced_question_%2d' % i, module,
-                                                 difficulty=TestingQuestion.DIFF_ADVANCED,
-                                                 state=TestingQuestion.PUBLISHED)
-            correct_option = self.create_test_question_option('advanced_question_%2d_o_1' % i, question)
+            question = create_test_question('advanced_question_%2d' % i, module,
+                                            difficulty=TestingQuestion.DIFF_ADVANCED,
+                                            state=TestingQuestion.PUBLISHED)
+            correct_option = create_test_question_option('advanced_question_%2d_o_1' % i, question)
             question_option_set.append((question, correct_option))
             EventQuestionRel.objects.create(order=i-26, event=sumit, question=question)
 
@@ -2322,7 +2217,7 @@ class GeneralTests(TestCase):
         self.assertRedirects(resp, "reports")
 
     def test_sumit_report_list(self):
-        sumit = self.create_sumit('First Summit', self.course, datetime.now(), datetime.now() + timedelta(days=2))
+        sumit = create_sumit('First Summit', self.course, datetime.now(), datetime.now() + timedelta(days=2))
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
         resp = c.get(reverse('report.sumit_list'))
@@ -2345,7 +2240,7 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=self.admin_user.username, password=self.admin_user_password)
 
-        self.create_class(name='test class 42', course=self.course)
+        create_class(name='test class 42', course=self.course)
 
         resp = c.get('/classes/all')
         self.assertContains(resp, '"name": "class name"')
@@ -2365,12 +2260,12 @@ class GeneralTests(TestCase):
         total_reg = Participant.objects.aggregate(registered=Count('id'))
         available = maximum - total_reg.get('registered')
 
-        learner = self.create_learner(
+        learner = create_learner(
             self.school,
             username="+27123456999",
             mobile="+2712345699", )
 
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             learner,
             self.classs,
             datejoined=datetime.now())
@@ -2380,12 +2275,12 @@ class GeneralTests(TestCase):
         self.assertEquals(space, True)
         self.assertEquals(number_spaces, available)
 
-        learner2 = self.learner = self.create_learner(
+        learner2 = self.learner = create_learner(
             self.school,
             username="+27123456988",
             mobile="+2712345688")
 
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             learner2,
             self.classs,
             datejoined=datetime.now())
@@ -2397,12 +2292,12 @@ class GeneralTests(TestCase):
         self.assertEquals(number_spaces, available)
 
     def test_signup(self):
-        learner = self.create_learner(
+        learner = create_learner(
             self.school,
             username="+27123456999",
             mobile="+2712345699", )
 
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             learner,
             self.classs,
             datejoined=datetime.now())
@@ -2422,11 +2317,12 @@ class GeneralTests(TestCase):
             province_school = School.objects.get(name="Open School")
             self.course.name = settings.GRADE_10_COURSE_NAME
             self.course.save()
-            promaths_school = self.create_school("ProMaths School",
-                                                 province_school.organisation,
-                                                 open_type=School.OT_CLOSED)
-            promaths_class = self.create_class("ProMaths Class",
-                                               self.course)
+            promaths_school = create_school(
+                "ProMaths School",
+                province_school.organisation,
+                open_type=School.OT_CLOSED)
+
+            promaths_class = create_class("ProMaths Class", self.course)
             resp = self.client.get(reverse('auth.signup_form'))
             self.assertEqual(resp.status_code, 200)
 
@@ -2819,13 +2715,13 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "You cannot change your number to your current number.")
 
         # new number same as an existing user
-        learner = self.create_learner(
+        learner = create_learner(
             self.school,
             username="+271234569999",
             mobile="+27123456999",
             email="abcd@abcd.com")
 
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             learner,
             self.classs,
             datejoined=datetime.now())
@@ -2882,7 +2778,7 @@ class GeneralTests(TestCase):
         self.assertContains(resp, "Your email has been changed to asdf@asdf.com.")
 
     def test_participant_required_decorator(self):
-        learner = self.create_learner(
+        learner = create_learner(
             self.school,
             username="+27987654321",
             mobile="+27987654321",
@@ -2891,7 +2787,7 @@ class GeneralTests(TestCase):
             unique_token='cba321',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
-        participant = self.create_participant(
+        participant = create_participant(
             learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.client.get(reverse('auth.autologin',
                                 kwargs={'token': learner.unique_token}))
@@ -2914,20 +2810,261 @@ class ProfanityTests(TestCase):
         contents = [
             "hellow boo",
             "What guys",
-            "teboho...I have made the administrator aware of system failure....but also please lets us be careful on what we say....it should be all about maths and qwaqwa, tshiya maths from mr mdlalose",
+            "teboho...I have made the administrator aware of system failure....but also please lets us be careful on "
+            "what we say....it should be all about maths and qwaqwa, tshiya maths from mr mdlalose",
             "no teboho",
             "Since I'm new in one plus but I have proved that this is the way to success in pro maths 2015.",
             "Since I'm new in one plus but I have proved that this is the way to success in pro maths.",
             "how is everyone doing with eucliean geometry grade 11?",
-            "hmmm.....i think about it more than i forget ......i didnt practise the whole week last week and its something i am not proud of......but then i shall try my best ....",
-            "Mine doesn't want to work. It keeps saying I should come tomorrow but tomorrow never comes. What should I do?",
+            "hmmm.....i think about it more than i forget ......i didnt practise the whole week last week and its "
+            "something i am not proud of......but then i shall try my best ....",
+            "Mine doesn't want to work. It keeps saying I should come tomorrow but tomorrow never comes. "
+            "What should I do?",
             "What do I do if it doesn't want me to login everyday",
             "how did you deal with today's challenges",
             "How do u wim airtime ?",
             "hi im momelezi a maths student in kutlwanong",
             "yho your questions are tricky but they are good for us ''cause they open our minds",
             "thank u for revisions that u have given US",
-            "revision and practise could not be any easy and effective as it is with oneplus. Guys do spread the world as better individuals we can make better friends, with better friends better school mates, with better school mates, with better school mates better schools, with better schools better communities, with better communities better countries, with better countries a better world. With a better world a better Future. Isn't that great?"
-            ]
+            "revision and practise could not be any easy and effective as it is with oneplus. Guys do spread the "
+            "world as better individuals we can make better friends, with better friends better school mates, with "
+            "better school mates, with better school mates better schools, with better schools better communities, "
+            "with better communities better countries, with better countries a better world. With a better world a "
+            "better Future. Isn't that great?"
+        ]
         for content in contents:
             self.assertEquals(contains_profanity(content), False, content)
+
+
+class TestFlashMessage(TestCase):
+    def create_learner(self, school, **kwargs):
+        if 'grade' not in kwargs:
+            kwargs['grade'] = 'Grade 11'
+        return Learner.objects.create(school=school, **kwargs)
+
+    def create_participant(self, learner, classs, **kwargs):
+        participant = Participant.objects.create(
+            learner=learner, classs=classs, **kwargs)
+        return participant
+
+    def create_test_question(self, name, module, **kwargs):
+        return TestingQuestion.objects.create(name=name,
+                                              module=module,
+                                              **kwargs)
+
+    def create_course(self, name="course name", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_module(self, name, course, **kwargs):
+        module = Module.objects.create(name=name, **kwargs)
+        rel = CourseModuleRel.objects.create(course=course, module=module)
+        module.save()
+        rel.save()
+        return module
+
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(
+            name=name, organisation=organisation, **kwargs)
+
+    def create_test_question_option(self, name, question, correct=True):
+        return TestingQuestionOption.objects.create(
+            name=name, question=question, correct=correct)
+
+    def create_test_answer(
+            self,
+            participant,
+            question,
+            option_selected,
+            answerdate):
+        return ParticipantQuestionAnswer.objects.create(
+            participant=participant,
+            question=question,
+            option_selected=option_selected,
+            answerdate=answerdate,
+            correct=False
+        )
+
+    def setUp(self):
+        self.course = self.create_course()
+        self.classs = self.create_class('Slytherin', self.course)
+        self.organisation = self.create_organisation()
+        self.school = self.create_school('Hogwarts', self.organisation)
+        self.learner = self.create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        self.participant = self.create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = self.create_module('module name', self.course)
+
+    def test_discuss_flash_message(self):
+        # User logs in to test commenting
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        self.test_question = self.create_test_question("question1", self.module, state=TestingQuestion.PUBLISHED)
+        self.question_option_right = self.create_test_question_option("question1_right",
+                                                                      self.test_question,
+                                                                      correct=True)
+
+        self.question_option_wrong = self.create_test_question_option("question1_wrong",
+                                                                      self.test_question,
+                                                                      correct=False)
+
+        self.client.get(reverse("learn.next"))
+        self.client.post(reverse("learn.next"), data={"answer": self.question_option_right.id}, follow=True)
+        self.client.get(reverse("learn.right"))
+        message = 'Sssssayiacchhhassiiiyyyeeth'
+        empty_message = ''
+        #Test 1.1: correct data given to show right.html
+        resp = self.client.post(reverse('learn.right'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+
+        #Test 1.2: correct data given to show right.html with empty message
+        resp = self.client.post(reverse('learn.right'),
+                                data={'comment': empty_message},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        ParticipantQuestionAnswer.objects.all().delete()
+        LearnerState.objects.all().delete()
+        self.client.get(reverse("learn.next"))
+        self.client.post(reverse("learn.next"), data={"answer": self.question_option_wrong.id}, follow=True)
+        self.client.get(reverse("learn.wrong"))
+
+        #Test 2.1: incorrect data given to show wrong.html
+        message = 'He is just a puppy'
+        resp = self.client.post(reverse('learn.wrong'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, message)
+
+        #Test 2.2: incorrect data given to show wrong.html with empty message
+        self.client.post(reverse('learn.wrong'),
+                         data={'comment': empty_message},
+                         follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        self.client.get(reverse("learn.redo"))
+        self.client.post(reverse("learn.redo"), data={"answer": self.question_option_right.id}, follow=True)
+        resp = self.client.get(reverse("learn.redo_right"))
+
+        #Test 3.1: correct data given in redo to show redo_right.html
+        message = 'My Father will hear about this'
+        resp = self.client.post(reverse('learn.redo_right'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+
+        #Test 3.2: correct data given in redo to show redo_right.html with empty message
+        resp = self.client.post(reverse('learn.redo_right'),
+                                data={'comment': empty_message},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        ParticipantRedoQuestionAnswer.objects.all().delete()
+        self.client.get(reverse("learn.redo"))
+        self.client.post(reverse("learn.redo"), data={"answer": self.question_option_wrong.id}, follow=True)
+        self.client.get(reverse("learn.redo_wrong"))
+
+        #Test 4.1: incorrect data given in redo to show redo_wrong.html
+        message = 'The boy who lived, come to die'
+        resp = self.client.post(reverse('learn.redo_wrong'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+
+        #Test 4.2: incorrect data given in redo to show redo_wrong.html with empty message
+        resp = self.client.post(reverse('learn.redo_wrong'),
+                                data={'comment': empty_message},
+                                follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+
+class TestCommentsOnLatestBlog(TestCase):
+    def create_learner(self, school, **kwargs):
+        if 'grade' not in kwargs:
+            kwargs['grade'] = 'Grade 11'
+        return Learner.objects.create(school=school, **kwargs)
+
+    def create_class(self, name, course, **kwargs):
+        return Class.objects.create(name=name, course=course, **kwargs)
+
+    def create_course(self, name="course name", **kwargs):
+        return Course.objects.create(name=name, **kwargs)
+
+    def create_school(self, name, organisation, **kwargs):
+        return School.objects.create(
+            name=name, organisation=organisation, **kwargs)
+
+    def create_organisation(self, name='organisation name', **kwargs):
+        return Organisation.objects.create(name=name, **kwargs)
+
+    def create_participant(self, learner, classs, **kwargs):
+        participant = Participant.objects.create(
+            learner=learner, classs=classs, **kwargs)
+        return participant
+
+    def setUp(self):
+        self.organisation = Organisation.objects.get(name='One Plus')
+        self.school = self.create_school('Death Dome', self.organisation)
+        self.learner = self.create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        self.course = self.create_course('Hunger Games')
+        self.classs = self.create_class('District 12', self.course)
+        self.participant = self.create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+
+    def test_blog(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #Creating the first blog post and commenting should be allowed to happen
+        blog_first_created = Post.objects.create(name='Round1', publishdate=datetime.now() - timedelta(days=1))
+        CoursePostRel.objects.create(course=self.course, post=blog_first_created)
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_first_created.id}), follow=True)
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('com.blog', kwargs={'blogid': blog_first_created.id}), data={'comment': 'CookiePant'}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        message = "message will display"
+        self.assertContains(resp, message)
+
+        #Create second blog now this is the latest and commenting should only be allowed here and not on the first blog
+        blog_second_created = Post.objects.create(name='Round2', publishdate=datetime.now())
+        CoursePostRel.objects.create(course=self.course, post=blog_second_created)
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_second_created.id}))
+        self.assertEquals(resp.status_code, 200)
+
+        resp = self.client.post(
+            reverse('com.blog', kwargs={'blogid': blog_second_created.id}), data={'comment': 'Tuna Cake'}, follow=True)
+
+        self.assertEquals(resp.status_code, 200)
+        message = "message will display"
+        self.assertContains(resp, message)
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_first_created.id}))
+        self.assertEquals(resp.status_code, 200)
+        self.assertContains(resp, "Comment", count=0)
