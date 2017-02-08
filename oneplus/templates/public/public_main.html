@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="//fonts.googleapis.com/css?family=Asap|Lato" rel="stylesheet">
+    <title>DIG-IT | {% block title %}{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
+    <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    {% if FB_APP_NUM %}
+        <meta property="fb:app_id" content="{{ FB_APP_NUM }}" />
+    {% endif %}
+    {% if fb.description %}
+        <meta property="og:description" content="{{ fb.description }}" />
+    {% endif %}
+    {% if fb.title %}
+        <meta property="og:title" content="{{ fb.title }}" />
+    {% endif %}
+    {% if fb.img_url %}
+        <meta property="og:image" content="{{ fb.img_url }}" />
+    {% endif %}
+    <meta property="og:type" content="website" />
+</head>
+<body>
+    {% load google_analytics_tags %}
+    <img src="{% google_analytics request %}" class="analytics-plug" />
+
+    {% block header %}
+        <header>
+            {% block header_left %}
+                <div class="header-item">
+                    {% if user.name %}
+                        <a class="wrap-inline" href="/menu">
+                            {% block menu_icon %}
+                                <li class="icon back"></li>
+                            {% endblock %}
+                            {% block menu_text %}
+                                <div class="header-item header-link">Menu</div>
+                            {% endblock %}
+                        </a>
+                    {% else %}
+                        <a href="login" class="menu-login">Sign in</a>
+                    {% endif %}
+                </div>
+            {% endblock %}
+
+            {% block page_descriptor %}
+                <div class="header-item">
+                    <span class="page-descriptor">{% block page_descriptor_text %}{% endblock %}</span>
+                </div>
+            {% endblock %}
+
+            <div class="justify-enforcer"></div>
+        </header>
+    {% endblock %}
+
+    <article class="container">
+        {% block content %}{% endblock %}
+    </article>
+
+    <footer>
+        <a class="link-side-by" href="/about">About</a>
+        <a class="link-side-by" href="/contact">Contact</a>
+        <a class="link-side-by" href="/terms">Terms</a>
+        {% if user.name %}
+            <a class="link-side-by" href="/signout">Log out</a>
+        {% endif %}
+        <a class="link-side-by vert-center" id="fb-share" style="display:none"
+           href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
+            <li class="icon fb-logo vert-center" style="margin:-6px"></li>Tell your friends about us!
+        </a>
+        <script>document.getElementById("fb-share").style.display = "inline-block";</script>
+    </footer>
+</body>
+</html>
