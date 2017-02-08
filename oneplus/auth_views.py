@@ -926,6 +926,7 @@ def profile(request, state, user):
                 'mobile': learner.mobile,
                 'province': learner.school.province,
                 'school': learner.school.name,
+                'public_share': learner.public_share,
             }
         except Exception as e:
             data = {}
@@ -946,6 +947,7 @@ def edit_profile(request, state, user):
                 'mobile': learner.mobile,
                 'province': learner.school.province,
                 'school': learner.school.name,
+                'public_share': learner.public_share,
             }
         except Exception as e:
             data = {}
@@ -961,6 +963,7 @@ def edit_profile(request, state, user):
                 learner.first_name = validated_data['first_name']
                 learner.last_name = validated_data['last_name']
                 learner.mobile = validated_data['mobile']
+                learner.public_share = validated_data['public_share']
                 learner.save()
 
             data = {
@@ -970,6 +973,7 @@ def edit_profile(request, state, user):
                 'mobile': request.POST.get('mobile', learner.mobile),
                 'province': request.POST.get('province', learner.school.province),
                 'school': request.POST.get('school', learner.school.name),
+                'public_share': request.POST.get('public_share', learner.public_share),
             }
 
         except Exception as e:
