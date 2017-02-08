@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, CoursePostRel
+from communication.models import Post, CoursePostRel
 from datetime import datetime, timedelta
 from auth.models import Learner
 from content.models import TestingQuestion, TestingQuestionOption
