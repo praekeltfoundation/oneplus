@@ -94,7 +94,7 @@ class TestPublicBadge(TestCase):
         self.learner.public_share = False
         self.learner.save()
         resp = self.client.get(
-            '{}?p={}&b={}'.format(reverse('public:badges'), self.participant.id, self.badge_earned),
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), self.participant.id, self.badge_earned.id),
             follow=True)
         self.assertContains(resp, 'No one\'s home')
 
@@ -102,7 +102,7 @@ class TestPublicBadge(TestCase):
         self.learner.public_share = True
         self.learner.save()
         resp = self.client.get(
-            '{}?p={}&b={}'.format(reverse('public:badges'), self.participant.id, self.badge_earned.id),
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), self.participant.id, self.badge_earned.id),
             follow=True)
         self.assertContains(resp, self.badge_earned.name)
         self.assertContains(resp, 'has earned')
@@ -111,7 +111,7 @@ class TestPublicBadge(TestCase):
         self.learner.public_share = True
         self.learner.save()
         resp = self.client.get(
-            '{}?p={}&b={}'.format(reverse('public:badges'), self.participant.id, self.badge_await.id),
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), self.participant.id, self.badge_await.id),
             follow=True)
         self.assertContains(resp, self.badge_await.name)
         self.assertContains(resp, 'hasn\'t earned')
