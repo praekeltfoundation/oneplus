@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.test.utils import override_settings
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantBadgeTemplateRel
 from content.models import TestingQuestion, TestingQuestionOption
