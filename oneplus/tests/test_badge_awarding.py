@@ -86,6 +86,7 @@ def create_test_answer(
     )
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class TestBadgeAwarding(TestCase):
 
     def setUp(self):

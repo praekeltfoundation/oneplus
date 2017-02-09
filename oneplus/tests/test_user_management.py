@@ -509,6 +509,7 @@ class TestSignUp(TestCase):
             self.assertContains(resp, 'Let\'s sign you up')
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class TestChangeDetails(TestCase):
 
     def setUp(self):

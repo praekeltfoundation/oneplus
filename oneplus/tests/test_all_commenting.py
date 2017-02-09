@@ -6,6 +6,7 @@ from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantRedoQuestionAnswer
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.test.utils import override_settings
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
 from oneplus.models import LearnerState
 
@@ -70,8 +71,8 @@ def create_class(name, course, **kwargs):
     return Class.objects.create(name=name, course=course, **kwargs)
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class TestCommentsOnLatestBlog(TestCase):
-
     def setUp(self):
 
         self.organisation = Organisation.objects.get(name='One Plus')
@@ -126,8 +127,8 @@ class TestCommentsOnLatestBlog(TestCase):
         self.assertContains(resp, "Comment", count=0)
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class TestFlashMessage(TestCase):
-
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('Slytherin', self.course)
