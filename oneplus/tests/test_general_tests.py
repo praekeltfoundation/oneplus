@@ -748,11 +748,11 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=my_admin.username, password=password)
 
-        self.question = self.create_test_question(
+        self.question = create_test_question(
             'question1',
             self.module,
             question_content='test question')
-        self.questionoption = self.create_test_question_option(
+        self.questionoption = create_test_question_option(
             'questionoption1',
             self.question)
 
@@ -780,7 +780,7 @@ class GeneralTests(TestCase):
         self.assertEquals(resp.status_code, 200)
 
         # Post a incorrect answer
-        option = self.create_test_question_option("wrong", self.question, False)
+        option = create_test_question_option("wrong", self.question, False)
         resp = c.post(
             reverse('learn.preview', kwargs={'questionid': self.question.id}),
             data={'answer': option.id}, follow=True
@@ -799,11 +799,11 @@ class GeneralTests(TestCase):
         c = Client()
         resp = c.login(username=my_admin.username, password=password)
 
-        self.question = self.create_test_question(
+        self.question = create_test_question(
             'question1',
             self.module,
             question_content='test question')
-        self.questionoption = self.create_test_question_option(
+        self.questionoption = create_test_question_option(
             'questionoption1',
             self.question)
 
@@ -826,13 +826,13 @@ class GeneralTests(TestCase):
         c = Client()
         c.login(username=my_admin.username, password=password)
 
-        self.question = self.create_test_question(
+        self.question = create_test_question(
             'question1',
             self.module,
             question_content='test question',
             state=3)
 
-        self.questionoption = self.create_test_question_option(
+        self.questionoption = create_test_question_option(
             'questionoption1',
             self.question)
 
