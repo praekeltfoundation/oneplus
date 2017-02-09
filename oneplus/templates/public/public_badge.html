@@ -1,0 +1,53 @@
+{% extends "public/public_main.html" %}
+
+{% block title %}
+    {% if no_public %}
+        Badges Not Shared
+    {% else %}
+        {% if learner.first_name and learner.last_name %}
+            {{ learner.first_name }} {{ learner.last_name }}'s Badges
+        {% elif learner.first_name %}
+            {{ learner.first_name }}'s
+        {% else %}
+            Anon's
+        {% endif %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <article class="content squash-accent">
+        {% if no_public %}
+            <h1 class="color-accent">No one's home.</h1>
+            <p>Either this learner doesn't exist, or they haven't made their badges public.</p>
+        {% else %}
+            <article class="card border-color-accent">
+                <section class="top{% if not badge.achieved %} semi-transparent{% endif %}">
+                    <p class="center-font">
+                        {% if learner.first_name and learner.last_name %}
+                            {{ learner.first_name }} {{ learner.last_name }}
+                        {% elif learner.first_name %}
+                            {{ learner.first_name }}
+                        {% else %}
+                            Anon
+                        {% endif %}
+                        {% if badge.achieved %}
+                            has earned
+                        {% else %}
+                            hasn't earned
+                        {% endif %}
+                    </p>
+                    <div class="img-container">
+                        <div class="">
+                            {% if badge.image %}
+                                <img class="lonely-badge" src="{{ badge.image.url }}" />
+                            {% else %}
+                                <img class="lonely-badge" src="/static/img/icn_badges.png" style="{# background-image: url('/static/img/icn_badges.png'); #}" />
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h3 class="center-font">{{ badge.name }}</h3>
+                </section>
+            </article>
+        {% endif %}
+    </article>
+{% endblock %}

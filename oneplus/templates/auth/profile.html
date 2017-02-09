@@ -90,6 +90,19 @@
                     </p>
                 {% endif %}
             </div>
+            <br>
+            <div class="fieldWrapper">
+                <label class="bold-font" for="id_public_share">
+                    Publically share badges for social media?
+                    <input type="checkbox" id="id_public_share" name="public_share" {% if data.public_share %}checked{% endif %}
+                            {% if not editing %}disabled{% endif %} />
+                </label>
+                {% if errors.public_share_error %}
+                    <p class="red-front">
+                        {{ errors.public_share_error }}
+                    </p>
+                {% endif %}
+            </div>
         </form>
     </article>
 {% endblock content %}

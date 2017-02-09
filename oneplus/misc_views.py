@@ -20,20 +20,10 @@ from core.models import Participant, TestingQuestion
 from oneplus.auth_views import space_available, resolve_http_method
 from oneplus.report_utils import get_csv_report, get_xls_report
 from oneplus.validators import validate_title, validate_publish_date_and_time, validate_content, gen_username
-from oneplus.views import oneplus_state_required, oneplus_login_required
+from oneplus.views import oneplus_state_required, oneplus_login_required, oneplus_check_user
 from content.models import SUMit, EventParticipantRel, EventQuestionAnswer
 
 logger = logging.getLogger(__name__)
-
-
-def oneplus_check_user(f):
-    @wraps(f)
-    def wrap(request, *args, **kwargs):
-        if "user" in request.session.keys():
-            return f(request, user=request.session["user"], *args, **kwargs)
-        else:
-            return f(request, user=None, *args, **kwargs)
-    return wrap
 
 
 @oneplus_state_required
@@ -61,7 +51,6 @@ def first_time(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_check_user
 def faq(request, state, user):
     if 'user' in request.session.keys():
@@ -80,7 +69,6 @@ def faq(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_check_user
 def terms(request, state, user):
 
@@ -95,7 +83,6 @@ def terms(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_check_user
 def arrive(request, state, user):
     def get():
@@ -106,7 +93,6 @@ def arrive(request, state, user):
     return resolve_http_method(request, [get])
 
 
-@oneplus_state_required
 @oneplus_check_user
 def about(request, state, user):
     def get():
@@ -120,7 +106,6 @@ def about(request, state, user):
     return resolve_http_method(request, [get, post])
 
 
-@oneplus_state_required
 @oneplus_check_user
 def contact(request, state, user):
     def get():
