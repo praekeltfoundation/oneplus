@@ -121,7 +121,7 @@ class TestProfile(TestCase):
 
         #no fields completed
         resp = self.client.post(reverse('auth.edit_profile'), follow=True)
-        self.assertContains(resp, 'This must be completed', count=3)
+        self.assertContains(resp, 'This must be completed', count=4)
 
     def test_profile_edit_filled(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -130,9 +130,12 @@ class TestProfile(TestCase):
         changes = {
             'first_name': 'Blargarg',
             'last_name': 'Honkonk',
-            'mobile': '+27123455555'
+            'mobile': '+27123455555',
+            'public_share': True,
         }
         resp = self.client.post(reverse('auth.edit_profile'), data=changes, follow=True)
         self.assertContains(resp, changes['first_name'], count=1)
         self.assertContains(resp, changes['last_name'], count=1)
         self.assertContains(resp, changes['mobile'], count=1)
+        l = Learner.objects.get(pk=self.learner.pk)
+        self.assertTrue(l.public_share)

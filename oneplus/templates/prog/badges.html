@@ -9,7 +9,8 @@
 
         <div>
             {% for badge in badges %}
-                <div class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
+
+                <a href="{% url 'prog.badges_single' badge_id=badge.id %}" class="badgecontainer {% if not badge.achieved %}disabled-badge{% endif %}">
                     {% if badge.achieved %}
                         <div class="badge-counter background-color-accent">{{ badge.count }}</div>
                     {% endif %}
@@ -20,7 +21,7 @@
                         <li class="badge" style="background-image: url('/static/img/icn_badges.png')"></li>
                     {% endif %}
                     <div class="text center-font badge-name"><p>{{ badge.name }}</p></div>
-                </div>
+                </a>
             {% endfor %}
             <div class="clear"></div>
         </div>

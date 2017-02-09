@@ -8,8 +8,18 @@
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
-    <meta property="og:description" content="{{ FB_SITE_DESC }}" />
-    <meta property="og:title" content="{{ FB_SITE_TITLE }}" />
+    {% if FB_APP_NUM %}
+        <meta property="fb:app_id" content="{{ FB_APP_NUM }}" />
+    {% endif %}
+    {% if fb.description %}
+        <meta property="og:description" content="{{ fb.description|urlencode:'' }}" />
+    {% endif %}
+    {% if fb.title %}
+        <meta property="og:title" content="{{ fb.title }}" />
+    {% endif %}
+    {% if fb.img_url %}
+        <meta property="og:image" content="{{ fb.img_url }}" />
+    {% endif %}
     <meta property="og:type" content="website" />
 </head>
 <body>

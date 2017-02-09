@@ -318,4 +318,9 @@ def validate_profile_form(post, learner):
     else:
         errors["mobile_error"] = "This must be completed"
 
+    if "public_share" in post and post["public_share"]:
+        data["public_share"] = post["public_share"]
+    else:
+        errors["public_share_error"] = "This must be completed"
+
     return data, errors
