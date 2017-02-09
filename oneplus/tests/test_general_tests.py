@@ -736,3 +736,110 @@ class GeneralTests(TestCase):
         participant.delete()
         resp = self.client.get(reverse('learn.home'), follow=True)
         self.assertRedirects(resp, reverse('auth.login'))
+
+    def test_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(
+            username='asdf',
+            email='asdf@example.com',
+            password=password,
+            mobile='+27111111111')
+        c = Client()
+        c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        self.questionoption = self.create_test_question_option(
+            'questionoption1',
+            self.question)
+
+        resp = c.get(
+            reverse(
+                'learn.preview',
+                kwargs={
+                    'questionid': self.question.id}))
+
+        self.assertContains(resp, "test question")
+
+        # Post a correct answer
+        resp = c.post(
+            reverse('learn.preview', kwargs={'questionid': self.question.id}),
+            data={'answer': self.questionoption.id}, follow=True
+        )
+
+        self.assertContains(resp, "Well done")
+
+        # Post empty
+        resp = c.post(
+            reverse('learn.preview', kwargs={'questionid': self.question.id}),
+            data={}, follow=True
+        )
+        self.assertEquals(resp.status_code, 200)
+
+        # Post a incorrect answer
+        option = self.create_test_question_option("wrong", self.question, False)
+        resp = c.post(
+            reverse('learn.preview', kwargs={'questionid': self.question.id}),
+            data={'answer': option.id}, follow=True
+        )
+
+        self.assertContains(resp, "Next time")
+
+    def test_right_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(
+            username='asdf',
+            email='asdf@example.com',
+            password=password,
+            mobile='+27111111111')
+        c = Client()
+        resp = c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question')
+        self.questionoption = self.create_test_question_option(
+            'questionoption1',
+            self.question)
+
+        resp = c.get(
+            reverse(
+                'learn.preview.right',
+                kwargs={
+                    'questionid': self.question.id}))
+
+        self.assertContains(resp, "Well done")
+
+    def test_wrong_view_adminpreview(self):
+
+        password = 'mypassword'
+        my_admin = CustomUser.objects.create_superuser(
+            username='asdf',
+            email='asdf@example.com',
+            password=password,
+            mobile='+27111111111')
+        c = Client()
+        c.login(username=my_admin.username, password=password)
+
+        self.question = self.create_test_question(
+            'question1',
+            self.module,
+            question_content='test question',
+            state=3)
+
+        self.questionoption = self.create_test_question_option(
+            'questionoption1',
+            self.question)
+
+        resp = c.get(
+            reverse(
+                'learn.preview.wrong',
+                kwargs={
+                    'questionid': self.question.id}))
+
+        self.assertContains(resp, "Next time")
