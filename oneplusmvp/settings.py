@@ -127,6 +127,7 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': 'mobileu.haystack_custom.FuzzyEngine',
         'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
         'INDEX_NAME': 'haystack',
+        'SILENTLY_FAIL': False,
     },
 }
 
