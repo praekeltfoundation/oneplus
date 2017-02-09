@@ -15,22 +15,28 @@
         <div class="post-content">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
     </article>
 
-    {% if not state.banned and not preview%}
+    {% if not state.banned and not preview and allow_commenting %}
         <article class="content padded pad-bottom amethyst-accent">
             <h3 class="">Leave a comment</h3>
-            <form name="comment_form" method="post" action="?" class="comment">
+            <form name="comment_form" method="post" action="?#top-comment" class="comment">
                 {% csrf_token %}
                 <input type="text" name="comment" value="">
                 <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
             </form>
-            {% if state.post_comment %}
-                <p class="color-accent">Thank you for your contribution. Your message will display shortly!</p>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li class="color-accent">{{ message }}</li>
+                    {% endfor %}
+                </ul>
             {% endif %}
+
         </article>
     {% endif %}
 
     {% if state.post_page_max > 0 %}
-        <article class="content comment-list amethyst-accent">
+        <article id="top-comment" class="content comment-list amethyst-accent">
             {% for comment in post_comments %}
                 {% if comment.moderated %}
                         <div class="item-large">

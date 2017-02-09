@@ -46,6 +46,8 @@ ALLOWED_HOSTS = ['*']
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+    'oneplus.context_processors.social_media',
 )
 # Application definition
 
@@ -277,8 +279,6 @@ FB_REDIRECT = 'http://dig-it.me'
 FB_SITE_TITLE = 'dig-it'
 FB_SITE_DESC = 'dig-it is a mobisite designed to support Grade 10 - Grade 12 maths learners. ' + \
                'Our fun, gamified, environment lets you practice and revise maths - with no pressure.'
-
-TEMPLATE_CONTEXT_PROCESSORS += ('oneplus.context_processors.social_media',)
 
 try:
     from local_settings import *
