@@ -256,7 +256,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name", "first_name", "last_login")
     filter_horizontal = ()
-    readonly_fields = ("mobile",)
+    readonly_fields = ("mobile", 'public_share',)
 
     fieldsets = (
         ("Personal info", {"fields": ("first_name", "last_name",
@@ -270,6 +270,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Important dates", {"fields": ("last_login", "date_joined")}),
         ("Grade", {"fields": ("grade",)}),
         ("Enrollment", {"fields": ("enrolled",)}),
+        ("Permissions granted", {"fields": ("public_share",)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
