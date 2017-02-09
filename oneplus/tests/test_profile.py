@@ -1,31 +1,11 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
-import logging
-from auth.models import Learner, CustomUser
-from communication.models import Message, Discussion, ChatGroup, ChatMessage, Profanity, Post, PostComment, \
-    CoursePostRel
-from content.models import TestingQuestion, TestingQuestionOption, Event, SUMit, EventStartPage, EventEndPage, \
-    EventSplashPage, EventQuestionRel, EventParticipantRel, EventQuestionAnswer, SUMitLevel
-from core.models import Class, Participant, ParticipantQuestionAnswer, ParticipantRedoQuestionAnswer, \
-    ParticipantBadgeTemplateRel, Setting
-from django.conf import settings
+from auth.models import Learner
+from content.models import TestingQuestion
+from core.models import Class, Participant
 from django.core.urlresolvers import reverse
-from django.db.models import Count
-from django.test import TestCase, Client
-from django.test.utils import override_settings
-from gamification.models import GamificationBadgeTemplate, GamificationPointBonus, GamificationScenario
-from go_http.tests.test_send import RecordingHandler
-from mock import patch
-from oneplus.auth_views import space_available
-from oneplus.learn_views import get_points_awarded, get_badge_awarded
-from oneplus.models import LearnerState
-from oneplus.tasks import update_perc_correct_answers_worker
-from oneplus.templatetags.oneplus_extras import format_content, format_option
-from oneplus.validators import validate_mobile
-from oneplus.views import get_week_day
+from django.test import TestCase
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
-from oneplus.tasks import reset_learner_states
-from communication.utils import contains_profanity
 
 
 def create_test_question(name, module, **kwargs):
