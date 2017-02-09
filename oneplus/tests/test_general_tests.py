@@ -2933,6 +2933,7 @@ class ProfanityTests(TestCase):
             self.assertEquals(contains_profanity(content), False, content)
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class TestFlashMessage(TestCase):
     def create_learner(self, school, **kwargs):
         if 'grade' not in kwargs:
