@@ -3002,7 +3002,7 @@ class TestFlashMessage(TestCase):
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
         self.participant = self.create_participant(
-            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+            self.learner, self.classs, datejoined=datetime.now())
         self.module = self.create_module('module name', self.course)
 
     def test_discuss_flash_message(self):
@@ -3017,6 +3017,9 @@ class TestFlashMessage(TestCase):
         self.question_option_wrong = self.create_test_question_option("question1_wrong",
                                                                       self.test_question,
                                                                       correct=False)
+
+        self.test_question.state = TestingQuestion.PUBLISHED
+        self.test_question.save()
 
         self.client.get(reverse("learn.next"))
         self.client.post(reverse("learn.next"), data={"answer": self.question_option_right.id}, follow=True)
@@ -3050,8 +3053,8 @@ class TestFlashMessage(TestCase):
 
         #Test 2.2: incorrect data given to show wrong.html with empty message
         self.client.post(reverse('learn.wrong'),
-                                data={'comment': empty_message},
-                                follow=True)
+                         data={'comment': empty_message},
+                         follow=True)
         self.assertEquals(resp.status_code, 200)
 
         self.client.get(reverse("learn.redo"))
