@@ -104,7 +104,7 @@ class TestSignUp(TestCase):
             is_staff=True)
         self.participant = create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
-        self.module = create_module('module name', self.course)
+        self.module = create_module('module surname', self.course)
         self.badge_template = create_badgetemplate()
 
         self.scenario = GamificationScenario.objects.create(
@@ -529,8 +529,6 @@ class TestChangeDetails(TestCase):
         self.classs = create_class('class name', self.course)
         self.participant = create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
-
-        self.module = create_module('module name', self.course)
         self.badge_template = create_badgetemplate()
 
         self.scenario = GamificationScenario.objects.create(
