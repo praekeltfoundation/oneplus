@@ -8,6 +8,8 @@ from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.template import RequestContext
 from auth.models import Learner
 from communication.models import CoursePostRel, Discussion, Post, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
@@ -23,6 +25,8 @@ from oneplus.auth_views import resolve_http_method
 from oneplusmvp import settings
 from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
+from django.utils import timezone
+from django.contrib import messages
 
 
 def get_class_leaderboard_position(participant):
@@ -190,8 +194,9 @@ def home(request, state, user, participant):
         level = settings.MAX_LEVEL
         points_remaining = 0
 
+    dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
     try:
         _post = Post.objects.filter(
             id__in=post_list
@@ -511,7 +516,7 @@ def redo_right(request, state, user, participant):
                 "learn/redo_right.html",
                 {
                     "has_next": redo_count > 0,
-                    "messages": _messages,
+                    "comment_messages": _messages,
                     "points": _learnerstate.redo_question.points if _learnerstate.redo_question else None,
                     "question": _learnerstate.redo_question,
                     "questions": questions,
@@ -593,7 +598,7 @@ def redo_right(request, state, user, participant):
                 {
                     "has_next": redo_count > 0,
                     "points": _learnerstate.redo_question.points if _learnerstate.redo_question else None,
-                    "messages": _messages,
+                    "comment_messages": _messages,
                     "question": _learnerstate.redo_question,
                     "state": state,
                     "user": user,
@@ -650,7 +655,7 @@ def redo_wrong(request, state, user, participant):
                 "learn/redo_wrong.html",
                 {
                     "has_next": redo_count > 0,
-                    "messages": _messages,
+                    "comment_messages": _messages,
                     "question": _learnerstate.redo_question,
                     "questions": questions,
                     "state": state,
@@ -730,7 +735,7 @@ def redo_wrong(request, state, user, participant):
                 "learn/redo_wrong.html",
                 {
                     "has_next": redo_count > 0,
-                    "messages": _messages,
+                    "comment_messages": _messages,
                     "question": _learnerstate.redo_question,
                     "state": state,
                     "user": user,
@@ -1427,7 +1432,6 @@ def right(request, state, user, participant):
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
             points = get_points_awarded(_participant) + get_event_points_awarded(_participant)
-
             return render(
                 request,
                 "learn/right.html",
@@ -1435,11 +1439,12 @@ def right(request, state, user, participant):
                     "state": state,
                     "user": user,
                     "question": _learnerstate.active_question,
-                    "messages": _messages,
+                    "comment_messages": _messages,
                     "badge": badge,
                     "points": points,
                     "golden_egg": golden_egg
                 }
+                , context_instance=RequestContext(request)
             )
         else:
             return HttpResponseRedirect("wrong")
@@ -1463,9 +1468,13 @@ def right(request, state, user, participant):
                     moderated=True
                 )
                 _message.save()
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
                 _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
+                return redirect(reverse("learn.right"))
 
             elif "reply" in request.POST.keys() and request.POST["reply"] != "":
                 _comment = request.POST["reply"]
@@ -1516,7 +1525,7 @@ def right(request, state, user, participant):
                     "state": state,
                     "user": user,
                     "question": _learnerstate.active_question,
-                    "messages": _messages,
+                    "comment_messages": _messages,
                 }
             )
         else:
