@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
-from communication.models import Post, CoursePostRel
 from datetime import datetime, timedelta
-from auth.models import Learner, CustomUser
-from content.models import TestingQuestion, TestingQuestionOption
-from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantRedoQuestionAnswer
-from django.test import TestCase, Client
-from django.core.urlresolvers import reverse
-from organisation.models import Module, CourseModuleRel, School, Course, Organisation
-from oneplus.models import LearnerState
-from django.conf import settings
-from mock import patch
 import logging
+from auth.models import Learner, CustomUser
+from communication.models import Post, PostComment, CoursePostRel
+from content.models import TestingQuestion, TestingQuestionOption, Event, EventStartPage, EventEndPage, EventQuestionRel
+from core.models import Class, Participant, ParticipantQuestionAnswer, Setting
+from django.core.urlresolvers import reverse
+from django.db.models import Count
+from django.test import TestCase, Client
 from django.test.utils import override_settings
+from gamification.models import GamificationBadgeTemplate, GamificationScenario
 from go_http.tests.test_send import RecordingHandler
+from mock import patch
+from oneplus.auth_views import space_available
+from oneplus.models import LearnerState
+from oneplus.views import get_week_day
+from organisation.models import Course, Module, CourseModuleRel, Organisation, School
+from django.conf import settings
 
 
 def create_test_question(name, module, **kwargs):
@@ -71,12 +75,24 @@ def create_module(name, course, **kwargs):
     return module
 
 
+def create_badgetemplate(name='badge template name', **kwargs):
+    return GamificationBadgeTemplate.objects.create(
+        name=name,
+        image="none",
+        **kwargs)
+
+
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
+
+
+@override_settings(VUMI_GO_FAKE=True)
 class TestSignUp(TestCase):
-
     def setUp(self):
-
-        self.organisation = Organisation.objects.get(name='One Plus')
-        self.school = create_school('Death Dome', self.organisation)
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
         self.learner = create_learner(
             self.school,
             username="+27123456789",
@@ -86,16 +102,125 @@ class TestSignUp(TestCase):
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
+        self.participant = create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
+        self.badge_template = create_badgetemplate()
+
+        self.scenario = GamificationScenario.objects.create(
+            name='scenario name',
+            event='1_CORRECT',
+            course=self.course,
+            module=self.module,
+            badge=self.badge_template
+        )
+        self.outgoing_vumi_text = []
+        self.outgoing_vumi_metrics = []
         self.handler = RecordingHandler()
         logger = logging.getLogger('DEBUG')
         logger.setLevel(logging.INFO)
         logger.addHandler(self.handler)
 
-        self.course = create_course('Hunger Games')
-        self.module = create_module('module name', self.course)
-        self.classs = create_class('District 12', self.course)
-        self.participant = create_participant(
-            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
+
+    # @override_settings(GRADE_11_COURSE_NAME='Grade 11 Course')
+    def test_signup_return(self):
+        with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
+            # test not logged in
+            resp = self.client.get(reverse('auth.return_signup'))
+            self.assertRedirects(resp, reverse('auth.login'))
+            resp = self.client.get(reverse('auth.return_signup_school_confirm'))
+            self.assertRedirects(resp, reverse('auth.login'))
+
+            # test user not enrolled
+            self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+            resp = self.client.get(reverse('auth.return_signup'))
+            self.assertRedirects(resp, reverse('learn.home'))
+            resp = self.client.get(reverse('auth.return_signup_school_confirm'))
+            self.assertRedirects(resp, reverse('learn.home'))
+
+            self.learner.first_name = 'Blarg'
+            self.learner.last_name = 'Honk'
+            self.learner.enrolled = '0'
+            self.learner.save()
+
+            self.course.name = settings.GRADE_11_COURSE_NAME
+            self.course.save()
+
+            resp = self.client.get(reverse('learn.home'), folow=True)
+            self.assertRedirects(resp, reverse('auth.return_signup'))
+
+            # plain get
+            resp = self.client.get(reverse('auth.return_signup'), folow=True)
+            self.assertContains(resp, 'Hello, %s.' % self.learner.first_name, count=1)
+
+            # no data given
+            resp = self.client.post(reverse('auth.return_signup'),
+                                    data={},
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=3)
+            self.assertContains(resp, 'Hello, %s' % self.learner.first_name, count=1)
+
+            # correct data given (p1)
+            resp = self.client.post(reverse('auth.return_signup'),
+                                    data={
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school_dirty': self.school.name},
+                                    follow=True)
+            self.assertContains(resp, self.school.name)
+
+            # test ElasticSearch succeeds
+            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
+                # non-empty search result
+                MockSearchSet().filter().values.return_value = [{'pk': 1, 'name': 'Blargity School'}]
+                resp = self.client.post(reverse('auth.return_signup'),
+                                        data={
+                                            'province': 'Gauteng',
+                                            'grade': 'Grade 11',
+                                            'school_dirty': 'blarg'},
+                                        follow=True)
+                MockSearchSet.assert_called()
+                self.assertContains(resp, 'Blargity School')
+                MockSearchSet.clear()
+
+            # get redirect (p2)
+            resp = self.client.get(reverse('auth.return_signup_school_confirm'), follow=True)
+            self.assertRedirects(resp, reverse('auth.return_signup'))
+            self.assertContains(resp, 'Hello, %s' % self.learner.first_name, count=1)
+
+            # incomplete data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={},
+                                    follow=True)
+            self.assertContains(resp, "This must be completed", count=3)
+
+            # incorrect data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school': 'other'},
+                                    follow=True)
+            self.assertContains(resp, 'No such school')
+
+            # correct data given (p2)
+            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
+                                    data={
+                                        'grade': 'Grade 11',
+                                        'province': 'Gauteng',
+                                        'school': self.school.id},
+                                    follow=True)
+            self.assertRedirects(resp, reverse('learn.home'))
+            self.participant = Participant.objects.get(pk=self.participant.pk)
+            self.assertFalse(self.participant.is_active)
+            self.assertNotEqual(Participant.objects.get(learner=self.learner, is_active=True).pk, self.participant.pk)
+            self.assertEqual(self.learner.enrolled, "0")
 
     def test_signup(self):
         learner = create_learner(
@@ -120,6 +245,7 @@ class TestSignUp(TestCase):
 
     def test_signup_form(self):
         with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
+            self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
             province_school = School.objects.get(name="Open School")
             self.course.name = settings.GRADE_10_COURSE_NAME
             self.course.save()
@@ -382,108 +508,13 @@ class TestSignUp(TestCase):
             resp = self.client.get(reverse("auth.signup_form_normal"))
             self.assertContains(resp, 'Let\'s sign you up')
 
-    @override_settings(GRADE_11_COURSE_NAME='Grade 11 Course')
-    def test_signup_return(self):
-        with patch("oneplus.auth_views.mail_managers") as mock_mail_managers:
-            # test not logged in
-            resp = self.client.get(reverse('auth.return_signup'))
-            self.assertRedirects(resp, reverse('auth.login'))
-            resp = self.client.get(reverse('auth.return_signup_school_confirm'))
-            self.assertRedirects(resp, reverse('auth.login'))
-
-            # test user not enrolled
-            self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
-            resp = self.client.get(reverse('auth.return_signup'))
-            self.assertRedirects(resp, reverse('learn.home'))
-            resp = self.client.get(reverse('auth.return_signup_school_confirm'))
-            self.assertRedirects(resp, reverse('learn.home'))
-
-            self.learner.first_name = 'Blarg'
-            self.learner.last_name = 'Honk'
-            self.learner.enrolled = '0'
-            self.learner.save()
-
-            self.course.name = settings.GRADE_11_COURSE_NAME
-            self.course.save()
-
-            resp = self.client.get(reverse('learn.home'), folow=True)
-            self.assertRedirects(resp, reverse('auth.return_signup'))
-
-            # plain get
-            resp = self.client.get(reverse('auth.return_signup'), folow=True)
-            self.assertContains(resp, 'Hello, %s.' % self.learner.first_name, count=1)
-
-            # no data given
-            resp = self.client.post(reverse('auth.return_signup'),
-                                    data={},
-                                    follow=True)
-            self.assertContains(resp, "This must be completed", count=3)
-            self.assertContains(resp, 'Hello, %s' % self.learner.first_name, count=1)
-
-            # correct data given (p1)
-            resp = self.client.post(reverse('auth.return_signup'),
-                                    data={
-                                        'grade': 'Grade 11',
-                                        'province': 'Gauteng',
-                                        'school_dirty': self.school.name},
-                                    follow=True)
-            self.assertContains(resp, self.school.name)
-
-            # test ElasticSearch succeeds
-            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
-                # non-empty search result
-                MockSearchSet().filter().values.return_value = [{'pk': 1, 'name': 'Blargity School'}]
-                resp = self.client.post(reverse('auth.return_signup'),
-                                        data={
-                                            'province': 'Gauteng',
-                                            'grade': 'Grade 11',
-                                            'school_dirty': 'blarg'},
-                                        follow=True)
-                MockSearchSet.assert_called()
-                print(resp)
-                self.assertContains(resp, 'Blargity School')
-                MockSearchSet.clear()
-
-            # get redirect (p2)
-            resp = self.client.get(reverse('auth.return_signup_school_confirm'), follow=True)
-            self.assertRedirects(resp, reverse('auth.return_signup'))
-            self.assertContains(resp, 'Hello, %s' % self.learner.first_name, count=1)
-
-            # incomplete data given (p2)
-            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
-                                    data={},
-                                    follow=True)
-            self.assertContains(resp, "This must be completed", count=3)
-
-            # incorrect data given (p2)
-            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
-                                    data={
-                                        'grade': 'Grade 11',
-                                        'province': 'Gauteng',
-                                        'school': 'other'},
-                                    follow=True)
-            self.assertContains(resp, 'No such school')
-
-            # correct data given (p2)
-            resp = self.client.post(reverse('auth.return_signup_school_confirm'),
-                                    data={
-                                        'grade': 'Grade 11',
-                                        'province': 'Gauteng',
-                                        'school': self.school.id},
-                                    follow=True)
-            self.assertRedirects(resp, reverse('learn.home'))
-            self.participant = Participant.objects.get(pk=self.participant.pk)
-            self.assertFalse(self.participant.is_active)
-            self.assertNotEqual(Participant.objects.get(learner=self.learner, is_active=True).pk, self.participant.pk)
-            self.assertEqual(self.learner.enrolled, "0")
-
 
 class TestChangeDetails(TestCase):
 
     def setUp(self):
 
         self.organisation = Organisation.objects.get(name='One Plus')
-        self.school = create_school('Death Dome', self.organisation)
+        self.school = create_school('school name', self.organisation)
         self.learner = create_learner(
             self.school,
             username="+27123456789",
@@ -493,11 +524,35 @@ class TestChangeDetails(TestCase):
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
-        self.course = create_course('Hunger Games')
+        self.course = create_course()
         self.module = create_module('module name', self.course)
-        self.classs = create_class('District 12', self.course)
+        self.classs = create_class('class name', self.course)
         self.participant = create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+
+        self.module = create_module('module name', self.course)
+        self.badge_template = create_badgetemplate()
+
+        self.scenario = GamificationScenario.objects.create(
+            name='scenario name',
+            event='1_CORRECT',
+            course=self.course,
+            module=self.module,
+            badge=self.badge_template
+        )
+        self.outgoing_vumi_text = []
+        self.outgoing_vumi_metrics = []
+        self.handler = RecordingHandler()
+        logger = logging.getLogger('DEBUG')
+        logger.setLevel(logging.INFO)
+        logger.addHandler(self.handler)
+
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
 
     def test_change_details(self):
         self.client.get(reverse(
