@@ -86,8 +86,6 @@ def level(request, state, user):
                           template_name='public/public_level.html',
                           dictionary={'no_public': True, 'state': state, 'user': user})
 
-        level, points_remaining = participant.calc_level()
-
         if learner.first_name and learner.last_name:
             learner_label = '{0:s} {1:s}'.format(learner.first_name, learner.last_name)
         elif learner.first_name:
