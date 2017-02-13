@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from communication.models import Post, CoursePostRel
+from communication.models import Post, CoursePostRel, PostComment
 from datetime import datetime, timedelta
 from auth.models import Learner
 from content.models import TestingQuestion, TestingQuestionOption
@@ -125,6 +125,16 @@ class TestCommentsOnLatestBlog(TestCase):
         resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_first_created.id}))
         self.assertEquals(resp.status_code, 200)
         self.assertContains(resp, "Comment", count=0)
+
+        message = 'What is box?'
+        #Test 1.1: correct data given to show right.html
+        resp = self.client.post(
+            reverse('com.blog', kwargs={'blogid': blog_second_created.id}), data={'comment': message}, follow=True)
+        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+
+        resp = self.client.post(reverse('com.blog', kwargs={'blogid': blog_second_created.id}),
+                                data={'report': PostComment.objects.all().latest('publishdate').id}, follow=True)
+        self.assertNotContains(resp, message)
 
 
 @override_settings(VUMI_GO_FAKE=True)
