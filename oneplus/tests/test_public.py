@@ -106,6 +106,37 @@ class TestPublicBadge(TestCase):
             follow=True)
         self.assertContains(resp, self.badge_earned.name)
         self.assertContains(resp, 'has earned')
+        self.assertContains(resp, '{0:s} {1:s}'.format(self.learner.first_name, self.learner.last_name))
+
+    def test_perm_earned_no_last_name(self):
+        last_name = self.learner.last_name
+        self.learner.public_share = True
+        self.learner.last_name = ''
+        self.learner.save()
+        resp = self.client.get(
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), self.participant.id, self.badge_earned.id),
+            follow=True)
+        self.assertContains(resp, self.badge_earned.name)
+        self.assertContains(resp, self.learner.first_name)
+        self.assertNotContains(resp, last_name)
+        self.assertContains(resp, 'has earned')
+        self.assertContains(resp, self.learner.first_name)
+
+    def test_perm_earned_no_names(self):
+        first_name = self.learner.first_name
+        last_name = self.learner.last_name
+        self.learner.public_share = True
+        self.learner.first_name = ''
+        self.learner.last_name = ''
+        self.learner.save()
+        resp = self.client.get(
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), self.participant.id, self.badge_earned.id),
+            follow=True)
+        self.assertContains(resp, self.badge_earned.name)
+        self.assertContains(resp, 'Anon')
+        self.assertNotContains(resp, first_name)
+        self.assertNotContains(resp, last_name)
+        self.assertContains(resp, 'has earned')
 
     def test_perm_unearned(self):
         self.learner.public_share = True
@@ -151,6 +182,35 @@ class TestPublicLevel(TestCase):
         resp = self.client.get(
             '{0:s}?p={1:d}'.format(reverse('public:level'), self.participant.id),
             follow=True)
+        self.assertContains(resp, 'Level')
+        self.assertContains(resp,
+                            '{0:s} {1:s}'.format(self.learner.first_name, self.learner.last_name))
+
+    def test_lowest_no_last_name(self):
+        last_name = self.learner.last_name
+        self.learner.public_share = True
+        self.learner.last_name = ''
+        self.learner.save()
+        resp = self.client.get(
+            '{0:s}?p={1:d}'.format(reverse('public:level'), self.participant.id),
+            follow=True)
+        self.assertNotContains(resp, last_name)
+        self.assertContains(resp, 'Level')
+        self.assertContains(resp,
+                            '{0:s} {1:s}'.format(self.learner.first_name, self.learner.last_name))
+
+    def test_lowest_no_names(self):
+        first_name = self.learner.first_name
+        last_name = self.learner.last_name
+        self.learner.first_name = ''
+        self.learner.last_name = ''
+        self.learner.public_share = True
+        self.learner.save()
+        resp = self.client.get(
+            '{0:s}?p={1:d}'.format(reverse('public:level'), self.participant.id),
+            follow=True)
+        self.assertNotContains(resp, first_name)
+        self.assertNotContains(resp, last_name)
         self.assertContains(resp, 'Level')
         self.assertContains(resp,
                             '{0:s} {1:s}'.format(self.learner.first_name, self.learner.last_name))
