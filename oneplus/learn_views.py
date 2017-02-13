@@ -490,7 +490,7 @@ def redo_right(request, state, user, participant):
     request.session["state"]["banned"] = _usr.is_banned()
 
     def get():
-        if not _learnerstate.active_redo_result:
+        if _learnerstate.active_redo_result:
             all_messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,

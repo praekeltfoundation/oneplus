@@ -205,9 +205,9 @@ class TestFlashMessage(TestCase):
         resp = self.client.post(reverse('learn.redo_right'),
                                 data={'comment': message},
                                 follow=True)
-        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+        self.assertContains(resp, message)
 
-        #Test 3.2: correct data given in redo to show redo_right.html with empty Wmessage
+        #Test 3.2: correct data given in redo to show redo_right.html with empty message
         resp = self.client.post(reverse('learn.redo_right'),
                                 data={'comment': empty_message},
                                 follow=True)
