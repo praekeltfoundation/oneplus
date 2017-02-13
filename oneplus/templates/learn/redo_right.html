@@ -116,6 +116,7 @@
                                             <input type="hidden" name="report" value="{{ msg.id }}" />
                                         </form>
                                     {% endif %}
+                                <hr />
                                 </div>
 
                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
@@ -124,9 +125,6 @@
                                         <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>
                                {% endifequal %}
-
-                            {% else %}
-                                <p class="red-front">{{ msg.content }}</p>
                             {% endif %}
                         </div>
 
@@ -141,7 +139,6 @@
                             {% endif %}
                         {% endfor %}
                     {% endif %}
-                    <hr />
                 {% endfor %}
 
                 {% if not preview %}
