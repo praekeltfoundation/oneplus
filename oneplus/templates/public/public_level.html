@@ -1,0 +1,51 @@
+{% extends "public/public_main.html" %}
+
+{% block title %}
+    {% if no_public %}
+        Level Not Shared
+    {% else %}
+        {{ learner_label }}'s level
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% load oneplus_extras %}
+    <article class="content squash-accent">
+        {% if no_public %}
+            <h1 class="color-accent">No one's home.</h1>
+            <p>Either this learner doesn't exist, or they haven't made their badges public.</p>
+        {% else %}
+            {% comment %}Overall stats{% endcomment %}
+            <article class="card squash-accent border-color-accent">
+                <section class="top">
+                    <h1 class="center-font color-accent">Level</h1>
+                    <div class="level-pip-container">
+                        {% for i in levels %}
+                            <div class="level-pip{% ifequal level i %} active background-color-accent{% endifequal %}">{{ i }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="center-font">
+                        {% ifequal level level_max %}
+                            Respect! {{ learner_label }} has reached the highest level on dig-it.
+                            {{ learner_label }} shall be called <b>Maths Master</b>.
+                            {{ learner_label }} is awesome!
+                        {% else %}
+                            {{ learner_label }} is {{ points_remaining }} points away from Level {{ level|add:"1" }}.
+                        {% endifequal %}
+                    </div>
+                </section>
+                {% if position %}
+                    <hr class="hr-accent" />
+                    <section class="bottom">
+                        <table class="card-table">
+                            <tr>
+                                <td class="funky-number color-accent">{{ position|ordinal_extra:'sup' }}</td>
+                                <td>Place on the 'My Grade' leaderboard</td>
+                            </tr>
+                        </table>
+                    </section>
+                {% endif %}
+            </article>
+        {% endif %}
+    </article>
+{% endblock %}

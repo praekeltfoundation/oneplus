@@ -11,6 +11,7 @@ from oneplus import result_views
 
 public_patterns = [
     url(r"^badges/?$", oneplus.public_views.badges, name="badges"),
+    url(r"^level/?$", oneplus.public_views.level, name="level"),
 ]
 
 urlpatterns = [
