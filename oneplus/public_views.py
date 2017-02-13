@@ -109,6 +109,7 @@ def level(request, state, user):
                                   'learner_label': learner_label,
                                   'level': level,
                                   'levels': range(1, settings.MAX_LEVEL + 1),
+                                  'level_max': settings.MAX_LEVEL,
                                   'participant': participant,
                                   'points_remaining': points_remaining,
                                   'state': state,
