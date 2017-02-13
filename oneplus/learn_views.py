@@ -1527,11 +1527,11 @@ def right(request, state, user, participant):
                 request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
 
-            # elif "report" in request.POST.keys():
-            #     post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
-            #     if post_comment is not None:
-            #         report_user_post(post_comment, _usr, 1)
-            #     return redirect(reverse("learn.right"))
+            elif "report" in request.POST.keys():
+                post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
+                if post_comment is not None:
+                    report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.right"))
 
             _messages = \
                 Discussion.objects.filter(
