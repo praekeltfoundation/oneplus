@@ -50,17 +50,21 @@
     </article>
 
     <footer>
-        <a class="link-side-by" href="/about">About</a>
-        <a class="link-side-by" href="/contact">Contact</a>
-        <a class="link-side-by" href="/terms">Terms</a>
-        {% if user.name %}
-            <a class="link-side-by" href="/signout">Log out</a>
-        {% endif %}
-        <a class="link-side-by vert-center" id="fb-share" style="display:none"
-           href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
-            <li class="icon fb-logo vert-center" style="margin:-6px"></li>Tell your friends about us!
-        </a>
-        <script>document.getElementById("fb-share").style.display = "inline-block";</script>
+        <ul class="link-bar">
+            <li><a class="footer-link" href="/about">About</a></li>
+            <li><a class="footer-link" href="/contact">Contact</a></li>
+            <li><a class="footer-link" href="/terms">Terms</a></li>
+            {% if user.name %}
+                <li><a class="footer-link" href="/signout">Log out</a></li>
+            {% endif %}
+            <li>
+                <a class="footer-link vert-center" id="fb-share" style="display:none"
+                        href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
+                    <div class="icon fb-logo vert-center" style="margin:-6px -6px -6px -12px;"></div>Tell your friends about us!
+                </a>
+            </li>
+            <script>document.getElementById("fb-share").style.display = "inline-block";</script>
+        </ul>
     </footer>
 </body>
 </html>
