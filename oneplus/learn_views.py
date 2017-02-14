@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
-
 from datetime import date, timedelta, datetime
 from random import randint
 
@@ -41,6 +41,15 @@ def get_class_leaderboard_position(participant):
 
     return None
 
+array_of_statements = {
+    "0": "You’ve completed your daily questions, you got {0:d}/{1:d} correct. Better luck next time.",
+    "33": "You’ve completed your daily questions, you got {0:d}/{1:d} correct and earn a total of {2:d} points. "
+          "Better luck next time",
+    "34": "Well done! You’ve completed your daily questions. You got {0:d}/{1:d} correct and earned a "
+          "total of {2:d} points.",
+    "100": "Congrats! You’ve answered all questions for the day correctly and earned a total of {2:d} points. "
+           "At this rate, you’ll be levelling up in no time."
+}
 
 @oneplus_participant_required
 def home(request, state, user, participant):
@@ -196,7 +205,8 @@ def home(request, state, user, participant):
 
     dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id',
+                                                                                                   flat=True)
     try:
         _post = Post.objects.filter(
             id__in=post_list
@@ -212,6 +222,26 @@ def home(request, state, user, participant):
         last_active = _learner.last_active_date.date()
         now = datetime.now().date()
         days_ago = now - last_active
+
+        # Calculating which message to display on the home screen based on participant's marks
+        num_correct, num_available = learnerstate.get_correct_of_available()
+        num_answered = learnerstate.get_questions_answered_week()
+        feedback_string = " "
+        points_week = learnerstate.get_points_week()
+
+        if num_answered == num_available:
+            _range = (num_correct/num_available)*100
+
+            if _range <= 0:
+                feedback_string = array_of_statements["0"]
+            elif _range < 34:
+                feedback_string = array_of_statements["33"]
+            elif _range < 100:
+                feedback_string = array_of_statements["34"]
+            elif _range >= 100:
+                feedback_string = array_of_statements["100"]
+
+            feedback_string = feedback_string.format(num_correct, num_available, points_week)
 
         if days_ago >= timedelta(days=1):
             _learner.last_active_date = datetime.now()
@@ -235,6 +265,7 @@ def home(request, state, user, participant):
                                                    "redo": redo,
                                                    "state": state,
                                                    "sumit": sumit,
+                                                   "feedback_string": feedback_string,
                                                    "user": user})
 
     def post():
@@ -502,8 +533,8 @@ def redo_right(request, state, user, participant):
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
             messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
+                                 "Thank you for your contribution. Your message will display shortly! "
+                                 "If not already")
 
             # Messages for discussion page
             _messages = \
@@ -1460,8 +1491,8 @@ def right(request, state, user, participant):
                     "badge": badge,
                     "points": points,
                     "golden_egg": golden_egg
-                }
-                , context_instance=RequestContext(request)
+                },
+                context_instance=RequestContext(request)
             )
         else:
             return HttpResponseRedirect("wrong")
