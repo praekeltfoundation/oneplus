@@ -691,7 +691,7 @@ class ChallengeTest(TestCase):
         resp = self.client.post(reverse('learn.redo'),
                                 data={'answer': correct_option.id},
                                 follow=True)
-        self.assertEquals(resp.status_code, 200)
+        # self.assertEquals(resp.status_code, 302)
         self.assertRedirects(resp, "redo_right")
 
         resp = self.client.post(reverse("learn.redo_right"))
@@ -1130,3 +1130,89 @@ class ChallengeTest(TestCase):
             Follow=True
         )
         self.assertEquals(resp.status_code, 200)
+
+    def test_report_comment(self):
+        self.client.get(
+            reverse(
+                'auth.autologin',
+                kwargs={'token': self.learner.unique_token}))
+
+        self.test_question = create_test_question("question1", self.module, state=TestingQuestion.PUBLISHED)
+        self.question_option_right = create_test_question_option("question1_right",
+                                                                 self.test_question,
+                                                                 correct=True)
+
+        LearnerState.objects.create(
+            participant=self.participant,
+            active_question=self.test_question,
+            active_result=True,
+        )
+
+        self.question_option_wrong = create_test_question_option("question1_wrong",
+                                                                 self.test_question,
+                                                                 correct=False)
+
+        self.client.get(reverse("learn.next"))
+        self.client.post(reverse("learn.next"), data={"answer": self.question_option_right.id}, follow=True)
+        self.client.get(reverse("learn.right"))
+        message = 'Toe is die bier klaar'
+
+        #Test 1.1: correct data given to show right.html
+        resp = self.client.post(reverse('learn.right'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+
+        resp = self.client.post(reverse('learn.right'),
+                                data={'report': Discussion.objects.all().latest('publishdate').id},
+                                follow=True)
+        self.assertNotContains(resp, message)
+
+        ParticipantQuestionAnswer.objects.all().delete()
+        LearnerState.objects.all().delete()
+        self.client.get(reverse("learn.next"))
+        self.client.post(reverse("learn.next"), data={"answer": self.question_option_wrong.id}, follow=True)
+        self.client.get(reverse("learn.wrong"))
+
+        #Test 2.1: incorrect data given to show wrong.html
+        resp = self.client.post(reverse('learn.wrong'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, message)
+
+        resp = self.client.post(reverse('learn.wrong'),
+                                data={'report': Discussion.objects.all().latest('publishdate').id},
+                                follow=True)
+        self.assertNotContains(resp, message)
+
+        self.client.get(reverse("learn.redo"))
+        self.client.post(reverse("learn.redo"), data={"answer": self.question_option_right.id}, follow=True)
+        self.client.get(reverse("learn.redo_right"))
+
+        #Test 3.1: correct data given in redo to show redo_right.html
+        resp = self.client.post(reverse('learn.redo_right'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, message)
+
+        resp = self.client.post(reverse('learn.redo_right'),
+                                data={'report': Discussion.objects.all().latest('publishdate').id},
+                                follow=True)
+        self.assertNotContains(resp, message)
+
+        ParticipantRedoQuestionAnswer.objects.all().delete()
+        self.client.get(reverse("learn.redo"))
+        self.client.post(reverse("learn.redo"), data={"answer": self.question_option_wrong.id}, follow=True)
+        self.client.get(reverse("learn.redo_wrong"))
+
+        #Test 4.1: incorrect data given in redo to show redo_wrong.html
+        message = 'The boy who lived, come to die'
+        resp = self.client.post(reverse('learn.redo_wrong'),
+                                data={'comment': message},
+                                follow=True)
+        self.assertContains(resp, "<p>%s</p>" % (message,), html=True)
+
+        resp = self.client.post(reverse('learn.redo_wrong'),
+                                data={'report': Discussion.objects.all().latest('publishdate').id},
+                                follow=True)
+        self.assertNotContains(resp, message)
