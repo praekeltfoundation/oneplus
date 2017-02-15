@@ -220,7 +220,9 @@ def chat(request, state, user, chatid):
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
+        _messages = _group.chatmessage_set.filter(moderated=True,
+                                                  unmoderated_date=None,
+                                                  publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
@@ -238,8 +240,17 @@ def chat(request, state, user, chatid):
                 publishdate=datetime.now(),
                 moderated=True
             )
-            _message.save()
-            _content_profanity_check(_message)
+
+            if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+            else:
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
+
+                _message.save()
             request.session["state"]["chat_page_max"] += 1
 
         # show more comments
@@ -399,6 +410,7 @@ def blog(request, participant, state, user, blogid):
         request.session["state"]["post_page_max"] = \
             PostComment.objects.filter(
                 post=_post,
+                unmoderated_date=None,
                 moderated=True
             ).count()
 
@@ -433,11 +445,18 @@ def blog(request, participant, state, user, blogid):
                     publishdate=datetime.now(),
                     moderated=True
                 )
+
+                if _content_profanity_check(_post_comment):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _post_comment.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
                 _post_comment.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
-                _content_profanity_check(_post_comment)
+
                 request.session["state"]["post_comment"] = True
                 return redirect('com.blog', blogid)
         elif "page" in request.POST.keys():
