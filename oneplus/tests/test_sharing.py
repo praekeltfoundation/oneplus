@@ -3,6 +3,7 @@ from auth.models import Learner
 from core.models import Class, Participant, TestingQuestion
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.test.utils import override_settings
 from gamification.models import GamificationBadgeTemplate
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 
@@ -54,6 +55,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
+@override_settings(VUMI_GO_FAKE=True)
 class TestLevelShare(TestCase):
     def setUp(self):
         self.course = create_course()
