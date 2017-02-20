@@ -54,13 +54,25 @@
             {% if user.name %}
                 <li><a class="footer-link" href="/signout">Log out</a></li>
             {% endif %}
-            <li>
-                <a class="footer-link vert-center" id="fb-share" style="display:none"
+            <li class="js-required" style="display:none">
+                <a class="footer-link vert-center"
                         href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
                     <div class="icon fb-logo vert-center" style="margin:-6px -6px -6px -12px;"></div>Tell your friends about us!
                 </a>
             </li>
-            <script>document.getElementById("fb-share").style.display = "inline-block";</script>
+            <li class="js-required" style="display:none">
+                <a href="https://twitter.com/share" class="twitter-share-button"
+                   data-text="DIG-it is awesome" data-hashtags="DIG-it" style="display:none"
+                   data-show-count="false">Tweet
+                </a>
+                <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+            </li>
+            <script>
+                var jsRequiredClasses = document.querySelectorAll(".js-required");
+                for(var counter in jsRequiredClasses){
+                        jsRequiredClasses[counter].style["display"] = 'inline-block';
+                }
+            </script>
         </ul>
     </footer>
 </body>
