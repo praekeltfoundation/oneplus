@@ -553,6 +553,46 @@ class PostCommentLikeAdmin(admin.ModelAdmin):
     get_name.short_description = 'Name'
 
 
+class DiscussionLikeAdmin(admin.ModelAdmin):
+    fields = ("user", "get_content", "date_created", "date_updated",)
+    list_display = ("get_name", "get_content", "date_created", "date_updated",)
+    ordering = ("date_updated",)
+    readonly_fields = ("date_created", "date_updated", "get_content", "user",)
+    search_fields = ("user__first_name", "date_updated",)
+
+    def get_content(self, obj):
+        if not obj.comment or not obj.comment.content:
+            return ""
+        return obj.comment.content[:50]
+    get_content.short_description = 'Content'
+
+    def get_name(self, obj):
+        if not obj.user or not obj.user.first_name:
+            return ""
+        return obj.user.first_name
+    get_name.short_description = 'Name'
+
+
+class ChatMessageLikeAdmin(admin.ModelAdmin):
+    fields = ("user", "get_content", "date_created", "date_updated",)
+    list_display = ("get_name", "get_content", "date_created", "date_updated",)
+    ordering = ("date_updated",)
+    readonly_fields = ("date_created", "date_updated", "get_content", "user",)
+    search_fields = ("user__first_name", "date_updated",)
+
+    def get_content(self, obj):
+        if not obj.comment or not obj.comment.content:
+            return ""
+        return obj.comment.content[:50]
+    get_content.short_description = 'Content'
+
+    def get_name(self, obj):
+        if not obj.user or not obj.user.first_name:
+            return ""
+        return obj.user.first_name
+    get_name.short_description = 'Name'
+
+
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
@@ -561,7 +601,9 @@ admin.site.register(PostCommentLike, PostCommentLikeAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(ChatMessage, ChatMessageAdmin)
+admin.site.register(ChatMessageLike, ChatMessageLikeAdmin)
 admin.site.register(Discussion, DiscussionAdmin)
+admin.site.register(DiscussionLike, DiscussionLikeAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(ReportResponse, ReportResponseAdmin)
 admin.site.register(SmsQueue, SmsQueuedAdmin)
