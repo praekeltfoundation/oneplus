@@ -48,24 +48,32 @@
 
     <footer>
         <ul class="link-bar">
-            <li><a class="footer-link" href="/about">About</a></li>
-            <li><a class="footer-link" href="/contact">Contact</a></li>
-            <li><a class="footer-link" href="/terms">Terms</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/terms">Terms</a></li>
             {% if user.name %}
                 <li><a class="footer-link" href="/signout">Log out</a></li>
             {% endif %}
+        </ul>
+        <ul class="link-bar">
+            <li class="vert-center"><div>Tell your friends about us!</div></li>
             <li class="js-required" style="display:none">
                 <a class="footer-link vert-center"
                         href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
-                    <div class="icon fb-logo vert-center" style="margin:-6px -6px -6px -12px;"></div>Tell your friends about us!
+                    <div class="share-icon fb-logo vert-center"></div>
                 </a>
             </li>
             <li class="js-required" style="display:none">
-                <a href="https://twitter.com/share" class="twitter-share-button"
-                   data-text="DIG-it is awesome" data-hashtags="DIG-it" style="display:none"
-                   data-show-count="false">Tweet
+                <a href="https://twitter.com/intent/tweet?text={{ "Check out Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}" src="">
+                    <div class="share-icon tw-logo vert-center"></div>
                 </a>
-                <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+            </li>
+            <li class="js-required" style="display:none">
+                <a href="https://plus.google.com/share?url={URL}" onclick="javascript:window.open(this.href,
+                  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                    <img class="share-icon vert-center" src="https://www.gstatic.com/images/icons/gplus-32.png"
+                         alt="Share on Google+"/>
+                </a>
             </li>
             <script>
                 var jsRequiredClasses = document.querySelectorAll(".js-required");
