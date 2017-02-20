@@ -8,6 +8,7 @@ from core.filters import UserFilter
 from .utils import VumiSmsApi, get_user_bans
 from organisation.models import CourseModuleRel
 from .filters import *
+from .models import PostCommentLike
 from django.utils.http import urlquote
 
 
@@ -532,10 +533,18 @@ class ProfanityAdmin(admin.ModelAdmin):
     ordering = ("word",)
 
 
+class PostCommentLikeAdmin(admin.ModelAdmin):
+    fields = ("user", "comment", "date_created", "date_updated",)
+    list_display = ("user__name", "comment__content", "date_created", "date_updated",)
+    ordering = ("date_updated",)
+    search_fields = ("user__first_name", "date_updated")
+
+
 # Communication
 admin.site.register(Sms, SmsAdmin)
 admin.site.register(Post, PostAdmin)
 admin.site.register(PostComment, PostCommentAdmin)
+admin.site.register(PostCommentLike, PostCommentLikeAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(ChatGroup, ChatGroupAdmin)
 admin.site.register(ChatMessage, ChatMessageAdmin)
