@@ -534,10 +534,23 @@ class ProfanityAdmin(admin.ModelAdmin):
 
 
 class PostCommentLikeAdmin(admin.ModelAdmin):
-    fields = ("user", "comment", "date_created", "date_updated",)
-    list_display = ("user__name", "comment__content", "date_created", "date_updated",)
+    fields = ("user", "get_content", "date_created", "date_updated",)
+    list_display = ("get_name", "get_content", "date_created", "date_updated",)
     ordering = ("date_updated",)
-    search_fields = ("user__first_name", "date_updated")
+    readonly_fields = ("date_created", "date_updated", "get_content", "user",)
+    search_fields = ("user__first_name", "date_updated",)
+
+    def get_content(self, obj):
+        if not obj.comment or not obj.comment.content:
+            return ""
+        return obj.comment.content[:50]
+    get_content.short_description = 'Content'
+
+    def get_name(self, obj):
+        if not obj.user or not obj.user.first_name:
+            return ""
+        return obj.user.first_name
+    get_name.short_description = 'Name'
 
 
 # Communication
