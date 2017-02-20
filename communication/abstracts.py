@@ -22,6 +22,9 @@ class CommentLikeAbstractModel(models.Model):
     def count_likes(self, comment):
         return self._default_manager.filter(comment=comment).count()
 
+    def has_liked(self, user, comment):
+        return self._default_manager.filter(user=user, comment=comment).exists()
+
     def like(self, user, comment):
         if self._default_manager.filter(user=user, comment=comment).exists():
             return self._default_manager.get(user=user, comment=comment)
