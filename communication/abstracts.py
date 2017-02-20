@@ -12,7 +12,7 @@ class CommentLikeAbstractModel(models.Model):
 
     date_created = models.DateTimeField(_('date created'), default=timezone.now)
     date_updated = models.DateTimeField(_('date updated'), auto_now=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=False, null=False, related_name="like_user")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=False, null=False)
     # comment -- Required field
 
     class Meta:
