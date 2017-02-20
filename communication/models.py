@@ -96,6 +96,14 @@ class PostComment(models.Model):
     )
 
 
+class PostCommentLike(CommentLikeAbstractModel):
+    comment = models.ForeignKey(PostComment, blank=False, null=False)
+
+    class Meta(CommentLikeAbstractModel.Meta):
+        verbose_name = "Post Comment Like"
+        verbose_name_plural = "Post Comment Likes"
+
+
 @python_2_unicode_compatible
 class Discussion(models.Model):
 
@@ -151,6 +159,14 @@ class Discussion(models.Model):
     class Meta:
         verbose_name = "Discussion"
         verbose_name_plural = "Discussions"
+
+
+class DiscussionLike(CommentLikeAbstractModel):
+    comment = models.ForeignKey(Discussion, blank=False, null=False)
+
+    class Meta(CommentLikeAbstractModel.Meta):
+        verbose_name = "Discussion Like"
+        verbose_name_plural = "Discussion Likes"
 
 
 @python_2_unicode_compatible
@@ -396,6 +412,14 @@ class ChatMessage(models.Model):
     class Meta:
         verbose_name = "Chat Message"
         verbose_name_plural = "Chat Messages"
+
+
+class ChatMessageLike(CommentLikeAbstractModel):
+    comment = models.ForeignKey(ChatMessage, blank=False, null=False)
+
+    class Meta(CommentLikeAbstractModel.Meta):
+        verbose_name = "Chat Message Like"
+        verbose_name_plural = "Chat Message Likes"
 
 
 # A sms
