@@ -1,11 +1,12 @@
 from django.db import models
-from django.conf import settings
-from datetime import datetime
-from organisation.models import Course, Module
-from content.models import TestingQuestion
 from django.db.models import Q
-from django.utils.html import format_html, mark_safe
+from django.conf import settings
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.html import format_html, mark_safe
+from datetime import datetime
+from .abstracts import CommentLikeAbstractModel
+from content.models import TestingQuestion
+from organisation.models import Course, Module
 
 
 @python_2_unicode_compatible
