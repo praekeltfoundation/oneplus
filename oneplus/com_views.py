@@ -406,19 +406,18 @@ def blog(request, participant, state, user, blogid):
 
     allow_commenting = latest and (_post.id == latest.id)
 
+    def retrieve_comment_objects():
+        return PostComment.objects.filter(post=_post, unmoderated_date=None, moderated=True)
+
     def get():
-        request.session["state"]["post_page_max"] = \
-            PostComment.objects.filter(
-                post=_post,
-                unmoderated_date=None,
-                moderated=True
-            ).count()
+        all_messages = retrieve_comment_objects()
+
+        request.session["state"]["post_page_max"] = all_messages.count()
 
         request.session["state"]["post_page"] = \
             min(5, request.session["state"]["post_page_max"])
 
-        post_comments = PostComment.objects.filter(post=_post, moderated=True) \
-            .order_by("-publishdate")[:request.session["state"]["post_page"]]
+        post_comments = all_messages.order_by("-publishdate")[:request.session["state"]["post_page"]]
 
         return render(
             request,
@@ -433,6 +432,8 @@ def blog(request, participant, state, user, blogid):
         )
 
     def post():
+        post_comments = retrieve_comment_objects()
+
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _comment = request.POST["comment"]
 
@@ -459,6 +460,7 @@ def blog(request, participant, state, user, blogid):
 
                 request.session["state"]["post_comment"] = True
                 return redirect('com.blog', blogid)
+
         elif "page" in request.POST.keys():
             request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
@@ -470,8 +472,14 @@ def blog(request, participant, state, user, blogid):
             if post_comment is not None:
                 report_user_post(post_comment, _usr, 1)
 
-        post_comments = PostComment.objects \
-            .filter(post=_post, moderated=True).order_by("-publishdate")[:request.session["state"]["post_page"]]
+            post_comments = retrieve_comment_objects()
+
+            request.session["state"]["post_page_max"] = post_comments.count()
+
+            request.session["state"]["post_page"] = \
+                min(5, request.session["state"]["post_page_max"])
+
+            post_comments = post_comments.order_by("-publishdate")[:request.session["state"]["post_page"]]
 
         return render(
             request,
