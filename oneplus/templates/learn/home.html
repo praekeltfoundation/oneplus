@@ -88,6 +88,9 @@
                     {% else %}
                         You're {{ points_remaining }} points away from Level {{ level|add:"1" }}.
                     {% endifequal %}
+                    {% if public_sharing %}
+                        <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level</a>
+                    {% endif %}
                 </div>
             </section>
             {% if position %}

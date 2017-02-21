@@ -234,6 +234,7 @@ def home(request, state, user, participant):
                                                    "points_remaining": points_remaining,
                                                    "position": get_class_leaderboard_position(_participant),
                                                    "post": _post,
+                                                   "public_sharing": _learner.public_share,
                                                    "redo": redo,
                                                    "state": state,
                                                    "sumit": sumit,
