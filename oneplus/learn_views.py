@@ -576,12 +576,17 @@ def redo_right(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
-                _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
 
-                _content_profanity_check(_message)
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
+                _message.save()
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
                 return redirect(reverse("learn.redo_right"))
@@ -599,12 +604,17 @@ def redo_right(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
-                _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
 
-                _content_profanity_check(_message)
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
+                _message.save()
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
@@ -725,11 +735,17 @@ def redo_wrong(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
+
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
                 _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
-                _content_profanity_check(_message)
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
                 return redirect(reverse("learn.redo_wrong"))
@@ -747,12 +763,17 @@ def redo_wrong(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
-                _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
 
-                _content_profanity_check(_message)
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
+                _message.save()
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
@@ -1515,12 +1536,17 @@ def right(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
-                _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
 
-                _content_profanity_check(_message)
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
+                _message.save()
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
                 return redirect(reverse("learn.right"))
@@ -1539,11 +1565,17 @@ def right(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
+
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.save()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
                 _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
-                _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
@@ -1664,11 +1696,18 @@ def wrong(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
+
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
                 _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
-                _content_profanity_check(_message)
+
                 request.session["state"]["discussion_comment"] = True
                 request.session["state"]["discussion_response_id"] = None
                 return redirect(reverse("learn.wrong"))
@@ -1686,11 +1725,17 @@ def wrong(request, state, user, participant):
                     publishdate=datetime.now(),
                     moderated=True
                 )
+
+                if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
                 _message.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
-                _content_profanity_check(_message)
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
