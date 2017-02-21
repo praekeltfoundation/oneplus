@@ -41,9 +41,19 @@ class LearnerState(models.Model):
         end = today
         return [start.date(), end.date()]
 
+    def get_whole_week_range(self):
+        today = self.today()
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=7)
+        return [start.date(), end.date()]
+
     def get_number_questions(self, answered_count, week_day):
         required_count = (week_day + 1) * self.QUESTIONS_PER_DAY
         return required_count - answered_count
+
+    def get_questions_available_count(self):
+        required_count = (self.get_week_day() + 1) * self.QUESTIONS_PER_DAY
+        return required_count
 
     def is_weekend(self, week_day):
         return week_day == self.SATURDAY or week_day == self.SUNDAY
@@ -79,6 +89,46 @@ class LearnerState(models.Model):
             return EventQuestionAnswer.objects.filter(participant=self.participant, event=sumit,
                                                       answer_date__range=self.get_week_range(),
                                                       ).distinct()
+
+    def get_correct_of_available(self):
+        # Get list of answered questions for this week
+        sumit = SUMit.objects.filter(course=self.participant.classs.course,
+                                     activation_date__lte=datetime.now(),
+                                     deactivation_date__gt=datetime.now()).first()
+
+        if not sumit:
+            num_correct = ParticipantQuestionAnswer.objects.filter(
+                participant=self.participant,
+                answerdate__range=self.get_whole_week_range(),
+                correct=True,
+            ).count()
+        else:
+            num_correct = EventQuestionAnswer.objects.filter(participant=self.participant, event=sumit,
+                                                             answer_date__range=self.get_whole_week_range(),
+                                                             correct=True,
+                                                             ).count()
+
+        num_available = self.get_questions_available_count()
+
+        return num_correct, num_available
+
+    def get_points_week(self):
+        sumit = SUMit.objects.filter(course=self.participant.classs.course,
+                                     activation_date__lte=datetime.now(),
+                                     deactivation_date__gt=datetime.now()).first()
+
+        if not sumit:
+            points = ParticipantQuestionAnswer.objects.filter(
+                participant=self.participant,
+                answerdate__range=self.get_whole_week_range(),
+                correct=True,
+            ).aggregate(points=models.Sum('question__points'))
+        else:
+            points = EventQuestionAnswer.objects.filter(participant=self.participant, event=sumit,
+                                                        answer_date__range=self.get_whole_week_range(),
+                                                        correct=True,
+                                                        ).aggregate(points=models.Sum('question__points'))
+        return points["points"]
 
     def get_unanswered(self):
         # Get list of answered questions
