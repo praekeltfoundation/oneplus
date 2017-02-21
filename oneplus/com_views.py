@@ -9,8 +9,8 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from datetime import datetime
 from django.utils import timezone
-from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment,\
-    PostCommentLike, SmsQueue, Sms
+from communication.models import Ban, ChatGroup, ChatMessage, ChatMessageLike, CoursePostRel, Message, Post,\
+    PostComment, PostCommentLike, SmsQueue, Sms
 from core.models import Class, Course, Learner, Participant
 from .validators import validate_content, validate_course, validate_date_and_time, validate_direction, \
     validate_message, validate_name, validate_publish_date_and_time, validate_to_class, validate_to_course, \
@@ -223,6 +223,11 @@ def chat(request, state, user, chatid):
             = min(10, request.session["state"]["chat_page_max"])
         _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
+
+        for msg in _messages:
+            msg.like_count = ChatMessageLike.count_likes(msg)
+            msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
+
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
@@ -256,6 +261,16 @@ def chat(request, state, user, chatid):
             msg = ChatMessage.objects.filter(id=msg_id).first()
             if msg is not None:
                 report_user_post(msg, _usr, 3)
+
+        elif "like" in request.POST.keys():
+            message_id = request.POST["like"]
+            chat_message = ChatMessage.objects.filter(id=message_id).first()
+            if chat_message is not None:
+                if "has_liked" in request.POST.keys():
+                    ChatMessageLike.unlike(_usr, chat_message)
+                else:
+                    ChatMessageLike.like(_usr, chat_message)
+                return redirect("com.chat", chatid=chatid)
 
         _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
@@ -468,8 +483,8 @@ def blog(request, participant, state, user, blogid):
                     PostCommentLike.like(_usr, post_comment)
                 return redirect("com.blog", blogid=blogid)
 
-        post_comments = PostComment.objects \
-            .filter(post=_post, moderated=True).order_by("-publishdate")[:request.session["state"]["post_page"]]
+        post_comments = PostComment.objects.filter(post=_post, moderated=True)\
+                                           .order_by("-publishdate")[:request.session["state"]["post_page"]]
 
         return render(
             request,
