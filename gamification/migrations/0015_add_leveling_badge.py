@@ -17,6 +17,8 @@ class Migration(DataMigration):
 
     def backwards(self, orm):
         "Write your backwards methods here."
+        orm["core.ParticipantBadgeTemplateRel"].objects.filter(badge__name="Level Up").delete()
+
         orm.GamificationScenario.objects.filter(name="Level Up").delete()
 
         orm.GamificationBadgeTemplate.objects.filter(name="Level Up").delete()
