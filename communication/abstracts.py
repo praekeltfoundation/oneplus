@@ -19,19 +19,23 @@ class CommentLikeAbstractModel(models.Model):
         abstract = True
         unique_together = ('user', 'comment',)
 
-    def count_likes(self, comment):
-        return self._default_manager.filter(comment=comment).count()
+    @classmethod
+    def count_likes(cls, comment, *args):
+        return cls._default_manager.filter(comment=comment).count()
 
-    def has_liked(self, user, comment):
-        return self._default_manager.filter(user=user, comment=comment).exists()
+    @classmethod
+    def has_liked(cls, user, comment, *args):
+        return cls._default_manager.filter(user=user, comment=comment).exists()
 
-    def like(self, user, comment):
-        if self._default_manager.filter(user=user, comment=comment).exists():
-            return self._default_manager.get(user=user, comment=comment)
-        return self._default_manager.create(user=user, comment=comment)
+    @classmethod
+    def like(cls, user, comment, *args):
+        if cls._default_manager.filter(user=user, comment=comment).exists():
+            return cls._default_manager.get(user=user, comment=comment)
+        return cls._default_manager.create(user=user, comment=comment)
 
-    def unlike(self, user, comment):
-        if self._default_manager.filter(user=user, comment=comment).exists():
-            self._default_manager.filter(user=user, comment=comment).delete()
+    @classmethod
+    def unlike(cls, user, comment, *args):
+        if cls._default_manager.filter(user=user, comment=comment).exists():
+            cls._default_manager.filter(user=user, comment=comment).delete()
             return True
         return False
