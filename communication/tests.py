@@ -2,15 +2,60 @@
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from communication.models import Message, MessageStatus, ChatMessage, Report, ReportResponse, SmsQueue, Ban, Profanity
-from organisation.models import Course, Module, CourseModuleRel
-from content.models import TestingQuestion
-from core.models import Class
+from django.conf import settings
+from datetime import datetime, timedelta
+from django.utils import timezone
+from auth.models import Learner
+from communication.models import Ban, ChatMessage, CoursePostRel, Message, MessageStatus, Profanity, Post, PostComment,\
+    PostCommentLike, Report, ReportResponse, SmsQueue
 from communication.utils import contains_profanity, report_user_post, get_user_bans, get_replacement_content, \
     VumiSmsApi
-from django.conf import settings
+from content.models import TestingQuestion
+from core.models import Class, Participant
+from organisation.models import Course, CourseModuleRel, Module, Organisation, School
 
-from datetime import datetime, timedelta
+
+def create_course(name="course name", **kwargs):
+    return Course.objects.create(name=name, **kwargs)
+
+
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
+
+
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
+
+
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
+
+
+def create_school(name, organisation, **kwargs):
+    return School.objects.create(
+        name=name, organisation=organisation, **kwargs)
+
+
+def create_learner(school, **kwargs):
+    if 'country' not in kwargs:
+        kwargs['country'] = '+27123456789'
+    if 'grade' not in kwargs:
+        kwargs['grade'] = 'Grade 11'
+    if 'mobile' not in kwargs:
+        kwargs['mobile'] = '+27123456789'
+    if 'username' not in kwargs:
+        kwargs['username'] = kwargs['mobile']
+    return Learner.objects.create(school=school, **kwargs)
+
+
+def create_participant(learner, classs, **kwargs):
+    participant = Participant.objects.create(
+        learner=learner, classs=classs, **kwargs)
+    return participant
 
 
 class TestMessage(TestCase):
@@ -337,3 +382,59 @@ class TestSms(TestCase):
         self.assertIsNotNone(sms)
         self.assertEquals(sent, True)
         self.assertEquals(sms.message, "test")
+
+
+class TestLikes(TestCase):
+    def setUp(self):
+        self.organisation = Organisation.objects.get(name='One Plus')
+        self.school = create_school('Death Dome', self.organisation)
+        for i in xrange(5):
+            create_learner(
+                self.school,
+                username="+2712345{0:04d}".format(i),
+                mobile="+2712345{0:04d}".format(i),
+                country="country",
+                area="Test_Area",
+                unique_token='abc{0:03d}'.format(i),
+                unique_token_expiry=datetime.now() + timedelta(days=30),
+                is_staff=True)
+        self.learners = Learner.objects.all()
+        self.course = create_course('Hunger Games')
+        self.classs = create_class('District 12', self.course)
+        self.participant = create_participant(
+            self.learners[0], self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.post = Post.objects.create(name="Blog Post", publishdate=timezone.now())
+        CoursePostRel.objects.create(course=self.course, post=self.post)
+
+    def test_post_like(self):
+        comment = PostComment.objects.create(author=self.learners[0], post=self.post, publishdate=timezone.now())
+        self.assertEqual(PostCommentLike.objects.all().count(), 0)
+        PostCommentLike.like(self.learners[0], comment)
+        self.assertEqual(PostCommentLike.objects.all().count(), 1)
+
+    def test_post_like_twice(self):
+        comment = PostComment.objects.create(author=self.learners[0], post=self.post, publishdate=timezone.now())
+        self.assertEqual(PostCommentLike.objects.all().count(), 0)
+        PostCommentLike.like(self.learners[0], comment)
+        self.assertEqual(PostCommentLike.objects.all().count(), 1)
+        PostCommentLike.like(self.learners[0], comment)
+        self.assertEqual(PostCommentLike.objects.all().count(), 1)
+
+    def test_post_unlike(self):
+        comment = PostComment.objects.create(author=self.learners[0], post=self.post, publishdate=timezone.now())
+        self.assertEqual(PostCommentLike.objects.all().count(), 0)
+        PostCommentLike.like(self.learners[0], comment)
+        self.assertEqual(PostCommentLike.objects.all().count(), 1)
+        PostCommentLike.unlike(self.learners[0], comment)
+        self.assertEqual(PostCommentLike.objects.all().count(), 0)
+
+    def test_post_like_count(self):
+        comment = PostComment.objects.create(author=self.learners[0], post=self.post, publishdate=timezone.now())
+        self.assertEqual(PostCommentLike.count_likes(comment), 0)
+        PostCommentLike.like(self.learners[0], comment)
+        self.assertEqual(PostCommentLike.count_likes(comment), 1)
+        PostCommentLike.like(self.learners[1], comment)
+        self.assertEqual(PostCommentLike.count_likes(comment), 2)
+        PostCommentLike.unlike(self.learners[1], comment)
+        self.assertEqual(PostCommentLike.count_likes(comment), 1)
+
