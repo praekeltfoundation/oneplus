@@ -231,7 +231,7 @@ def chat(request, state, user, chatid):
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
-                                                 "messages": _messages})
+                                                 "chat_messages": _messages})
 
     def post():
         # new comment created
@@ -281,7 +281,7 @@ def chat(request, state, user, chatid):
                 "state": state,
                 "user": user,
                 "group": _group,
-                "messages": _messages
+                "chat_messages": _messages
             }
         )
 

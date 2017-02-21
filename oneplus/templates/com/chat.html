@@ -9,7 +9,7 @@
         <h1>Chat with your grade about maths</h1>
 
         <div class="comment-list">
-            {% for msg in messages %}
+            {% for msg in chat_messages %}
                 {% if msg.moderated %}
                     <div class="item-large">
                         <div>
