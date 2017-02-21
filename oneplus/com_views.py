@@ -9,7 +9,8 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from datetime import datetime
 from django.utils import timezone
-from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
+from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment,\
+    PostCommentLike, SmsQueue, Sms
 from core.models import Class, Course, Learner, Participant
 from .validators import validate_content, validate_course, validate_date_and_time, validate_direction, \
     validate_message, validate_name, validate_publish_date_and_time, validate_to_class, validate_to_course, \
@@ -408,6 +409,10 @@ def blog(request, participant, state, user, blogid):
         post_comments = PostComment.objects.filter(post=_post, moderated=True) \
             .order_by("-publishdate")[:request.session["state"]["post_page"]]
 
+        for comment in post_comments:
+            comment.like_count = PostCommentLike.count_likes(comment)
+            comment.has_liked = PostCommentLike.has_liked(_usr, comment)
+
         return render(
             request,
             "com/blog.html",
@@ -450,6 +455,16 @@ def blog(request, participant, state, user, blogid):
             post_comment = PostComment.objects.filter(id=post_id).first()
             if post_comment is not None:
                 report_user_post(post_comment, _usr, 1)
+
+        elif "like" in request.POST.keys():
+            post_id = request.POST["like"]
+            post_comment = PostComment.objects.filter(id=post_id).first()
+            if post_comment is not None:
+                if "has_liked" in request.POST.keys():
+                    PostCommentLike.unlike(_usr, post_comment)
+                else:
+                    PostCommentLike.like(_usr, post_comment)
+                return redirect("com.blog", blogid=blogid)
 
         post_comments = PostComment.objects \
             .filter(post=_post, moderated=True).order_by("-publishdate")[:request.session["state"]["post_page"]]
