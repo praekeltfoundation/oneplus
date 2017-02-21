@@ -27,6 +27,7 @@ from django.db.models import Count, Sum
 from oneplus.tasks import update_all_perc_correct_answers, update_num_question_metric
 from django.utils import timezone
 from django.contrib import messages
+from communication.utils import report_user_post
 
 
 def get_class_leaderboard_position(participant):
@@ -50,6 +51,7 @@ array_of_statements = {
     "100": "Congrats! You’ve answered all questions for the day correctly and earned a total of {2:d} points. "
            "At this rate, you’ll be levelling up in no time."
 }
+
 
 @oneplus_participant_required
 def home(request, state, user, participant):
@@ -205,8 +207,8 @@ def home(request, state, user, participant):
 
     dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id',
-                                                                                                   flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).\
+        values_list('post__id', flat=True)
     try:
         _post = Post.objects.filter(
             id__in=post_list
@@ -262,6 +264,7 @@ def home(request, state, user, participant):
                                                    "points_remaining": points_remaining,
                                                    "position": get_class_leaderboard_position(_participant),
                                                    "post": _post,
+                                                   "public_sharing": _learner.public_share,
                                                    "redo": redo,
                                                    "state": state,
                                                    "sumit": sumit,
@@ -520,30 +523,24 @@ def redo_right(request, state, user, participant):
 
     def get():
         if _learnerstate.active_redo_result:
-            # Max discussion page
-            request.session["state"]["discussion_page_max"] = \
+            all_messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     question=_learnerstate.redo_question,
                     moderated=True,
+                    unmoderated_date=None,
                     reply=None
-                ).count()
+                )
 
-            # Discussion page?
+            request.session["state"]["discussion_page_max"] = all_messages.count()
+
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
             messages.add_message(request, messages.SUCCESS,
                                  "Thank you for your contribution. Your message will display shortly! "
                                  "If not already")
 
-            # Messages for discussion page
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -626,6 +623,12 @@ def redo_right(request, state, user, participant):
                 request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
 
+            elif "report" in request.POST.keys():
+                post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
+                if post_comment is not None:
+                    report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.redo_right"))
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -673,24 +676,21 @@ def redo_wrong(request, state, user, participant):
 
     def get():
         if not _learnerstate.active_redo_result:
-            request.session["state"]["discussion_page_max"] = \
+            all_messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     question=_learnerstate.redo_question,
                     moderated=True,
+                    unmoderated_date=None,
                     reply=None
-                ).count()
+                )
+
+            request.session["state"]["discussion_page_max"] = all_messages.count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -769,6 +769,12 @@ def redo_wrong(request, state, user, participant):
             elif "comment_response_button" in request.POST.keys():
                 request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
+
+            elif "report" in request.POST.keys():
+                post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
+                if post_comment is not None:
+                    report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.redo_wrong"))
 
             _messages = \
                 Discussion.objects.filter(
@@ -1455,27 +1461,21 @@ def right(request, state, user, participant):
 
     def get():
         if _learnerstate.active_result:
-            # Max discussion page
-            request.session["state"]["discussion_page_max"] = \
+            all_messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
+                    unmoderated_date=None,
                     reply=None
-                ).count()
+                )
 
-            # Discussion page?
+            request.session["state"]["discussion_page_max"] = all_messages.count()
+
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
 
-            # Messages for discussion page
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
@@ -1562,6 +1562,12 @@ def right(request, state, user, participant):
                 request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
 
+            elif "report" in request.POST.keys():
+                post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
+                if post_comment is not None:
+                    report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.right"))
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -1612,24 +1618,21 @@ def wrong(request, state, user, participant):
 
     def get():
         if not _learnerstate.active_result:
-            request.session["state"]["discussion_page_max"] = \
+            all_messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
                     question=_learnerstate.active_question,
                     moderated=True,
+                    unmoderated_date=None,
                     reply=None
-                ).count()
+                )
+
+            request.session["state"]["discussion_page_max"] = all_messages.count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             return render(
                 request,
@@ -1637,7 +1640,7 @@ def wrong(request, state, user, participant):
                 {"state": state,
                  "user": user,
                  "question": _learnerstate.active_question,
-                 "messages": _messages
+                 "comment_messages": _messages
                  }
             )
         else:
@@ -1706,6 +1709,11 @@ def wrong(request, state, user, participant):
                 request.session["state"]["discussion_response_id"] \
                     = request.POST["comment_response_button"]
 
+            elif "report" in request.POST.keys():
+                post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
+                if post_comment is not None:
+                    report_user_post(post_comment, _usr, 1)
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -1721,7 +1729,7 @@ def wrong(request, state, user, participant):
                     "state": state,
                     "user": user,
                     "question": _learnerstate.active_question,
-                    "messages": _messages
+                    "comment_messages": _messages
                 }
             )
         else:

@@ -92,14 +92,10 @@
                 {% for msg in comment_messages %}
                     {% if msg.moderated %}
                         <div class="item-large" id="{{ msg.id }}">
-                            <div>
-                                <span class="comment-author">{{ msg.author.first_name }}</span>
-                            </div>
-
                             {% if  msg.unmoderated_date == None %}
+                                <span class="comment-author">{{ msg.author.first_name }}</span>
                                 <p>{{ msg.content }}</p>
                                 <div>
-
                                     {% if not preview %}
                                         {% if not state.banned %}
                                             {% ifnotequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
@@ -123,9 +119,7 @@
                                         <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>
                                {% endifequal %}
-
-                            {% else %}
-                                <p class="red-front">{{ msg.content }}</p>
+                                <hr />
                             {% endif %}
                         </div>
 
@@ -140,10 +134,9 @@
                             {% endif %}
                         {% endfor %}
                     {% endif %}
-                    <hr />
                 {% endfor %}
 
-                {% if not preview %}
+                {% if not preview and state.discussion_page %}
                     <form name="more_form" method="post" action="?">
                         {% csrf_token %}
                         <div class="item">

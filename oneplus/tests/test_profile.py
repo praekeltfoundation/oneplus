@@ -101,7 +101,7 @@ class TestProfile(TestCase):
 
         #no fields completed
         resp = self.client.post(reverse('auth.edit_profile'), follow=True)
-        self.assertContains(resp, 'This must be completed', count=4)
+        self.assertContains(resp, 'This must be completed', count=3)
 
     def test_profile_edit_filled(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
