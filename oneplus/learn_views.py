@@ -357,10 +357,15 @@ def nextchallenge(request, state, user, participant):
 
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
+            _learner_level_before, _threshold = _participant.calc_level()
 
             # Answer question
             _participant.answer(_option.question, _option)
 
+            _learner_level_after, _threshold = _participant.calc_level()
+            _learner_leveled = False
+            if _learner_level_after > _learner_level_before:
+                _learner_leveled = True
             # Update metrics
             update_num_question_metric()
 
@@ -370,6 +375,14 @@ def nextchallenge(request, state, user, participant):
                 pass
 
             # Check for awards
+
+            if _learner_leveled:
+                _participant.award_scenario(
+                    "LEVELED",
+                    _learnerstate.active_question.module,
+                    special_rule=True
+                )
+
             if _option.correct:
 
                 # Important
