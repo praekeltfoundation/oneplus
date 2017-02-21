@@ -7,7 +7,7 @@
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     <meta property="og:description" content="{{ FB_SITE_DESC }}" />
     <meta property="og:title" content="{{ FB_SITE_TITLE }}" />
     <meta property="og:type" content="website" />
@@ -69,10 +69,15 @@
                 </a>
             </li>
             <li class="js-required" style="display:none">
-                <a href="https://plus.google.com/share?url={URL}" onclick="javascript:window.open(this.href,
+                <a href="https://plus.google.com/share?url={{ FB_REDIRECT|urlencode:'' }}" onclick="javascript:window.open(this.href,
                   '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
                     <img class="share-icon vert-center" src="https://www.gstatic.com/images/icons/gplus-32.png"
                          alt="Share on Google+"/>
+                </a>
+            </li>
+            <li>
+                <a href="whatsapp://send?text={{ "Check out Dig-it! "|urlencode:'' }}{{ FB_REDIRECT|urlencode:'' }}" src="">
+                    <div class="share-icon wa-logo vert-center"></div>
                 </a>
             </li>
             <script>
