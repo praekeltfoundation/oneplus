@@ -26,6 +26,10 @@ def oneplus_login_required(f):
             return redirect("auth.login")
         else:
             user = request.session["user"]
+            learner = Learner.objects.get(id=user['id'])
+            if not learner.terms_accept:
+                return redirect("auth.accept_terms")
+
             if Learner.objects.filter((Q(enrolled='0') | Q(grade=None) | Q(grade='')) & Q(id=user['id'])).exists():
                 return redirect("auth.return_signup")
         return f(request, user=user, *args, **kwargs)

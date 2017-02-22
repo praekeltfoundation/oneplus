@@ -235,7 +235,7 @@ def validate_sign_up_form(post):
     if "terms" in post and post["terms"]:
         data["terms"] = post["terms"]
     else:
-        errors["terms_errors"] = "Please accept our terms and conditions"
+        errors["terms_errors"] = "You must accept the terms and conditions to continue."
 
     return data, errors
 

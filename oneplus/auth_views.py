@@ -997,9 +997,16 @@ def accept_terms(request, state, user):
         return render(request, "auth/accept_terms.html", {"state": state, "user": user})
 
     def post():
-        learner = Learner.objects.get(id=user['id'])
-        # learner.terms_accept = True
-        learner.save()
+        if 'terms' in request.POST.keys() and request.POST['terms']:
+            learner = Learner.objects.get(id=user['id'])
+            learner.terms_accept = True
+            learner.save()
+        else:
+            return render(request, "auth/accept_terms.html",
+                          {"state": state,
+                           "user": user,
+                           "errors": {'terms_errors': "You must accept the terms and conditions to continue."}})
+
         return redirect('learn.home')
 
     return resolve_http_method(request, [get, post])
