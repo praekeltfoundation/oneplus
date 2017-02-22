@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-from communication.models import Post, CoursePostRel, PostComment
 from datetime import datetime, timedelta
+from django.core.urlresolvers import reverse
+from django.test import TestCase
+from django.test.utils import override_settings
+from django.utils import timezone
 from auth.models import Learner
+from communication.models import CoursePostRel, Post, PostComment
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantRedoQuestionAnswer
-from django.test import TestCase
-from django.core.urlresolvers import reverse
-from django.test.utils import override_settings
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
 from oneplus.models import LearnerState
 
@@ -240,3 +241,136 @@ class TestFlashMessage(TestCase):
                                 data={'comment': empty_message},
                                 follow=True)
         self.assertEquals(resp.status_code, 200)
+
+
+@override_settings(VUMI_GO_FAKE=True)
+class TestCommentLikes(TestCase):
+    def setUp(self):
+        self.course = create_course()
+        self.classs = create_class('Slytherin', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('Hogwarts', self.organisation)
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        self.participant = create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
+
+    def test_blog_comment_like(self):
+        # User logs in to test commenting
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        # create post and comments
+        post = Post.objects.create(name="Blog Post", publishdate=timezone.now())
+        CoursePostRel.objects.create(course=self.course, post=post)
+        self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'comment': 'Comment1'})
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'comment': 'Comment2'})
+
+        comment1 = PostComment.objects.get(content='Comment1')
+        comment2 = PostComment.objects.get(content='Comment2')
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'like': comment1.id})
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=1)
+        self.assertContains(resp, 'like-full', count=1)
+
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'like': comment1.id,
+                               'has_liked': True})
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'like': comment1.id})
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'like': comment2.id})
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=0)
+        self.assertContains(resp, 'like-full', count=2)
+
+    def test_blog_comment_like_multiple(self):
+        # login user and create comments
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        post = Post.objects.create(name="Blog Post", publishdate=timezone.now())
+        CoursePostRel.objects.create(course=self.course, post=post)
+        self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'comment': 'Comment1'})
+        self.client.post(reverse('com.blog',
+                                 kwargs={'blogid': post.id}),
+                         data={'comment': 'Comment2'})
+        comment1 = PostComment.objects.get(content='Comment1')
+        comment2 = PostComment.objects.get(content='Comment2')
+
+        # create extra test commenters
+        num_learners = 5
+        learners = []
+        participants = []
+        for i in xrange(num_learners):
+            l = create_learner(
+                self.school,
+                username="+2712345{0:04d}".format(i),
+                mobile="+2712345{0:04d}".format(i),
+                country="country",
+                area="Test_Area",
+                unique_token='abc{0:03d}'.format(i),
+                unique_token_expiry=datetime.now() + timedelta(days=30),
+                is_staff=True)
+            learners += [l]
+
+            p = create_participant(l, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+            participants += [p]
+
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        # login and like with test commenters
+        for i in xrange(num_learners):
+            self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+            self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+            self.client.post(reverse('com.blog',
+                                     kwargs={'blogid': post.id}),
+                             data={'like': comment1.id})
+            self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=1)
+        self.assertContains(resp, 'like-full', count=1)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+
+        # login and unlike with test commenters
+        for i in xrange(num_learners):
+            self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+            self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+            self.client.post(reverse('com.blog',
+                                     kwargs={'blogid': post.id}),
+                             data={'like': comment1.id,
+                                   'has_liked': True})
+            self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+        self.assertContains(resp, '&nbsp;0', count=2)
