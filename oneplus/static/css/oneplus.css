@@ -1029,6 +1029,13 @@ p a {
   background-repeat: no-repeat;
   background-position: 50% 50%; }
 
+.small-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%; }
+
 .share-icon {
   display: inline-block;
   width: 32px;
@@ -1062,6 +1069,11 @@ li.close {
 
 li.forward {
   background-image: url("../img/arrow_forward_icon.png"); }
+
+.small-icon.like-empty {
+  background-image: url("../img/like_empty.png"); }
+.small-icon.like-full {
+  background-image: url("../img/like_full.png"); }
 
 .icon.fb-logo, .share-icon.fb-logo {
   background-image: url("../img/fb_logo_blue_icon.png"); }
@@ -1099,9 +1111,6 @@ li.information {
 
 li.home {
   background-image: url("../img/icn_home.png"); }
-
-.icon.home {
-  background-image: url("../img/icn_home_32.png"); }
 
 li.change_number {
   background-image: url("../img/icn_chn_number.png"); }

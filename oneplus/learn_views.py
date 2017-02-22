@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from auth.models import Learner
-from communication.models import CoursePostRel, Discussion, Post, Report
+from communication.models import CoursePostRel, Discussion, DiscussionLike, Post, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage, SUMitLevel, SUMit
@@ -542,6 +542,10 @@ def redo_right(request, state, user, participant):
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
             return render(
                 request,
                 "learn/redo_right.html",
@@ -639,6 +643,16 @@ def redo_right(request, state, user, participant):
                     report_user_post(post_comment, _usr, 1)
                 return redirect(reverse("learn.redo_right"))
 
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.redo_right")
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -646,6 +660,10 @@ def redo_right(request, state, user, participant):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -701,6 +719,10 @@ def redo_wrong(request, state, user, participant):
                 min(2, request.session["state"]["discussion_page_max"])
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -797,6 +819,16 @@ def redo_wrong(request, state, user, participant):
                     report_user_post(post_comment, _usr, 1)
                 return redirect(reverse("learn.redo_wrong"))
 
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.redo_wrong")
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -804,6 +836,10 @@ def redo_wrong(request, state, user, participant):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -1498,6 +1534,10 @@ def right(request, state, user, participant):
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
             # Get badge points
             badge, badge_points = get_badge_awarded(_participant)
             points = get_points_awarded(_participant) + get_event_points_awarded(_participant)
@@ -1600,6 +1640,16 @@ def right(request, state, user, participant):
                     report_user_post(post_comment, _usr, 1)
                 return redirect(reverse("learn.right"))
 
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.right")
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -1607,6 +1657,10 @@ def right(request, state, user, participant):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -1665,6 +1719,10 @@ def wrong(request, state, user, participant):
                 min(2, request.session["state"]["discussion_page_max"])
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -1759,6 +1817,16 @@ def wrong(request, state, user, participant):
                 if post_comment is not None:
                     report_user_post(post_comment, _usr, 1)
 
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.wrong")
+
             _messages = \
                 Discussion.objects.filter(
                     course=_participant.classs.course,
@@ -1766,6 +1834,10 @@ def wrong(request, state, user, participant):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -2181,6 +2253,10 @@ def report_question(request, state, user, participant, questionid, frm):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return HttpResponseRedirect('/' + frm,
                                         {
