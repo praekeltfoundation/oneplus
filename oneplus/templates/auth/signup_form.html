@@ -42,6 +42,12 @@
                 {% endif %}
             </p>
 
+            <input type="checkbox" name="terms" id="tems_checkbox" value="terms_conditions" > I hereby accept the <a class="link wraps" href="{% url 'misc.terms' %}"> Terms and Conditions </a> of Dig-it <br/>
+            {% if errors.terms_errors %}
+                <span class="red-front">{{ errors.terms_errors }}</span>
+                <br>
+            {% endif %}
+
 			<input type="submit" value="Next" class="button border-color-accent color-accent" />
         </form>
     </article>
