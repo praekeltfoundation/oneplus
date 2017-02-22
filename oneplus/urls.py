@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^changedetails$', oneplus.auth_views.change_details, name="auth.change_details"),
     url(r'^sms_reset$', oneplus.auth_views.sms_reset_password_link, name="auth.sms_reset_password"),
     url(r'^r/(?P<token>\S+)$', oneplus.auth_views.reset_password, name="auth.reset_password"),
+    url(r'^accept_terms/?$', oneplus.auth_views.accept_terms, name="auth.accept_terms"),
 
     # Learn
     url(r"^home", oneplus.learn_views.home, name="learn.home"),

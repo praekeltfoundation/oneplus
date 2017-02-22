@@ -1,0 +1,25 @@
+{% extends "core/main.html" %}
+
+{% block title %}Accept terms{% endblock %}
+
+{% block page_descriptor_text %}Accept terms and conditions{% endblock %}
+
+{% block content %}
+
+    <article class="content pale-teal-accent">
+
+        <h1>Terms and Conditions</h1>
+        <h3 class="left">To be able to use the site further please accept our Terms and Conditions</h3><br><br>
+        <form action="{% url "auth.accept_terms" %}" method="post" class="signup">
+			{% csrf_token %}
+            <input type="checkbox" name="terms" id="tems_checkbox" value="terms_conditions" > I hereby accept the <a class="link wraps" href="{% url 'misc.terms' %}"> Terms and Conditions </a> of Dig-it <br/>
+            {% if errors.terms_errors %}
+                <span class="red-front">{{ errors.terms_errors }}</span>
+                <br>
+            {% endif %}
+
+            <input type="submit" value="Accept" class="button border-color-accent color-accent" />
+        </form>
+    </article>
+
+{% endblock %}
