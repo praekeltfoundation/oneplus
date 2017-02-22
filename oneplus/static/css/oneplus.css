@@ -474,16 +474,16 @@ form.no-pad {
 
 .link-bar {
   list-style-type: none;
-  margin: 0;
+  margin: 0.5em 0;
   padding: 0;
   overflow: hidden; }
   .link-bar li {
     display: inline;
-    height: 48px;
-    padding: 0.5em;
+    padding: 0.5em 0.5em 0.5em 0;
     vertical-align: middle; }
     .link-bar li a {
-      display: inline-block; }
+      display: inline-block;
+      padding-bottom: 0.25em; }
 
 .link-side-by {
   display: inline-block;
@@ -1036,6 +1036,13 @@ p a {
   background-repeat: no-repeat;
   background-position: 50% 50%; }
 
+.share-icon {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%; }
+
 li.chat {
   background-image: url("../img/chat_groups_icon.png"); }
 
@@ -1065,14 +1072,14 @@ li.forward {
 
 .small-icon.like-empty {
   background-image: url("../img/like_empty.png"); }
-
 .small-icon.like-full {
   background-image: url("../img/like_full.png"); }
 
-.icon.fb-logo {
+.icon.fb-logo, .share-icon.fb-logo {
   background-image: url("../img/fb_logo_blue_icon.png"); }
-
-.icon.wa-logo {
+.icon.tw-logo, .share-icon.tw-logo {
+  background-image: url("../img/tw_logo_blue_icon.png"); }
+.icon.wa-logo, .share-icon.wa-logo {
   background-image: url("../img/wa_logo_green_icon.png"); }
 
 li.badges {

@@ -49,22 +49,23 @@ class LearnerStateTest(TestCase):
                                               module=module,
                                               **kwargs)
 
-    def create_test_question_option(self, name, question):
+    def create_test_question_option(self, name, question, correct=True):
         return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=True)
+            name=name, question=question, correct=correct)
 
     def create_test_answer(
             self,
             participant,
             question,
             option_selected,
-            answerdate):
+            answerdate,
+            correct=False):
         return ParticipantQuestionAnswer.objects.create(
             participant=participant,
             question=question,
             option_selected=option_selected,
             answerdate=answerdate,
-            correct=False
+            correct=correct
         )
 
     def setUp(self):
@@ -197,3 +198,58 @@ class LearnerStateTest(TestCase):
 
         self.assertListEqual(list(self.learner_state.get_unanswered()),
                              [question2, question3])
+
+    @patch.object(LearnerState, 'today')
+    def test_get_whole_week_range(self, mock_get_today):
+        # Today = Saturday the 23rd of August
+        mock_get_today.return_value = datetime(2014, 8, 23, 0, 0, 0)
+        week_range = self.learner_state.get_week_range()
+
+        # Begin: Monday the 18th of August
+        self.assertEquals(week_range[0], datetime(2014, 8, 18).date())
+
+        # End: Friday the 22nd of August
+        self.assertEquals(week_range[1], datetime(2014, 8, 23).date())
+
+    @patch.object(LearnerState, "today")
+    def test_get_points_week(self, mock_get_today):
+        mock_get_today.return_value = datetime(2017, 02, 13, 0, 0, 0)
+
+        TestingQuestion.objects.all().delete()
+        # Create some more questions
+        question1 = self.create_test_question("question1", self.module, state=3, points=1)
+        question1_opt = self.create_test_question_option("qu1", question1, correct=True)
+        self.create_test_answer(self.participant, question1, question1_opt, mock_get_today(), correct=True)
+
+        question2 = self.create_test_question("question2", self.module, state=3, points=1)
+        question2_opt = self.create_test_question_option("qu2", question2, correct=True)
+        self.create_test_answer(self.participant, question2, question2_opt, mock_get_today(), correct=True)
+
+        question3 = self.create_test_question("question3", self.module, state=3, points=3)
+        question3_opt = self.create_test_question_option("qu3", question3, correct=True)
+        self.create_test_answer(self.participant, question3, question3_opt, mock_get_today(), correct=True)
+
+        points_for_week = self.learner_state.get_points_week()
+        self.assertEquals(points_for_week, 5)
+
+    @patch.object(LearnerState, "today")
+    def test_get_correct_of_available(self, mock_get_today):
+        mock_get_today.return_value = datetime(2017, 02, 13, 0, 0, 0)
+        TestingQuestion.objects.all().delete()
+        # Create some more questions
+        question1 = self.create_test_question("question1", self.module, state=3, points=1)
+        question1_opt = self.create_test_question_option("qu1", question1, correct=True)
+        self.create_test_answer(self.participant, question1, question1_opt, mock_get_today(), correct=True)
+
+        question2 = self.create_test_question("question2", self.module, state=3, points=1)
+        question2_opt = self.create_test_question_option("qu2", question2, correct=True)
+        self.create_test_answer(self.participant, question2, question2_opt, mock_get_today(), correct=True)
+
+        question3 = self.create_test_question("question3", self.module, state=3, points=3)
+        question3_opt = self.create_test_question_option("qu3", question3, correct=True)
+        self.create_test_answer(self.participant, question3, question3_opt, mock_get_today(), correct=True)
+
+        num_correct, num_available = self.learner_state.get_correct_of_available()
+
+        self.assertEquals(num_correct, 3)
+        self.assertEquals(num_available, 3)

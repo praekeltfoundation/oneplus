@@ -7,7 +7,7 @@
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     <meta property="og:description" content="{{ FB_SITE_DESC }}" />
     <meta property="og:title" content="{{ FB_SITE_TITLE }}" />
     <meta property="og:type" content="website" />
@@ -21,6 +21,7 @@
             {% block header_left %}
                 <div class="header-item">
                     {% if user.name %}
+                        <a class="icon home" href="{% url 'learn.home' %}"></a>
                         <a class="wrap-inline" href="/menu">
                             {% block menu_text %}
                                 <div class="header-item header-link">Menu</div>
@@ -48,19 +49,44 @@
 
     <footer>
         <ul class="link-bar">
-            <li><a class="footer-link" href="/about">About</a></li>
-            <li><a class="footer-link" href="/contact">Contact</a></li>
-            <li><a class="footer-link" href="/terms">Terms</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/terms">Terms</a></li>
             {% if user.name %}
                 <li><a class="footer-link" href="/signout">Log out</a></li>
             {% endif %}
-            <li>
-                <a class="footer-link vert-center" id="fb-share" style="display:none"
+        </ul>
+        <ul class="link-bar">
+            <li class="vert-center"><div>Tell your friends about us!</div></li>
+            <li class="js-required" style="display:none">
+                <a class="footer-link vert-center"
                         href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
-                    <div class="icon fb-logo vert-center" style="margin:-6px -6px -6px -12px;"></div>Tell your friends about us!
+                    <div class="share-icon fb-logo vert-center"></div>
                 </a>
             </li>
-            <script>document.getElementById("fb-share").style.display = "inline-block";</script>
+            <li class="js-required" style="display:none">
+                <a href="https://twitter.com/intent/tweet?text={{ "Check out Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}" src="">
+                    <div class="share-icon tw-logo vert-center"></div>
+                </a>
+            </li>
+            <li class="js-required" style="display:none">
+                <a href="https://plus.google.com/share?url={{ FB_REDIRECT|urlencode:'' }}" onclick="javascript:window.open(this.href,
+                  '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                    <img class="share-icon vert-center" src="https://www.gstatic.com/images/icons/gplus-32.png"
+                         alt="Share on Google+"/>
+                </a>
+            </li>
+            <li>
+                <a href="whatsapp://send?text={{ "Check out Dig-it! "|urlencode:'' }}{{ FB_REDIRECT|urlencode:'' }}" src="">
+                    <div class="share-icon wa-logo vert-center"></div>
+                </a>
+            </li>
+            <script>
+                var jsRequiredClasses = document.querySelectorAll(".js-required");
+                for(var counter in jsRequiredClasses){
+                        jsRequiredClasses[counter].style["display"] = 'inline-block';
+                }
+            </script>
         </ul>
     </footer>
 </body>
