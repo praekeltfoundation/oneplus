@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
 from auth.models import Learner
-from communication.models import CoursePostRel, ChatGroup, ChatMessage, Post, PostComment
+from communication.models import CoursePostRel, ChatGroup, ChatMessage, Discussion, Post, PostComment
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantRedoQuestionAnswer
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
@@ -481,6 +481,111 @@ class TestCommentLikes(TestCase):
                                    'has_liked': True})
             self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
         resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+        self.assertContains(resp, '&nbsp;0', count=2)
+
+    def test_discussion_like(self):
+        # User logs in to test commenting
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        # create post and comments
+        question = create_test_question('Question 1', self.module, state=TestingQuestion.PUBLISHED)
+        option_right = create_test_question_option('Question 1 Right', question, correct=True)
+        option_wrong = create_test_question_option('Question 1 Wrong', question, correct=False)
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': option_right.id}, follow=True)
+        self.client.post(reverse('learn.right'), data={'comment': 'Comment1'})
+        self.client.post(reverse('learn.right'), data={'comment': 'Comment2'})
+
+        comment1 = Discussion.objects.get(content='Comment1')
+        comment2 = Discussion.objects.get(content='Comment2')
+
+        resp = self.client.get(reverse('learn.right'))
+        resp = self.assertContains(resp, 'like-empty', count=2)
+
+        self.client.post(reverse('learn.right'), data={'like': comment1.id})
+        resp = self.client.get(reverse('learn.right'))
+        self.assertContains(resp, 'like-empty', count=1)
+        self.assertContains(resp, 'like-full', count=1)
+
+        self.client.post(reverse('learn.right'), data={'like': comment1.id, 'has_liked': True})
+        resp = self.client.get(reverse('learn.right'))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        self.client.post(reverse('learn.right'), data={'like': comment1.id})
+        self.client.post(reverse('learn.right'), data={'like': comment2.id})
+        resp = self.client.get(reverse('learn.right'))
+        self.assertContains(resp, 'like-empty', count=0)
+        self.assertContains(resp, 'like-full', count=2)
+
+    def test_discussion_like_multiple(self):
+        # login user and create comments
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        question = create_test_question('Question 1', self.module, state=TestingQuestion.PUBLISHED)
+        option_right = create_test_question_option('Question 1 Right', question, correct=True)
+        option_wrong = create_test_question_option('Question 1 Wrong', question, correct=False)
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': option_right.id}, follow=True)
+        self.client.post(reverse('learn.right'), data={'comment': 'Comment1'})
+        self.client.post(reverse('learn.right'), data={'comment': 'Comment2'})
+        comment1 = Discussion.objects.get(content='Comment1')
+        comment2 = Discussion.objects.get(content='Comment2')
+
+        # create extra test commenters
+        num_learners = 5
+        learners = []
+        participants = []
+        for i in xrange(num_learners):
+            l = create_learner(
+                self.school,
+                username="+2712345{0:04d}".format(i),
+                mobile="+2712345{0:04d}".format(i),
+                country="country",
+                area="Test_Area",
+                unique_token='abc{0:03d}'.format(i),
+                unique_token_expiry=datetime.now() + timedelta(days=30),
+                is_staff=True)
+            learners += [l]
+
+            p = create_participant(l, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+            participants += [p]
+
+        resp = self.client.get(reverse('learn.right'))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        # login and like with test commenters
+        for i in xrange(num_learners):
+            success = i % 2 == 0
+            success_page = 'learn.right' if success else 'learn.wrong'
+            self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+            self.client.get(reverse('learn.next'))
+            self.client.post(reverse('learn.next'),
+                             data={'answer': option_right.id if success else option_wrong.id},
+                             follow=True)
+            self.client.post(reverse(success_page), data={'like': comment1.id})
+            self.client.get(reverse(success_page))
+        resp = self.client.get(reverse('learn.right'), follow=True)
+        self.assertContains(resp, 'like-empty', count=1)
+        self.assertContains(resp, 'like-full', count=1)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+
+        # login and unlike with test commenters
+        for i in xrange(num_learners):
+            success = i % 2 == 0
+            success_page = 'learn.right' if success else 'learn.wrong'
+            self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+            self.client.post(reverse(success_page),
+                             data={'like': comment1.id,
+                                   'has_liked': True})
+        # for i in xrange(num_learners):
+        #     self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+        #     self.client.get(reverse('learn.right'))
+        #     self.client.post(reverse('learn.right'), data={'like': comment1.id, 'has_liked': True})
+        #     self.client.get(reverse('learn.right'))
+        resp = self.client.get(reverse('learn.right'), follow=True)
         self.assertContains(resp, 'like-empty', count=2)
         self.assertContains(resp, 'like-full', count=0)
         self.assertContains(resp, '&nbsp;0', count=2)
