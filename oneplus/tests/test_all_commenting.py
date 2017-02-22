@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils import timezone
 from auth.models import Learner
-from communication.models import CoursePostRel, Post, PostComment
+from communication.models import CoursePostRel, ChatGroup, ChatMessage, Post, PostComment
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantRedoQuestionAnswer
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
@@ -371,6 +371,116 @@ class TestCommentLikes(TestCase):
                                    'has_liked': True})
             self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
         resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+        self.assertContains(resp, '&nbsp;0', count=2)
+
+    def test_chat_like(self):
+        # User logs in to test commenting
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        # create post and comments
+        chatgroup = ChatGroup.objects.create(name="Chat Group", course=self.course)
+        self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'comment': 'Comment1'})
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'comment': 'Comment2'})
+
+        comment1 = ChatMessage.objects.get(content='Comment1')
+        comment2 = ChatMessage.objects.get(content='Comment2')
+
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'like': comment1.id})
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=1)
+        self.assertContains(resp, 'like-full', count=1)
+
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'like': comment1.id,
+                               'has_liked': True})
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'like': comment1.id})
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'like': comment2.id})
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=0)
+        self.assertContains(resp, 'like-full', count=2)
+
+    def test_chat_like_multiple(self):
+        # login user and create comments
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        chatgroup = ChatGroup.objects.create(name="Chat Group", course=self.course)
+        self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'comment': 'Comment1'})
+        self.client.post(reverse('com.chat',
+                                 kwargs={'chatid': chatgroup.id}),
+                         data={'comment': 'Comment2'})
+        comment1 = ChatMessage.objects.get(content='Comment1')
+        comment2 = ChatMessage.objects.get(content='Comment2')
+
+        # create extra test commenters
+        num_learners = 5
+        learners = []
+        participants = []
+        for i in xrange(num_learners):
+            l = create_learner(
+                self.school,
+                username="+2712345{0:04d}".format(i),
+                mobile="+2712345{0:04d}".format(i),
+                country="country",
+                area="Test_Area",
+                unique_token='abc{0:03d}'.format(i),
+                unique_token_expiry=datetime.now() + timedelta(days=30),
+                is_staff=True)
+            learners += [l]
+
+            p = create_participant(l, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+            participants += [p]
+
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=2)
+        self.assertContains(resp, 'like-full', count=0)
+
+        # login and like with test commenters
+        for i in xrange(num_learners):
+            self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+            self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+            self.client.post(reverse('com.chat',
+                                     kwargs={'chatid': chatgroup.id}),
+                             data={'like': comment1.id})
+            self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        self.assertContains(resp, 'like-empty', count=1)
+        self.assertContains(resp, 'like-full', count=1)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+
+        # login and unlike with test commenters
+        for i in xrange(num_learners):
+            self.client.get(reverse('auth.autologin', kwargs={'token': learners[i].unique_token}))
+            self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+            self.client.post(reverse('com.chat',
+                                     kwargs={'chatid': chatgroup.id}),
+                             data={'like': comment1.id,
+                                   'has_liked': True})
+            self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
+        resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
         self.assertContains(resp, 'like-empty', count=2)
         self.assertContains(resp, 'like-full', count=0)
         self.assertContains(resp, '&nbsp;0', count=2)
