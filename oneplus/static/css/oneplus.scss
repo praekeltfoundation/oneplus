@@ -261,18 +261,18 @@ form.no-pad {
 
 .link-bar {
   list-style-type: none;
-  margin: 0;
+  margin: 0.5em 0;
   padding: 0;
   overflow: hidden;
 
   li {
     display: inline;
-    height: 48px;
-    padding: 0.5em;
+    padding: 0.5em 0.5em 0.5em 0;
     vertical-align: middle;
 
     a {
       display: inline-block;
+      padding-bottom: 0.25em;
     }
   }
 }
@@ -931,6 +931,14 @@ p a { display: inline;}
     background-position: 50% 50%;
 }
 
+.share-icon {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
 li.chat {
     background-image: url("../img/chat_groups_icon.png");
 }
@@ -967,12 +975,18 @@ li.forward {
   background-image: url("../img/arrow_forward_icon.png");
 }
 
-.icon.fb-logo {
-  background-image: url("../img/fb_logo_blue_icon.png");
-}
+.icon, .share-icon {
+  &.fb-logo {
+    background-image: url("../img/fb_logo_blue_icon.png");
+  }
 
-.icon.wa-logo {
-  background-image: url("../img/wa_logo_green_icon.png");
+  &.tw-logo {
+    background-image: url("../img/tw_logo_blue_icon.png");
+  }
+
+  &.wa-logo {
+    background-image: url("../img/wa_logo_green_icon.png");
+  }
 }
 
 li.badges {
