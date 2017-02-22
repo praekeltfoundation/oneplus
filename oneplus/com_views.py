@@ -285,6 +285,11 @@ def chat(request, state, user, chatid):
 
         _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
+
+        for msg in _messages:
+            msg.like_count = ChatMessageLike.count_likes(msg)
+            msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
+
         return render(
             request,
             "com/chat.html",
@@ -512,6 +517,10 @@ def blog(request, participant, state, user, blogid):
             min(5, request.session["state"]["post_page_max"])
 
         post_comments = post_comments.order_by("-publishdate")[:request.session["state"]["post_page"]]
+
+        for comment in post_comments:
+            comment.like_count = PostCommentLike.count_likes(comment)
+            comment.has_liked = PostCommentLike.has_liked(_usr, comment)
 
         return render(
             request,

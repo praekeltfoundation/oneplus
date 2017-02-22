@@ -661,6 +661,10 @@ def redo_right(request, state, user, participant):
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
             return render(
                 request,
                 "learn/redo_right.html",
@@ -832,6 +836,10 @@ def redo_wrong(request, state, user, participant):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -1650,6 +1658,10 @@ def right(request, state, user, participant):
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
             return render(
                 request,
                 "learn/right.html",
@@ -1822,6 +1834,10 @@ def wrong(request, state, user, participant):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
@@ -2237,6 +2253,10 @@ def report_question(request, state, user, participant, questionid, frm):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return HttpResponseRedirect('/' + frm,
                                         {
