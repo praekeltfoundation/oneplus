@@ -1062,6 +1062,9 @@ li.forward {
 .icon.wa-logo {
   background-image: url("../img/wa_logo_green_icon.png"); }
 
+.icon.home {
+  background-image: url("../img/icn_home_32.png"); }
+
 li.badges {
   background-image: url("../img/icn_badges.png"); }
 
