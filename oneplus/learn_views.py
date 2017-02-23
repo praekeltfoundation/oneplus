@@ -1702,16 +1702,18 @@ def wrong(request, state, user, participant):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(
+            course=_participant.classs.course,
+            question=_learnerstate.active_question,
+            moderated=True,
+            unmoderated_date=None,
+            reply=None
+        )
+
     def get():
         if not _learnerstate.active_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_message_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -1816,6 +1818,7 @@ def wrong(request, state, user, participant):
                 post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
                 if post_comment is not None:
                     report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.wrong"))
 
             elif "like" in request.POST.keys():
                 discussion_id = request.POST["like"]
@@ -1827,17 +1830,16 @@ def wrong(request, state, user, participant):
                         DiscussionLike.like(_usr, comment)
                     return redirect("learn.wrong")
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = retrieve_message_objects()\
+                .order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             for comment in _messages:
                 comment.like_count = DiscussionLike.count_likes(comment)
                 comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            request.session["state"]["discussion_page_max"] = _messages.count()
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
 
             return render(
                 request,
