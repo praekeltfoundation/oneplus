@@ -82,8 +82,10 @@
             </li>
             <script>
                 var jsRequiredClasses = document.querySelectorAll(".js-required");
-                for(var counter in jsRequiredClasses){
-                        jsRequiredClasses[counter].style["display"] = 'inline-block';
+                if (jsRequiredClasses) {
+                    for (var counter = 0; counter < jsRequiredClasses.length; counter++) {
+                            jsRequiredClasses[counter].style["display"] = 'inline-block';
+                    }
                 }
             </script>
         </ul>
