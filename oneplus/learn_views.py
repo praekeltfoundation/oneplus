@@ -521,24 +521,22 @@ def redo_right(request, state, user, participant):
     _usr = Learner.objects.get(pk=user["id"])
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        Discussion.objects.filter(
+            course=_participant.classs.course,
+            question=_learnerstate.redo_question,
+            moderated=True,
+            unmoderated_date=None,
+            reply=None
+        )
+
     def get():
         if _learnerstate.active_redo_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
-
+            all_messages = retrieve_message_objects()
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
-            messages.add_message(request, messages.SUCCESS,
-                                 "Thank you for your contribution. Your message will display shortly! "
-                                 "If not already")
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
@@ -653,13 +651,7 @@ def redo_right(request, state, user, participant):
                         DiscussionLike.like(_usr, comment)
                     return redirect("learn.redo_right")
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = retrieve_message_objects().order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             for comment in _messages:
                 comment.like_count = DiscussionLike.count_likes(comment)
@@ -702,16 +694,18 @@ def redo_wrong(request, state, user, participant):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        Discussion.objects.filter(
+            course=_participant.classs.course,
+            question=_learnerstate.redo_question,
+            moderated=True,
+            unmoderated_date=None,
+            reply=None
+        )
+
     def get():
         if not _learnerstate.active_redo_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_message_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -799,6 +793,7 @@ def redo_wrong(request, state, user, participant):
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
+                return redirect(reverse("learn.redo_wrong"))
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
@@ -829,13 +824,7 @@ def redo_wrong(request, state, user, participant):
                         DiscussionLike.like(_usr, comment)
                     return redirect("learn.redo_wrong")
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = retrieve_message_objects().order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             for comment in _messages:
                 comment.like_count = DiscussionLike.count_likes(comment)
