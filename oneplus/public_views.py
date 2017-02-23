@@ -8,6 +8,7 @@ from core.models import Participant, ParticipantBadgeTemplateRel
 from gamification.models import GamificationBadgeTemplate
 from oneplus.auth_views import resolve_http_method
 from oneplus.views import oneplus_check_user
+from django.core.urlresolvers import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,8 @@ def badges(request, state, user):
             else:
                 fb['description'] = 'Anon has earned the {0:s} badge on dig-it!'.format(badge.name)
 
+        share_url = '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), participant.id, badge.id)
+
         return render(request,
                       template_name='public/public_badge.html',
                       dictionary={'fb': fb,
@@ -63,6 +66,7 @@ def badges(request, state, user):
                                   'learner': learner,
                                   'participant': participant,
                                   'state': state,
+                                  'share_url': share_url,
                                   'user': user})
 
     return resolve_http_method(request, [get])

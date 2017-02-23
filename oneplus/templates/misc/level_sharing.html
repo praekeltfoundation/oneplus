@@ -1,8 +1,8 @@
 {% extends "core/main.html" %}
 
-{% block title %}Change Profile{% endblock %}
+{% block title %}Level{% endblock %}
 
-{% block page_descriptor_text %}Profile{% endblock %}
+{% block page_descriptor_text %}Share Level{% endblock %}
 
 {% block content %}
     {% load oneplus_extras %}
@@ -30,27 +30,45 @@
         </article>
 
         <article class="card border-color-accent">
-            <section class="top">
+            <section class="center-font top">
                 <div>Share this with your friends and family:</div>
-                <ul class="center-font">
-                    <li id="fb-share-level" style="display:none">
-                        <a class="vert-center center-font"
+                <ul class="center-font inline">
+                    <li class="js-required should-block" id="fb-share-badge" style="display:none">
+                        <a class="vert-center"
                            href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT |urlencode:'' }}{{ share_url|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}">
                             <span class="icon fb-logo vert-center" style="margin:-6px"></span>Share on Facebook
                         </a>
-                        <script>document.getElementById("fb-share-level").style.display = "block";</script>
+                    </li>
+                    <li class="js-required should-block" style="display:none">
+                        <a class="vert-center" href="https://twitter.com/intent/tweet?text={{ "I earned a badge on Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" src="">
+                            <span class="icon tw-logo vert-center" style="margin:-6px"></span>Share on Twitter
+                        </a>
+                    </li>
+                    <li class="js-required should-block" style="display:none">
+                        <a class="vert-center" href="https://plus.google.com/share?url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" onclick="javascript:window.open(this.href,
+                          '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                          <span class="icon gp-logo vert-center" style="margin:-6px"></span>Share on Google plus
+                        </a>
                     </li>
                     <li id="wa-share-badge">
-                        <a class="vert-center center-font"
-                           href="whatsapp://send?text={{ "Here's my level on dig-it! "|urlencode }}{{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}">
+                        <a class="vert-center"
+                           href="whatsapp://send?text={{ 'I earned a badge on dig-it! '|urlencode }}{{ FB_REDIRECT |urlencode:'' }}{{ share_url|urlencode:'' }}">
                             <span class="icon wa-logo vert-center" style="margin:-6px"></span>Share on WhatsApp
                         </a>
                     </li>
                     <li class="center-font">
-                        <a href="{% url 'public:level'%}?p={{ participant.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
-                        <input type="text" value="{{ FB_REDIRECT|urlencode:':/' }}{% url 'public:level'%}?p={{ participant.id }}" />
+                        <a href="{% url 'public:badges'%}?p={{ participant.id }}&b={{ badge.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
                     </li>
+                    <script>
+                        var jsRequiredClasses = document.querySelectorAll(".js-required.should-block");
+                        if (jsRequiredClasses) {
+                            for (var counter = 0; counter < jsRequiredClasses.length; counter++) {
+                                    jsRequiredClasses[counter].style["display"] = 'block';
+                            }
+                        }
+                    </script>
                 </ul>
+                <input type="text" value="{{ FB_REDIRECT|urlencode:':/' }}{% url 'share:level'%}?p={{ participant.id }}" />
             </section>
         </article>
     </article>

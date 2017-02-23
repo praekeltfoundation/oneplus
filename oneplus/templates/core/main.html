@@ -57,18 +57,18 @@
         </ul>
         <ul class="link-bar">
             <li class="vert-center"><div>Tell your friends about us!</div></li>
-            <li class="js-required" style="display:none">
+            <li class="js-required should-inline-block" style="display:none">
                 <a class="footer-link vert-center"
                         href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
                     <div class="share-icon fb-logo vert-center"></div>
                 </a>
             </li>
-            <li class="js-required" style="display:none">
+            <li class="js-required should-inline-block" style="display:none">
                 <a href="https://twitter.com/intent/tweet?text={{ "Check out Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}" src="">
                     <div class="share-icon tw-logo vert-center"></div>
                 </a>
             </li>
-            <li class="js-required" style="display:none">
+            <li class="js-required should-inline-block" style="display:none">
                 <a href="https://plus.google.com/share?url={{ FB_REDIRECT|urlencode:'' }}" onclick="javascript:window.open(this.href,
                   '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
                     <img class="share-icon vert-center" src="https://www.gstatic.com/images/icons/gplus-32.png"
@@ -81,7 +81,7 @@
                 </a>
             </li>
             <script>
-                var jsRequiredClasses = document.querySelectorAll(".js-required");
+                var jsRequiredClasses = document.querySelectorAll(".js-required.should-inline-block");
                 if (jsRequiredClasses) {
                     for (var counter = 0; counter < jsRequiredClasses.length; counter++) {
                             jsRequiredClasses[counter].style["display"] = 'inline-block';
