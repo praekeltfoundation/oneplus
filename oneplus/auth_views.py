@@ -21,7 +21,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_school_confirm,  validate_profile_form
+    validate_sign_up_form_school_confirm,  validate_profile_form, validate_accept_terms_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -997,7 +997,9 @@ def accept_terms(request, state, user):
         return render(request, "auth/accept_terms.html", {"state": state, "user": user})
 
     def post():
-        if 'terms' in request.POST.keys() and request.POST['terms']:
+        data, errors = validate_accept_terms_form()
+
+        if errors is None:
             learner = Learner.objects.get(id=user['id'])
             learner.terms_accept = True
             learner.save()

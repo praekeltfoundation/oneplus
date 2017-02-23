@@ -1,9 +1,13 @@
-from django.test import TestCase
+from django.core.urlresolvers import reverse
 from django.conf import settings
 from core.common import PROVINCES
-from organisation.models import Course, Organisation, School
 from oneplus.validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_school_confirm
+    validate_sign_up_form_school_confirm, validate_accept_terms_form
+from datetime import datetime, timedelta
+from auth.models import Learner
+from core.models import Class, Participant
+from django.test import TestCase
+from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 
 
 def create_course(name="course name", **kwargs):
@@ -19,8 +23,55 @@ def create_school(name, organisation, **kwargs):
         name=name, organisation=organisation, **kwargs)
 
 
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
+
+
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
+
+
+def create_learner(school, **kwargs):
+    if 'grade' not in kwargs:
+        kwargs['grade'] = 'Grade 11'
+    if 'accept_terms' not in kwargs:
+        kwargs['terms_accept'] = True
+    return Learner.objects.create(school=school, **kwargs)
+
+
+def create_participant(learner, classs, **kwargs):
+    participant = Participant.objects.create(
+        learner=learner, classs=classs, **kwargs)
+    return participant
+
+
 # @override_settings(GRADE_11_COURSE_NAME='Gr 11 Course')
 class ValidatorTests(TestCase):
+
+    def setUp(self):
+
+            self.course = create_course()
+            self.classs = create_class('class name', self.course)
+            self.organisation = create_organisation()
+            self.school = create_school('school name', self.organisation)
+            self.learner = create_learner(
+                self.school,
+                username="+27123456789",
+                mobile="+27123456789",
+                country="country",
+                area="Test_Area",
+                unique_token='abc123',
+                unique_token_expiry=datetime.now() + timedelta(days=30),
+                is_staff=False,
+                terms_accept=False)
+            self.participant = create_participant(
+                self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+            self.module = create_module('module name', self.course)
+
     def test_validate_mobile(self):
         v_mobile_1 = "0721234567"
         v_mobile_1 = validate_mobile(v_mobile_1)
@@ -119,3 +170,40 @@ class ValidatorTests(TestCase):
         data, errors = validate_sign_up_form_school_confirm(req)
         self.assertDictContainsSubset(req, data)
         self.assertDictEqual(errors, {})
+
+    def test_validate_accept_terms_and_conditions(self):
+        # Test unchecked terms
+        req = {"terms": False}
+        data, errors = validate_sign_up_form(req)
+        self.assertDictContainsSubset({"terms_errors": "You must accept the terms and conditions to continue."}, errors)
+
+        # Test correct data
+        req = {"first_name": "Blarg", "surname": "Honk", "cellphone": "0123456789", "terms": "True"}
+        data, errors = validate_sign_up_form(req)
+        self.assertDictContainsSubset(req, data)
+        self.assertDictEqual(errors, {})
+
+    def test_validate_accept_terms_and_conditions_after_redirect(self):
+        # Test unchecked terms
+        req = {"terms": False}
+        data, errors = validate_accept_terms_form(req)
+        self.assertDictContainsSubset({"terms_errors": "You must accept the terms and conditions to continue."}, errors)
+
+        # Test correct data
+        req = {"terms": "True"}
+        data, errors = validate_accept_terms_form(req)
+        self.assertDictContainsSubset(req, data)
+        self.assertDictEqual(errors, {})
+
+    def test_user_redirect_because_of_accept_terms(self):
+        # Expect to be redirected to auth.accept_terms.html
+        self.learner.terms_accept = False
+        self.learner.save()
+        resp = self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}), follow=True)
+        self.assertRedirects(resp, reverse('auth.accept_terms'))
+
+        # Expect there to be no redirect and just go straight to /home
+        self.learner.terms_accept = True
+        self.learner.save()
+        resp = self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}), follow=True)
+        self.assertRedirects(resp, reverse('learn.home'))

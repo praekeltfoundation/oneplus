@@ -5,7 +5,6 @@ from auth.models import Learner
 from content.models import TestingQuestion, TestingQuestionOption
 from core.models import Participant, ParticipantQuestionAnswer, Class, ParticipantRedoQuestionAnswer
 from django.test import TestCase
-from django.core.urlresolvers import reverse
 from django.test.utils import override_settings
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
 from oneplus.models import LearnerState
