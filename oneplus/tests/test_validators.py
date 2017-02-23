@@ -109,11 +109,12 @@ class ValidatorTests(TestCase):
         self.assertDictEqual(errors, {
             "first_name_error": "This must be completed",
             "surname_error": "This must be completed",
-            "cellphone_error": "This must be completed"
+            "cellphone_error": "This must be completed",
+            "terms_errors": "You must accept the terms and conditions to continue."
         })
 
         # Test correct data
-        req = {"first_name": "Blarg", "surname": "Honk", "cellphone": "0123456789"}
+        req = {"first_name": "Blarg", "surname": "Honk", "cellphone": "0123456789", 'terms': True}
         data, errors = validate_sign_up_form(req)
         self.assertDictEqual(req, data)
         self.assertDictEqual(errors, {})

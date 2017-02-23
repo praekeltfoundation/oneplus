@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from organisation.models import Module, CourseModuleRel, School, Course, Organisation
 from oneplus.models import LearnerState
+from django.core.urlresolvers import reverse
 
 
 def create_test_question(name, module, **kwargs):
@@ -17,6 +18,8 @@ def create_test_question(name, module, **kwargs):
 def create_learner(school, **kwargs):
     if 'grade' not in kwargs:
         kwargs['grade'] = 'Grade 11'
+    if 'terms_accept' not in kwargs:
+        kwargs['terms_accept'] = True
     return Learner.objects.create(school=school, **kwargs)
 
 
