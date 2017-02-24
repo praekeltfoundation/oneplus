@@ -9,7 +9,7 @@
         <h1>Chat with your grade about maths</h1>
 
         <div class="comment-list">
-            {% for msg in messages %}
+            {% for msg in chat_messages %}
                 {% if msg.moderated %}
                     <div class="item-large">
                         <div>
@@ -17,13 +17,21 @@
                         </div>
                         {% if  msg.unmoderated_date == None %}
                             <p>{{ msg.content }}</p>
-                            {% if ONEPLUS_278 %}
-                                <form class="pull-up" name="report_comment" method="post" action="?">
-                                    {% csrf_token %}
-                                    <button class="link color-accent stack-horz" type="submit" name="report_button" value="">Report Comment</button>
-                                    <input type="hidden" name="report" value="{{ msg.id }}" />
-                                </form>
-                            {% endif %}
+                            <form class="pull-up inline" name="report_comment" method="post" action="?">
+                                {% csrf_token %}
+                                <input type="hidden" name="like" value="{{ msg.id }}" />
+                                {% if msg.has_liked %}
+                                    <input type="hidden" name="has_liked" value="true" />
+                                {% endif %}
+                                <button type="submit" name="like_button" class="link stack-horz vert-align">
+                                    <div class="small-icon{% if msg.has_liked  %} like-full{% else %} like-empty{% endif %} vert-align"></div>&nbsp;{{ msg.like_count }}
+                                </button>
+                            </form>
+                            <form class="pull-up inline" name="report_comment" method="post" action="?">
+                                {% csrf_token %}
+                                <button class="link stack-horz" type="submit" name="report_button" value="">Report</button>
+                                <input type="hidden" name="report" value="{{ msg.id }}" />
+                            </form>
                         {% else %}
                             <p class="red-front">{{ msg.content }}</p>
                         {% endif %}

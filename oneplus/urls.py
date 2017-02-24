@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^terms$', oneplus.misc_views.terms, name="misc.terms"),
 
     # Auth
-    url(r"^login$", oneplus.auth_views.login, name="auth.login"),
+    url(r"^login/?$", oneplus.auth_views.login, name="auth.login"),
     url(r"^signout$", oneplus.auth_views.signout, name="auth.signout"),
     url(r"^getconnected$", oneplus.auth_views.getconnected, name="auth.getconnected"),
     url(r"^a/(?P<token>\S+)$", oneplus.auth_views.autologin, name="auth.autologin"),

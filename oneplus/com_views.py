@@ -9,7 +9,8 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from datetime import datetime
 from django.utils import timezone
-from communication.models import Ban, ChatGroup, ChatMessage, CoursePostRel, Message, Post, PostComment, SmsQueue, Sms
+from communication.models import Ban, ChatGroup, ChatMessage, ChatMessageLike, CoursePostRel, Message, Post,\
+    PostComment, PostCommentLike, SmsQueue, Sms
 from core.models import Class, Course, Learner, Participant
 from .validators import validate_content, validate_course, validate_date_and_time, validate_direction, \
     validate_message, validate_name, validate_publish_date_and_time, validate_to_class, validate_to_course, \
@@ -220,12 +221,19 @@ def chat(request, state, user, chatid):
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
+        _messages = _group.chatmessage_set.filter(moderated=True,
+                                                  unmoderated_date=None,
+                                                  publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
+
+        for msg in _messages:
+            msg.like_count = ChatMessageLike.count_likes(msg)
+            msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
+
         return render(request, "com/chat.html", {"state": state,
                                                  "user": user,
                                                  "group": _group,
-                                                 "messages": _messages})
+                                                 "chat_messages": _messages})
 
     def post():
         # new comment created
@@ -238,8 +246,17 @@ def chat(request, state, user, chatid):
                 publishdate=datetime.now(),
                 moderated=True
             )
-            _message.save()
-            _content_profanity_check(_message)
+
+            if _content_profanity_check(_message):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _message.unmoderated_date = datetime.now()
+            else:
+                messages.add_message(request, messages.SUCCESS,
+                                     "Thank you for your contribution. Your message will display shortly! "
+                                     "If not already")
+
+                _message.save()
             request.session["state"]["chat_page_max"] += 1
 
         # show more comments
@@ -256,8 +273,23 @@ def chat(request, state, user, chatid):
             if msg is not None:
                 report_user_post(msg, _usr, 3)
 
+        elif "like" in request.POST.keys():
+            message_id = request.POST["like"]
+            chat_message = ChatMessage.objects.filter(id=message_id).first()
+            if chat_message is not None:
+                if "has_liked" in request.POST.keys():
+                    ChatMessageLike.unlike(_usr, chat_message)
+                else:
+                    ChatMessageLike.like(_usr, chat_message)
+                return redirect("com.chat", chatid=chatid)
+
         _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
+
+        for msg in _messages:
+            msg.like_count = ChatMessageLike.count_likes(msg)
+            msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
+
         return render(
             request,
             "com/chat.html",
@@ -265,7 +297,7 @@ def chat(request, state, user, chatid):
                 "state": state,
                 "user": user,
                 "group": _group,
-                "messages": _messages
+                "chat_messages": _messages
             }
         )
 
@@ -277,7 +309,8 @@ def blog_hero(request, state, user, participant):
     # get blog entry
     dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt)\
+        .values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] = Post.objects.filter(
         id__in=post_list
     ).count()
@@ -316,7 +349,8 @@ def blog_list(request, state, user, participant):
     # get blog entry
     dt = timezone.now()
     _course = participant.classs.course
-    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt).values_list('post__id', flat=True)
+    post_list = CoursePostRel.objects.filter(course=_course, post__publishdate__lt=dt)\
+        .values_list('post__id', flat=True)
     request.session["state"]["blog_page_max"] \
         = Post.objects.filter(id__in=post_list).count()
 
@@ -395,18 +429,22 @@ def blog(request, participant, state, user, blogid):
 
     allow_commenting = latest and (_post.id == latest.id)
 
+    def retrieve_comment_objects():
+        return PostComment.objects.filter(post=_post, unmoderated_date=None, moderated=True)
+
     def get():
-        request.session["state"]["post_page_max"] = \
-            PostComment.objects.filter(
-                post=_post,
-                moderated=True
-            ).count()
+        all_messages = retrieve_comment_objects()
+
+        request.session["state"]["post_page_max"] = all_messages.count()
 
         request.session["state"]["post_page"] = \
             min(5, request.session["state"]["post_page_max"])
 
-        post_comments = PostComment.objects.filter(post=_post, moderated=True) \
-            .order_by("-publishdate")[:request.session["state"]["post_page"]]
+        post_comments = all_messages.order_by("-publishdate")[:request.session["state"]["post_page"]]
+
+        for comment in post_comments:
+            comment.like_count = PostCommentLike.count_likes(comment)
+            comment.has_liked = PostCommentLike.has_liked(_usr, comment)
 
         return render(
             request,
@@ -421,6 +459,8 @@ def blog(request, participant, state, user, blogid):
         )
 
     def post():
+        post_comments = retrieve_comment_objects()
+
         if "comment" in request.POST.keys() and request.POST["comment"] != "":
             _comment = request.POST["comment"]
 
@@ -433,13 +473,21 @@ def blog(request, participant, state, user, blogid):
                     publishdate=datetime.now(),
                     moderated=True
                 )
+
+                if _content_profanity_check(_post_comment):
+                    messages.add_message(request, messages.WARNING,
+                                         "Your message may contain profanity and has been submitted for review")
+                    _post_comment.unmoderated_date = datetime.now()
+                else:
+                    messages.add_message(request, messages.SUCCESS,
+                                         "Thank you for your contribution. Your message will display shortly! "
+                                         "If not already")
+
                 _post_comment.save()
-                messages.add_message(request, messages.SUCCESS,
-                                     "Thank you for your contribution. Your message will display shortly! "
-                                     "If not already")
-                _content_profanity_check(_post_comment)
+
                 request.session["state"]["post_comment"] = True
                 return redirect('com.blog', blogid)
+
         elif "page" in request.POST.keys():
             request.session["state"]["post_page"] += 5
             if request.session["state"]["post_page"] > request.session["state"]["post_page_max"]:
@@ -451,8 +499,28 @@ def blog(request, participant, state, user, blogid):
             if post_comment is not None:
                 report_user_post(post_comment, _usr, 1)
 
-        post_comments = PostComment.objects \
-            .filter(post=_post, moderated=True).order_by("-publishdate")[:request.session["state"]["post_page"]]
+        elif "like" in request.POST.keys():
+            post_id = request.POST["like"]
+            post_comment = PostComment.objects.filter(id=post_id).first()
+            if post_comment is not None:
+                if "has_liked" in request.POST.keys():
+                    PostCommentLike.unlike(_usr, post_comment)
+                else:
+                    PostCommentLike.like(_usr, post_comment)
+                return redirect("com.blog", blogid=blogid)
+
+        post_comments = retrieve_comment_objects()
+
+        request.session["state"]["post_page_max"] = post_comments.count()
+
+        request.session["state"]["post_page"] = \
+            min(5, request.session["state"]["post_page_max"])
+
+        post_comments = post_comments.order_by("-publishdate")[:request.session["state"]["post_page"]]
+
+        for comment in post_comments:
+            comment.like_count = PostCommentLike.count_likes(comment)
+            comment.has_liked = PostCommentLike.has_liked(_usr, comment)
 
         return render(
             request,
