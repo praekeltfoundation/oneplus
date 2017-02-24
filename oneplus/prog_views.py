@@ -79,6 +79,7 @@ def leader(request, state, user, participant):
             more = False
             if score['num_participants'] >= max_uncollapsed:
                 more = True
+
             if participant.points == score['points']:
                 p_me = eligible_participants.filter(id=participant.id)\
                     .values('id', 'learner__first_name', 'learner__last_name')
@@ -103,32 +104,48 @@ def leader(request, state, user, participant):
         return {'board': leaderboard, 'position': position}
 
     def get_school_leaderboard():
-        leaderboard = School.objects.filter(learner__grade=_participant.learner.grade,
-                                            learner__participant__is_active=True)\
+        schools = School.objects.filter(learner__grade=_participant.learner.grade,
+                                        learner__participant__is_active=True)\
             .values('id', 'name')\
             .annotate(points=Sum('learner__participant__points'))\
+            .filter(points__gt=0)\
             .order_by('-points', 'name')
 
-        schools = []
-        position = None
-        position_counter = 0
-        for a in leaderboard:
-            position_counter += 1
-            school = {
-                "id": a['id'],
-                "name": a['name'],
-                "points": a['points'],
-                "position": position_counter}
-            if a['id'] == _participant.learner.school_id:
-                school['me'] = True
-                position = position_counter
-            if school["points"] > 0:
-                schools.append(school)
+        my_school = schools.get(id=participant.learner.school.id)
+        position = schools.filter(points__gt=my_school['points']).count() + 1
 
-            if position is not None and position_counter >= 10:
-                break
+        scores = schools\
+            .values_list('points', flat=True)\
+            .distinct()
 
-        return {'board': schools[:10], 'position': position}
+        leaderboard = []
+        for score in scores:
+            more = False
+
+            if my_school['points'] == score:
+                p_me = schools.filter(id=participant.learner.school.id)\
+                    .values('id', 'name', 'points')
+                p_list = schools.filter(points=score)\
+                    .values('id', 'name', 'points')[:max_uncollapsed - 1]
+                p_list = p_me | p_list
+            else:
+                p_list = schools.filter(points=score)\
+                    .values('id', 'name', 'points')[:max_uncollapsed + 1]
+                if p_list.count() >= max_uncollapsed:
+                    more = True
+                    p_list = p_list[:-1]
+
+            members = [{'me': (a['id'] == participant.learner.school.id),
+                        'name': a['name']} for a in p_list]
+
+            if len(members) > 0:
+                members[0]['position'] = schools.filter(points__gt=score).count() + 1
+
+            leaderboard += [
+                {'members': members,
+                 'points': score}]
+
+        return {'board': leaderboard, 'position': position}
 
     def get_national_leaderboard():
         leaderboard = Participant.objects.filter(learner__grade=_participant.learner.grade, is_active=True) \
