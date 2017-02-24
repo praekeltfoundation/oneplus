@@ -364,6 +364,7 @@ def nextchallenge(request, state, user, participant):
 
             _learner_level_after, _threshold = _participant.calc_level()
             _learner_leveled = False
+            _learner_level_after = 6
             if _learner_level_after > _learner_level_before:
                 _learner_leveled = True
             # Update metrics
@@ -374,14 +375,7 @@ def nextchallenge(request, state, user, participant):
             except Exception as e:
                 pass
 
-            # Check for awards
-
-            if _learner_leveled:
-                _participant.award_scenario(
-                    "LEVELED",
-                    _learnerstate.active_question.module,
-                    special_rule=True
-                )
+            # Check for award
 
             if _option.correct:
 
@@ -438,6 +432,19 @@ def nextchallenge(request, state, user, participant):
                         and len([i for i in last_5 if i.correct]) == 5:
                     _participant.award_scenario(
                         "5_CORRECT_RUNNING",
+                        _learnerstate.active_question.module,
+                        special_rule=True
+                    )
+
+                level_badge_names = ['Level {0:d}'.format(i) for i in xrange(1, settings.MAX_LEVEL + 1)]
+                search_badges = level_badge_names[:_learner_level_after]
+
+                badges_earned = GamificationBadgeTemplate.objects.filter(name__in=search_badges)\
+                    .exclude(participantbadgetemplaterel__participant_id=participant.id)
+
+                for badge in badges_earned:
+                    _participant.award_scenario(
+                        "LEVELED_TO_{0:s}".format(badge.name.split()[-1]),
                         _learnerstate.active_question.module,
                         special_rule=True
                     )
@@ -1418,23 +1425,18 @@ def get_event_points_awarded(participant):
 def get_badge_awarded(participant):
     # Get relevant badge related to scenario
     badgepoints = None
-    badge = ParticipantBadgeTemplateRel.objects.filter(
+    badges = ParticipantBadgeTemplateRel.objects.filter(
         participant=participant,
         awarddate__range=[
-            datetime.today() - timedelta(seconds=2),
+            datetime.today() - timedelta(seconds=10),
             datetime.today()
         ]
-    ).order_by('-awarddate').first()
+    ).order_by('badgetemplate__name')
 
-    if badge:
-        badgetemplate = badge.badgetemplate
-        badgepoints = GamificationScenario.objects.get(
-            badge__id=badgetemplate.id
-        ).point
-    else:
-        badgetemplate = None
-
-    return badgetemplate, badgepoints,
+    return [{
+        'badgetemplate': badge.badgetemplate,
+        'badgepoints': GamificationScenario.objects.get(badge__id=badge.badgetemplate.id).point
+    } for badge in badges]
 
 
 def get_golden_egg(participant):
@@ -1552,7 +1554,8 @@ def right(request, state, user, participant):
                 comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             # Get badge points
-            badge, badge_points = get_badge_awarded(_participant)
+            badge_objects = get_badge_awarded(_participant)
+            badges = [badge['badgetemplate'] for badge in badge_objects]
             points = get_points_awarded(_participant) + get_event_points_awarded(_participant)
             return render(
                 request,
@@ -1562,7 +1565,7 @@ def right(request, state, user, participant):
                     "user": user,
                     "question": _learnerstate.active_question,
                     "comment_messages": _messages,
-                    "badge": badge,
+                    "badges": badges,
                     "points": points,
                     "golden_egg": golden_egg
                 },
@@ -2155,7 +2158,7 @@ def sumit_end_page(request, state, user, participant):
         rel.sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         rel.results_received = True
         rel.save()
-        
+
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
             .aggregate(Sum('question__points'))['question__points__sum']
