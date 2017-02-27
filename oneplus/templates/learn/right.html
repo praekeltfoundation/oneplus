@@ -28,12 +28,14 @@
                 </div>
             </section>
         {% endif %}
-        {% if badge %}
+        {% if badges %}
             <section>
-                <div class="badge-layout">
-                {% if badge.image %}<span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>{% endif %}
-                <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
-                </div>
+                {% for badge in badges %}
+                    <div class="badge-layout">
+                    {% if badge.image %}<span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>{% endif %}
+                    <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
+                    </div>
+                {% endfor %}
             </section>
         {% endif %}
 

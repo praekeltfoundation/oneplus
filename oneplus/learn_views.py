@@ -357,6 +357,7 @@ def nextchallenge(request, state, user, participant):
 
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
+            _learner_level_before, _threshold = _participant.calc_level()
 
             # Answer question
             _participant.answer(_option.question, _option)
@@ -369,7 +370,8 @@ def nextchallenge(request, state, user, participant):
             except Exception as e:
                 pass
 
-            # Check for awards
+            # Check for award
+
             if _option.correct:
 
                 # Important
@@ -425,6 +427,20 @@ def nextchallenge(request, state, user, participant):
                         and len([i for i in last_5 if i.correct]) == 5:
                     _participant.award_scenario(
                         "5_CORRECT_RUNNING",
+                        _learnerstate.active_question.module,
+                        special_rule=True
+                    )
+
+                _learner_level_after, _threshold = _participant.calc_level()
+                level_badge_names = ['Level {0:d}'.format(i) for i in xrange(1, settings.MAX_LEVEL + 1)]
+                search_badges = level_badge_names[:_learner_level_after]
+
+                badges_earned = GamificationBadgeTemplate.objects.filter(name__in=search_badges)\
+                    .exclude(participantbadgetemplaterel__participant_id=participant.id)
+
+                for badge in badges_earned:
+                    _participant.award_scenario(
+                        "LEVELED_TO_{0:s}".format(badge.name.split()[-1]),
                         _learnerstate.active_question.module,
                         special_rule=True
                     )
@@ -521,24 +537,22 @@ def redo_right(request, state, user, participant):
     _usr = Learner.objects.get(pk=user["id"])
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(
+            course=_participant.classs.course,
+            question=_learnerstate.redo_question,
+            moderated=True,
+            unmoderated_date=None,
+            reply=None
+        )
+
     def get():
         if _learnerstate.active_redo_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
-
+            all_messages = retrieve_message_objects()
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
-            messages.add_message(request, messages.SUCCESS,
-                                 "Thank you for your contribution. Your message will display shortly! "
-                                 "If not already")
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
@@ -653,13 +667,7 @@ def redo_right(request, state, user, participant):
                         DiscussionLike.like(_usr, comment)
                     return redirect("learn.redo_right")
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = retrieve_message_objects().order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             for comment in _messages:
                 comment.like_count = DiscussionLike.count_likes(comment)
@@ -702,16 +710,18 @@ def redo_wrong(request, state, user, participant):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(
+            course=_participant.classs.course,
+            question=_learnerstate.redo_question,
+            moderated=True,
+            unmoderated_date=None,
+            reply=None
+        )
+
     def get():
         if not _learnerstate.active_redo_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_message_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -799,6 +809,7 @@ def redo_wrong(request, state, user, participant):
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
+                return redirect(reverse("learn.redo_wrong"))
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
@@ -829,13 +840,7 @@ def redo_wrong(request, state, user, participant):
                         DiscussionLike.like(_usr, comment)
                     return redirect("learn.redo_wrong")
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = retrieve_message_objects().order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             for comment in _messages:
                 comment.like_count = DiscussionLike.count_likes(comment)
@@ -1405,23 +1410,18 @@ def get_event_points_awarded(participant):
 def get_badge_awarded(participant):
     # Get relevant badge related to scenario
     badgepoints = None
-    badge = ParticipantBadgeTemplateRel.objects.filter(
+    badges = ParticipantBadgeTemplateRel.objects.filter(
         participant=participant,
         awarddate__range=[
-            datetime.today() - timedelta(seconds=2),
+            datetime.today() - timedelta(seconds=10),
             datetime.today()
         ]
-    ).order_by('-awarddate').first()
+    ).order_by('badgetemplate__name')
 
-    if badge:
-        badgetemplate = badge.badgetemplate
-        badgepoints = GamificationScenario.objects.get(
-            badge__id=badgetemplate.id
-        ).point
-    else:
-        badgetemplate = None
-
-    return badgetemplate, badgepoints,
+    return [{
+        'badgetemplate': badge.badgetemplate,
+        'badgepoints': GamificationScenario.objects.get(badge__id=badge.badgetemplate.id).point
+    } for badge in badges]
 
 
 def get_golden_egg(participant):
@@ -1539,7 +1539,8 @@ def right(request, state, user, participant):
                 comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             # Get badge points
-            badge, badge_points = get_badge_awarded(_participant)
+            badge_objects = get_badge_awarded(_participant)
+            badges = [badge['badgetemplate'] for badge in badge_objects]
             points = get_points_awarded(_participant) + get_event_points_awarded(_participant)
             return render(
                 request,
@@ -1549,7 +1550,7 @@ def right(request, state, user, participant):
                     "user": user,
                     "question": _learnerstate.active_question,
                     "comment_messages": _messages,
-                    "badge": badge,
+                    "badges": badges,
                     "points": points,
                     "golden_egg": golden_egg
                 },
@@ -1702,16 +1703,18 @@ def wrong(request, state, user, participant):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(
+            course=_participant.classs.course,
+            question=_learnerstate.active_question,
+            moderated=True,
+            unmoderated_date=None,
+            reply=None
+        )
+
     def get():
         if not _learnerstate.active_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_message_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -1816,6 +1819,7 @@ def wrong(request, state, user, participant):
                 post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
                 if post_comment is not None:
                     report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.wrong"))
 
             elif "like" in request.POST.keys():
                 discussion_id = request.POST["like"]
@@ -1827,17 +1831,16 @@ def wrong(request, state, user, participant):
                         DiscussionLike.like(_usr, comment)
                     return redirect("learn.wrong")
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _messages = retrieve_message_objects()\
+                .order_by("-publishdate")[:request.session["state"]["discussion_page"]]
 
             for comment in _messages:
                 comment.like_count = DiscussionLike.count_likes(comment)
                 comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            request.session["state"]["discussion_page_max"] = _messages.count()
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
 
             return render(
                 request,
@@ -2055,7 +2058,8 @@ def event_end_page(request, state, user, participant):
             )
     else:
         return redirect("learn.home")
-    badge, badge_points = get_badge_awarded(_participant)
+    badge_objects = get_badge_awarded(_participant)
+    badges = [badge['badgetemplate'] for badge in badge_objects]
 
     def get():
         return render(
@@ -2065,7 +2069,7 @@ def event_end_page(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge,
+                "badges": badges,
             }
         )
 
@@ -2142,7 +2146,7 @@ def sumit_end_page(request, state, user, participant):
         rel.sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         rel.results_received = True
         rel.save()
-        
+
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
             .aggregate(Sum('question__points'))['question__points__sum']
@@ -2166,7 +2170,9 @@ def sumit_end_page(request, state, user, participant):
 
     else:
         return redirect("learn.home")
-    badge, badge_points = get_badge_awarded(_participant)
+
+    badge_objects = get_badge_awarded(_participant)
+    badges = [badge['badgetemplate'] for badge in badge_objects]
 
     def get():
         return render(
@@ -2176,7 +2182,7 @@ def sumit_end_page(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge,
+                "badges": badges,
                 "sumit": sumit,
                 "front": front,
                 "back": back,

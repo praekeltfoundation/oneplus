@@ -385,3 +385,74 @@ class TestBadgeAwarding(TestCase):
         cnt = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
                                                          badgetemplate=bt3, scenario=sc3).count()
         self.assertEquals(cnt, 1)
+
+    def test_awarding_badge_levels(self):
+
+        new_learner = create_learner(
+            self.school,
+            username="+27123456999",
+            mobile="+2712345699",
+            unique_token='xyz',
+            unique_token_expiry=datetime.now() + timedelta(days=30))
+
+        new_participant = create_participant(
+            new_learner,
+            self.classs,
+            datejoined=datetime.now())
+
+        self.client.get(reverse(
+            'auth.autologin',
+            kwargs={'token': new_learner.unique_token})
+        )
+
+        # create the badges we want to win
+        bt1 = GamificationBadgeTemplate.objects.get(
+            name="Level 1")
+
+        bt2 = GamificationBadgeTemplate.objects.get(
+            name="Level 2")
+
+        # required scenarios
+        sc1 = GamificationScenario.objects.get(
+            name="Level 1")
+
+        sc2 = GamificationScenario.objects.get(
+            name="Level 2")
+
+        #added points but not enough to get to the next level
+        new_participant.points = 90
+        new_participant.save()
+
+        #User answers question correctly should still be below level 2 so assert level 1 badge received
+        question = create_test_question('q_15_15', self.module, question_content='test question', state=3)
+        question_option = create_test_question_option('q_15_15_O_1', question)
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        count_badges = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                                  badgetemplate=bt1, scenario=sc1).count()
+        self.assertEquals(count_badges, 1)
+
+        #User answers question correctly should still be below level 2 so assert level 2 badge not received
+        count_badges = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                                  badgetemplate=bt2, scenario=sc2).count()
+        self.assertEqual(count_badges, 0)
+
+        # added enough points so participant gains a level
+        new_participant.points += 20
+        new_participant.save()
+
+        #User answers question correctly and level 2 badge should be awarded
+        question = create_test_question('q_15_16', self.module, question_content='test question', state=3)
+        question_option = create_test_question_option('q_15_16_O_1', question)
+        self.client.get(reverse('learn.next'))
+        self.client.post(reverse('learn.next'), data={'answer': question_option.id}, follow=True)
+
+        #look for badge level 1
+        count_badges = ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                                  badgetemplate=bt1, scenario=sc1).count()
+        #look for badge level 2
+        count_badges += ParticipantBadgeTemplateRel.objects.filter(participant=new_participant,
+                                                                   badgetemplate=bt2, scenario=sc2).count()
+        #should have 2 badges; Level 1 and level 2
+        self.assertEquals(count_badges, 2)

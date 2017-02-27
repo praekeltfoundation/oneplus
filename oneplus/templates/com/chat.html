@@ -8,6 +8,14 @@
     <article class="content iris-accent">
         <h1>Chat with your grade about maths</h1>
 
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li class="color-accent">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
         <div class="comment-list">
             {% for msg in chat_messages %}
                 {% if msg.moderated %}
