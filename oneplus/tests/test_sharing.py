@@ -164,6 +164,7 @@ class TestPermissionToShare(TestCase):
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
 
+    @override_settings(VUMI_GO_FAKE=True)
     def test_permission_badges(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -188,6 +189,7 @@ class TestPermissionToShare(TestCase):
         resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
         self.assertContains(resp, "Share on")
 
+    @override_settings(VUMI_GO_FAKE=True)
     def test_permission_levels(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
