@@ -15,8 +15,15 @@ public_patterns = [
     url(r"^level/?$", oneplus.public_views.level, name="level"),
 ]
 
+leaderboard_patterns = [
+    url(r"^class/?$", oneplus.sharing_views.level, name="class"),
+    url(r"^school/?$", oneplus.sharing_views.level, name="school"),
+    url(r"^national/?$", oneplus.sharing_views.level, name="national"),
+]
+
 sharing_patterns = [
     url(r"^level/?$", oneplus.sharing_views.level, name="level"),
+    url(r"^leaderboard/", oneplus.sharing_views.level, name="leaderboard"),
 ]
 
 urlpatterns = [
