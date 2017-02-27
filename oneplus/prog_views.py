@@ -1,5 +1,6 @@
 from __future__ import division
 from datetime import datetime, timedelta
+from itertools import chain
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
@@ -107,16 +108,15 @@ def leader(request, state, user, participant):
         schools = School.objects.filter(learner__grade=_participant.learner.grade,
                                         learner__participant__is_active=True)\
             .values('id', 'name')\
+            .distinct()\
             .annotate(points=Sum('learner__participant__points'))\
-            .filter(points__gt=0)\
-            .order_by('-points', 'name')
+            .order_by('-points', 'name')\
 
         my_school = schools.get(id=participant.learner.school.id)
         position = schools.filter(points__gt=my_school['points']).count() + 1
 
         scores = schools\
-            .values_list('points', flat=True)\
-            .distinct()
+            .values_list('points', flat=True)
 
         leaderboard = []
         for score in scores:
@@ -126,8 +126,10 @@ def leader(request, state, user, participant):
                 p_me = schools.filter(id=participant.learner.school.id)\
                     .values('id', 'name', 'points')
                 p_list = schools.filter(points=score)\
-                    .values('id', 'name', 'points')[:max_uncollapsed - 1]
-                p_list = p_me | p_list
+                    .exclude(id=participant.learner.school.id)\
+                    .values('id', 'name', 'points')\
+                    .order_by()[:max_uncollapsed - 1]
+                p_list = list(chain(p_me, p_list))
             else:
                 p_list = schools.filter(points=score)\
                     .values('id', 'name', 'points')[:max_uncollapsed + 1]
