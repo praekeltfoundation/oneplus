@@ -192,21 +192,18 @@ class TestPermissionToShare(TestCase):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
-        # getting user level
-        user_level = self.participant.calc_level()
-
         #learner does not give permission to share
         self.learner.public_share = False
         self.learner.save()
 
-        #go to page to share and share options must be disabled
-        resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
-        self.assertContains(resp, "You will not be able to share")
+        #go to home page to share level and button should not be there
+        resp = self.client.get(reverse('learn.home'))
+        self.assertNotContains(resp, "Share level")
 
         #update user gives permission to share publically
         self.learner.public_share = True
         self.learner.save()
 
         #go to share a badge and options should be there
-        resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
-        self.assertContains(resp, "Share on")
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, "Share level")
