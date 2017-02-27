@@ -5,6 +5,8 @@
     <link href="//fonts.googleapis.com/css?family=Asap|Lato" rel="stylesheet">
     <title>DIG-IT | {% block title %}{% endblock %}</title>
     {% load static %}
+    {% load pwa %}
+    {% progressive_web_app_meta %}
     <link rel="stylesheet" type="text/css" href="{% static "css/oneplus.css" %}">
     <link rel="shortcut icon" href="{{ STATIC_URL }}img/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
