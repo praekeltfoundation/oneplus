@@ -539,6 +539,9 @@ form.no-pad {
     padding: 0.5em 0;
     vertical-align: middle;
     width: 50%; }
+  .card-table hr.full-width {
+    margin-left: -1em;
+    margin-right: -1em; }
 
 .card-link {
   font-size: 16px;
