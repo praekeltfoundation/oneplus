@@ -60,14 +60,12 @@
             <li class="vert-center"><div>Tell your friends about us!</div></li>
             <li class="js-required should-inline-block" style="display:none">
                 <a class="footer-link vert-center"
-                        href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}
-                        &display=popup&href={{ FB_REDIRECT|urlencode:'' }}
-                        &redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
+                        href="https://www.facebook.com/dialog/share?app_id={{ FB_APP_NUM|urlencode:'' }}&display=popup&href={{ FB_REDIRECT|urlencode:'' }}&redirect_uri={{ FB_REDIRECT|urlencode:'' }}">
                     <div class="share-icon fb-logo vert-center"></div>
                 </a>
             </li>
             <li class="js-required should-inline-block" style="display:none">
-                <a href="https://twitter.com/intent/tweet?text={{ "Check out Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}" src="">
+                <a href="https://twitter.com/intent/tweet?text={{ "Check out Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}">
                     <div class="share-icon tw-logo vert-center"></div>
                 </a>
             </li>
@@ -79,7 +77,7 @@
                 </a>
             </li>
             <li>
-                <a href="whatsapp://send?text={{ "Check out Dig-it! "|urlencode:'' }}{{ FB_REDIRECT|urlencode:'' }}" src="">
+                <a href="whatsapp://send?text={{ "Check out Dig-it! "|urlencode:'' }}{{ FB_REDIRECT|urlencode:'' }}">
                     <div class="share-icon wa-logo vert-center"></div>
                 </a>
             </li>
