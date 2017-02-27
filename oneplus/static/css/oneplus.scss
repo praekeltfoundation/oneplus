@@ -931,6 +931,14 @@ p a { display: inline;}
     background-position: 50% 50%;
 }
 
+.small-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
 .share-icon {
     display: inline-block;
     width: 32px;
@@ -975,6 +983,16 @@ li.forward {
   background-image: url("../img/arrow_forward_icon.png");
 }
 
+.small-icon {
+  &.like-empty {
+    background-image: url("../img/like_empty.png");
+  }
+
+  &.like-full {
+    background-image: url("../img/like_full.png");
+  }
+}
+
 .icon, .share-icon {
   &.fb-logo {
     background-image: url("../img/fb_logo_blue_icon.png");
@@ -991,6 +1009,10 @@ li.forward {
   &.wa-logo {
     background-image: url("../img/wa_logo_green_icon.png");
   }
+}
+
+.icon.home{
+  background-image: url("../img/icn_home_32.png")
 }
 
 li.badges {

@@ -21,6 +21,7 @@
             {% block header_left %}
                 <div class="header-item">
                     {% if user.name %}
+                        <a class="icon home" href="{% url 'learn.home' %}"></a>
                         <a class="wrap-inline" href="/menu">
                             {% block menu_text %}
                                 <div class="header-item header-link">Menu</div>

@@ -173,3 +173,6 @@ def _content_profanity_check(obj):
         obj.original_content = obj.content
         obj.content = get_replacement_content(profanity=True)
         obj.save()
+        return True
+    else:
+        return False
