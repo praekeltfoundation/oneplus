@@ -64,6 +64,8 @@ def leader(request, state, user, participant):
     _participant = participant
     max_uncollapsed = 3
 
+    # TODO: Move leaderboard functions to separate file.
+
     def get_class_leaderboard():
         eligible_participants = Participant.objects.filter(classs=_participant.classs, is_active=True, points__gt=0)
 
