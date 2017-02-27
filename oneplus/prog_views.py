@@ -280,6 +280,8 @@ def badges(request, state, user, participant, badge_id=None):
             x.achieved = True
             x.count = rel.first().awardcount
 
+    allow_sharing = participant.learner.public_share
+
     def get():
         if badge_id:
             for b in _badges:
@@ -288,6 +290,7 @@ def badges(request, state, user, participant, badge_id=None):
                                                                participant.id,
                                                                badge_id)
                     return render(request, "prog/badge_single.html", {
+                        "allow_sharing": allow_sharing,
                         "badge": b,
                         "participant": _participant,
                         "share_url": share_url,
