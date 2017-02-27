@@ -18,6 +18,17 @@
             You've earned <b>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</b>.
         </h2>
 
+        {% if badges %}
+            <section>
+                {% for badge in badges %}
+                    <div class="badge-layout">
+                    {% if badge.image %}<span class="badge-award"><img class="badge-img" src="{{ badge.image.url }}"></span>{% endif %}
+                    <span class="badge-award"><span class="large-font">{{ badge.name }}</span> badge earned</span>
+                    </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+
         {% if not preview %}
             {% if has_next %}
                 <a class="button border-color-accent color-accent" href="redo">Next question</a>

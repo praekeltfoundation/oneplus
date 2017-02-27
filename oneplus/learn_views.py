@@ -362,11 +362,6 @@ def nextchallenge(request, state, user, participant):
             # Answer question
             _participant.answer(_option.question, _option)
 
-            _learner_level_after, _threshold = _participant.calc_level()
-            _learner_leveled = False
-            _learner_level_after = 6
-            if _learner_level_after > _learner_level_before:
-                _learner_leveled = True
             # Update metrics
             update_num_question_metric()
 
@@ -436,6 +431,7 @@ def nextchallenge(request, state, user, participant):
                         special_rule=True
                     )
 
+                _learner_level_after, _threshold = _participant.calc_level()
                 level_badge_names = ['Level {0:d}'.format(i) for i in xrange(1, settings.MAX_LEVEL + 1)]
                 search_badges = level_badge_names[:_learner_level_after]
 
@@ -2071,7 +2067,8 @@ def event_end_page(request, state, user, participant):
             )
     else:
         return redirect("learn.home")
-    badge, badge_points = get_badge_awarded(_participant)
+    badge_objects = get_badge_awarded(_participant)
+    badges = [badge['badgetemplate'] for badge in badge_objects]
 
     def get():
         return render(
@@ -2081,7 +2078,7 @@ def event_end_page(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge,
+                "badges": badges,
             }
         )
 
@@ -2182,7 +2179,9 @@ def sumit_end_page(request, state, user, participant):
 
     else:
         return redirect("learn.home")
-    badge, badge_points = get_badge_awarded(_participant)
+
+    badge_objects = get_badge_awarded(_participant)
+    badges = [badge['badgetemplate'] for badge in badge_objects]
 
     def get():
         return render(
@@ -2192,7 +2191,7 @@ def sumit_end_page(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge,
+                "badges": badges,
                 "sumit": sumit,
                 "front": front,
                 "back": back,
