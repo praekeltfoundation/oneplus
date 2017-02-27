@@ -277,6 +277,7 @@ def chat(request, state, user, chatid):
             msg = ChatMessage.objects.filter(id=msg_id).first()
             if msg is not None:
                 report_user_post(msg, _usr, 3)
+                messages.warning(request, "This comment has been reported")
 
         elif "like" in request.POST.keys():
             message_id = request.POST["like"]
