@@ -207,6 +207,7 @@ def chat(request, state, user, chatid):
     # get chat group
     _group = ChatGroup.objects.get(pk=chatid)
     request.session["state"]["chat_page_max"] = _group.chatmessage_set.filter(moderated=True,
+
                                                                               publishdate__lt=datetime.now()).count()
 
     _usr = Learner.objects.get(pk=user["id"])
@@ -218,12 +219,16 @@ def chat(request, state, user, chatid):
     else:
         request.session["state"]["banned"] = True
 
+    def retrieve_comment_objects():
+        return _group.chatmessage_set.filter(moderated=True,
+                                             unmoderated_date=None,
+                                             publishdate__lt=datetime.now())
+
     def get():
         request.session["state"]["chat_page"] \
             = min(10, request.session["state"]["chat_page_max"])
-        _messages = _group.chatmessage_set.filter(moderated=True,
-                                                  unmoderated_date=None,
-                                                  publishdate__lt=datetime.now()) \
+
+        _messages = retrieve_comment_objects() \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
 
         for msg in _messages:
@@ -272,6 +277,7 @@ def chat(request, state, user, chatid):
             msg = ChatMessage.objects.filter(id=msg_id).first()
             if msg is not None:
                 report_user_post(msg, _usr, 3)
+                messages.warning(request, "This comment has been reported")
 
         elif "like" in request.POST.keys():
             message_id = request.POST["like"]
@@ -283,7 +289,7 @@ def chat(request, state, user, chatid):
                     ChatMessageLike.like(_usr, chat_message)
                 return redirect("com.chat", chatid=chatid)
 
-        _messages = _group.chatmessage_set.filter(moderated=True, publishdate__lt=datetime.now()) \
+        _messages = retrieve_comment_objects() \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
 
         for msg in _messages:
