@@ -24,12 +24,15 @@ def level(request, state, user, participant):
         level = settings.MAX_LEVEL
         points_remaining = 0
 
+    allow_sharing = participant.learner.public_share
+
     def get():
         if not participant.learner.public_share:
             return redirect('learn.home')
 
         share_url = '{0:s}?p={1:d}'.format(reverse('public:level'), participant.id)
         return render(request, "misc/level_sharing.html", {
+            "allow_sharing": allow_sharing,
             "learner_label": learner_label,
             "level": level,
             "level_max": settings.MAX_LEVEL,
