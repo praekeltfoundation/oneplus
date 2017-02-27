@@ -164,13 +164,36 @@ class TestPermissionToShare(TestCase):
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
 
-    def test_permission_not_given(self):
+    def test_permission_badges(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
 
         # getting a badge
         bt1 = GamificationBadgeTemplate.objects.get(
             name="Level 1")
+
+        #learner does not give permission to share
+        self.learner.public_share = False
+        self.learner.save()
+
+        #go to page to share and share options must be disabled
+        resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
+        self.assertContains(resp, "You will not be able to share")
+
+        #update user gives permission to share publically
+        self.learner.public_share = True
+        self.learner.save()
+
+        #go to share a badge and options should be there
+        resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
+        self.assertContains(resp, "Share on")
+
+    def test_permission_levels(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        # getting user level
+        user_level = self.participant.calc_level()
 
         #learner does not give permission to share
         self.learner.public_share = False
