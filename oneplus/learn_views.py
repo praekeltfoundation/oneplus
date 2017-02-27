@@ -522,7 +522,7 @@ def redo_right(request, state, user, participant):
     request.session["state"]["banned"] = _usr.is_banned()
 
     def retrieve_message_objects():
-        Discussion.objects.filter(
+        return Discussion.objects.filter(
             course=_participant.classs.course,
             question=_learnerstate.redo_question,
             moderated=True,
@@ -695,7 +695,7 @@ def redo_wrong(request, state, user, participant):
     request.session["state"]["banned"] = _usr.is_banned()
 
     def retrieve_message_objects():
-        Discussion.objects.filter(
+        return Discussion.objects.filter(
             course=_participant.classs.course,
             question=_learnerstate.redo_question,
             moderated=True,
