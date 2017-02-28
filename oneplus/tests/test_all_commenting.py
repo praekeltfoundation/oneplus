@@ -290,7 +290,7 @@ class TestCommentLikes(TestCase):
                          data={'like': comment1.id})
         resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
+        self.assertContains(resp, 'like-full', count=2)
 
         self.client.post(reverse('com.blog',
                                  kwargs={'blogid': post.id}),
@@ -308,7 +308,7 @@ class TestCommentLikes(TestCase):
                          data={'like': comment2.id})
         resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
         self.assertContains(resp, 'like-empty', count=0)
-        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, 'like-full', count=4)
 
     def test_blog_comment_like_multiple(self):
         # login user and create comments
@@ -358,8 +358,8 @@ class TestCommentLikes(TestCase):
             self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
         resp = self.client.get(reverse('com.blog', kwargs={'blogid': post.id}))
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
-        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=2)
 
         # login and unlike with test commenters
         for i in xrange(num_learners):
@@ -401,7 +401,7 @@ class TestCommentLikes(TestCase):
                          data={'like': comment1.id})
         resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
+        self.assertContains(resp, 'like-full', count=2)
 
         self.client.post(reverse('com.chat',
                                  kwargs={'chatid': chatgroup.id}),
@@ -419,7 +419,7 @@ class TestCommentLikes(TestCase):
                          data={'like': comment2.id})
         resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
         self.assertContains(resp, 'like-empty', count=0)
-        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, 'like-full', count=4)
 
     def test_chat_like_multiple(self):
         # login user and create comments
@@ -468,8 +468,8 @@ class TestCommentLikes(TestCase):
             self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
         resp = self.client.get(reverse('com.chat', kwargs={'chatid': chatgroup.id}))
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
-        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=2)
 
         # login and unlike with test commenters
         for i in xrange(num_learners):
@@ -507,7 +507,7 @@ class TestCommentLikes(TestCase):
         self.client.post(reverse('learn.right'), data={'like': comment1.id})
         resp = self.client.get(reverse('learn.right'))
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
+        self.assertContains(resp, 'like-full', count=2)
 
         self.client.post(reverse('learn.right'), data={'like': comment1.id, 'has_liked': True})
         resp = self.client.get(reverse('learn.right'))
@@ -518,7 +518,7 @@ class TestCommentLikes(TestCase):
         self.client.post(reverse('learn.right'), data={'like': comment2.id})
         resp = self.client.get(reverse('learn.right'))
         self.assertContains(resp, 'like-empty', count=0)
-        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, 'like-full', count=4)
 
     def test_discussion_like_multiple(self):
         # login user and create comments
@@ -569,8 +569,8 @@ class TestCommentLikes(TestCase):
             self.client.get(reverse(success_page))
         resp = self.client.get(reverse('learn.right'), follow=True)
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
-        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=2)
 
         # login and unlike with test commenters
         for i in xrange(num_learners):
@@ -643,8 +643,8 @@ class TestCommentLikes(TestCase):
             self.client.post(reverse(success_page), data={'like': comment1.id})
         resp = self.client.get(reverse('learn.redo_right'), follow=True)
         self.assertContains(resp, 'like-empty', count=1)
-        self.assertContains(resp, 'like-full', count=1)
-        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=1)
+        self.assertContains(resp, 'like-full', count=2)
+        self.assertContains(resp, '&nbsp;{0:d}'.format(num_learners), count=2)
 
         # unlike with test commenters
         for i in xrange(num_learners):
