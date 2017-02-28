@@ -1,33 +1,50 @@
 {% extends "core/main.html" %}
 
-{% block title %}Badges{% endblock %}
+{% block title %}Leaderboard{% endblock %}
 
-{% block page_descriptor_text %}Share Badges{% endblock %}
+{% block page_descriptor_text %}Share leaderboard{% endblock %}
 
 {% block content %}
+    {% load oneplus_extras %}
+
     <article class="content squash-accent">
         <h1 class="center-font">
-            {% if badge.achieved %}Your badges{% else %}Still coming{% endif %}
+            {% if share_board.type == 'class' %}Your position in class
+            {% elif share_board.type == 'school' %}Your school's position
+            {% elif share_board.type == 'national' %}Your national position
+            {% endif %}
         </h1>
 
-        <article class="card border-color-accent">
-            <section class="top{% if not badge.achieved %} semi-transparent{% endif %}">
-                <div class="img-container">
-                    <div class="">
-                        {% if badge.image %}
-                            <img class="lonely-badge" src="{{ badge.image.url }}" />
-                        {% else %}
-                            <img class="lonely-badge" src="/static/img/icn_badges.png" style="{# background-image: url('/static/img/icn_badges.png'); #}" />
-                        {% endif %}
+        <article class="card border-color-accent" id="class-leaderboard">
+            <section class="top">
+                {% if share_board.type == 'class' %}
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_class.png" width="100%" height="auto"/>
                     </div>
-                </div>
-                <h3 class="center-font">{{ badge.name }}</h3>
+                    <h3 class="card-top-phrase">Grade Leaderboard</h3>
+                {% elif share_board.type == 'school' %}
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_school.png" width="100%" height="auto"/>
+                    </div>
+                    <h3 class="card-top-phrase">School Leaderboard</h3>
+                {% elif share_board.type == 'national' %}
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_national.png" width="100%" height="auto"/>
+                    </div>
+                    <h3 class="card-top-phrase">National Leaderboard</h3>
+                {% endif %}
             </section>
+            {% if share_board.position %}
+                <hr class="hr-accent" />
+                <section class="bottom">
+                    <div class="center-font">{{ user.name }}, you're currently in</div>
+                    <div class="center-font color-accent funky-number">{{ share_board.position|ordinal_extra:'sup' }} place</div>
+                </section>
+            {% endif %}
         </article>
 
-        <a href="{% url 'prog.badges' %}" class="button border-color-accent color-accent">See all badges</a>
         <article class="card border-color-accent">
-            <section class="center-font top{% if not badge.achieved %} semi-transparent{% endif %}">
+            <section class="center-font top{% if share_board == ' ' or '' %} semi-transparent{% endif %}">
                 <div>Share this with your friends and family:</div>
                 {% if allow_sharing %}
                     <ul class="center-font inline">
@@ -38,9 +55,15 @@
                             </a>
                         </li>
                         <li class="js-required should-block" style="display:none">
-                            <a class="vert-center" href="https://twitter.com/intent/tweet?text={{ "I earned a badge on Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" src="">
-                                <span class="icon tw-logo vert-center" style="margin:-6px"></span>Share on Twitter
-                            </a>
+                            {% if share_board.type != 'school' %}
+                                <a class="vert-center" href="https://twitter.com/intent/tweet?text={{ "Look at my position in the " }}{{ share_board.type|urlencode:'' }}{{ " leaderboard!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" src="">
+                                    <span class="icon tw-logo vert-center" style="margin:-6px"></span>Share on Twitter
+                                </a>
+                            {% else %}
+                                <a class="vert-center" href="https://twitter.com/intent/tweet?text={{ "Look at my school's position in the " }}{{ share_board.type|urlencode:'' }}{{" leaderboard!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" src="">
+                                    <span class="icon tw-logo vert-center" style="margin:-6px"></span>Share on Twitter
+                                </a>
+                            {% endif %}
                         </li>
                         <li class="js-required should-block" style="display:none">
                             <a class="vert-center" href="https://plus.google.com/share?url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" onclick="javascript:window.open(this.href,
@@ -50,12 +73,12 @@
                         </li>
                         <li id="wa-share-badge">
                             <a class="vert-center"
-                               href="whatsapp://send?text={{ 'I earned a badge on dig-it! '|urlencode }}{{ FB_REDIRECT |urlencode:'' }}{{ share_url|urlencode:'' }}">
+                               href="whatsapp://send?text={{ "Look at my position in the " }}{{ share_board.type|urlencode:'' }}{{ " leaderboard! "}}{{ FB_REDIRECT |urlencode:'' }}{{ share_url|urlencode:'' }}">
                                 <span class="icon wa-logo vert-center" style="margin:-6px"></span>Share on WhatsApp
                             </a>
                         </li>
                         <li class="center-font">
-                            <a href="{% url 'public:badges'%}?p={{ participant.id }}&b={{ badge.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
+                            <a href="{% url 'public:leaderboard' board_type=share_board.type %}?p={{ participant.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
                         </li>
                         <script>
                             var jsRequiredClasses = document.querySelectorAll(".js-required.should-block");
@@ -66,7 +89,7 @@
                             }
                         </script>
                     </ul>
-                    <input type="text" value="{{ FB_REDIRECT|urlencode:':/' }}{% url 'public:badges'%}?p={{ participant.id }}&b={{ badge.id }}" />
+                    <input type="text" value="{{ FB_REDIRECT|urlencode:':/' }}{% url 'public:leaderboard' board_type=share_board.type %}?p={{ participant.id }}" />
                 {% else %}
                     <ul>
                         <li>

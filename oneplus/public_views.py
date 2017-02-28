@@ -9,6 +9,7 @@ from gamification.models import GamificationBadgeTemplate
 from oneplus.auth_views import resolve_http_method
 from oneplus.views import oneplus_check_user
 from django.core.urlresolvers import reverse
+from oneplus.leaderboard_utils import get_class_leaderboard, get_school_leaderboard, get_national_leaderboard
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,60 @@ def level(request, state, user):
                                   'level_max': settings.MAX_LEVEL,
                                   'participant': participant,
                                   'points_remaining': points_remaining,
+                                  'state': state,
+                                  'user': user})
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_check_user
+def leaderboard(request, state, user, board_type=''):
+    def get():
+        participant_id = request.GET.get('p', None)
+        max_uncollapsed = 3
+
+        learner = None
+        participant = None
+        if participant_id and Participant.objects.filter(id=participant_id).exists():
+            participant = Participant.objects.get(id=participant_id)
+            learner = Learner.objects.get(participant__id=participant_id)
+            if not learner.public_share:
+                learner = None
+
+        if participant:
+            if board_type == 'class':
+                share_board = get_class_leaderboard(participant, max_uncollapsed)
+            elif board_type == 'school':
+                share_board = get_school_leaderboard(participant, max_uncollapsed)
+            elif board_type == 'national':
+                share_board = get_national_leaderboard(participant, max_uncollapsed)
+
+        if not learner or not learner.public_share:
+            return render(request,
+                          template_name='public/public_leaderboards.html',
+                          dictionary={'no_public': True, 'state': state, 'user': user})
+
+        if learner.first_name and learner.last_name:
+            learner_label = '{0:s} {1:s}'.format(learner.first_name, learner.last_name)
+        elif learner.first_name:
+            learner_label = learner.first_name
+        else:
+            learner_label = 'Anon'
+
+        if share_board['type'] != 'school':
+            fb = {'description': "{0:s}'s is in {1:d} position on dig-it {2:s} leaderboard!"
+                  .format(learner_label, share_board['position'], share_board['type'])}
+        else:
+            fb = {'description': "{0:s}'s school is in {1:d} position on dig-it {2:s} leaderboard!"
+                  .format(learner_label, share_board['position'], share_board['type'])}
+
+        return render(request,
+                      template_name='public/public_leaderboards.html',
+                      dictionary={'fb': fb,
+                                  'learner': learner,
+                                  'learner_label': learner_label,
+                                  'participant': participant,
+                                  'share_board': share_board,
                                   'state': state,
                                   'user': user})
 

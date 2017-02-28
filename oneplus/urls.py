@@ -13,17 +13,12 @@ from oneplus import result_views
 public_patterns = [
     url(r"^badges/?$", oneplus.public_views.badges, name="badges"),
     url(r"^level/?$", oneplus.public_views.level, name="level"),
-]
-
-leaderboard_patterns = [
-    url(r"^class/?$", oneplus.sharing_views.level, name="class"),
-    url(r"^school/?$", oneplus.sharing_views.level, name="school"),
-    url(r"^national/?$", oneplus.sharing_views.level, name="national"),
+    url(r"^leaderboard/(?P<board_type>[a-zA-Z_]*)/?", oneplus.public_views.leaderboard, name="leaderboard"),
 ]
 
 sharing_patterns = [
     url(r"^level/?$", oneplus.sharing_views.level, name="level"),
-    url(r"^leaderboard/", oneplus.sharing_views.level, name="leaderboard"),
+    url(r"^leaderboard/(?P<board_type>[a-zA-Z_]*)/?", oneplus.sharing_views.leaderboard, name="leaderboard"),
 ]
 
 urlpatterns = [
