@@ -44,10 +44,7 @@ def level(request, state, user, participant):
             "state": state,
             "user": user})
 
-    def post():
-        return get()
-
-    return resolve_http_method(request, [get, post])
+    return resolve_http_method(request, [get])
 
 
 @oneplus_participant_required
@@ -75,7 +72,4 @@ def leaderboard(request, state, user, participant, board_type=''):
             "state": state,
             "user": user})
 
-    def post():
-        return get()
-
-    return resolve_http_method(request, [get, post])
+    return resolve_http_method(request, [get])

@@ -7,6 +7,7 @@ from core.models import ParticipantBadgeTemplateRel
 from gamification.models import GamificationBadgeTemplate, GamificationScenario
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 from django.test.utils import override_settings
+from oneplus.public_views import get_learner_label
 
 
 def create_test_question(name, module, **kwargs):
@@ -147,6 +148,12 @@ class TestPublicBadge(TestCase):
             follow=True)
         self.assertContains(resp, self.badge_await.name)
         self.assertContains(resp, 'hasn\'t earned')
+
+    def test_invalid_badge(self):
+        resp = self.client.get(
+            '{0:s}?p={1:d}&b={2:s}'.format(reverse('public:badges'), self.participant.id, 'no_code'),
+            follow=True)
+        self.assertContains(resp, "No one's home")
 
 
 class TestPublicLevel(TestCase):
@@ -290,3 +297,38 @@ class TestPublicLeaderboardSharing(TestCase):
                                          self.participant.id)
         resp = self.client.get(tmp_url)
         self.assertContains(resp, "national position")
+
+
+class TestLearnerLabel(TestCase):
+    def setUp(self):
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation, province="Gauteng")
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            public_share=True,
+            is_staff=True)
+
+    def test_get_learner_label_anon(self):
+        label = get_learner_label(self.learner)
+        self.assertEquals(label, 'Anon')
+
+    def test_get_learner_label_first_name(self):
+        self.learner.first_name = "blarg"
+        self.learner.save()
+
+        label = get_learner_label(self.learner)
+        self.assertEquals(label, 'blarg')
+
+    def test_get_learner_label_all_names(self):
+        self.learner.first_name = "blarg"
+        self.learner.last_name = "honk"
+        self.learner.save()
+
+        label = get_learner_label(self.learner)
+        self.assertEquals(label, 'blarg honk')

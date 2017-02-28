@@ -14,6 +14,14 @@ from oneplus.leaderboard_utils import get_class_leaderboard, get_school_leaderbo
 logger = logging.getLogger(__name__)
 
 
+def get_learner_label(learner):
+    if learner.first_name and learner.last_name:
+        return '{0:s} {1:s}'.format(learner.first_name, learner.last_name)
+    elif learner.first_name:
+        return learner.first_name
+    else:
+        return 'Anon'
+
 @oneplus_check_user
 def badges(request, state, user):
     def get():
@@ -48,15 +56,8 @@ def badges(request, state, user):
 
         fb = {}
         if achieved:
-            if learner.first_name and learner.last_name:
-                fb['description'] = '{0:s} {1:s} has earned the {2:s} badge on dig-it!'.format(learner.first_name,
-                                                                                               learner.last_name,
-                                                                                               badge.name)
-            elif learner.first_name:
-                fb['description'] = '{0:s} has earned the {1:s} badge on dig-it!'.format(learner.first_name,
-                                                                                         badge.name)
-            else:
-                fb['description'] = 'Anon has earned the {0:s} badge on dig-it!'.format(badge.name)
+            learner_label = get_learner_label(learner)
+            fb['description'] = '{0:s} has earned the {1:s} badge on dig-it!'.format(learner_label, badge.name)
 
         share_url = '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), participant.id, badge.id)
 
@@ -91,12 +92,7 @@ def level(request, state, user):
                           template_name='public/public_level.html',
                           dictionary={'no_public': True, 'state': state, 'user': user})
 
-        if learner.first_name and learner.last_name:
-            learner_label = '{0:s} {1:s}'.format(learner.first_name, learner.last_name)
-        elif learner.first_name:
-            learner_label = learner.first_name
-        else:
-            learner_label = 'Anon'
+        learner_label = get_learner_label(learner)
 
         level, points_remaining = participant.calc_level()
         if level >= settings.MAX_LEVEL:
@@ -148,12 +144,7 @@ def leaderboard(request, state, user, board_type=''):
                           template_name='public/public_leaderboards.html',
                           dictionary={'no_public': True, 'state': state, 'user': user})
 
-        if learner.first_name and learner.last_name:
-            learner_label = '{0:s} {1:s}'.format(learner.first_name, learner.last_name)
-        elif learner.first_name:
-            learner_label = learner.first_name
-        else:
-            learner_label = 'Anon'
+        learner_label = get_learner_label(learner)
 
         if share_board['type'] != 'school':
             fb = {'description': "{0:s}'s is in {1:d} position on dig-it {2:s} leaderboard!"
