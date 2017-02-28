@@ -15,3 +15,4 @@ coverage==4.2
 django-boolean-sum
 elasticsearch
 django-haystack==2.4.1
+django-progressive-web-app==0.1
