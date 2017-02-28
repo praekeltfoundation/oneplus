@@ -2,7 +2,7 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -222,7 +222,13 @@ def chat(request, state, user, chatid):
     def retrieve_comment_objects():
         return _group.chatmessage_set.filter(moderated=True,
                                              unmoderated_date=None,
-                                             publishdate__lt=datetime.now())
+                                             publishdate__lt=datetime.now())\
+            .annotate(like_count=Count('chatmessagelike__user'))
+
+    def retrieve_popular_comment_objects():
+        return retrieve_comment_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
 
     def get():
         request.session["state"]["chat_page"] \
@@ -230,15 +236,19 @@ def chat(request, state, user, chatid):
 
         _messages = retrieve_comment_objects() \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
+        _popular_messages = retrieve_popular_comment_objects()[:2]
 
         for msg in _messages:
-            msg.like_count = ChatMessageLike.count_likes(msg)
             msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
 
-        return render(request, "com/chat.html", {"state": state,
-                                                 "user": user,
+        for msg in _popular_messages:
+            msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
+
+        return render(request, "com/chat.html", {"chat_messages": _messages,
                                                  "group": _group,
-                                                 "chat_messages": _messages})
+                                                 "most_popular": _popular_messages,
+                                                 "state": state,
+                                                 "user": user})
 
     def post():
         # new comment created
