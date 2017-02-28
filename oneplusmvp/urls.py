@@ -13,6 +13,7 @@ urlpatterns = patterns(
     (r'^grappelli/', include('grappelli.urls')),
     url(r'^', include('mobileu.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^', include('pwa.urls')),
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()

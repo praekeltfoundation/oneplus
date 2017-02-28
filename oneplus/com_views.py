@@ -2,7 +2,7 @@ from __future__ import division
 from django.shortcuts import render, HttpResponse
 from django.http import HttpResponseRedirect
 from django.core.mail import mail_managers
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -222,7 +222,13 @@ def chat(request, state, user, chatid):
     def retrieve_comment_objects():
         return _group.chatmessage_set.filter(moderated=True,
                                              unmoderated_date=None,
-                                             publishdate__lt=datetime.now())
+                                             publishdate__lt=datetime.now())\
+            .annotate(like_count=Count('chatmessagelike__user'))
+
+    def retrieve_popular_comment_objects():
+        return retrieve_comment_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
 
     def get():
         request.session["state"]["chat_page"] \
@@ -230,15 +236,19 @@ def chat(request, state, user, chatid):
 
         _messages = retrieve_comment_objects() \
             .order_by("-publishdate")[:request.session["state"]["chat_page"]]
+        _popular_messages = retrieve_popular_comment_objects()[:2]
 
         for msg in _messages:
-            msg.like_count = ChatMessageLike.count_likes(msg)
             msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
 
-        return render(request, "com/chat.html", {"state": state,
-                                                 "user": user,
+        for msg in _popular_messages:
+            msg.has_liked = ChatMessageLike.has_liked(_usr, msg)
+
+        return render(request, "com/chat.html", {"chat_messages": _messages,
                                                  "group": _group,
-                                                 "chat_messages": _messages})
+                                                 "most_popular": _popular_messages,
+                                                 "state": state,
+                                                 "user": user})
 
     def post():
         # new comment created
@@ -436,7 +446,13 @@ def blog(request, participant, state, user, blogid):
     allow_commenting = latest and (_post.id == latest.id)
 
     def retrieve_comment_objects():
-        return PostComment.objects.filter(post=_post, unmoderated_date=None, moderated=True)
+        return PostComment.objects.filter(post=_post, unmoderated_date=None, moderated=True)\
+            .annotate(like_count=Count('postcommentlike__user'))
+
+    def retrieve_popular_comment_objects():
+        return retrieve_comment_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
 
     def get():
         all_messages = retrieve_comment_objects()
@@ -447,20 +463,24 @@ def blog(request, participant, state, user, blogid):
             min(5, request.session["state"]["post_page_max"])
 
         post_comments = all_messages.order_by("-publishdate")[:request.session["state"]["post_page"]]
+        _popular_messages = retrieve_popular_comment_objects()[:2]
 
         for comment in post_comments:
-            comment.like_count = PostCommentLike.count_likes(comment)
+            comment.has_liked = PostCommentLike.has_liked(_usr, comment)
+
+        for comment in _popular_messages:
             comment.has_liked = PostCommentLike.has_liked(_usr, comment)
 
         return render(
             request,
             "com/blog.html",
             {
-                "state": state,
-                "user": user,
+                "allow_commenting": allow_commenting,
+                "most_popular": _popular_messages,
                 "post": _post,
                 "post_comments": post_comments,
-                "allow_commenting": allow_commenting
+                "state": state,
+                "user": user,
             }
         )
 
@@ -523,20 +543,24 @@ def blog(request, participant, state, user, blogid):
             min(5, request.session["state"]["post_page_max"])
 
         post_comments = post_comments.order_by("-publishdate")[:request.session["state"]["post_page"]]
+        _popular_messages = retrieve_popular_comment_objects()[:2]
 
         for comment in post_comments:
-            comment.like_count = PostCommentLike.count_likes(comment)
+            comment.has_liked = PostCommentLike.has_liked(_usr, comment)
+
+        for comment in _popular_messages:
             comment.has_liked = PostCommentLike.has_liked(_usr, comment)
 
         return render(
             request,
             "com/blog.html",
             {
-                "state": state,
-                "user": user,
+                "allow_commenting": allow_commenting,
+                "most_popular": _popular_messages,
                 "post": _post,
                 "post_comments": post_comments,
-                "allow_commenting": allow_commenting
+                "state": state,
+                "user": user,
             }
         )
 
