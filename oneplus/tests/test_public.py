@@ -6,6 +6,7 @@ from django.test import TestCase
 from core.models import ParticipantBadgeTemplateRel
 from gamification.models import GamificationBadgeTemplate, GamificationScenario
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
+from django.test.utils import override_settings
 
 
 def create_test_question(name, module, **kwargs):
@@ -238,3 +239,54 @@ class TestPublicLevel(TestCase):
             follow=True)
         self.assertContains(resp, 'Level')
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
+
+
+class TestPublicLeaderboardSharing(TestCase):
+    def setUp(self):
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation, province="Gauteng")
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            first_name="Blarg",
+            last_name="Honk",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            public_share=True,
+            is_staff=True)
+        self.participant = create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
+
+    @override_settings(VUMI_GO_FAKE=True)
+    def test_leaderboard_class(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        tmp_url = "{0:s}?p={1:d}".format(reverse('public:leaderboard', kwargs={"board_type": 'class'}),
+                                         self.participant.id)
+        resp = self.client.get(tmp_url)
+        self.assertContains(resp, "position in class")
+
+    def test_leaderboard_school(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        tmp_url = "{0:s}?p={1:d}".format(reverse('public:leaderboard', kwargs={"board_type": 'school'}),
+                                         self.participant.id)
+        resp = self.client.get(tmp_url)
+        self.assertContains(resp, "school's position")
+
+    def test_leaderboard_national(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        tmp_url = "{0:s}?p={1:d}".format(reverse('public:leaderboard', kwargs={"board_type": 'national'}),
+                                         self.participant.id)
+        resp = self.client.get(tmp_url)
+        self.assertContains(resp, "national position")

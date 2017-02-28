@@ -65,8 +65,6 @@ def leader(request, state, user, participant):
     _participant = participant
     max_uncollapsed = 3
 
-    # TODO: Move leaderboard functions to separate file.
-
     def get():
         # Get leaderboard and position
         class_board = get_class_leaderboard(_participant, max_uncollapsed)
@@ -83,7 +81,7 @@ def leader(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
-                "allow_sharing": participant.learner.public_share,
+                "allow_sharing": _participant.learner.public_share,
                 "class_board": class_board,
                 "school_board": school_board,
                 "national_board": national_board,
@@ -126,6 +124,7 @@ def leader(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
+                "allow_sharing": _participant.learner.public_share,
                 "class_board": class_board,
                 "school_board": school_board,
                 "national_board": national_board,

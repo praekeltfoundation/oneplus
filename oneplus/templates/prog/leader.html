@@ -8,20 +8,22 @@
     {% load oneplus_extras %}
 
     <article class="content squash-accent">
-        <article class="card border-color-accent" id="share-my">
-            <div class="text heading" >
-                <h3 class="card-top-phrase share-heading">Share my...</h3>
-            </div>
-            <section class="top" >
-                <div class="center-font">
-                    <ul class="link-bar">
-                        <li><a class="inline" href="{% url 'share:leaderboard' board_type='class' %}">leaderboard position</a></li>
-                        <li><a class="inline" href="{% url 'share:leaderboard' board_type='school' %}">school's leaderboard position</a></li>
-                        <li><a class="inline" href="{% url 'share:leaderboard' board_type='national' %}">national position</a></li>
-                    </ul>
-                </div
-            </section>
-        </article>
+        {% if allow_sharing %}
+            <article class="card border-color-accent" id="share-my">
+                <div class="text heading" >
+                    <h3 class="card-top-phrase share-heading">Share my...</h3>
+                </div>
+                <section class="top" >
+                    <div class="center-font">
+                        <ul class="link-bar">
+                            <li><a class="inline" href="{% url 'share:leaderboard' board_type='class' %}">leaderboard position</a></li>
+                            <li><a class="inline" href="{% url 'share:leaderboard' board_type='school' %}">school's leaderboard position</a></li>
+                            <li><a class="inline" href="{% url 'share:leaderboard' board_type='national' %}">national position</a></li>
+                        </ul>
+                    </div
+                </section>
+            </article>
+        {% endif %}
 
         <div class="text heading">
             {% if position %}
