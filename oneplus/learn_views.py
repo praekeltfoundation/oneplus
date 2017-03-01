@@ -1439,6 +1439,7 @@ def get_badge_awarded(participant):
     badgepoints = None
     badges = ParticipantBadgeTemplateRel.objects.filter(
         participant=participant,
+        badgetemplate__is_active=True,
         awarddate__range=[
             datetime.today() - timedelta(seconds=10),
             datetime.today()
