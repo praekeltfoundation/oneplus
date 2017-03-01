@@ -1,0 +1,45 @@
+{% extends "core/main.html" %}
+
+{% block title %}Leaderboards{% endblock %}
+{% block page_descriptor_text %}Leaderboards{% endblock %}
+
+{% block content %}
+    {% load humanize %}
+    {% load oneplus_extras %}
+    <article class="content squash-accent">
+        <h1 class="center-font">
+            {% if share_board.type == 'class' %}{{ learner_label }}'s position in class
+            {% elif share_board.type == 'school' %}{{ learner_label }}'s school's position
+            {% elif share_board.type == 'national' %}{{ learner_label }}'s national position
+            {% endif %}
+        </h1>
+
+        <article class="card border-color-accent" id="class-leaderboard">
+            <section class="top">
+                {% if share_board.type == 'class' %}
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_class.png" width="100%" height="auto"/>
+                    </div>
+                    <h3 class="card-top-phrase">Grade Leaderboard</h3>
+                {% elif share_board.type == 'school' %}
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_school.png" width="100%" height="auto"/>
+                    </div>
+                    <h3 class="card-top-phrase">School Leaderboard</h3>
+                {% elif share_board.type == 'national' %}
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/leaderboard/leaderboard_national.png" width="100%" height="auto"/>
+                    </div>
+                    <h3 class="card-top-phrase">National Leaderboard</h3>
+                {% endif %}
+            </section>
+            {% if share_board.position %}
+                <hr class="hr-accent" />
+                <section class="bottom">
+                    <div class="center-font">{{ learner_label }}'s is currently in</div>
+                    <div class="center-font color-accent funky-number">{{ share_board.position|ordinal_extra:'sup' }} place</div>
+                </section>
+            {% endif %}
+        </article>
+    </article>
+{% endblock %}
