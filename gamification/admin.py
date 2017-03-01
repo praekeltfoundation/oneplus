@@ -16,7 +16,7 @@ class GamificationBadgeTemplateAdmin(admin.ModelAdmin):
     search_fields = ("name", "description")
     fieldsets = [
         (None,
-            {"fields": ["name", "description", "image", "order"]})
+            {"fields": ["name", "description", "image", "order", "is_active"]})
     ]
 
 
