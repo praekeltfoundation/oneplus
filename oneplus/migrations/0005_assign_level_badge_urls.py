@@ -7,6 +7,10 @@ from django.db import models
 
 class Migration(DataMigration):
 
+    depends_on = (
+        ("gamification", "0015_add_leveling_badge"),
+    )
+
     def forwards(self, orm):
         "Write your forwards methods here."
         # Note: Don't use "from appname.models import ModelName".
