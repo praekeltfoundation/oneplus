@@ -127,18 +127,6 @@
             </article>
         {% endif %}
 
-        {% if state.home_tasks_today < state.home_required_tasks %}
-            {% if not state.questions_complete %}
-                <div class="center-font">
-                {% if sumit %}
-                    <p class="center-font">It's SUMit! Week, are you ready?</p>
-                {% else %}
-                    <p class="center-font">Ready to take the challenge?</p>
-                {% endif %}
-                </div>
-            {% endif %}
-        {% endif %}
-
         {% if sumit %}
             <div class="center-font">
                 <div class="pad-bottom"><span class="large-font-normal">SUMit! Week</span></div>

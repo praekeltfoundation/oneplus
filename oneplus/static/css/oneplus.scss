@@ -329,7 +329,12 @@ form.no-pad {
 .card-top-phrase {
   text-align: center;
   text-decoration: no-underline;
+
+  &.share-heading{
+    padding-top: 1em;
+  }
 }
+
 
 .card-description {
   padding: 1em;
