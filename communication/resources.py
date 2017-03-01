@@ -8,14 +8,14 @@ class SmsQueueResource(resources.ModelResource):
         model = SmsQueue
         fields = (
             'message',
-            'sent_id',
+            'sent_date',
             'msisdn',
             'sent',
             'sent_date',
         )
         export_order = (
-            'sent_id',
             'message',
+            'sent_date',
             'msisdn',
             'sent',
             'sent_date',
