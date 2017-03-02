@@ -55,8 +55,8 @@ def badges(request, state, user):
                           dictionary={'no_public': True, 'state': state, 'user': user})
 
         fb = {}
+        learner_label = get_learner_label(learner)
         if achieved:
-            learner_label = get_learner_label(learner)
             fb['description'] = '{0:s} has earned the {1:s} badge on dig-it!'.format(learner_label, badge.name)
 
         share_url = '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), participant.id, badge.id)
@@ -66,6 +66,7 @@ def badges(request, state, user):
                       dictionary={'fb': fb,
                                   'badge': badge,
                                   'learner': learner,
+                                  'learner_label': learner_label,
                                   'participant': participant,
                                   'state': state,
                                   'share_url': share_url,
@@ -100,7 +101,8 @@ def level(request, state, user):
             points_remaining = 0
 
         fb = {'description': '{0:s} has achieved level {1:d} on dig-it!'.format(learner_label, level)}
-
+        share_url = '{0:s}?p={1:d}'.format(reverse('public:level'),
+                                           participant.id,)
         return render(request,
                       template_name='public/public_level.html',
                       dictionary={'fb': fb,
@@ -109,6 +111,7 @@ def level(request, state, user):
                                   'level': level,
                                   'levels': range(1, settings.MAX_LEVEL + 1),
                                   'level_max': settings.MAX_LEVEL,
+                                  'share_level': share_url,
                                   'participant': participant,
                                   'points_remaining': points_remaining,
                                   'state': state,
@@ -153,6 +156,9 @@ def leaderboard(request, state, user, board_type=''):
             fb = {'description': "{0:s}'s school is in {1:d} position on dig-it {2:s} leaderboard!"
                   .format(learner_label, share_board['position'], share_board['type'])}
 
+        share_url = '{0:s}?p={1:d}'.format(reverse('public:leaderboard', kwargs={'board_type': share_board['type']}),
+                                           participant.id)
+
         return render(request,
                       template_name='public/public_leaderboards.html',
                       dictionary={'fb': fb,
@@ -160,7 +166,9 @@ def leaderboard(request, state, user, board_type=''):
                                   'learner_label': learner_label,
                                   'participant': participant,
                                   'share_board': share_board,
+                                  'share_level': share_url,
                                   'state': state,
+                                  'allow_sharing': participant.learner.public_share,
                                   'user': user})
 
     return resolve_http_method(request, [get])
