@@ -56,10 +56,6 @@ header, footer {
   padding: 0.5em 1.5em;
 }
 
-h1 {
-  margin: 16px 0px 16px 0px;
-}
-
 p {
   margin: 0px 0px 16px 0px;
   line-height: 1.1em;
@@ -101,14 +97,14 @@ hgroup {
 }
 
 .page-descriptor {
-  color: $grey;
+  color: #888888;
   font-family: $font-family-secondary;
   font-size: 12px;
   font-stretch: normal;
   font-style: normal;
   font-weight: bold;
   letter-spacing: 0.2px;
-  line-height: 1.67;
+  line-height: 1.17;
   text-align: right;
 }
 
