@@ -8,6 +8,7 @@
     {% load oneplus_extras %}
 
     <article class="content squash-accent">
+    {% comment %}
         {% if allow_sharing %}
             <article class="card border-color-accent" id="share-my">
                 <div class="text heading" >
@@ -24,6 +25,7 @@
                 </section>
             </article>
         {% endif %}
+    {% endcomment %}
 
         <div class="text heading">
             {% if position %}
