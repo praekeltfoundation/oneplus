@@ -18,6 +18,9 @@
             {% comment %}Overall stats{% endcomment %}
             <article class="card squash-accent border-color-accent">
                 <section class="top">
+                    <div class="img-container">
+                        <img class="limit-size" src="/media/img/splash/splash_level_{{ level }}.png" width="100%" height="auto"/>
+                    </div>
                     <h1 class="center-font color-accent">Level</h1>
                     <div class="level-pip-container">
                         {% for i in levels %}
@@ -74,7 +77,7 @@
                         </a>
                     </li>
                     <li class="center-font">
-                        <a href="{% url 'public:badges'%}?p={{ participant.id }}&b={{ badge.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
+                        <a href="{% url 'public:level'%}?p={{ participant.id }}" class="inline" style="line-height:2;">Link to the public page</a><br />
                     </li>
                     <script>
                         var jsRequiredClasses = document.querySelectorAll(".js-required.should-block");
