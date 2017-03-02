@@ -125,7 +125,7 @@ class TestCommentsOnLatestBlog(TestCase):
 
         resp = self.client.get(reverse('com.blog', kwargs={'blogid': blog_first_created.id}))
         self.assertEquals(resp.status_code, 200)
-        self.assertContains(resp, "Comment", count=0)
+        self.assertContains(resp, ">Comment<", count=0)
 
         message = 'What is box?'
         #Test 1.1: correct data given to show right.html
