@@ -278,7 +278,7 @@ class TestPublicLeaderboardSharing(TestCase):
         tmp_url = "{0:s}?p={1:d}".format(reverse('public:leaderboard', kwargs={"board_type": 'class'}),
                                          self.participant.id)
         resp = self.client.get(tmp_url)
-        self.assertContains(resp, "position in class")
+        self.assertContains(resp, "position in the grade")
 
     def test_leaderboard_school(self):
         #login learner

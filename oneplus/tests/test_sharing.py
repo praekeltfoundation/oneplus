@@ -260,7 +260,7 @@ class TestSharingLeaderboards(TestCase):
         #go to share a badge and options should be there
         tmp_url = "{0:s}".format(reverse('share:leaderboard', kwargs={"board_type": 'class'}))
         resp = self.client.get(tmp_url)
-        self.assertContains(resp, "Your position in class")
+        self.assertContains(resp, "Your position in your grade")
         self.assertContains(resp, "Grade Leaderboard")
 
     def test_leaderboard_school(self):
