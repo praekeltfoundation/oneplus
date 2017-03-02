@@ -70,6 +70,9 @@
                 <div class="img-container">
                     <img class="limit-size" src="/media/img/splash/splash_level_{{ level }}.png" width="100%" height="auto"/>
                 </div>
+                {% if public_sharing %}
+                    <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level</a>
+                {% endif %}
                 <h1 class="center-font color-accent">Level</h1>
                 <div class="level-pip-container">
                     {% for i in levels %}
@@ -84,9 +87,6 @@
                     {% else %}
                         You're {{ points_remaining }} points away from Level {{ level|add:"1" }}.
                     {% endifequal %}
-                    {% if public_sharing %}
-                        <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level</a>
-                    {% endif %}
                 </div>
             </section>
             {% if position %}
