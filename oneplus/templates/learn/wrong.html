@@ -124,6 +124,8 @@
                     </ul>
                 {% endif %}
             </div>
+        {% else %}
+            <h3 class="left-font" >Comments</h3>
         {% endif %}
 
         {% if request.session.state.discussion_page_max > 0 or preview%}

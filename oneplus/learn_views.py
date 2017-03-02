@@ -339,6 +339,7 @@ def nextchallenge(request, state, user, participant):
             "user": user,
             "question": _learnerstate.active_question,
             "golden_egg": golden_egg,
+            "module": _learnerstate.active_question.module,
             "points": points
         })
 
