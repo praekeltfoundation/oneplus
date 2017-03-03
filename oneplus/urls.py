@@ -143,10 +143,10 @@ urlpatterns = [
     url(r'^djga/', include('google_analytics.urls')),
 
     # Public
-    url(r"^public/", include(public_patterns, namespace="public")),
+    # url(r"^public/", include(public_patterns, namespace="public")),
 
     # Sharing
-    url(r"^share/", include(sharing_patterns, namespace="share")),
+    # url(r"^share/", include(sharing_patterns, namespace="share")),
 
     # Dashboard
     url(r'^dashboard_data$', oneplus.misc_views.dashboard_data, name="dash.data"),

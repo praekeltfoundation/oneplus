@@ -70,9 +70,11 @@
                 <div class="img-container">
                     <img class="limit-size" src="/media/img/splash/splash_level_{{ level }}.png" width="100%" height="auto"/>
                 </div>
+            {% comment %}
                 {% if public_sharing %}
                     <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level and badge</a>
                 {% endif %}
+               {% endcomment %}
                 <h1 class="center-font color-accent">Level</h1>
                 <div class="level-pip-container">
                     {% for i in levels %}
