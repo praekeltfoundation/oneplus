@@ -273,6 +273,7 @@ def chat(request, state, user, chatid):
 
                 _message.save()
             request.session["state"]["chat_page_max"] += 1
+            return redirect("com.chat", chatid=chatid)
 
         # show more comments
         elif "page" in request.POST.keys():
@@ -288,6 +289,7 @@ def chat(request, state, user, chatid):
             if msg is not None:
                 report_user_post(msg, _usr, 3)
                 messages.warning(request, "This comment has been reported")
+            return redirect("com.chat", chatid=chatid)
 
         elif "like" in request.POST.keys():
             message_id = request.POST["like"]
@@ -524,6 +526,7 @@ def blog(request, participant, state, user, blogid):
             post_comment = PostComment.objects.filter(id=post_id).first()
             if post_comment is not None:
                 report_user_post(post_comment, _usr, 1)
+            return redirect('com.blog', blogid)
 
         elif "like" in request.POST.keys():
             post_id = request.POST["like"]

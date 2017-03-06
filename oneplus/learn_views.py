@@ -339,6 +339,7 @@ def nextchallenge(request, state, user, participant):
             "user": user,
             "question": _learnerstate.active_question,
             "golden_egg": golden_egg,
+            "module": _learnerstate.active_question.module,
             "points": points
         })
 
@@ -472,8 +473,11 @@ def redo(request, state, user, participant):
     if not redo_question:
         return redirect("learn.home")
 
+    redo_question_module = None
+
     if _learnerstate.redo_question:
         question_id = _learnerstate.redo_question.id
+        redo_question_module = _learnerstate.redo_question.module
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
 
@@ -484,6 +488,7 @@ def redo(request, state, user, participant):
             "question": _learnerstate.redo_question,
             "question_number": done_count + 1,
             "state": state,
+            "module": redo_question_module,
             "question_total": total_count,
             "user": user,
         })
