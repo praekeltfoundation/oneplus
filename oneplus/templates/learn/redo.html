@@ -15,6 +15,10 @@
         <h1 class="color-accent">Question {{ question_number }}/{{ question_total }}</h1>
         <h2>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</h2>
 
+        <div class="left-font page-descriptor">
+            Module: {{ module }}
+        </div>
+
         <article class="card pale-teal-accent border-color-accent">
             {% autoescape off %}
             {{ state.question_id }}

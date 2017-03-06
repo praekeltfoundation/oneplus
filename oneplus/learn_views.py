@@ -485,6 +485,7 @@ def redo(request, state, user, participant):
             "question": _learnerstate.redo_question,
             "question_number": done_count + 1,
             "state": state,
+            "module": _learnerstate.active_question.module,
             "question_total": total_count,
             "user": user,
         })
