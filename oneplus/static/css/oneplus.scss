@@ -6,7 +6,6 @@
 /*MAIN*/
 body {
     font-family: $standard-font-family;
-	font-size: 12pt;
 	background-color: $background-color-primary;
     box-sizing: border-box;
     height: 100%;
@@ -126,6 +125,21 @@ hgroup {
   &.inline {
     padding-left: 1em;
     padding-right: 1em;
+  }
+}
+
+.button, .link {
+  &.icon-right {
+    background-color: transparent; /* make the button transparent */
+    background-image: url('../img/arrow_forward_icon.png');
+    background-position: right;  /* equivalent to 'top left' */
+    background-repeat: no-repeat;  /* make the background image appear only once */
+    border: none;           /* assuming we don't want any borders */
+    cursor: pointer;        /* make the cursor like hovering over an <a> element */
+    font-size: 16pt;
+    margin: 0.5em;
+    min-height: 32px;           /* make this the size of your image */
+    padding-right: (32px + 16px);     /* make text start to the right of the image */
   }
 }
 
