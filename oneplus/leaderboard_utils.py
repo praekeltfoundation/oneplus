@@ -78,7 +78,7 @@ def get_school_leaderboard(_participant, max_uncollapsed):
                 .values('id', 'name', 'points')[:max_uncollapsed + 1]
             if p_list.count() >= max_uncollapsed:
                 more = True
-                p_list = p_list[:-1]
+                p_list = p_list[:max_uncollapsed]
 
         members = [{'me': (a['id'] == participant.learner.school.id),
                     'name': a['name']} for a in p_list]
