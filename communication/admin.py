@@ -169,7 +169,7 @@ class MessageAdmin(SummernoteModelAdmin):
     get_response.allow_tags = True
 
 
-class SmsAdmin(SummernoteModelAdmin, ExportMixin):
+class SmsAdmin(ExportMixin, SummernoteModelAdmin):
     list_display = ("id", "msisdn", "date_sent", "message", "get_response")
     search_fields = ("msisdn", "date_sent", "message")
     list_filter = ("responded",)
