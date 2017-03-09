@@ -53,12 +53,12 @@ def get_school_leaderboard(_participant, max_uncollapsed):
         .values('id', 'name')\
         .distinct()\
         .annotate(points=Sum('learner__participant__points'))\
-        .order_by('-points', 'name')\
+        .order_by('-points', 'name')
 
     my_school = schools.get(id=participant.learner.school.id)
     position = schools.filter(points__gt=my_school['points']).count() + 1
 
-    scores = schools\
+    scores = schools.filter(points__gt=0)\
         .values_list('points', flat=True)
 
     leaderboard = []
