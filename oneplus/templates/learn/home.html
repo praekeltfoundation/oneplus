@@ -28,8 +28,8 @@
                         <h3 class="card-top-phrase">Ready for today's challenge?</h3>
                     </section>
                     <hr class="hr-accent" />
-                    <section class="bottom">
-                        <a class="link-inline center-font" href="next"><div>Take today's challenge</div></a>
+                    <section class="bottom-novert center-font">
+                        <a href="next" class="link undecorated icon-right inline">Take today's challenge</a>
                     </section>
                 </article>
             {% endif %}
@@ -58,8 +58,8 @@
             </section>
             {% if redo %}
                 <hr class="hr-accent" />
-                <section class="bottom">
-                    <a class="link-inline center-font" href="redo"><div>Redo incorrect answers</div></a>
+                <section class="bottom-novert center-font">
+                    <a href="redo" class="link undecorated icon-right inline">Redo incorrect answers</a>
                 </section>
             {% endif %}
         </article>
@@ -103,8 +103,8 @@
                 </section>
             {% endif %}
             <hr class="hr-accent" />
-            <section class="bottom">
-                <a class="link-inline center-font" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
+            <section class="bottom-novert center-font">
+                <a href="{% url 'prog.leader' %}" class="link undecorated icon-right inline">View all leaderboards</a>
             </section>
         </article>
 
@@ -119,8 +119,8 @@
                     <div class="card-description">{{ post.description|truncatechars:50 }}</div>
                 </section>
                 <hr class="hr-accent" />
-                <section class="bottom">
-                    <a class="link-inline center-font" href="/blog/{{ post.id }}"><div>Read story</div></a>
+                <section class="bottom-novert center-font">
+                    <a href="/blog/{{ post.id }}" class="link undecorated icon-right inline">Read story</a>
                 </section>
             </article>
         {% endif %}
