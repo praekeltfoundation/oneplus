@@ -378,11 +378,13 @@ hgroup {
   cursor: pointer;
   /* make the cursor like hovering over an <a> element */
   font-size: 16pt;
+  line-height: 1.5em;
   margin: 0.5em;
   min-height: 32px;
   /* make this the size of your image */
   padding-right: 48px;
-  /* make text start to the right of the image */ }
+  /* make text start to the right of the image */
+  vertical-align: middle; }
 
 form > label {
   margin: 0.5em 0; }
@@ -469,6 +471,7 @@ form.no-pad {
     display: inline; }
 
 .link.undecorated {
+  font-weight: normal;
   text-decoration: none; }
 
 .link.heading {
