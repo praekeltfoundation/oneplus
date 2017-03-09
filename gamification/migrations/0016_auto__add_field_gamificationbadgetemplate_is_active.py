@@ -12,8 +12,9 @@ class Migration(SchemaMigration):
         db.add_column(u'gamification_gamificationbadgetemplate', 'is_active',
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
-        orm.GamificationBadgeTemplate.objects.filter(name__in=['Level {0:d}'.format(i) for i in xrange(1, 8)])\
-            .update(is_active=True)
+        if not db.dry_run:
+            orm.GamificationBadgeTemplate.objects.filter(name__in=['Level {0:d}'.format(i) for i in xrange(1, 8)])\
+                .update(is_active=True)
 
     def backwards(self, orm):
         # Deleting field 'GamificationBadgeTemplate.is_active'

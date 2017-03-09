@@ -35,6 +35,7 @@ htmlcov/
 .project
 .pydevproject
 /ve/
+/ve26/
 logs/*.log
 *.pid
 
