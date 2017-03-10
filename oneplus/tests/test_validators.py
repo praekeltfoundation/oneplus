@@ -1,12 +1,13 @@
-from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.test import TestCase
+from django.test.utils import override_settings
+from auth.models import Learner
 from core.common import PROVINCES
+from core.models import Class, Participant
 from oneplus.validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
     validate_sign_up_form_school_confirm, validate_accept_terms_form
 from datetime import datetime, timedelta
-from auth.models import Learner
-from core.models import Class, Participant
-from django.test import TestCase
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 
 
@@ -49,7 +50,7 @@ def create_participant(learner, classs, **kwargs):
     return participant
 
 
-# @override_settings(GRADE_11_COURSE_NAME='Gr 11 Course')
+@override_settings(VUMI_GO_FAKE=True)
 class ValidatorTests(TestCase):
 
     def setUp(self):
