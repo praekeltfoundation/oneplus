@@ -212,6 +212,13 @@ class Learner(CustomUser):
         null=False,
     )
 
+    terms_accept = models.BooleanField(
+        verbose_name="Has user accepted the Terms and Conditions?",
+        blank=False,
+        default=False,
+        null=False,
+    )
+
     def get_class(self, active_only=False):
         part_set = self.participant_set.all()
         if active_only:
