@@ -998,9 +998,9 @@ def accept_terms(request, state, user):
         return render(request, "auth/accept_terms.html", {"state": state, "user": user})
 
     def post():
-        data, errors = validate_accept_terms_form()
+        data, errors = validate_accept_terms_form(request.POST)
 
-        if errors is None:
+        if not errors:
             learner = Learner.objects.get(id=user['id'])
             learner.terms_accept = True
             learner.save()
