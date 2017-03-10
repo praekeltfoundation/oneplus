@@ -8,11 +8,16 @@
 
     <article class="content pale-teal-accent">
 
-        <h1>Terms and Conditions</h1>
-        <h3 class="left">To be able to use the site further please accept our Terms and Conditions</h3><br><br>
+        <h1 class="color-accent">Terms and Conditions</h1>
+        <h2 class="left-font">To be able to use the site further please accept our Terms and Conditions</h2>
+
+        {% include 'misc/terms_data.html' %}
+
         <form action="{% url "auth.accept_terms" %}" method="post" class="signup">
 			{% csrf_token %}
-            <input type="checkbox" name="terms" id="tems_checkbox" value="terms_conditions" > I hereby accept the <a class="link wraps" href="{% url 'misc.terms' %}"> Terms and Conditions </a> of Dig-it <br/>
+            <label>
+                <input type="checkbox" name="terms" id="terms_checkbox" value="terms_conditions" > I hereby accept the <a class="link wraps" href="{% url 'misc.terms' %}"> Terms and Conditions </a> of Dig-it <br/>
+            </label>
             {% if errors.terms_errors %}
                 <span class="red-front">{{ errors.terms_errors }}</span>
                 <br>
