@@ -34,10 +34,11 @@ class GamificationBadgeTemplate(models.Model):
     a name, an image (jpg, png, gif), a description and the number of
     points to be awarding.
     """
-    name = models.CharField(
-        "Name", max_length=500, null=True, blank=False, unique=True)
     description = models.CharField("Description", max_length=500, blank=True)
     image = models.ImageField("Image", upload_to="img/", blank=True, null=True)
+    is_active = models.BooleanField("is active", default=False)
+    name = models.CharField(
+        "Name", max_length=500, null=True, blank=False, unique=True)
     order = models.IntegerField("Order Number", blank=True, null=True)
 
     def __str__(self):

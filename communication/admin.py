@@ -1,15 +1,14 @@
-from auth.models import Learner
-from django.contrib import admin
 from django.http.response import HttpResponseRedirect, HttpResponse
 from django_summernote.admin import SummernoteModelAdmin
-from .models import *
 from core.models import Participant
 from core.filters import UserFilter
-from .utils import VumiSmsApi, get_user_bans
+from .utils import get_user_bans
 from organisation.models import CourseModuleRel
 from .filters import *
 from .models import PostCommentLike
 from django.utils.http import urlquote
+from import_export.admin import ExportMixin, ImportExportModelAdmin
+from communication.resources import SmsResource, SmsQueueResource
 
 
 class PageAdmin(admin.ModelAdmin):
@@ -170,10 +169,11 @@ class MessageAdmin(SummernoteModelAdmin):
     get_response.allow_tags = True
 
 
-class SmsAdmin(SummernoteModelAdmin):
+class SmsAdmin(ExportMixin, SummernoteModelAdmin):
     list_display = ("id", "msisdn", "date_sent", "message", "get_response")
     search_fields = ("msisdn", "date_sent", "message")
     list_filter = ("responded",)
+    resource_class = SmsResource
 
     def get_response(self, obj):
         if obj.responded:
@@ -256,10 +256,11 @@ class ReportResponseAdmin(admin.ModelAdmin):
     search_fields = ['publish_date', 'title', 'content']
 
 
-class SmsQueuedAdmin(admin.ModelAdmin):
+class SmsQueuedAdmin(ImportExportModelAdmin):
     list_display = ('get_send_date', 'msisdn', 'message', 'sent')
     list_filter = ('sent',)
     search_fields = ('msisdn', 'message', 'send_date')
+    resource_class = SmsQueueResource
 
     def get_send_date(self, obj):
         return u'<a href="/smsqueue/%s/">%s</a>' % (obj.id, obj.send_date)
