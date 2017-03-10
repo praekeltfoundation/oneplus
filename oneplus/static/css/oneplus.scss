@@ -6,7 +6,6 @@
 /*MAIN*/
 body {
     font-family: $standard-font-family;
-	font-size: 12pt;
 	background-color: $background-color-primary;
     box-sizing: border-box;
     height: 100%;
@@ -56,10 +55,6 @@ header, footer {
   padding: 0.5em 1.5em;
 }
 
-h1 {
-  margin: 16px 0px 16px 0px;
-}
-
 p {
   margin: 0px 0px 16px 0px;
   line-height: 1.1em;
@@ -101,14 +96,14 @@ hgroup {
 }
 
 .page-descriptor {
-  color: $grey;
+  color: #888888;
   font-family: $font-family-secondary;
   font-size: 12px;
   font-stretch: normal;
   font-style: normal;
   font-weight: bold;
   letter-spacing: 0.2px;
-  line-height: 1.67;
+  line-height: 1.17;
   text-align: right;
 }
 
@@ -130,6 +125,23 @@ hgroup {
   &.inline {
     padding-left: 1em;
     padding-right: 1em;
+  }
+}
+
+.button, .link {
+  &.icon-right {
+    background-color: transparent; /* make the button transparent */
+    background-image: url('../img/arrow_forward_icon.png');
+    background-position: right;  /* equivalent to 'top left' */
+    background-repeat: no-repeat;  /* make the background image appear only once */
+    border: none;           /* assuming we don't want any borders */
+    cursor: pointer;        /* make the cursor like hovering over an <a> element */
+    font-size: 16pt;
+    line-height: 1.5em;
+    margin: 0.5em;
+    min-height: 32px;           /* make this the size of your image */
+    padding-right: (32px + 16px);     /* make text start to the right of the image */
+    vertical-align: middle;
   }
 }
 
@@ -231,6 +243,7 @@ form.no-pad {
 }
 
 .link.undecorated {
+  font-weight: normal;
   text-decoration: none;
 }
 
@@ -329,7 +342,12 @@ form.no-pad {
 .card-top-phrase {
   text-align: center;
   text-decoration: no-underline;
+
+  &.share-heading{
+    padding-top: 1em;
+  }
 }
+
 
 .card-description {
   padding: 1em;
@@ -344,6 +362,11 @@ form.no-pad {
     padding: 0.5em 0;
     vertical-align: middle;
     width: 50%;
+  }
+
+  hr.full-width {
+    margin-left: -1em;
+    margin-right: -1em;
   }
 }
 
@@ -378,6 +401,10 @@ td.num, th.num {
   -webkit-overflow: auto;
   overflow: auto;
   word-break: break-word;
+}
+
+.comment-section {
+  padding: 1em 0;
 }
 
 .comment-author {
@@ -931,6 +958,14 @@ p a { display: inline;}
     background-position: 50% 50%;
 }
 
+.small-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
 .share-icon {
     display: inline-block;
     width: 32px;
@@ -975,6 +1010,16 @@ li.forward {
   background-image: url("../img/arrow_forward_icon.png");
 }
 
+.small-icon {
+  &.like-empty {
+    background-image: url("../img/like_empty.png");
+  }
+
+  &.like-full {
+    background-image: url("../img/like_full.png");
+  }
+}
+
 .icon, .share-icon {
   &.fb-logo {
     background-image: url("../img/fb_logo_blue_icon.png");
@@ -984,9 +1029,17 @@ li.forward {
     background-image: url("../img/tw_logo_blue_icon.png");
   }
 
+  &.gp-logo {
+    background-image: url("https://www.gstatic.com/images/icons/gplus-32.png")
+  }
+
   &.wa-logo {
     background-image: url("../img/wa_logo_green_icon.png");
   }
+}
+
+.icon.home{
+  background-image: url("../img/icn_home_32.png")
 }
 
 li.badges {

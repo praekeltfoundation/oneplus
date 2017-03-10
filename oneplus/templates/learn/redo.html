@@ -15,6 +15,11 @@
         <h1 class="color-accent">Question {{ question_number }}/{{ question_total }}</h1>
         <h2>{% if points %}{{ points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</h2>
 
+        {% if module %}
+            <div class="left-font page-descriptor">
+                Module: {{ module }}
+            </div>
+        {% endif %}
         <article class="card pale-teal-accent border-color-accent">
             {% autoescape off %}
             {{ state.question_id }}
@@ -37,8 +42,7 @@
                 </section>
                 <hr class="hr-accent" />
                 <section class="bottom-novert center-font">
-                    <input type="submit" class="link" style="vertical-align:middle" value="Submit answer"/>
-                    <li class="icon forward" style="vertical-align:middle"></li>
+                    <input type="submit" class="link icon-right" value="Submit answer"/>
                 </section>
             </form>
             {% endautoescape %}

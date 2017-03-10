@@ -13,10 +13,12 @@ from oneplus import result_views
 public_patterns = [
     url(r"^badges/?$", oneplus.public_views.badges, name="badges"),
     url(r"^level/?$", oneplus.public_views.level, name="level"),
+    url(r"^leaderboard/(?P<board_type>[a-zA-Z_]*)/?", oneplus.public_views.leaderboard, name="leaderboard"),
 ]
 
 sharing_patterns = [
     url(r"^level/?$", oneplus.sharing_views.level, name="level"),
+    url(r"^leaderboard/(?P<board_type>[a-zA-Z_]*)/?", oneplus.sharing_views.leaderboard, name="leaderboard"),
 ]
 
 urlpatterns = [
@@ -142,10 +144,10 @@ urlpatterns = [
     url(r'^djga/', include('google_analytics.urls')),
 
     # Public
-    url(r"^public/", include(public_patterns, namespace="public")),
+    # url(r"^public/", include(public_patterns, namespace="public")),
 
     # Sharing
-    url(r"^share/", include(sharing_patterns, namespace="share")),
+    # url(r"^share/", include(sharing_patterns, namespace="share")),
 
     # Dashboard
     url(r'^dashboard_data$', oneplus.misc_views.dashboard_data, name="dash.data"),

@@ -1,5 +1,6 @@
 from __future__ import division
 from datetime import datetime, timedelta
+from itertools import chain
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
 from django.db.models import Count, Sum
@@ -10,6 +11,7 @@ from gamification.models import GamificationScenario
 from oneplus.views import oneplus_participant_required, COUNTRYWIDE
 from oneplus.auth_views import resolve_http_method
 from django.contrib.auth.decorators import user_passes_test
+from oneplus.leaderboard_utils import get_class_leaderboard, get_national_leaderboard, get_school_leaderboard
 
 
 @oneplus_participant_required
@@ -61,91 +63,13 @@ def ontrack(request, state, user, participant):
 def leader(request, state, user, participant):
     # get learner state
     _participant = participant
-
-    def get_class_leaderboard():
-        leaderboard = Participant.objects.filter(classs=_participant.classs, is_active=True) \
-            .order_by("-points", 'learner__first_name')
-
-        learners = []
-        position = None
-        position_counter = 0
-        for a in leaderboard:
-            position_counter += 1
-            learner = {
-                "id": a.id,
-                "name": "%s %s" % (a.learner.first_name, a.learner.last_name),
-                "points": a.points,
-                "position": position_counter}
-            if a.id == _participant.id:
-                learner['me'] = True
-                position = position_counter
-            if learner["points"] > 0:
-                learners.append(learner)
-
-            if position is not None and position_counter >= 10:
-                break
-
-        return {'board': learners[:10], 'position': position}
-
-    def get_school_leaderboard():
-        leaderboard = School.objects.filter(learner__grade=_participant.learner.grade,
-                                            learner__participant__is_active=True)\
-            .values('id', 'name')\
-            .annotate(points=Sum('learner__participant__points'))\
-            .order_by('-points', 'name')
-
-        schools = []
-        position = None
-        position_counter = 0
-        for a in leaderboard:
-            position_counter += 1
-            school = {
-                "id": a['id'],
-                "name": a['name'],
-                "points": a['points'],
-                "position": position_counter}
-            if a['id'] == _participant.learner.school_id:
-                school['me'] = True
-                position = position_counter
-            if school["points"] > 0:
-                schools.append(school)
-
-            if position is not None and position_counter >= 10:
-                break
-
-        return {'board': schools[:10], 'position': position}
-
-    def get_national_leaderboard():
-        leaderboard = Participant.objects.filter(learner__grade=_participant.learner.grade, is_active=True) \
-            .order_by("-points", 'learner__first_name')
-
-        learners = []
-        position = None
-        position_counter = 0
-        for a in leaderboard:
-            position_counter += 1
-            learner = {
-                "id": a.id,
-                "name": "%s %s" % (a.learner.first_name, a.learner.last_name),
-                "school": a.learner.school.name,
-                "points": a.points,
-                "position": position_counter}
-            if a.id == _participant.id:
-                learner['me'] = True
-                position = position_counter
-            if learner["points"] > 0:
-                learners.append(learner)
-
-            if position is not None and position_counter >= 10:
-                break
-
-        return {'board': learners[:10], 'position': position}
+    max_uncollapsed = 3
 
     def get():
         # Get leaderboard and position
-        class_board = get_class_leaderboard()
-        school_board = get_school_leaderboard()
-        national_board = get_national_leaderboard()
+        class_board = get_class_leaderboard(_participant, max_uncollapsed)
+        school_board = get_school_leaderboard(_participant, max_uncollapsed)
+        national_board = get_national_leaderboard(_participant, max_uncollapsed)
 
         class_board['active'] = request.session.get('leader_class_active', None)
         school_board['active'] = request.session.get('leader_school_active', None)
@@ -157,6 +81,7 @@ def leader(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
+                "allow_sharing": _participant.learner.public_share,
                 "class_board": class_board,
                 "school_board": school_board,
                 "national_board": national_board,
@@ -167,9 +92,9 @@ def leader(request, state, user, participant):
         request.session["state"]["leader_menu"] = False
 
         # Get leaderboard and position
-        class_board = get_class_leaderboard()
-        school_board = get_school_leaderboard()
-        national_board = get_national_leaderboard()
+        class_board = get_class_leaderboard(_participant, max_uncollapsed)
+        school_board = get_school_leaderboard(_participant, max_uncollapsed)
+        national_board = get_national_leaderboard(_participant, max_uncollapsed)
 
         if 'board.class.active' in request.POST:
             if request.POST['board.class.active'] == 'true':
@@ -199,6 +124,7 @@ def leader(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
+                "allow_sharing": _participant.learner.public_share,
                 "class_board": class_board,
                 "school_board": school_board,
                 "national_board": national_board,
@@ -264,21 +190,27 @@ def badges(request, state, user, participant, badge_id=None):
     _participant = participant
     _course = _participant.classs.course
     _allscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
-        .filter(course=_course).prefetch_related("badge").order_by('badge__order')
+        .filter(course=_course, badge__is_active=True)\
+        .prefetch_related("badge").order_by('badge__order')
     _badges = [scenario.badge for scenario in _allscenarios]
 
     # There are badges not linked to course or module, like Spot Test Champ, Exam Champ, etc.
     # this fetches them and allows the user to see them.
     _otherscenarios = GamificationScenario.objects.exclude(badge__isnull=True)\
-        .filter(course__isnull=True, module__isnull=True).prefetch_related("badge").order_by('badge__order')
+        .filter(course__isnull=True, module__isnull=True, badge__is_active=True)\
+        .prefetch_related("badge").order_by('badge__order')
     _badges += [scenario.badge for scenario in _otherscenarios]
 
     # Link achieved badges
     for x in _badges:
-        rel = ParticipantBadgeTemplateRel.objects.filter(participant=_participant, badgetemplate=x)
+        rel = ParticipantBadgeTemplateRel.objects.filter(participant=_participant,
+                                                         badgetemplate=x,
+                                                         badgetemplate__is_active=True)
         if rel.exists():
             x.achieved = True
             x.count = rel.first().awardcount
+
+    allow_sharing = participant.learner.public_share
 
     def get():
         if badge_id:
@@ -287,7 +219,8 @@ def badges(request, state, user, participant, badge_id=None):
                     share_url = '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'),
                                                                participant.id,
                                                                badge_id)
-                    return render(request, "prog/badge_single.html", {
+                    return render(request, "sharing/badge_single.html", {
+                        "allow_sharing": allow_sharing,
                         "badge": b,
                         "participant": _participant,
                         "share_url": share_url,

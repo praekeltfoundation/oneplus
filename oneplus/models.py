@@ -179,7 +179,9 @@ class LearnerState(models.Model):
             if questions.count() > 0:
                 self.active_question = questions.order_by('?')[0]
                 self.active_result = None
-                self.save()
+            else:
+                self.active_question = None
+            self.save()
 
         return self.active_question
 

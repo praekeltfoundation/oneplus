@@ -6,7 +6,27 @@
 {% block content %}
     {% load humanize %}
     {% load oneplus_extras %}
+
     <article class="content squash-accent">
+    {% comment %}
+        {% if allow_sharing %}
+            <article class="card border-color-accent" id="share-my">
+                <div class="text heading" >
+                    <h3 class="card-top-phrase share-heading">Share my...</h3>
+                </div>
+                <section class="top" >
+                    <div class="center-font">
+                        <ul class="link-bar">
+                            <li><a class="inline" href="{% url 'share:leaderboard' board_type='class' %}">leaderboard position</a></li>
+                            <li><a class="inline" href="{% url 'share:leaderboard' board_type='school' %}">school's leaderboard position</a></li>
+                            <li><a class="inline" href="{% url 'share:leaderboard' board_type='national' %}">national position</a></li>
+                        </ul>
+                    </div
+                </section>
+            </article>
+        {% endif %}
+    {% endcomment %}
+
         <div class="text heading">
             {% if position %}
                 <p>{{ header_2 }} <span class="purple-front">{{ position|ordinal_extra:'sup' }} place</span></p>
@@ -33,12 +53,14 @@
                     <section class="bottom">
                         <table class="card-table">
                             <tr><th style="width:25%"></th><th></th><th class="num superlightgrey-front" style="width:25%">Points</th></tr>
-                            {% for participant in class_board.board %}
-                                <tr>
-                                    <td class="funky-number color-accent" style="width:25%">{{ participant.position|stringformat:"d" }}</td>
-                                    <td class="{% if participant.me %}color-accent {% endif %}overflow-auto-scroll">{{ participant.name }}</td>
-                                    <td class="{% if participant.me %}color-accent {% endif %}num" style="width:25%">{{ participant.points }}</td>
-                                </tr>
+                            {% for pos in class_board.board %}
+                                {% for participant in pos.members %}
+                                    <tr>
+                                        <td class="funky-number color-accent" style="width:25%">{% if participant.position %}{{ participant.position|stringformat:"d" }}{% endif %}</td>
+                                        <td class="{% if participant.me %}color-accent {% endif %}overflow-auto-scroll">{{ participant.name }}</td>
+                                        <td class="{% if participant.me %}color-accent {% endif %}num" style="width:25%">{{ pos.points }}</td>
+                                    </tr>
+                                {% endfor %}
                             {% endfor %}
                         </table>
                     </section>
@@ -79,12 +101,14 @@
                     <section class="bottom">
                         <table class="card-table">
                             <tr><th style="width:25%"></th><th></th><th class="num superlightgrey-front" style="width:25%">Points</th></tr>
-                            {% for participant in school_board.board %}
-                                <tr>
-                                    <td class="funky-number color-accent" style="width:25%">{{ participant.position|stringformat:"d" }}</td>
-                                    <td class="{% if participant.me %}color-accent {% endif %}overflow-auto-scroll">{{ participant.name }}</td>
-                                    <td class="{% if participant.me %}color-accent {% endif %}num" style="width:25%">{{ participant.points }}</td>
-                                </tr>
+                            {% for pos in school_board.board %}
+                                {% for participant in pos.members %}
+                                    <tr>
+                                        <td class="funky-number color-accent" style="width:25%">{{ participant.position|stringformat:"d" }}</td>
+                                        <td class="{% if participant.me %}color-accent {% endif %}overflow-auto-scroll">{{ participant.name }}</td>
+                                        <td class="{% if participant.me %}color-accent {% endif %}num" style="width:25%">{{ pos.points }}</td>
+                                    </tr>
+                                {% endfor %}
                             {% endfor %}
                         </table>
                     </section>
@@ -125,12 +149,14 @@
                     <section class="bottom">
                         <table class="card-table">
                             <tr><th style="width:25%"></th><th></th><th class="num superlightgrey-front" style="width:25%">Points</th></tr>
-                            {% for participant in national_board.board %}
-                                <tr>
-                                    <td class="funky-number color-accent" style="width:25%">{{ participant.position|stringformat:"d" }}</td>
-                                    <td class="{% if participant.me %}color-accent {% endif %}overflow-auto-scroll"><b>{{ participant.name }}</b><br />{{ participant.school }}</td>
-                                    <td class="{% if participant.me %}color-accent {% endif %} num" style="width:25%">{{ participant.points }}</td>
-                                </tr>
+                            {% for pos in national_board.board %}
+                                {% for participant in pos.members %}
+                                    <tr>
+                                        <td class="funky-number color-accent" style="width:25%">{{ participant.position|stringformat:"d" }}</td>
+                                        <td class="{% if participant.me %}color-accent {% endif %}overflow-auto-scroll"><b>{{ participant.name }}</b><br />{{ participant.school }}</td>
+                                        <td class="{% if participant.me %}color-accent {% endif %} num" style="width:25%">{{ pos.points }}</td>
+                                    </tr>
+                                {% endfor %}
                             {% endfor %}
                         </table>
                     </section>

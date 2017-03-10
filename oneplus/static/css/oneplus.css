@@ -16,6 +16,9 @@ body {
   font-size: 12pt;
   line-height: 1; }
 
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 0.314em; }
+
 ol, ul {
   list-style: none; }
 
@@ -210,7 +213,6 @@ h3 {
 /*MAIN*/
 body {
   font-family: "Arial", sans-serif;
-  font-size: 12pt;
   background-color: #ffffff;
   box-sizing: border-box;
   height: 100%; }
@@ -303,9 +305,6 @@ header, footer {
   min-height: 2em;
   padding: 0.5em 1.5em; }
 
-h1 {
-  margin: 16px 0px 16px 0px; }
-
 p {
   margin: 0px 0px 16px 0px;
   line-height: 1.1em; }
@@ -337,14 +336,14 @@ hgroup {
     text-decoration: underline; }
 
 .page-descriptor {
-  color: #2a2a2a;
+  color: #888888;
   font-family: "Lato", sans-serif;
   font-size: 12px;
   font-stretch: normal;
   font-style: normal;
   font-weight: bold;
   letter-spacing: 0.2px;
-  line-height: 1.67;
+  line-height: 1.17;
   text-align: right; }
 
 .button {
@@ -365,6 +364,27 @@ hgroup {
   .button.inline {
     padding-left: 1em;
     padding-right: 1em; }
+
+.button.icon-right, .link.icon-right {
+  background-color: transparent;
+  /* make the button transparent */
+  background-image: url("../img/arrow_forward_icon.png");
+  background-position: right;
+  /* equivalent to 'top left' */
+  background-repeat: no-repeat;
+  /* make the background image appear only once */
+  border: none;
+  /* assuming we don't want any borders */
+  cursor: pointer;
+  /* make the cursor like hovering over an <a> element */
+  font-size: 16pt;
+  line-height: 1.5em;
+  margin: 0.5em;
+  min-height: 32px;
+  /* make this the size of your image */
+  padding-right: 48px;
+  /* make text start to the right of the image */
+  vertical-align: middle; }
 
 form > label {
   margin: 0.5em 0; }
@@ -451,6 +471,7 @@ form.no-pad {
     display: inline; }
 
 .link.undecorated {
+  font-weight: normal;
   text-decoration: none; }
 
 .link.heading {
@@ -527,6 +548,8 @@ form.no-pad {
 .card-top-phrase {
   text-align: center;
   text-decoration: no-underline; }
+  .card-top-phrase.share-heading {
+    padding-top: 1em; }
 
 .card-description {
   padding: 1em;
@@ -539,6 +562,9 @@ form.no-pad {
     padding: 0.5em 0;
     vertical-align: middle;
     width: 50%; }
+  .card-table hr.full-width {
+    margin-left: -1em;
+    margin-right: -1em; }
 
 .card-link {
   font-size: 16px;
@@ -566,6 +592,9 @@ td.num, th.num {
   -webkit-overflow: auto;
   overflow: auto;
   word-break: break-word; }
+
+.comment-section {
+  padding: 1em 0; }
 
 .comment-author {
   color: lightgrey;
@@ -1029,6 +1058,13 @@ p a {
   background-repeat: no-repeat;
   background-position: 50% 50%; }
 
+.small-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-position: 50% 50%; }
+
 .share-icon {
   display: inline-block;
   width: 32px;
@@ -1063,12 +1099,22 @@ li.close {
 li.forward {
   background-image: url("../img/arrow_forward_icon.png"); }
 
+.small-icon.like-empty {
+  background-image: url("../img/like_empty.png"); }
+.small-icon.like-full {
+  background-image: url("../img/like_full.png"); }
+
 .icon.fb-logo, .share-icon.fb-logo {
   background-image: url("../img/fb_logo_blue_icon.png"); }
 .icon.tw-logo, .share-icon.tw-logo {
   background-image: url("../img/tw_logo_blue_icon.png"); }
+.icon.gp-logo, .share-icon.gp-logo {
+  background-image: url("https://www.gstatic.com/images/icons/gplus-32.png"); }
 .icon.wa-logo, .share-icon.wa-logo {
   background-image: url("../img/wa_logo_green_icon.png"); }
+
+.icon.home {
+  background-image: url("../img/icn_home_32.png"); }
 
 li.badges {
   background-image: url("../img/icn_badges.png"); }
@@ -1099,9 +1145,6 @@ li.information {
 
 li.home {
   background-image: url("../img/icn_home.png"); }
-
-.icon.home {
-  background-image: url("../img/icn_home_32.png"); }
 
 li.change_number {
   background-image: url("../img/icn_chn_number.png"); }

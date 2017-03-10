@@ -72,6 +72,7 @@ INSTALLED_APPS = (
     "bs4",
     "google_analytics",
     "haystack",
+    "pwa",
     "raven.contrib.django.raven_compat",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -278,8 +279,31 @@ MAX_LEVEL = 7
 FB_APP_NUM = '1400713283294375'
 FB_REDIRECT = 'http://dig-it.me'
 FB_SITE_TITLE = 'dig-it'
-FB_SITE_DESC = 'dig-it is a mobisite designed to support Grade 10 - Grade 12 maths learners. ' + \
-               'Our fun, gamified, environment lets you practice and revise maths - with no pressure.'
+FB_SITE_DESC = 'Challenge your maths skills and improve your marks. ' \
+               'dig-it helps Gr10 - 12s score in maths - and in life.'
+
+# Progressive Web App
+PWA_SERVICE_WORKER_PATH = os.path.join(ENV_PATH, 'serviceworker.js')
+PWA_APP_NAME = 'dig-it'
+PWA_APP_DESCRIPTION = 'dig-it is a mobisite designed to support Grade 10 - Grade 12 maths learners.'
+PWA_APP_THEME_COLOR = '#68baa7'
+PWA_APP_ICONS = [
+    {
+      "src": "/media/img/appicons/dig-it_icon_96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/media/img/appicons/dig-it_icon_144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/media/img/appicons/dig-it_icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+]
 
 try:
     from local_settings import *

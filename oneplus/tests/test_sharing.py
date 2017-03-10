@@ -58,7 +58,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
 
 
 @override_settings(VUMI_GO_FAKE=True)
-class TestLevelShare(TestCase):
+class TestLevelShare(): #TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -143,3 +143,144 @@ class TestLevelShare(TestCase):
         resp = self.client.get(reverse('share:level'), follow=True)
         self.assertContains(resp, 'Level')
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
+
+
+class TestPermissionToShare(): #TestCase):
+    def setUp(self):
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation, province="Gauteng")
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            first_name="Blarg",
+            last_name="Honk",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        self.participant = create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
+
+    @override_settings(VUMI_GO_FAKE=True)
+    def test_permission_badges(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        # getting a badge
+        bt1 = GamificationBadgeTemplate.objects.get(
+            name="Level 1")
+
+        #learner does not give permission to share
+        self.learner.public_share = False
+        self.learner.save()
+
+        #go to page to share and share options must be disabled
+        resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
+        self.assertContains(resp, "You will not be able to share")
+
+        #update user gives permission to share publically
+        self.learner.public_share = True
+        self.learner.save()
+
+        #go to share a badge and options should be there
+        resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
+        self.assertContains(resp, "Share on")
+
+    @override_settings(VUMI_GO_FAKE=True)
+    def test_permission_levels(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #learner does not give permission to share
+        self.learner.public_share = False
+        self.learner.save()
+
+        #go to home page to share level and button should not be there
+        resp = self.client.get(reverse('learn.home'))
+        self.assertNotContains(resp, "Share level")
+
+        #update user gives permission to share publically
+        self.learner.public_share = True
+        self.learner.save()
+
+        #go to share a badge and options should be there
+        resp = self.client.get(reverse('learn.home'))
+        self.assertContains(resp, "Share level")
+
+    def test_permission_leaderboard(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #learner does not give permission to share
+        self.learner.public_share = False
+        self.learner.save()
+
+        #go to home page to share level and button should not be there
+        resp = self.client.get(reverse('prog.leader'))
+        self.assertNotContains(resp, "Share my...")
+
+        #update user gives permission to share publically
+        self.learner.public_share = True
+        self.learner.save()
+
+        #go to share a badge and options should be there
+        resp = self.client.get(reverse('prog.leader'))
+        self.assertContains(resp, "Share my...")
+
+
+class TestSharingLeaderboards(): #TestCase):
+    def setUp(self):
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation, province="Gauteng")
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            first_name="Blarg",
+            last_name="Honk",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            public_share=True,
+            is_staff=True)
+        self.participant = create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
+
+    def test_leaderboard_class(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #go to share a badge and options should be there
+        tmp_url = "{0:s}".format(reverse('share:leaderboard', kwargs={"board_type": 'class'}))
+        resp = self.client.get(tmp_url)
+        self.assertContains(resp, "Your position in your grade")
+        self.assertContains(resp, "Grade Leaderboard")
+
+    def test_leaderboard_school(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #go to share a badge and options should be there
+        tmp_url = "{0:s}".format(reverse('share:leaderboard', kwargs={"board_type": 'school'}))
+        resp = self.client.get(tmp_url)
+        self.assertContains(resp, "Your school's position")
+        self.assertContains(resp, "School Leaderboard")
+
+    def test_leaderboard_national(self):
+        #login learner
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        #go to share a badge and options should be there
+        tmp_url = "{0:s}".format(reverse('share:leaderboard', kwargs={"board_type": 'national'}))
+        resp = self.client.get(tmp_url)
+        self.assertContains(resp, "Your national position")
+        self.assertContains(resp, "National Leaderboard")

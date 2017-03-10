@@ -11,7 +11,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from auth.models import Learner
-from communication.models import CoursePostRel, Discussion, Post, Report
+from communication.models import CoursePostRel, Discussion, DiscussionLike, Post, Report
 from content.models import TestingQuestion, TestingQuestionOption, GoldenEgg, GoldenEggRewardLog, Event, \
     EventParticipantRel, EventSplashPage, EventStartPage, EventQuestionRel, EventQuestionAnswer, \
     EventEndPage, SUMitLevel, SUMit
@@ -339,6 +339,7 @@ def nextchallenge(request, state, user, participant):
             "user": user,
             "question": _learnerstate.active_question,
             "golden_egg": golden_egg,
+            "module": _learnerstate.active_question.module,
             "points": points
         })
 
@@ -357,6 +358,7 @@ def nextchallenge(request, state, user, participant):
 
             _learnerstate.active_result = _option.correct
             _learnerstate.save()
+            _learner_level_before, _threshold = _participant.calc_level()
 
             # Answer question
             _participant.answer(_option.question, _option)
@@ -369,7 +371,8 @@ def nextchallenge(request, state, user, participant):
             except Exception as e:
                 pass
 
-            # Check for awards
+            # Check for award
+
             if _option.correct:
 
                 # Important
@@ -429,6 +432,20 @@ def nextchallenge(request, state, user, participant):
                         special_rule=True
                     )
 
+                _learner_level_after, _threshold = _participant.calc_level()
+                level_badge_names = ['Level {0:d}'.format(i) for i in xrange(1, settings.MAX_LEVEL + 1)]
+                search_badges = level_badge_names[:_learner_level_after]
+
+                badges_earned = GamificationBadgeTemplate.objects.filter(name__in=search_badges)\
+                    .exclude(participantbadgetemplaterel__participant_id=participant.id)
+
+                for badge in badges_earned:
+                    _participant.award_scenario(
+                        "LEVELED_TO_{0:s}".format(badge.name.split()[-1]),
+                        _learnerstate.active_question.module,
+                        special_rule=True
+                    )
+
                 return redirect("learn.right")
 
             else:
@@ -456,8 +473,11 @@ def redo(request, state, user, participant):
     if not redo_question:
         return redirect("learn.home")
 
+    redo_question_module = None
+
     if _learnerstate.redo_question:
         question_id = _learnerstate.redo_question.id
+        redo_question_module = _learnerstate.redo_question.module
         request.session["state"]["question_id"] = "<!-- TPS Version 4.3." \
                                                   + str(question_id) + "-->"
 
@@ -468,6 +488,7 @@ def redo(request, state, user, participant):
             "question": _learnerstate.redo_question,
             "question_number": done_count + 1,
             "state": state,
+            "module": redo_question_module,
             "question_total": total_count,
             "user": user,
         })
@@ -521,34 +542,45 @@ def redo_right(request, state, user, participant):
     _usr = Learner.objects.get(pk=user["id"])
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(course=_participant.classs.course,
+                                         question=_learnerstate.redo_question,
+                                         moderated=True,
+                                         unmoderated_date=None,
+                                         reply=None)\
+            .annotate(like_count=Count('discussionlike__user'))
+
+    def retrieve_popular_message_objects():
+        return retrieve_message_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
+
     def get():
         if _learnerstate.active_redo_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
-
+            all_messages = retrieve_message_objects()
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
             request.session["state"]["discussion_page"] = \
                 min(2, request.session["state"]["discussion_page_max"])
-            messages.add_message(request, messages.SUCCESS,
-                                 "Thank you for your contribution. Your message will display shortly! "
-                                 "If not already")
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_message_objects()[:2]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
                 "learn/redo_right.html",
                 {
-                    "has_next": redo_count > 0,
                     "comment_messages": _messages,
+                    "has_next": redo_count > 0,
                     "points": _learnerstate.redo_question.points if _learnerstate.redo_question else None,
+                    "most_popular": _popular_messages,
                     "question": _learnerstate.redo_question,
                     "questions": questions,
                     "state": state,
@@ -639,21 +671,34 @@ def redo_right(request, state, user, participant):
                     report_user_post(post_comment, _usr, 1)
                 return redirect(reverse("learn.redo_right"))
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.redo_right")
+
+            _messages = retrieve_message_objects()\
+                .order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_message_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
                 "learn/redo_right.html",
                 {
+                    "comment_messages": _messages,
                     "has_next": redo_count > 0,
                     "points": _learnerstate.redo_question.points if _learnerstate.redo_question else None,
-                    "comment_messages": _messages,
+                    "most_popular": _popular_messages,
                     "question": _learnerstate.redo_question,
                     "state": state,
                     "user": user,
@@ -684,16 +729,22 @@ def redo_wrong(request, state, user, participant):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(course=_participant.classs.course,
+                                         question=_learnerstate.redo_question,
+                                         moderated=True,
+                                         unmoderated_date=None,
+                                         reply=None)\
+            .annotate(like_count=Count('discussionlike__user'))
+
+    def retrieve_popular_message_objects():
+        return retrieve_message_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
+
     def get():
         if not _learnerstate.active_redo_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_message_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -701,13 +752,21 @@ def redo_wrong(request, state, user, participant):
                 min(2, request.session["state"]["discussion_page_max"])
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_message_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
                 "learn/redo_wrong.html",
                 {
-                    "has_next": redo_count > 0,
                     "comment_messages": _messages,
+                    "has_next": redo_count > 0,
+                    "most_popular": _popular_messages,
                     "question": _learnerstate.redo_question,
                     "questions": questions,
                     "state": state,
@@ -777,6 +836,7 @@ def redo_wrong(request, state, user, participant):
                 request.session["state"]["discussion_responded_id"] \
                     = request.session["state"]["discussion_response_id"]
                 request.session["state"]["discussion_response_id"] = None
+                return redirect(reverse("learn.redo_wrong"))
             # show more comments
             elif "page" in request.POST.keys():
                 request.session["state"]["discussion_page"] += 2
@@ -797,20 +857,33 @@ def redo_wrong(request, state, user, participant):
                     report_user_post(post_comment, _usr, 1)
                 return redirect(reverse("learn.redo_wrong"))
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.redo_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.redo_wrong")
+
+            _messages = retrieve_message_objects()\
+                .order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_message_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
                 "learn/redo_wrong.html",
                 {
-                    "has_next": redo_count > 0,
                     "comment_messages": _messages,
+                    "has_next": redo_count > 0,
+                    "most_popular": _popular_messages,
                     "question": _learnerstate.redo_question,
                     "state": state,
                     "user": user,
@@ -1369,23 +1442,19 @@ def get_event_points_awarded(participant):
 def get_badge_awarded(participant):
     # Get relevant badge related to scenario
     badgepoints = None
-    badge = ParticipantBadgeTemplateRel.objects.filter(
+    badges = ParticipantBadgeTemplateRel.objects.filter(
         participant=participant,
+        badgetemplate__is_active=True,
         awarddate__range=[
-            datetime.today() - timedelta(seconds=2),
+            datetime.today() - timedelta(seconds=10),
             datetime.today()
         ]
-    ).order_by('-awarddate').first()
+    ).order_by('badgetemplate__name')
 
-    if badge:
-        badgetemplate = badge.badgetemplate
-        badgepoints = GamificationScenario.objects.get(
-            badge__id=badgetemplate.id
-        ).point
-    else:
-        badgetemplate = None
-
-    return badgetemplate, badgepoints,
+    return [{
+        'badgetemplate': badge.badgetemplate,
+        'badgepoints': GamificationScenario.objects.get(badge__id=badge.badgetemplate.id).point
+    } for badge in badges]
 
 
 def get_golden_egg(participant):
@@ -1480,16 +1549,21 @@ def right(request, state, user, participant):
     _usr = Learner.objects.get(pk=user["id"])
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_comment_objects():
+        return Discussion.objects.filter(course=_participant.classs.course,
+                                         moderated=True,
+                                         question=_learnerstate.active_question,
+                                         unmoderated_date=None)\
+            .annotate(like_count=Count('discussionlike__user'))
+
+    def retrieve_popular_comment_objects():
+        return retrieve_comment_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
+
     def get():
         if _learnerstate.active_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_comment_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -1497,21 +1571,30 @@ def right(request, state, user, participant):
                 min(2, request.session["state"]["discussion_page_max"])
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_comment_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             # Get badge points
-            badge, badge_points = get_badge_awarded(_participant)
+            badge_objects = get_badge_awarded(_participant)
+            badges = [badge['badgetemplate'] for badge in badge_objects]
             points = get_points_awarded(_participant) + get_event_points_awarded(_participant)
             return render(
                 request,
                 "learn/right.html",
                 {
+                    "badges": badges,
+                    "comment_messages": _messages,
+                    "golden_egg": golden_egg,
+                    "most_popular": _popular_messages,
+                    "question": _learnerstate.active_question,
+                    "points": points,
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question,
-                    "comment_messages": _messages,
-                    "badge": badge,
-                    "points": points,
-                    "golden_egg": golden_egg
                 },
                 context_instance=RequestContext(request)
             )
@@ -1600,22 +1683,35 @@ def right(request, state, user, participant):
                     report_user_post(post_comment, _usr, 1)
                 return redirect(reverse("learn.right"))
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.right")
+
+            _messages = retrieve_comment_objects()\
+                .order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_comment_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
                 "learn/right.html",
                 {
+                    "comment_messages": _messages,
+                    "most_popular": _popular_messages,
+                    "question": _learnerstate.active_question,
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question,
-                    "comment_messages": _messages,
                 }
             )
         else:
@@ -1648,16 +1744,22 @@ def wrong(request, state, user, participant):
 
     request.session["state"]["banned"] = _usr.is_banned()
 
+    def retrieve_message_objects():
+        return Discussion.objects.filter(course=_participant.classs.course,
+                                         question=_learnerstate.active_question,
+                                         moderated=True,
+                                         unmoderated_date=None,
+                                         reply=None)\
+            .annotate(like_count=Count('discussionlike__user'))
+
+    def retrieve_popular_message_objects():
+        return retrieve_message_objects()\
+            .filter(like_count__gt=0)\
+            .order_by('-like_count')
+
     def get():
         if not _learnerstate.active_result:
-            all_messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    unmoderated_date=None,
-                    reply=None
-                )
+            all_messages = retrieve_message_objects()
 
             request.session["state"]["discussion_page_max"] = all_messages.count()
 
@@ -1665,15 +1767,24 @@ def wrong(request, state, user, participant):
                 min(2, request.session["state"]["discussion_page_max"])
 
             _messages = all_messages.order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_message_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return render(
                 request,
                 "learn/wrong.html",
-                {"state": state,
-                 "user": user,
-                 "question": _learnerstate.active_question,
-                 "comment_messages": _messages
-                 }
+                {
+                    "comment_messages": _messages,
+                    "most_popular": _popular_messages,
+                    "question": _learnerstate.active_question,
+                    "state": state,
+                    "user": user,
+                }
             )
         else:
             return HttpResponseRedirect("right")
@@ -1758,23 +1869,41 @@ def wrong(request, state, user, participant):
                 post_comment = Discussion.objects.filter(id=request.POST.get("report")).first()
                 if post_comment is not None:
                     report_user_post(post_comment, _usr, 1)
+                return redirect(reverse("learn.wrong"))
 
-            _messages = \
-                Discussion.objects.filter(
-                    course=_participant.classs.course,
-                    question=_learnerstate.active_question,
-                    moderated=True,
-                    reply=None
-                ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            elif "like" in request.POST.keys():
+                discussion_id = request.POST["like"]
+                comment = Discussion.objects.filter(id=discussion_id).first()
+                if comment is not None:
+                    if "has_liked" in request.POST.keys():
+                        DiscussionLike.unlike(_usr, comment)
+                    else:
+                        DiscussionLike.like(_usr, comment)
+                    return redirect("learn.wrong")
+
+            _messages = retrieve_message_objects()\
+                .order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+            _popular_messages = retrieve_popular_message_objects()[:2]
+
+            for comment in _messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            for comment in _popular_messages:
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
+
+            request.session["state"]["discussion_page_max"] = _messages.count()
+            request.session["state"]["discussion_page"] = \
+                min(2, request.session["state"]["discussion_page_max"])
 
             return render(
                 request,
                 "learn/wrong.html",
                 {
+                    "comment_messages": _messages,
+                    "most_popular": _popular_messages,
+                    "question": _learnerstate.active_question,
                     "state": state,
                     "user": user,
-                    "question": _learnerstate.active_question,
-                    "comment_messages": _messages
                 }
             )
         else:
@@ -1983,7 +2112,8 @@ def event_end_page(request, state, user, participant):
             )
     else:
         return redirect("learn.home")
-    badge, badge_points = get_badge_awarded(_participant)
+    badge_objects = get_badge_awarded(_participant)
+    badges = [badge['badgetemplate'] for badge in badge_objects]
 
     def get():
         return render(
@@ -1993,7 +2123,7 @@ def event_end_page(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge,
+                "badges": badges,
             }
         )
 
@@ -2070,7 +2200,7 @@ def sumit_end_page(request, state, user, participant):
         rel.sumit_level = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         rel.results_received = True
         rel.save()
-        
+
         sumit["level"] = SUMitLevel.objects.get(order=_learnerstate.sumit_level).name
         points = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant, correct=True)\
             .aggregate(Sum('question__points'))['question__points__sum']
@@ -2094,7 +2224,9 @@ def sumit_end_page(request, state, user, participant):
 
     else:
         return redirect("learn.home")
-    badge, badge_points = get_badge_awarded(_participant)
+
+    badge_objects = get_badge_awarded(_participant)
+    badges = [badge['badgetemplate'] for badge in badge_objects]
 
     def get():
         return render(
@@ -2104,7 +2236,7 @@ def sumit_end_page(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "page": page,
-                "badge": badge,
+                "badges": badges,
                 "sumit": sumit,
                 "front": front,
                 "back": back,
@@ -2181,6 +2313,10 @@ def report_question(request, state, user, participant, questionid, frm):
                     moderated=True,
                     reply=None
                 ).order_by("-publishdate")[:request.session["state"]["discussion_page"]]
+
+            for comment in _messages:
+                comment.like_count = DiscussionLike.count_likes(comment)
+                comment.has_liked = DiscussionLike.has_liked(_usr, comment)
 
             return HttpResponseRedirect('/' + frm,
                                         {

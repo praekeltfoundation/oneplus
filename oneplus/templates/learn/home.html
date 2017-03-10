@@ -28,8 +28,8 @@
                         <h3 class="card-top-phrase">Ready for today's challenge?</h3>
                     </section>
                     <hr class="hr-accent" />
-                    <section class="bottom">
-                        <a class="link-inline center-font" href="next"><div>Take today's challenge</div></a>
+                    <section class="bottom-novert center-font">
+                        <a href="next" class="link undecorated icon-right inline">Take today's challenge</a>
                     </section>
                 </article>
             {% endif %}
@@ -58,8 +58,8 @@
             </section>
             {% if redo %}
                 <hr class="hr-accent" />
-                <section class="bottom">
-                    <a class="link-inline center-font" href="redo"><div>Redo incorrect answers</div></a>
+                <section class="bottom-novert center-font">
+                    <a href="redo" class="link undecorated icon-right inline">Redo incorrect answers</a>
                 </section>
             {% endif %}
         </article>
@@ -68,12 +68,13 @@
         <article class="card squash-accent border-color-accent">
             <section class="top">
                 <div class="img-container">
-                    <img class="limit-size" src="/media/img/onboarding/welcome3.png" width="100%" height="auto"/>
+                    <img class="limit-size" src="/media/img/splash/splash_level_{{ level }}.png" width="100%" height="auto"/>
                 </div>
-                <a class="button border-color-accent color-accent" href="{% url 'prog.badges' %}">See all badges</a>
-            </section>
-            <hr class="hr-accent" />
-            <section class="bottom">
+            {% comment %}
+                {% if public_sharing %}
+                    <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level and badge</a>
+                {% endif %}
+               {% endcomment %}
                 <h1 class="center-font color-accent">Level</h1>
                 <div class="level-pip-container">
                     {% for i in levels %}
@@ -88,9 +89,6 @@
                     {% else %}
                         You're {{ points_remaining }} points away from Level {{ level|add:"1" }}.
                     {% endifequal %}
-                    {% if public_sharing %}
-                        <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level</a>
-                    {% endif %}
                 </div>
             </section>
             {% if position %}
@@ -105,8 +103,8 @@
                 </section>
             {% endif %}
             <hr class="hr-accent" />
-            <section class="bottom">
-                <a class="link-inline center-font" href="{% url 'prog.leader' %}"><div>View all leaderboards</div></a>
+            <section class="bottom-novert center-font">
+                <a href="{% url 'prog.leader' %}" class="link undecorated icon-right inline">View all leaderboards</a>
             </section>
         </article>
 
@@ -121,22 +119,10 @@
                     <div class="card-description">{{ post.description|truncatechars:50 }}</div>
                 </section>
                 <hr class="hr-accent" />
-                <section class="bottom">
-                    <a class="link-inline center-font" href="/blog/{{ post.id }}"><div>Read story</div></a>
+                <section class="bottom-novert center-font">
+                    <a href="/blog/{{ post.id }}" class="link undecorated icon-right inline">Read story</a>
                 </section>
             </article>
-        {% endif %}
-
-        {% if state.home_tasks_today < state.home_required_tasks %}
-            {% if not state.questions_complete %}
-                <div class="center-font">
-                {% if sumit %}
-                    <p class="center-font">It's SUMit! Week, are you ready?</p>
-                {% else %}
-                    <p class="center-font">Ready to take the challenge?</p>
-                {% endif %}
-                </div>
-            {% endif %}
         {% endif %}
 
         {% if sumit %}
