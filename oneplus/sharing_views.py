@@ -9,6 +9,9 @@ from oneplus.leaderboard_utils import get_school_leaderboard, get_national_leade
 
 @oneplus_participant_required
 def level(request, state, user, participant):
+    if not settings.SOCIAL_MEDIA_ACTIVE:
+        return redirect('arrive')
+
     # get learner state
     _participant = participant
     learner = _participant.learner
@@ -49,6 +52,9 @@ def level(request, state, user, participant):
 
 @oneplus_participant_required
 def leaderboard(request, state, user, participant, board_type=''):
+    if not settings.SOCIAL_MEDIA_ACTIVE:
+        return redirect('arrive')
+
     max_uncollapsed = 3
 
     if board_type == 'class':

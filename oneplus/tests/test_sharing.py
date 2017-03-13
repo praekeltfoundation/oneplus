@@ -57,7 +57,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
 class TestLevelShare(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -144,8 +144,16 @@ class TestLevelShare(TestCase):
         self.assertContains(resp, 'Level')
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
 
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_sm_inactive(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        self.learner.public_share = True
+        self.learner.save()
+        resp = self.client.get(reverse('share:level'), follow=True)
+        self.assertRedirects(resp, reverse('learn.home'))
 
-@override_settings(VUMI_GO_FAKE=True)
+
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
 class TestPermissionToShare(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -231,7 +239,16 @@ class TestPermissionToShare(TestCase):
         resp = self.client.get(reverse('prog.leader'))
         self.assertContains(resp, "Share my...")
 
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_sm_inactive(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        self.learner.public_share = True
+        self.learner.save()
+        resp = self.client.get(reverse('share:level'), follow=True)
+        self.assertRedirects(resp, reverse('learn.home'))
 
+
+@override_settings(SOCIAL_MEDIA_ACTIVE=True)
 class TestSharingLeaderboards(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -283,3 +300,11 @@ class TestSharingLeaderboards(TestCase):
         resp = self.client.get(tmp_url)
         self.assertContains(resp, "Your national position")
         self.assertContains(resp, "National Leaderboard")
+
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False, VUMI_GO_FAKE=True)
+    def test_sm_inactive(self):
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+        self.learner.public_share = True
+        self.learner.save()
+        resp = self.client.get(reverse('share:level'), follow=True)
+        self.assertRedirects(resp, reverse('learn.home'))
