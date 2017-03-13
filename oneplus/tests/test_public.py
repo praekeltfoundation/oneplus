@@ -95,6 +95,13 @@ class TestPublicBadge(TestCase):
 
         self.badge_await = create_badgetemplate(name='Awaiting Badge #1')
 
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_no_sm_badges(self):
+        resp = self.client.get(
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), 1, 1),
+            follow=True)
+        self.assertRedirects(resp, reverse('misc.onboarding'))
+
     def test_no_perm(self):
         self.learner.public_share = False
         self.learner.save()
@@ -179,6 +186,13 @@ class TestPublicLevel(TestCase):
             is_staff=True)
         self.participant = create_participant(self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
+
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_no_sm_level(self):
+        resp = self.client.get(
+            '{0:s}?p={1:d}'.format(reverse('public:level'), 1),
+            follow=True)
+        self.assertRedirects(resp, reverse('misc.onboarding'))
 
     def test_no_perm(self):
         self.learner.public_share = False
@@ -274,6 +288,14 @@ class TestPublicLeaderboardSharing(TestCase):
         self.participant = create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
+
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_no_sm_leader(self):
+        resp = self.client.get("{0:s}?p={1:d}".format(reverse('public:leaderboard',
+                                                              kwargs={"board_type": 'class'}),
+                                                      1),
+                               follow=True)
+        self.assertRedirects(resp, reverse('misc.onboarding'))
 
     def test_leaderboard_class(self):
         #login learner
