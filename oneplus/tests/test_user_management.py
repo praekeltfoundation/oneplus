@@ -26,6 +26,8 @@ def create_test_question(name, module, **kwargs):
 def create_learner(school, **kwargs):
     if 'grade' not in kwargs:
         kwargs['grade'] = 'Grade 11'
+    if 'terms_accept' not in kwargs:
+        kwargs['terms_accept'] = True
     return Learner.objects.create(school=school, **kwargs)
 
 
@@ -282,7 +284,6 @@ class TestSignUp(TestCase):
                                         'surname': "Bobby",
                                         'cellphone': self.learner.mobile,
                                         'grade': 'Grade 10',
-                                        'province': 'Gauteng',
                                         'enrolled': 0
                                     },
                                     follow=True)
@@ -294,17 +295,17 @@ class TestSignUp(TestCase):
                                         'first_name': "Bob",
                                         'surname': "Bobby",
                                         'cellphone': '0729876543',
-                                        'province': 'Gauteng',
                                         'grade': 'Grade 10',
                                         'enrolled': 0,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, 'Bob')
             self.assertContains(resp, 'Bobby')
             self.assertContains(resp, '0729876543')
-            self.assertContains(resp, 'Gauteng')
             self.assertContains(resp, 'Grade 10')
             self.assertContains(resp, '0')
+            self.assertContains(resp, 'True')
 
             #get request
             resp = self.client.get(reverse('auth.signup_form_normal'), follow=True)
@@ -325,7 +326,8 @@ class TestSignUp(TestCase):
                                             'province': 'Gauteng',
                                             'grade': 'Grade 10',
                                             'enrolled': 1,
-                                            'school_dirty': 'blarg'},
+                                            'school_dirty': 'blarg',
+                                            'terms': True},
                                         follow=True)
                 MockSearchSet.assert_called()
                 self.assertContains(resp, 'Blargity School')
@@ -341,7 +343,8 @@ class TestSignUp(TestCase):
                                             'province': 'Gauteng',
                                             'grade': 'Grade 10',
                                             'enrolled': 1,
-                                            'school_dirty': 'blarg'},
+                                            'school_dirty': 'blarg',
+                                            'terms': True},
                                         follow=True)
                 MockSearchSet.assert_called()
                 self.assertContains(resp, 'No schools were a close enough match')
@@ -357,7 +360,8 @@ class TestSignUp(TestCase):
                                             'province': 'Gauteng',
                                             'grade': 'Grade 10',
                                             'enrolled': 1,
-                                            'school_dirty': self.school.name},
+                                            'school_dirty': self.school.name,
+                                            'terms': True},
                                         follow=True)
                 MockSearchSet.assert_called()
                 self.assertContains(resp, 'No schools were a close enough match')
@@ -372,7 +376,8 @@ class TestSignUp(TestCase):
                                         'province': 'Gauteng',
                                         'grade': 'Grade 10',
                                         'enrolled': 1,
-                                        'school': 999
+                                        'school': 999,
+                                        'terms': True
                                     },
                                     follow=True)
             self.assertContains(resp, "No such school exists")
@@ -386,7 +391,8 @@ class TestSignUp(TestCase):
                                         'province': 'Gauteng',
                                         'grade': 'Grade 10',
                                         'enrolled': 0,
-                                        'school': promaths_school.id
+                                        'school': promaths_school.id,
+                                        'terms': True
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -405,6 +411,7 @@ class TestSignUp(TestCase):
                                         'province': "Gauteng",
                                         'school': self.school.id,
                                         'enrolled': 1,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -426,6 +433,7 @@ class TestSignUp(TestCase):
                                         'province': "Gauteng",
                                         'school': self.school.id,
                                         'enrolled': 1,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -445,6 +453,7 @@ class TestSignUp(TestCase):
                                         'province': "Gauteng",
                                         'school': self.school.id,
                                         'enrolled': 1,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -461,6 +470,7 @@ class TestSignUp(TestCase):
                                         'province': "Gauteng",
                                         'school': self.school.id,
                                         'enrolled': 1,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -483,6 +493,7 @@ class TestSignUp(TestCase):
                                         'province': "Gauteng",
                                         'school': self.school.id,
                                         'enrolled': 1,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -499,6 +510,7 @@ class TestSignUp(TestCase):
                                         'province': "Gauteng",
                                         'school': self.school.id,
                                         'enrolled': 1,
+                                        'terms': True,
                                     },
                                     follow=True)
             self.assertContains(resp, "Thank you")
@@ -775,6 +787,7 @@ class TestChangeDetails(TestCase):
         self.assertContains(resp, "GET CONNECTED")
 
         learner.is_active = True
+        learner.terms_accept = True
         learner.save()
 
         create_participant(learner, self.classs, datejoined=datetime.now())

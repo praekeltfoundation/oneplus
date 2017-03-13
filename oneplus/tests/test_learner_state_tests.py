@@ -33,6 +33,8 @@ class LearnerStateTest(TestCase):
             name=name, organisation=organisation, **kwargs)
 
     def create_learner(self, school, **kwargs):
+        if 'terms_accept' not in kwargs:
+            kwargs['terms_accept'] = True
         return Learner.objects.create(school=school, **kwargs)
 
     def create_participant(self, learner, classs, **kwargs):

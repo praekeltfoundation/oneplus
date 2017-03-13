@@ -232,6 +232,23 @@ def validate_sign_up_form(post):
     else:
         errors["cellphone_error"] = "This must be completed"
 
+    if "terms" in post and post["terms"]:
+        data["terms"] = post["terms"]
+    else:
+        errors["terms_errors"] = "You must accept the terms and conditions to continue."
+
+    return data, errors
+
+
+def validate_accept_terms_form(post):
+    data = {}
+    errors = {}
+
+    if "terms" in post and post["terms"]:
+        data["terms"] = post["terms"]
+    else:
+        errors["terms_errors"] = "You must accept the terms and conditions to continue."
+
     return data, errors
 
 

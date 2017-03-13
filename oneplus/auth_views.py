@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect
 from .forms import SmsPasswordForm, ResetPasswordForm
 from django.core.mail import mail_managers
 from oneplus.forms import LoginForm
-from .views import oneplus_state_required, oneplus_login_required
+from .views import oneplus_state_required, oneplus_login_required, oneplus_check_user
 from auth.models import CustomUser
 from communication.models import SmsQueue
 from core.models import Learner, ParticipantQuestionAnswer, Setting
@@ -21,7 +21,7 @@ from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
-    validate_sign_up_form_school_confirm,  validate_profile_form
+    validate_sign_up_form_school_confirm,  validate_profile_form, validate_accept_terms_form
 from django.db.models import Count
 from organisation.models import School
 from core.models import Class, Participant
@@ -984,5 +984,32 @@ def edit_profile(request, state, user):
             return redirect(reverse("auth.profile"))
         else:
             return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
+
+    return resolve_http_method(request, [get, post])
+
+@oneplus_check_user
+def accept_terms(request, state, user):
+    if 'user' in request.session.keys():
+        user = request.session['user']
+    else:
+        user = None
+
+    def get():
+        return render(request, "auth/accept_terms.html", {"state": state, "user": user})
+
+    def post():
+        data, errors = validate_accept_terms_form(request.POST)
+
+        if not errors:
+            learner = Learner.objects.get(id=user['id'])
+            learner.terms_accept = True
+            learner.save()
+        else:
+            return render(request, "auth/accept_terms.html",
+                          {"state": state,
+                           "user": user,
+                           "errors": {'terms_errors': "You must accept the terms and conditions to continue."}})
+
+        return redirect('learn.home')
 
     return resolve_http_method(request, [get, post])
