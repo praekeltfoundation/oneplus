@@ -57,7 +57,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
 class TestLevelShare(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -145,7 +145,7 @@ class TestLevelShare(TestCase):
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
 class TestPermissionToShare(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -232,6 +232,7 @@ class TestPermissionToShare(TestCase):
         self.assertContains(resp, "Share my...")
 
 
+@override_settings(SOCIAL_MEDIA_ACTIVE=True)
 class TestSharingLeaderboards(TestCase):
     def setUp(self):
         self.course = create_course()

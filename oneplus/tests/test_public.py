@@ -59,6 +59,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
+@override_settings(SOCIAL_MEDIA_ACTIVE=True)
 class TestPublicBadge(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -158,6 +159,7 @@ class TestPublicBadge(TestCase):
         self.assertContains(resp, "No one's home")
 
 
+@override_settings(SOCIAL_MEDIA_ACTIVE=True)
 class TestPublicLevel(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -250,6 +252,7 @@ class TestPublicLevel(TestCase):
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
 
 
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
 class TestPublicLeaderboardSharing(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -272,7 +275,6 @@ class TestPublicLeaderboardSharing(TestCase):
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
 
-    @override_settings(VUMI_GO_FAKE=True)
     def test_leaderboard_class(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
