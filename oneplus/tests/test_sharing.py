@@ -58,7 +58,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
 
 
 @override_settings(VUMI_GO_FAKE=True)
-class TestLevelShare(): #TestCase):
+class TestLevelShare(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -145,7 +145,8 @@ class TestLevelShare(): #TestCase):
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
 
 
-class TestPermissionToShare(): #TestCase):
+@override_settings(VUMI_GO_FAKE=True)
+class TestPermissionToShare(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -166,7 +167,6 @@ class TestPermissionToShare(): #TestCase):
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
 
-    @override_settings(VUMI_GO_FAKE=True)
     def test_permission_badges(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -191,7 +191,6 @@ class TestPermissionToShare(): #TestCase):
         resp = self.client.get(reverse('prog.badges_single', kwargs={'badge_id': bt1.id}))
         self.assertContains(resp, "Share on")
 
-    @override_settings(VUMI_GO_FAKE=True)
     def test_permission_levels(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
@@ -233,7 +232,7 @@ class TestPermissionToShare(): #TestCase):
         self.assertContains(resp, "Share my...")
 
 
-class TestSharingLeaderboards(): #TestCase):
+class TestSharingLeaderboards(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)

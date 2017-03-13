@@ -8,7 +8,6 @@
     {% load oneplus_extras %}
 
     <article class="content squash-accent">
-    {% comment %}
         {% if allow_sharing %}
             <article class="card border-color-accent" id="share-my">
                 <div class="text heading" >
@@ -21,11 +20,10 @@
                             <li><a class="inline" href="{% url 'share:leaderboard' board_type='school' %}">school's leaderboard position</a></li>
                             <li><a class="inline" href="{% url 'share:leaderboard' board_type='national' %}">national position</a></li>
                         </ul>
-                    </div
+                    </div>
                 </section>
             </article>
         {% endif %}
-    {% endcomment %}
 
         <div class="text heading">
             {% if position %}
