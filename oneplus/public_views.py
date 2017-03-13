@@ -25,7 +25,7 @@ def get_learner_label(learner):
 @oneplus_check_user
 def badges(request, state, user):
     if not settings.SOCIAL_MEDIA_ACTIVE:
-        return redirect('')
+        return redirect('arrive')
 
     def get():
         badge_id = request.GET.get('b', None)
@@ -81,7 +81,7 @@ def badges(request, state, user):
 @oneplus_check_user
 def level(request, state, user):
     if not settings.SOCIAL_MEDIA_ACTIVE:
-        return redirect('')
+        return redirect('arrive')
 
     def get():
         participant_id = request.GET.get('p', None)
@@ -129,7 +129,7 @@ def level(request, state, user):
 @oneplus_check_user
 def leaderboard(request, state, user, board_type=''):
     if not settings.SOCIAL_MEDIA_ACTIVE:
-        return redirect('')
+        return redirect('arrive')
 
     def get():
         participant_id = request.GET.get('p', None)
