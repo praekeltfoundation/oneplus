@@ -8,7 +8,7 @@
     {% load oneplus_extras %}
 
     <article class="content squash-accent">
-        {% if allow_sharing %}
+        {% if allow_sharing and SOCIAL_MEDIA_ACTIVE %}
             <article class="card border-color-accent" id="share-my">
                 <div class="text heading" >
                     <h3 class="card-top-phrase share-heading">Share my...</h3>
