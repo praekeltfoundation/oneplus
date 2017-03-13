@@ -59,7 +59,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-class TestPublicBadge(): #TestCase):
+class TestPublicBadge(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -158,7 +158,7 @@ class TestPublicBadge(): #TestCase):
         self.assertContains(resp, "No one's home")
 
 
-class TestPublicLevel(): #TestCase):
+class TestPublicLevel(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -250,7 +250,7 @@ class TestPublicLevel(): #TestCase):
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
 
 
-class TestPublicLeaderboardSharing(): #TestCase):
+class TestPublicLeaderboardSharing(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
