@@ -1,0 +1,22 @@
+{% extends "core/main.html" %}
+
+{% block title %}Golden Egg{% endblock %}
+
+{% block page_descriptor_text %}Golden Egg{% endblock %}
+
+{% block content %}
+    <article class="content sunflower-yellow-accent">
+        <h1 class="center-font color-accent">You've won a Golden Egg!</h1>
+
+        <div class="img-container">
+            <img class="limit-size" src="/media/img/splash/splash_golden_egg.png" width="100%" height="auto"/>
+        </div>
+
+        <h3>
+            A sentence explaining that the student has won a lucky <span class="color-accent">Golden Egg</span> and
+            that they will get [X points] more than they would usually.
+        </h3>
+
+        <a class="button" href="right">Continue</a>
+    </article>
+{% endblock content %}

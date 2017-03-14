@@ -1721,6 +1721,14 @@ def right(request, state, user, participant):
 
 
 @oneplus_participant_required
+def golden_egg_splash(request, state, user, participant):
+    def get():
+        return render(request, 'prog/golden_egg_splash.html')
+
+    return resolve_http_method(request, [get])
+
+
+@oneplus_participant_required
 def wrong(request, state, user, participant):
     # get learner state
     _participant = participant
