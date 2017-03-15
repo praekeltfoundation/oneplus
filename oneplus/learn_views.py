@@ -1712,8 +1712,22 @@ def right(request, state, user, participant):
 
 @oneplus_participant_required
 def golden_egg_splash(request, state, user, participant):
+    _learnerstate = LearnerState.objects.filter(participant=participant).first()
+
+    golden_egg = GoldenEggRewardLog.objects.filter(participant=participant)\
+        .values('award_date', 'points', 'airtime', 'badge')\
+        .latest('award_date')
+
+    answer = ParticipantQuestionAnswer.objects.filter(participant=participant,
+                                                      question_id=_learnerstate.active_question.id)\
+        .only('answerdate')\
+        .latest('answerdate')
+
     def get():
-        return render(request, 'prog/golden_egg_splash.html')
+        if golden_egg['award_date'] < answer.answerdate:
+            return redirect('learn.right')
+
+        return render(request, 'prog/golden_egg_splash.html', {'golden_egg': golden_egg})
 
     return resolve_http_method(request, [get])
 
