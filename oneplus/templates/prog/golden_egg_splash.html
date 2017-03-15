@@ -13,8 +13,10 @@
         </div>
 
         <h3>
-            A sentence explaining that the student has won a lucky <span class="color-accent">Golden Egg</span> and
-            that they will get [X points] more than they would usually.
+            You've won this week's <span class="color-accent">Golden Egg</span>{% if golden_egg.points %} and
+            {{ golden_egg.points }} points{% endif %}{% if golden_egg.airtime %} and R{{ golden_egg.airtime }}
+            airtime{% endif %}{% if golden_egg.badge %} and a badge{% endif %}.
+            {% if golden_egg.airtime %}You will be awarded your airtime next Monday.{% endif %}
         </h3>
 
         <a class="button" href="right">Continue</a>
