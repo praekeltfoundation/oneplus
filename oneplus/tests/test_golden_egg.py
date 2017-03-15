@@ -15,73 +15,85 @@ from organisation.models import Course, Module, CourseModuleRel, Organisation, S
 from oneplus.tasks import reset_learner_states
 
 
+def create_test_question(name, module, **kwargs):
+    return TestingQuestion.objects.create(name=name,
+                                          module=module,
+                                          **kwargs)
+
+
+def create_course(name="course name", **kwargs):
+    return Course.objects.create(name=name, **kwargs)
+
+
+def create_module(name, course, **kwargs):
+    module = Module.objects.create(name=name, **kwargs)
+    rel = CourseModuleRel.objects.create(course=course, module=module)
+    module.save()
+    rel.save()
+    return module
+
+
+def create_class(name, course, **kwargs):
+    return Class.objects.create(name=name, course=course, **kwargs)
+
+
+def create_organisation(name='organisation name', **kwargs):
+    return Organisation.objects.create(name=name, **kwargs)
+
+
+def create_school(name, organisation, **kwargs):
+    return School.objects.create(
+        name=name, organisation=organisation, **kwargs)
+
+
+def create_learner(school, **kwargs):
+    if 'grade' not in kwargs:
+        kwargs['grade'] = 'Grade 11'
+    if 'terms_accept' not in kwargs:
+        kwargs['terms_accept'] = True
+    return Learner.objects.create(school=school, **kwargs)
+
+
+def create_participant(learner, classs, **kwargs):
+    participant = Participant.objects.create(
+        learner=learner, classs=classs, **kwargs)
+
+    return participant
+
+
+def create_badgetemplate(name='badge template name', **kwargs):
+    return GamificationBadgeTemplate.objects.create(
+        name=name,
+        image="none",
+        **kwargs)
+
+
+def create_gamification_point_bonus(name, value, **kwargs):
+    return GamificationPointBonus.objects.create(
+        name=name,
+        value=value,
+        **kwargs)
+
+
+def create_gamification_scenario(**kwargs):
+    return GamificationScenario.objects.create(**kwargs)
+
+
+def create_test_question_option(name, question, correct=True):
+    return TestingQuestionOption.objects.create(
+        name=name, question=question, correct=correct)
+
+
 @override_settings(VUMI_GO_FAKE=True)
 class GoldenEggTest(TestCase):
 
-    def create_test_question(self, name, module, **kwargs):
-        return TestingQuestion.objects.create(name=name,
-                                              module=module,
-                                              **kwargs)
-
-    def create_course(self, name="course name", **kwargs):
-        return Course.objects.create(name=name, **kwargs)
-
-    def create_module(self, name, course, **kwargs):
-        module = Module.objects.create(name=name, **kwargs)
-        rel = CourseModuleRel.objects.create(course=course, module=module)
-        module.save()
-        rel.save()
-        return module
-
-    def create_class(self, name, course, **kwargs):
-        return Class.objects.create(name=name, course=course, **kwargs)
-
-    def create_organisation(self, name='organisation name', **kwargs):
-        return Organisation.objects.create(name=name, **kwargs)
-
-    def create_school(self, name, organisation, **kwargs):
-        return School.objects.create(
-            name=name, organisation=organisation, **kwargs)
-
-    def create_learner(self, school, **kwargs):
-        if 'grade' not in kwargs:
-            kwargs['grade'] = 'Grade 11'
-        if 'terms_accept' not in kwargs:
-            kwargs['terms_accept'] = True
-        return Learner.objects.create(school=school, **kwargs)
-
-    def create_participant(self, learner, classs, **kwargs):
-        participant = Participant.objects.create(
-            learner=learner, classs=classs, **kwargs)
-
-        return participant
-
-    def create_badgetemplate(self, name='badge template name', **kwargs):
-        return GamificationBadgeTemplate.objects.create(
-            name=name,
-            image="none",
-            **kwargs)
-
-    def create_gamification_point_bonus(self, name, value, **kwargs):
-        return GamificationPointBonus.objects.create(
-            name=name,
-            value=value,
-            **kwargs)
-
-    def create_gamification_scenario(self, **kwargs):
-        return GamificationScenario.objects.create(**kwargs)
-
-    def create_test_question_option(self, name, question, correct=True):
-        return TestingQuestionOption.objects.create(
-            name=name, question=question, correct=correct)
-
     def setUp(self):
 
-        self.course = self.create_course()
-        self.classs = self.create_class('class name', self.course)
-        self.organisation = self.create_organisation()
-        self.school = self.create_school('school name', self.organisation)
-        self.learner = self.create_learner(
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+        self.learner = create_learner(
             self.school,
             username="+27123456789",
             mobile="+27123456789",
@@ -90,10 +102,10 @@ class GoldenEggTest(TestCase):
             unique_token='abc123',
             unique_token_expiry=datetime.now() + timedelta(days=30),
             is_staff=True)
-        self.participant = self.create_participant(
+        self.participant = create_participant(
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
-        self.module = self.create_module('module name', self.course)
-        self.badge_template = self.create_badgetemplate()
+        self.module = create_module('module name', self.course)
+        self.badge_template = create_badgetemplate()
 
         self.scenario = GamificationScenario.objects.create(
             name='scenario name',
@@ -117,17 +129,17 @@ class GoldenEggTest(TestCase):
             mobile='+27111111133')
 
     def test_golden_egg(self):
-        new_learner = self.create_learner(
+        new_learner = create_learner(
             self.school,
             username="+27761234567",
             mobile="+27761234567",
             unique_token='123456789',
             unique_token_expiry=datetime.now() + timedelta(days=30))
 
-        self.create_participant(new_learner, self.classs, datejoined=datetime.now())
+        create_participant(new_learner, self.classs, datejoined=datetime.now())
 
-        q = self.create_test_question('question_1', module=self.module, state=3)
-        q_o = self.create_test_question_option('question_option_1', q)
+        q = create_test_question('question_1', module=self.module, state=3)
+        q_o = create_test_question_option('question_option_1', q)
 
         self.client.get(reverse('auth.autologin', kwargs={'token': new_learner.unique_token}))
 
@@ -147,9 +159,9 @@ class GoldenEggTest(TestCase):
         new_participant.save()
 
         # GOLDEN EGG INACTIVE
-        golden_egg_badge = self.create_badgetemplate('golden egg')
-        golden_egg_point = self.create_gamification_point_bonus('golden egg', 5)
-        golden_egg_scenario = self.create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
+        golden_egg_badge = create_badgetemplate('golden egg')
+        golden_egg_point = create_gamification_point_bonus('golden egg', 5)
+        golden_egg_scenario = create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
         golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=False, point_value=5,
                                               badge=golden_egg_scenario)
 
