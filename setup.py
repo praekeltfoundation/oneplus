@@ -12,7 +12,7 @@ setup(
         'beautifulsoup4==4.5.0',
         'coverage',
         'django-celery==3.1.16',
-        'django-grappelli==2.5.3',
+        'django-grappelli==2.5.5',
         'django-haystack==2.4.1',
         'django-import-export==0.4.5',
         'django-summernote==0.6.8',

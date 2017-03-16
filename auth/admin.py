@@ -2,7 +2,7 @@ from django.shortcuts import render_to_response, redirect
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ImportExportActionModelAdmin, ImportExportMixin, ImportExportModelAdmin
 from communication.utils import VumiSmsApi
 from auth.forms import SendSmsForm, SendMessageForm
 from communication.tasks import bulk_send_all
@@ -240,7 +240,7 @@ def send_message(modeladmin, request, queryset):
 send_message.short_description = "Send Message to selected learners"
 
 
-class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
+class LearnerAdmin(UserAdmin, ImportExportActionModelAdmin):
     # The forms to add and change user instances
     form = LearnerChangeForm
     add_form = LearnerCreationForm
