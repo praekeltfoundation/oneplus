@@ -316,3 +316,113 @@ class GoldenEggTest(TestCase):
 
         cnt = LearnerState.objects.filter(golden_egg_question__gt=0).count()
         self.assertEquals(0,cnt)
+
+
+@override_settings(VUMI_GO_FAKE=True)
+class GoldenEggSplashTest(TestCase):
+
+    def setUp(self):
+        self.course = create_course()
+        self.classs = create_class('class name', self.course)
+        self.organisation = create_organisation()
+        self.school = create_school('school name', self.organisation)
+        self.learner = create_learner(
+            self.school,
+            username="+27123456789",
+            mobile="+27123456789",
+            country="country",
+            area="Test_Area",
+            unique_token='abc123',
+            unique_token_expiry=datetime.now() + timedelta(days=30),
+            is_staff=True)
+        self.participant = create_participant(
+            self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
+        self.module = create_module('module name', self.course)
+        self.badge_template = create_badgetemplate()
+
+        self.scenario = GamificationScenario.objects.create(
+            name='scenario name',
+            event='1_CORRECT',
+            course=self.course,
+            module=self.module,
+            badge=self.badge_template
+        )
+        self.outgoing_vumi_text = []
+        self.outgoing_vumi_metrics = []
+        self.handler = RecordingHandler()
+        logger = logging.getLogger('DEBUG')
+        logger.setLevel(logging.INFO)
+        logger.addHandler(self.handler)
+
+        self.admin_user_password = 'mypassword'
+        self.admin_user = CustomUser.objects.create_superuser(
+            username='asdf33',
+            email='asdf33@example.com',
+            password=self.admin_user_password,
+            mobile='+27111111133')
+
+    def test_splash(self):
+
+        q = create_test_question('question_1', module=self.module, state=3)
+        q_o = create_test_question_option('question_option_1', q)
+
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        self.client.get(reverse('learn.next'))
+        golden_egg_badge = create_badgetemplate('golden egg')
+        golden_egg_point = create_gamification_point_bonus('golden egg', 5)
+        golden_egg_scenario = create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
+        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=True, point_value=5,
+                                              badge=golden_egg_scenario)
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=self.participant).first()
+        state.golden_egg_question = 1
+        state.save()
+
+        resp = None
+        with patch("oneplus.learn_views.LearnerState.get_week_day") as mock_get_week_day:
+            mock_get_week_day.return_value = LearnerState.MONDAY
+            with patch("oneplus.learn_views.LearnerState.today") as mock_today:
+                mock_today.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                with patch("core.models.today") as mock_today2:
+                    mock_today2.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                    resp = self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+
+        self.assertRedirects(resp, reverse('learn.golden_egg_splash'))
+        self.assertContains(resp, 'Golden Egg')
+
+    def test_splash_wrong(self):
+
+        q = create_test_question('question_1', module=self.module, state=3)
+        q_o = create_test_question_option('question_option_1', q, correct=False)
+
+        self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
+
+        self.client.get(reverse('learn.next'))
+        golden_egg_badge = create_badgetemplate('golden egg')
+        golden_egg_point = create_gamification_point_bonus('golden egg', 5)
+        golden_egg_scenario = create_gamification_scenario(badge=golden_egg_badge, point=golden_egg_point)
+        golden_egg = GoldenEgg.objects.create(course=self.course, classs=self.classs, active=True, point_value=5,
+                                              badge=golden_egg_scenario)
+        golden_egg.save()
+
+        self.client.get(reverse('learn.next'))
+        state = LearnerState.objects.filter(participant=self.participant).first()
+        state.golden_egg_question = 1
+        state.save()
+
+        resp = None
+        with patch("oneplus.learn_views.LearnerState.get_week_day") as mock_get_week_day:
+            mock_get_week_day.return_value = LearnerState.MONDAY
+            with patch("oneplus.learn_views.LearnerState.today") as mock_today:
+                mock_today.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                with patch("core.models.today") as mock_today2:
+                    mock_today2.return_value = datetime(2015, 8, 24, 1, 0, 0)
+                    resp = self.client.post(reverse('learn.next'), data={'answer': q_o.id}, follow=True)
+
+        self.assertRedirects(resp, reverse('learn.wrong'))
+
+        resp = self.client.get(reverse('learn.golden_egg_splash'), follow=True)
+        self.assertRedirects(resp, reverse('learn.wrong'))
