@@ -219,6 +219,8 @@ class Learner(CustomUser):
         null=False,
     )
 
+    change_list_template = "admin/change_list_filter_sidebar.html"
+
     def get_class(self, active_only=False):
         part_set = self.participant_set.all()
         if active_only:
