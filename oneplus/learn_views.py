@@ -1716,15 +1716,17 @@ def golden_egg_splash(request, state, user, participant):
 
     golden_egg = GoldenEggRewardLog.objects.filter(participant=participant)\
         .values('award_date', 'points', 'airtime', 'badge')\
-        .latest('award_date')
+        .order_by('-award_date')\
+        .first()
 
     answer = ParticipantQuestionAnswer.objects.filter(participant=participant,
                                                       question_id=_learnerstate.active_question.id)\
         .only('answerdate')\
-        .latest('answerdate')
+        .order_by('-answerdate')\
+        .first()
 
     def get():
-        if golden_egg['award_date'] < answer.answerdate:
+        if not golden_egg or not answer or golden_egg['award_date'] < answer.answerdate:
             return redirect('learn.right')
 
         return render(request, 'prog/golden_egg_splash.html', {'golden_egg': golden_egg})
