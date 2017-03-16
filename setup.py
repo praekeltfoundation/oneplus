@@ -14,7 +14,7 @@ setup(
         'django-celery==3.1.16',
         'django-grappelli==2.5.3',
         'django-haystack==2.4.1',
-        'django-import-export==0.2.2',
+        'django-import-export==0.4.5',
         'django-summernote==0.6.8',
         'django-bleach==0.3.0',
         'bleach==1.5.0',
