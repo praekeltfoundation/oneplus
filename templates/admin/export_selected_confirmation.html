@@ -47,6 +47,21 @@
                 {% endfor %}
             </div>
             <form action="" method="post">{% csrf_token %}
+                <fieldset class="module aligned">
+                    {% for field in form %}
+                        <div class="form-row">
+                            {{ field.errors }}
+
+                            {{ field.label_tag }}
+
+                            {{ field }}
+
+                            {% if field.field.help_text %}
+                                <p class="help">{{ field.field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </fieldset>
                 <div id="submit" class="grp-module grp-submit-row grp-fixed-footer">
                     {% for obj in queryset %}
                         <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk|unlocalize }}" />
