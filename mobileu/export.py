@@ -100,9 +100,6 @@ def export_selected(modeladmin, request, queryset):
             response['Content-Disposition'] = 'attachment; filename=%s' % (
                 modeladmin.get_export_filename(file_format),
             )
-            modeladmin.message_user(request, _("Successfully exported %(count)d %(items)s.") % {
-                "count": n, "items": model_ngettext(modeladmin.opts, n)
-            }, messages.SUCCESS)
             return response
         # Return None to display the change list page again.
         return None
