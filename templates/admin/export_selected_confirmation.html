@@ -41,7 +41,7 @@
             </div>
         {% else %}
             <div class="grp-group">
-                <h2>{% blocktrans %}Are you sure you want to export the selected {{ objects_name }}? All of the following objects and their related items will be exported:{% endblocktrans %}</h2>
+                <h2>{% blocktrans %}Are you sure you want to export the selected {{ objects_name }}? All of the following objects will be exported:{% endblocktrans %}</h2>
                 {% for exportable_object in exportable_objects %}
                     <ul class="grp-nested-list">{{ exportable_object|unordered_list }}</ul>
                 {% endfor %}
