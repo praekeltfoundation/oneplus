@@ -48,9 +48,9 @@ def get_exported_objects(objs, opts, user, admin_site, using):
             return '%s: %s' % (capfirst(opts.verbose_name),
                                force_text(obj))
 
-    to_export = collector.nested(format_callback)
+    to_export = objs
 
-    protected = [format_callback(obj) for obj in collector.protected]
+    protected = [format_callback(obj) for obj in objs]
 
     return to_export, perms_needed, protected
 
@@ -84,9 +84,8 @@ def export_selected(modeladmin, request, queryset):
         if n:
             for obj in queryset:
                 obj_display = force_text(obj)
-                modeladmin.log_deletion(request, obj, obj_display)
             # queryset.delete()
-            modeladmin.message_user(request, _("Successfully deleted %(count)d %(items)s.") % {
+            modeladmin.message_user(request, _("Successfully exported %(count)d %(items)s.") % {
                 "count": n, "items": model_ngettext(modeladmin.opts, n)
             }, messages.SUCCESS)
         # Return None to display the change list page again.
