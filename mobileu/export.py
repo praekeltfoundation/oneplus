@@ -52,7 +52,7 @@ def get_exported_objects(objs, opts, user, admin_site, using):
 
     to_export = objs
 
-    protected = [format_callback(obj) for obj in objs]
+    protected = None
 
     return to_export, perms_needed, protected
 
