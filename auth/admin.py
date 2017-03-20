@@ -1,26 +1,26 @@
+from datetime import datetime
 from django.shortcuts import render_to_response, redirect
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from import_export.admin import ImportExportModelAdmin
-from communication.utils import VumiSmsApi
-from auth.forms import SendSmsForm, SendMessageForm
-from communication.tasks import bulk_send_all
 from django import template
-from auth.models import SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Teacher, Learner
 from .forms import SystemAdministratorChangeForm, \
     SystemAdministratorCreationForm, SchoolManagerChangeForm,\
     SchoolManagerCreationForm, CourseManagerChangeForm, \
     CourseManagerCreationForm, CourseMentorChangeForm, \
     CourseMentorCreationForm, LearnerChangeForm, LearnerCreationForm, \
     TeacherCreationForm, TeacherChangeForm
-from core.models import ParticipantQuestionAnswer
-from auth.resources import LearnerResource, TeacherResource
 from auth.filters import AirtimeFilter, ClassFilter, CourseFilter
-from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant
-from gamification.models import GamificationScenario
+from auth.forms import SendSmsForm, SendMessageForm
+from auth.models import SystemAdministrator, SchoolManager, CourseManager, CourseMentor, Teacher, Learner
+from auth.resources import LearnerResource, TeacherResource
 from communication.models import Message
-from datetime import datetime
+from communication.tasks import bulk_send_all
+from communication.utils import VumiSmsApi
+from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant, ParticipantQuestionAnswer
+from gamification.models import GamificationScenario
+from mobileu.export import export_selected
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -283,7 +283,7 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
         ("Enrollment", {"fields": ("enrolled",)}),
     )
 
-    actions = [send_sms, send_message]
+    actions = [send_sms, send_message, export_selected]
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         all_scenarios = GamificationScenario.objects.all()
