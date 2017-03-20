@@ -10,6 +10,8 @@ from django.utils.html import format_html
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
 from django.utils.translation import ugettext_lazy, ugettext as _
+from import_export.admin import DEFAULT_FORMATS
+from import_export.forms import ExportForm
 
 
 def get_exported_objects(objs, opts, user, admin_site, using):
@@ -67,6 +69,8 @@ def export_selected(modeladmin, request, queryset):
     """
     opts = modeladmin.model._meta
     app_label = opts.app_label
+    formats = DEFAULT_FORMATS
+    form = ExportForm(formats, request.POST or None)
 
     using = router.db_for_write(modeladmin.model)
 
@@ -105,6 +109,7 @@ def export_selected(modeladmin, request, queryset):
         "title": title,
         "objects_name": objects_name,
         "exportable_objects": [exportable_objects],
+        "form": form,
         'queryset': queryset,
         "perms_lacking": perms_needed,
         "protected": protected,
@@ -114,7 +119,7 @@ def export_selected(modeladmin, request, queryset):
     }
 
     # Display the confirmation page
-    return TemplateResponse(request, modeladmin.delete_selected_confirmation_template or [
+    return TemplateResponse(request, [
         "admin/%s/%s/export_selected_confirmation.html" % (app_label, opts.model_name),
         "admin/%s/export_selected_confirmation.html" % app_label,
         "admin/export_selected_confirmation.html"
