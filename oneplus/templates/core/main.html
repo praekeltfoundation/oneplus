@@ -19,7 +19,7 @@
     <img src="{% google_analytics request %}" class="analytics-plug" />
 
     {% block header %}
-        <header>
+        <header {% block header_classes %} {% endblock %}>
             {% block header_left %}
                 <div class="header-item">
                     {% if user.name %}
