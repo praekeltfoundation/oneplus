@@ -5,6 +5,7 @@ from django.contrib.auth import get_permission_codename
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import router
+from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from django.utils.html import format_html
 from django.utils.encoding import force_text
@@ -69,7 +70,7 @@ def export_selected(modeladmin, request, queryset):
     """
     opts = modeladmin.model._meta
     app_label = opts.app_label
-    formats = DEFAULT_FORMATS
+    formats = modeladmin.get_export_formats()
     form = ExportForm(formats, request.POST or None)
 
     using = router.db_for_write(modeladmin.model)
@@ -85,13 +86,24 @@ def export_selected(modeladmin, request, queryset):
         if perms_needed:
             raise PermissionDenied
         n = queryset.count()
-        if n:
-            for obj in queryset:
-                obj_display = force_text(obj)
-            # queryset.delete()
+        if n and form.is_valid():
+            file_format = formats[
+                int(form.cleaned_data['file_format'])
+            ]()
+            export_data = modeladmin.get_export_data(file_format, queryset)
+            content_type = file_format.get_content_type()
+            # Django 1.7 uses the content_type kwarg instead of mimetype
+            try:
+                response = HttpResponse(export_data, content_type=content_type)
+            except TypeError:
+                response = HttpResponse(export_data, mimetype=content_type)
+            response['Content-Disposition'] = 'attachment; filename=%s' % (
+                modeladmin.get_export_filename(file_format),
+            )
             modeladmin.message_user(request, _("Successfully exported %(count)d %(items)s.") % {
                 "count": n, "items": model_ngettext(modeladmin.opts, n)
             }, messages.SUCCESS)
+            return response
         # Return None to display the change list page again.
         return None
 
