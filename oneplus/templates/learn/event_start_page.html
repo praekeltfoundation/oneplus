@@ -6,14 +6,19 @@
 {% block content %}
 {% load humanize %}
 
-    <div class="content padded darkgrey-back white-front">
+    <div class="content padded">
         <div class="pad-bottom">
 
-            <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
-            <div class="large-font center-font">{{ page.message }}</div>
+            <h1 class="amethyst-accent color-accent">{{ page.header }}</h1>
+            <h4 class="large-font-normal pad-bottom">{{ page.message }}</h4>
 
-            <form action="#" method="post" class="pad-bottom">{% csrf_token %}
-                <input type="submit" name="event_start_button" class="button green-back grey-front" value="Start"/>
+            <p class="descriptor">You will receive your usual 3 questions a day and all points earned still count
+            towards the leaderboard. If you manage to SUMit the mountain, you can win your share of additional [X]
+            airtime! Good Luck!</p>
+
+            <form action="#" method="post" class="pad-bottom padding-top">
+                {% csrf_token %}
+                <input type="submit" name="event_start_button" class="button" value="Get Started"/>
             </form>
         </div>
     </div>
