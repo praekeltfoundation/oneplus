@@ -2,17 +2,21 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}LEVEL UP{% endblock %}
+{% block header_classes %}class="amethyst-accent background-color-accent"{% endblock %}
+{% block page_descriptor_text %}Level Up{% endblock %}
 
 {% block content %}
     {% load humanize %}
 
-    <div class="text heading darkgrey-front center-font no-padding {{ previous_level.back_colour }}"><p>SUMit!</p></div>
+    <div class="amethyst-accent background-color-accent">
+        <h1>SUMit!</h1>
+    </div>
 
     {% autoescape off %}
         <div class="content white-front grey-back">
             <p class="xlarge-font center-font">Congratulations!</p>
             <p class="large-font center-font">You have conquered the <span class="large-font highlight {{ previous_level.front_colour }}">{{ previous_level.name }}</span> and moved up a level to the <span class="large-font highlight {{ next_level.colour }}">{{ next_level.name }}</span>.</p>
-            <a class="button green-back grey-front" href="sumit">Continue</a>
+            <a class="button green-back grey-front" href="home">Continue</a>
         </div>
     {% endautoescape %}
 {% endblock %}

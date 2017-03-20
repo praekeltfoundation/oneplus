@@ -2,29 +2,25 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}EVENT END PAGE{% endblock %}
+{% block page_descriptor_text %}SUMit{% endblock %}
 
 {% block content %}
 {% load humanize %}
 
-<div class="sumitheading">
-    <div class="text basecamp green-front"><p>Basecamp</p></div>
-    <div class="text {% if sumit.level != 'Basecamp' %} foothills yellow-front {% else %} lightgrey-front {% endif %}"><p>Foothills</p></div>
-    <div class="text {% if sumit.level != 'Basecamp' and sumit.level != 'Foothills' %} cliffs purple-front {% else %} lightgrey-front {% endif %} "><p>Cliffs</p></div>
-    <div class="text {% if sumit.level == 'Peak' or sumit.level == 'Summit' %} peak cyan-front {% else %} lightgrey-front {% endif %}"><p>Peak</p></div>
-</div>
-<div class="content padded center-font {{ front }} {{ back }}">
+<div class="content padding">
     {% if sumit.level != "Summit" or not winner %}
-        <div class="content">
-            {% if sumit.level != 'Summit' %}
-                <p><span class="large-font">You made it to the <span class="white-front large-font"> {{ sumit.level }}</span> and won {{ sumit.points }} points.</span></p>
-                <p><span>Well done on your effort in the SUMit challenge. Keep revising so next time you can SUMit! the mountain.</span></p>
-                <a class="button white-back darkgrey-front" href="home">Done</a>
-            {% else %}
-                <p><span class="large-font white-front">You made it to the <span class="green-front large-font"> {{ sumit.level }}</span> and won {{ sumit.points }} points.</span></p>
-                <p><span class="white-front">Well done on your effort in the SUMit challenge. Keep revising so next time you can SUMit! the mountain.</span></p>
-                <a class="button green-back darkgrey-front" href="home">Done</a>
-            {% endif %}
-        </div>
+        {% if sumit.level != 'Summit' %}
+            <h1 class="amethyst-accent color-accent">Your Score:
+            <br>
+            You made it to level {{ sumit.level }} and won {{ sumit.points }}.
+            </h1>
+            <h4>Well done on your effort in the SUMit! challenge. Keep revising so next time you can SUMit the mountain.</h4>
+            <a class="button amethyst-accent border-color-accent color-accent" href="home">Done</a>
+        {% else %}
+            <p><span class="xlarge-font page-descriptor">You made it to the <span class="page-descriptor xlarge-font"> {{ sumit.level }}</span> and won {{ sumit.points }} points.</span></p>
+            <p><span class="purple-front">Well done on your effort in the SUMit challenge. Keep revising so next time you can SUMit! the mountain.</span></p>
+            <a class="button" href="home">Done</a>
+        {% endif %}
     {% else %}
         <div class="white-front">
             <p><span class="large-font no">Congratulations! You have climbed the mountain and won {{ sumit.points }} points.</span></p>
@@ -32,7 +28,7 @@
                 Congratulations on winning the SUMit! challenge. {% if sumit.airtime %} You have also won a share of {{ sumit.airtime }} airtime - we'll sms you on Monday
                 with the actual amount. {% endif %}Make sure to come back next week for the usual daily challenge.
             </span></p>
-            <a class="button green-back darkgrey-front" href="home">Done</a>
+            <a class="button" href="home">Done</a>
         </div>
     {% endif %}
 
