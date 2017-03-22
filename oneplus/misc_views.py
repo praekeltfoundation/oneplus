@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import division
 
 from functools import wraps
 import json
@@ -108,6 +109,14 @@ def about(request, state, user):
 
 @oneplus_check_user
 def contact(request, state, user):
+    if user:
+        try:
+            usr = CustomUser.objects.get(pk=user['id'])
+        except:
+            usr = None
+    else:
+        usr = None
+
     def get():
         state['grades'] = (
             {"id": 10, "text": "Grade 10"},
@@ -118,7 +127,7 @@ def contact(request, state, user):
         state['fname'] = ""
         state['sname'] = ""
         state['comment'] = ""
-        state['contact'] = ""
+        state['contact'] = "" if not usr or not usr.mobile else usr.mobile
         state['grade'] = ""
         state['school'] = ""
         state['valid_message'] = ""
