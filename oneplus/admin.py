@@ -16,6 +16,18 @@ class OnePlusLearnerResource(LearnerResource):
     completed_questions = fields.Field(column_name=u'completed_questions')
     percentage_correct = fields.Field(column_name=u'percentage_correct')
 
+    def dehydrate_completed_questions(self, learner):
+        if hasattr(learner, 'total'):
+            return learner.total
+        else:
+            return super(LearnerResource, self).dehydrate_completed_questions(learner)
+
+    def dehydrate_percentage_correct(self, learner):
+        if hasattr(learner, 'perc'):
+            return learner.perc
+        else:
+            return super(LearnerResource, self).dehydrate_percentage_correct(learner)
+
     def import_obj(self, obj, data, dry_run):
         school, created = School.objects.get_or_create(name=data[u'school'])
         data[u'school'] = school.id
