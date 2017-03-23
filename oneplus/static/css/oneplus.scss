@@ -170,6 +170,11 @@ input[type=text], input[type=password], select, textarea {
   border: solid $border-width-standard $black;
   border-radius: $border-radius-standard;
   padding: 10px;
+
+  &:disabled {
+    border: solid $border-width-standard $superlightgrey;
+    color: $superlightgrey;
+  }
 }
 
 form.no-pad {
