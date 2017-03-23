@@ -210,6 +210,9 @@ h3 {
   text-align: center;
   color: #0c0d0c; }
 
+a, button, div, input, p {
+  font-family: "Lato", sans-serif; }
+
 /*MAIN*/
 body {
   font-family: "Arial", sans-serif;
