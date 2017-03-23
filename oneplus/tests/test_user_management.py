@@ -735,7 +735,7 @@ class TestChangeDetails(TestCase):
             follow=True
         )
 
-        self.assertContains(resp, "Sign in")
+        self.assertContains(resp, "Log in")
 
         password = 'mypassword'
         my_admin = CustomUser.objects.create_superuser(
