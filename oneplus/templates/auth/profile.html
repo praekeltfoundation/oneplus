@@ -90,19 +90,21 @@
                     </p>
                 {% endif %}
             </div>
-            <br>
-            <div class="fieldWrapper">
-                <label for="id_public_share">
-                    <input type="checkbox" id="id_public_share" name="public_share" {% if data.public_share %}checked{% endif %}
-                            {% if not editing %}disabled{% endif %} />
-                    Permission to publically share badges and level on social media?
-                </label>
-                {% if errors.public_share_error %}
-                    <p class="red-front">
-                        {{ errors.public_share_error }}
-                    </p>
-                {% endif %}
-            </div>
+            {% if SOCIAL_MEDIA_ACTIVE %}
+                <br>
+                <div class="fieldWrapper">
+                    <label for="id_public_share">
+                        <input type="checkbox" id="id_public_share" name="public_share" {% if data.public_share %}checked{% endif %}
+                                {% if not editing %}disabled{% endif %} />
+                        Permission to publically share badges and level on social media?
+                    </label>
+                    {% if errors.public_share_error %}
+                        <p class="red-front">
+                            {{ errors.public_share_error }}
+                        </p>
+                    {% endif %}
+                </div>
+            {% endif %}
         </form>
     </article>
 {% endblock content %}
