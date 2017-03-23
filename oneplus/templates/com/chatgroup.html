@@ -6,22 +6,26 @@
 {% block content %}
     {% load humanize %}
     <article class="content iris-accent">
-        <h1>Connect with others</h1>
-
-        <article>
-            {% for grp in groups %}
-                <div class="item-large">
-                    <a class="color-accent heading link undecorated" href="chat/{{ grp.id }}">{{ grp.name }}</a>
-                    <div class="justify-container ">
-                        <div class="comment-author inline">{{ grp.last_message.author.first_name }}</div>
-                        <div class="inline lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</div>
-                        <div class="justify-enforcer"></div>
+        <h1 class="color-accent">Connect with others</h1>
+        <h2>Hello, {{ user.name }}. Here is a list of the chat groups you're a part of.</h2>
+        {% for grp in groups %}
+            <article class="card border-color-accent">
+                <section class="top">
+                    <div class="item-large">
+                        <h1 class="center-font color-accent">{{ grp.name }}</h1>
+                        <div class="justify-container ">
+                            <div class="comment-author inline">{{ grp.last_message.author.first_name }}</div>
+                            <div class="inline lightgrey-front">{{ grp.last_message.publishdate | naturaltime }}</div>
+                            <div class="justify-enforcer"></div>
+                        </div>
                     </div>
                     <p>{{ grp.last_message.content }}</p>
-                    <a href="chat/{{ grp.id }}" class="button border-color-accent color-accent">See more comments</a>
-                    <hr />
-                </div>
-            {% endfor %}
-        </article>
+                </section>
+                <hr class="hr-accent" />
+                <section class="bottom-novert center-font">
+                    <a href="chat/{{ grp.id }}" class="link undecorated icon-right inline">Enter chat group</a>
+                </section>
+            </article>
+        {% endfor %}
     </article>
 {% endblock %}
