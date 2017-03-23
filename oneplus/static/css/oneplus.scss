@@ -230,9 +230,11 @@ form.no-pad {
 }
 
 .analytics-plug {
+  filter: alpha(opacity=1); /* msie */
   height: 1px;
+  left: 0;
+  opacity: 0.01;
   position: absolute;
-  right: 0;
   top: 0;
   width: 1px;
 }
