@@ -8,7 +8,7 @@
 
     <section class="content padded white-back">
         {% for post in posts %}
-            <article class="card pale-teal-accent border-color-accent">
+            <article class="card amethyst-accent border-color-accent">
                 <section class="top">
                     {% if post.big_image and forloop.counter == 1 %}
                         <div class="blogimage" style="background-image: url('{{ post.big_image.url }}')"></div>
@@ -18,9 +18,9 @@
                         <div class="card-description">{{ post.description|truncatechars:50 }}</div>
                     {% endif %}
                 </section>
-                <hr />
-                <section class="bottom">
-                    <a class="link-inline" href="/blog/{{ post.id }}"><div>Read story</div></a>
+                <hr class="hr-accent" />
+                <section class="bottom-novert center-font">
+                    <a href="/blog/{{ post.id }}" class="link undecorated icon-right inline">Read story</a>
                 </section>
             </article>
         {% endfor %}
