@@ -61,3 +61,7 @@ h3 {
   text-align: center;
   color: #0c0d0c;
 }
+
+a, button, div, input, p {
+  font-family: $font-family-secondary;
+}
