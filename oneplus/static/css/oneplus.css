@@ -12,6 +12,9 @@ legend, table, caption, tbody, tfoot, thead, tr, th, td {
   vertical-align: baseline;
   background: transparent; }
 
+html, body {
+  height: 100%; }
+
 body {
   font-size: 12pt;
   line-height: 1; }
@@ -210,7 +213,7 @@ h3 {
   text-align: center;
   color: #0c0d0c; }
 
-a, button, div, input, p {
+a, button, div, input, label, p {
   font-family: "Lato", sans-serif; }
 
 /*MAIN*/
@@ -299,14 +302,19 @@ div {
   box-sizing: border-box; }
 
 header {
-  height: 36pt;
+  height: 48px;
+  margin-bottom: -48px;
+  text-align: justify; }
+
+footer {
+  height: 48px;
+  margin-top: -48px;
   text-align: justify; }
 
 header, footer {
   display: block;
   max-width: 960px;
-  min-height: 2em;
-  padding: 0.5em 1.5em; }
+  padding: 0 1.5em; }
 
 p {
   margin: 0px 0px 16px 0px;
@@ -415,6 +423,9 @@ input[type=text], input[type=password], select, textarea {
   border: solid 2px #000000;
   border-radius: 8px;
   padding: 10px; }
+  input[type=text]:disabled, input[type=password]:disabled, select:disabled, textarea:disabled {
+    border: solid 2px #d5d5d5;
+    color: #d5d5d5; }
 
 form.no-pad {
   margin: 0;
@@ -461,9 +472,12 @@ form.no-pad {
     font-weight: bold; }
 
 .analytics-plug {
+  filter: alpha(opacity=1);
+  /* msie */
   height: 1px;
+  left: 0;
+  opacity: 0.01;
   position: absolute;
-  right: 0;
   top: 0;
   width: 1px; }
 
@@ -501,7 +515,7 @@ form.no-pad {
 
 .link-bar {
   list-style-type: none;
-  margin: 0.5em 0;
+  margin: 0;
   padding: 0;
   overflow: hidden; }
   .link-bar li {
@@ -882,17 +896,17 @@ a.descriptor {
   .footer {
     padding: 1.5em; } }
 .container {
-  width: 100%;
+  box-sizing: border-box;
+  min-height: 100%;
+  padding-bottom: 48px;
+  padding-top: 48px;
   text-align: left;
-  box-sizing: border-box; }
+  width: 100%; }
 
 .content {
   max-width: 960px;
   padding: 0 1.5em; }
 
-@media (min-width: 30em) {
-  .content {
-    padding: 0 3em; } }
 .content.narrow {
   padding: 1em 2em;
   margin: 0; }
