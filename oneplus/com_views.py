@@ -41,7 +41,7 @@ def inbox(request, state, user, participant):
             "com/inbox.html",
             {"state": state,
              "user": user,
-             "messages": _messages,
+             "inbox_messages": _messages,
              "message_count": len(_messages)}
         )
 
@@ -68,7 +68,7 @@ def inbox(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
-                "messages": _messages,
+                "inbox_messages": _messages,
                 "message_count": len(_messages)
             }
         )
@@ -594,6 +594,7 @@ def add_message(request):
         date = None
         time = None
         content = None
+        active_only = request.POST.get('active_only', None)
 
         name_error, name = validate_name(request.POST)
         course_error, course = validate_course(request.POST)
