@@ -5,30 +5,26 @@
 {% block content %}
     <article class="content iris-accent">
         <hgroup>
-            <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
-            <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
+            <h1 class="color-accent">{% ifequal state.inbox_unread '0' %}No messages available.{% else %}Inbox ({{ state.inbox_unread }}){% endifequal %}</h1>
+            <h2>Something to say?</h2>
         </hgroup>
 
+        <a href="/inbox_send" class="button border-color-accent color-accent">Send us a message</a>
+
+        {% if message_count > 0 %}
         <div>
             {% autoescape off %}
-                {% if message_count > 0 %}
-                    {% for msg in messages %}
-                        <div class="item-large">
-                            <a class="{% if not msg.viewed %}color-accent{% endif %}" href="/inbox/{{ msg.id }}">{{ msg.name }}</a>
-                            <div>{{ msg.content|striptags|truncatechars:50 }} <a class="link wraps" href="/inbox/{{ msg.id }}">Read More</a></div>
-                            <form name="DOTHEMENU" method="post" action="?" class="no-pad">{% csrf_token %}
-                                <button type="submit" name="hide" value="{{ msg.id }}" class="button close icon">Delete</button>
-                            </form>
-                        </div>
-                    {% endfor %}
-                    <hr />
-                {% else %}
+                {% for msg in inbox_messages %}
                     <div class="item-large">
-                        <div class="message_heading">Sorry!</div>
-                        <div class="message">You have no messages available at this time</div>
+                        <a class="{% if not msg.viewed %}color-accent{% endif %}" href="/inbox/{{ msg.id }}">{{ msg.name }}</a>
+                        <div>{{ msg.content|striptags|truncatechars:50 }} <a class="link wraps" href="/inbox/{{ msg.id }}">Read More</a></div>
+                        <form name="DOTHEMENU" method="post" action="?" class="no-pad">{% csrf_token %}
+                            <button type="submit" name="hide" value="{{ msg.id }}" class="button close icon">Delete</button>
+                        </form>
                     </div>
-                {% endif %}
+                {% endfor %}
             {% endautoescape %}
         </div>
+        {% endif %}
     </article>
 {% endblock %}
