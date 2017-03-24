@@ -36,9 +36,23 @@ function loadClasses(course)
     });
 }
 
-function loadUsers(classs)
+function loadUsers(classs, only_active)
 {
-    var url = "/users/" + classs;
+    var q_params = [];
+
+    if (classs) {
+        q_params.push('class=' + classs);
+    }
+
+    if (only_active) {
+        q_params.push('only_active=true');
+    }
+
+    var url = "/users/";
+    if (q_params.length > 0) {
+        url += '?' + q_params.join('&')
+    }
+
     $.getJSON(url, function(data) {
         $('#id_users').empty();
         if (data.length != 0)
@@ -53,6 +67,7 @@ function loadUsers(classs)
 
 $(document).ready(
     function() {
+        $("#id_only_active").prop("checked", true);
         loadCourses();
         loadClasses('all');
         loadUsers('all');
@@ -62,8 +77,13 @@ $(document).ready(
             loadClasses($("#id_course option:selected").val());
         });
 
+        function reload_users() {
+            loadUsers($("#id_to_class option:selected").val(), $("#id_only_active").is(":checked"));
+        }
+
         //on class change load correct users
         $('#id_to_class').on('change', function(){
             loadUsers($("#id_to_class option:selected").val());
         });
+        $('#id_only_active').on('change', reload_users);
     });
