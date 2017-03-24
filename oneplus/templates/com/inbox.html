@@ -9,19 +9,25 @@
             <h2>Something to say?</h2>
         </hgroup>
 
-        <a href="/inbox_send" class="button border-color-accent color-accent">Send us a message</a>
+        <a href="{% url 'com.inbox_send' %}" class="button border-color-accent color-accent">Send us a message</a>
 
         {% if message_count > 0 %}
         <div>
             {% autoescape off %}
                 {% for msg in inbox_messages %}
-                    <div class="item-large">
-                        <a class="{% if not msg.viewed %}color-accent{% endif %}" href="/inbox/{{ msg.id }}">{{ msg.name }}</a>
-                        <div>{{ msg.content|striptags|truncatechars:50 }} <a class="link wraps" href="/inbox/{{ msg.id }}">Read More</a></div>
-                        <form name="DOTHEMENU" method="post" action="?" class="no-pad">{% csrf_token %}
-                            <button type="submit" name="hide" value="{{ msg.id }}" class="button close icon">Delete</button>
-                        </form>
-                    </div>
+                    <article class="card border-color-accent">
+                        <section class="top">
+                            <div class="{% if not msg.viewed %}color-accent {% endif %}bold-font">{{ msg.name }}</div>
+                            <div>{{ msg.content|striptags|truncatechars:50 }}</div>
+                            <form name="DOTHEMENU" method="post" action="?" class="no-pad">{% csrf_token %}
+                                <button type="submit" name="hide" value="{{ msg.id }}" class="button">Delete</button>
+                            </form>
+                        </section>
+                        <hr class="hr-accent" />
+                        <section class="bottom-novert center-font">
+                            <a href="{% url 'com.inbox_detail' messageid=msg.id %}" class="link undecorated icon-right inline">Read more</a>
+                        </section>
+                    </article>
                 {% endfor %}
             {% endautoescape %}
         </div>
