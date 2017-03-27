@@ -95,6 +95,11 @@ class LearnerState(models.Model):
                                                       answer_date__gte=start,
                                                       answer_date__lte=end).count()
 
+    def get_all_answered(self):
+        return ParticipantQuestionAnswer.objects.filter(
+            participant=self.participant,
+        ).distinct()
+
     def get_answers_this_week(self):
         # Get list of answered questions for this week, excluding today
         sumit = SUMit.objects.filter(course=self.participant.classs.course,
