@@ -64,6 +64,18 @@ class LearnerState(models.Model):
             return self.FRIDAY
         return week_day
 
+    def get_day_of_sumit(self):
+        sumit = SUMit.objects.filter(course=self.participant.classs.course,
+                                     activation_date__lte=datetime.now(),
+                                     deactivation_date__gt=datetime.now()).first()
+
+        if sumit:
+            sumit_day = datetime.now() - sumit.activation_date
+
+            return sumit_day.days + 1
+        else:
+            return 0
+
     def get_num_questions_answered_today(self):
         # Get list of answered questions for today
         start = self.today().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -152,11 +164,6 @@ class LearnerState(models.Model):
             state=3
         ).exclude(id__in=answered)
         return questions
-
-    def get_all_answered(self):
-        return ParticipantQuestionAnswer.objects.filter(
-            participant=self.participant,
-        ).distinct()
 
     def get_questions_answered_week(self):
         answer = len(self.get_answers_this_week()) \
