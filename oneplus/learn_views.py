@@ -221,6 +221,10 @@ def home(request, state, user, participant):
         _post = None
 
     def get():
+        active_sumit = SUMit.objects.filter(course=participant.classs.course,
+                                            activation_date__lte=datetime.now(),
+                                            deactivation_date__gt=datetime.now()).first()
+
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
             _learner.last_active_date = datetime.now() - timedelta(days=33)
@@ -260,36 +264,48 @@ def home(request, state, user, participant):
         if days_ago >= timedelta(days=2):
             update_metric("running.active.participants48", 1, "SUM")
 
-        sumit_answered_today = learnerstate.get_num_questions_answered_today()
-        sumit_next_level = SUMitLevel.objects.get(order=learnerstate.sumit_level + 1).name
-        sumit_day = learnerstate.get_day_of_sumit()
-        sumit_correct_answers, temp = learnerstate.get_correct_of_available()
-        sumit_day_flag = False
+        if(active_sumit):
+            sumit_answered_today = learnerstate.get_num_questions_answered_today()
 
-        temp = 3*sumit_day
+            try:
+                sumit_next_level = SUMitLevel.objects.get(order=learnerstate.sumit_level + 1).name
+            except:
+                sumit_next_level = None
 
-        if temp != sumit_correct_answers:
+            sumit_day = learnerstate.get_day_of_sumit()
+            sumit_correct_answers, temp = learnerstate.get_correct_of_available()
             sumit_day_flag = False
+
+            temp = 3*sumit_day
+
+            if temp != sumit_correct_answers:
+                sumit_day_flag = False
+            else:
+                sumit_day_flag = True
+
+            temp_sumit_correct_answers = sumit_correct_answers % 3
+
+            if sumit_correct_answers % 3 == 0:
+                sumit_correct_answers = 0
+            else:
+                sumit_correct_answers /= 3
+
+                if sumit_correct_answers > 0 or sumit_correct_answers < 0:
+                    temp_sumit_correct_answers = 1
+                elif sumit_correct_answers > 1 or sumit_correct_answers < 1:
+                    temp_sumit_correct_answers = 2
+                elif sumit_correct_answers > 2 or sumit_correct_answers < 2:
+                    temp_sumit_correct_answers = 3
+                elif sumit_correct_answers > 3 or sumit_correct_answers < 3:
+                    temp_sumit_correct_answers = 4
+                elif sumit_correct_answers > 4 or sumit_correct_answers < 4:
+                    temp_sumit_correct_answers = 5
         else:
-            sumit_day_flag = True
-
-        tempSCA = sumit_correct_answers % 3
-
-        if sumit_correct_answers % 3 == 0:
-            sumit_correct_answers = 0
-        else:
-            sumit_correct_answers /= 3
-
-            if sumit_correct_answers > 0 or sumit_correct_answers < 0:
-                tempSCA = 1
-            elif sumit_correct_answers > 1 or sumit_correct_answers < 1:
-                tempSCA = 2
-            elif sumit_correct_answers > 2 or sumit_correct_answers < 2:
-                tempSCA = 3
-            elif sumit_correct_answers > 3 or sumit_correct_answers < 3:
-                tempSCA = 4
-            elif sumit_correct_answers > 4 or sumit_correct_answers < 4:
-                tempSCA = 5
+            sumit_day_flag = None
+            sumit_answered_today = None
+            sumit_next_level = None
+            temp_sumit_correct_answers = None
+            sumit_day = None
 
         return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
@@ -306,7 +322,7 @@ def home(request, state, user, participant):
                                                    "sumit_day_flag": sumit_day_flag,
                                                    "sumit_answered_today": sumit_answered_today,
                                                    "sumit_next_level": sumit_next_level,
-                                                   "sumit_correct_answers": tempSCA,
+                                                   "sumit_correct_answers": temp_sumit_correct_answers,
                                                    "sumit_day": sumit_day,
                                                    "sumit": sumit,
                                                    "feedback_string": feedback_string,
