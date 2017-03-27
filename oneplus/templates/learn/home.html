@@ -12,10 +12,84 @@
     {% load humanize %}
     {% load oneplus_extras %}
     <section class="content">
-        <hgroup class="pale-teal-accent">
-            <h1 class="color-accent">Hello, {{ user.name }}.</h1>
-            <h2>Great to see you again.</h2>
-        </hgroup>
+    <h3>{{ sumit_correct_answers }}</h3>
+        {% if sumit %}
+            <hgroup class="amethyst-accent">
+                <h1 class="color-accent">Hello, {{ user.name }}.{{ answered }}</h1>
+                <h2>
+                    {% if learner.sumit_level == 1 and sumit_answered_today == 0 and correct_answers == 0 %} Ready for SUMit week?
+                    {% elif sumit_correct_answers == 0 %} Finished for today
+                    {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} It's day {{ sumit_day }} of SUMit week
+                    {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} It's the end of SUMit
+                    {% endif %}
+                </h2>
+            </hgroup>
+
+            <article class="card center-font amethyst-accent border-color-accent">
+                <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
+
+                <h3>
+                    {% if learner.sumit_level == 1 and sumit_answered_today == 0 %} Step 1, start from Basecamp
+                    {% elif sumit_answered_today == 3 %} You're at {{ sumit.level }}
+                    {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} You're at {{ sumit.level }}
+                    {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You almost made it
+                    {% endif %}
+                </h3>
+
+                <p>
+                    {% if learner.sumit_level == 1 and sumit_answered_today == 0 %} You'll have to answer 3 questions correctly in a row to progress to {{ sumit_next_level }}
+                    {% elif sumit_answered_today == 3  %} You're at {{ sumit.level }} Tomorrow we go to {{ sumit_next_level }} It's simple - 3 questions, 3 answers. That's it.
+                    {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} Next up {{ sumit_next_level }}. Answer the next 3 questions correctly and we'll get you there. Ready?
+                    {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You'll have another chance to SUMit next time. <br> Well done for this week.
+                    {% endif %}
+                </p>
+
+                {% if learner.sumit_level > 1 %}
+                    <hr class="hr-accent" />
+                {% endif %}
+
+                <h3>
+                    {% if learner.sumit_level > 1 %} Tasks completed:<br><br>
+                        {% if sumit_correct_answers == 0 or sumit_correct_answers == 1 %}
+                            <p><b>1. Basecamp:<br> </b>3/3 questions answered correctly</p>
+                        {% elif sumit_correct_answers == 0 or sumit_correct_answers == 2 %}
+                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                        {% elif sumit_correct_answers == 0 or sumit_correct_answers == 3 %}
+                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                            <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
+                        {% elif sumit_correct_answers == 0 or sumit_correct_answers == 4 %}
+                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                            <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
+                            <p><b>4. Peak: </b>3/3 questions answered correctly</p>
+                        {% elif sumit_correct_answers == 0 %}
+                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                            <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
+                            <p><b>4. Peak: </b>3/3 questions answered correctly</p>
+                            <p><b>5. Sumit: </b>3/3 questions answered correctly</p>
+                        {% endif %}
+                    {% endif %}
+                </h3>
+
+                {% if learner.sumit_level >= 1 or sumit_day_flag == False %}
+                    <hr class="hr-accent" />
+                {% endif %}
+
+                {% if sumit_day_flag == False or learner.sumit_level == 0 %}
+                    <section class="bottom-novert center-font">
+                        <a href="sumit" class="link undecorated icon-right inline">Get Started</a>
+                    </section>
+                {% endif %}
+            </article>
+        {% else %}
+            <hgroup class="pale-teal-accent">
+                <h1 class="color-accent">Hello, {{ user.name }}.</h1>
+                <h2>Great to see you again.</h2>
+            </hgroup>
+        {% endif %}
 
         {% comment %}Normal challenge{% endcomment %}
         {% if state.home_tasks_today < state.home_required_tasks %}
@@ -123,20 +197,6 @@
                     <a href="/blog/{{ post.id }}" class="link undecorated icon-right inline">Read story</a>
                 </section>
             </article>
-        {% endif %}
-
-        {% if sumit %}
-            <div class="center-font">
-                <div class="pad-bottom"><span class="large-font-normal">SUMit! Week</span></div>
-                <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
-                <div>
-                    <span class="text-line">
-                        <p>Current level:
-                            <b class="{% if sumit.level == 'Basecamp' or sumit.level == 'Summit' %} green-front {% elif sumit.level == 'Foothills' %} yellow-front {% elif sumit.level == 'Cliffs' %} purple-front {% else %} cyan-front {% endif %}">{{ sumit.level }}</b>
-                        </p>
-                    </span>
-                </div>
-            </div>
         {% endif %}
 
         {% if event_name and not sumit %}
