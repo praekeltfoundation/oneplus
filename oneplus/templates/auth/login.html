@@ -1,11 +1,11 @@
 {% extends "core/main.html" %}
 
-{% block title %}Sign in{% endblock %}
+{% block title %}Log in{% endblock %}
 
 {% block content %}
 
     <article class="content pale-teal-accent">
-        <h1 class="color-accent">Sign in</h1>
+        <h1 class="color-accent">Log in</h1>
         <form method="POST">
             {% csrf_token %}
             {% if username_error %}<div class="red-front">{{ username_error }}</div>{% endif %}
@@ -22,10 +22,10 @@
                         {{ field }}
                     </label>
                 {% endfor %}
-            <input type="submit" value="Sign in" class="button border-color-accent color-accent" />
+            <input type="submit" value="Log in" class="button border-color-accent color-accent" />
         </form>
         <div class="center-font spaced-links">
-            <a href='{% url 'auth.sms_reset_password' %}' class="center-font color-accent link">Forgot Password?</a>
+            <a href="{% url 'auth.sms_reset_password' %}" class="center-font color-accent link">Forgot Password?</a>
         </div>
     </article>
 

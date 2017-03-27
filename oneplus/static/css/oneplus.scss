@@ -1,6 +1,7 @@
 @import 'reset';
 @import 'borders';
 @import 'colours';
+@import 'dims';
 @import 'fonts';
 
 /*MAIN*/
@@ -44,15 +45,21 @@ div {
 }
 
 header {
-  height: 36pt;
+  height: $header-height;
+  margin-bottom: -$header-height;
+  text-align: justify;
+}
+
+footer {
+  height: $footer-height;
+  margin-top: -$footer-height;
   text-align: justify;
 }
 
 header, footer {
   display: block;
   max-width: 960px;
-  min-height: 2em;
-  padding: 0.5em 1.5em;
+  padding: 0 1.5em;
 }
 
 p {
@@ -74,6 +81,10 @@ button {
 
 hgroup {
   margin-bottom: 1em;
+}
+
+.page-margin-top {
+  margin-top: 1.5em;
 }
 
 .vert-placeholder {
@@ -166,6 +177,11 @@ input[type=text], input[type=password], select, textarea {
   border: solid $border-width-standard $black;
   border-radius: $border-radius-standard;
   padding: 10px;
+
+  &:disabled {
+    border: solid $border-width-standard $superlightgrey;
+    color: $superlightgrey;
+  }
 }
 
 form.no-pad {
@@ -221,9 +237,11 @@ form.no-pad {
 }
 
 .analytics-plug {
+  filter: alpha(opacity=1); /* msie */
   height: 1px;
+  left: 0;
+  opacity: 0.01;
   position: absolute;
-  right: 0;
   top: 0;
   width: 1px;
 }
@@ -274,7 +292,7 @@ form.no-pad {
 
 .link-bar {
   list-style-type: none;
-  margin: 0.5em 0;
+  margin: 0;
   padding: 0;
   overflow: hidden;
 
@@ -748,20 +766,17 @@ a.descriptor {
 }
 
 .container {
-    width: 100%;
-    text-align: left;
     box-sizing: border-box;
+    min-height: 100%;
+    padding-bottom: $footer-height + $ms-base;
+    padding-top: $header-height + $ms-base;
+    text-align: left;
+    width: 100%;
 }
 
 .content {
   max-width: 960px;
   padding: 0 1.5em;
-}
-
-@media (min-width: 30em) {
-    .content {
-        padding: 0 3em
-    }
 }
 
 .content.narrow {

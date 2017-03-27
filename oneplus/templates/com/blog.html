@@ -57,7 +57,7 @@
                 <h3 class="left-font">Leave a comment</h3>
                 <form name="comment_form" method="post" action="?#top-comment" class="comment">
                     {% csrf_token %}
-                    <input type="text" name="comment" value="">
+                    <textarea name="comment" placeholder="Type a comment..." value=""></textarea>
                     <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
                 </form>
 
