@@ -12,7 +12,6 @@
     {% load humanize %}
     {% load oneplus_extras %}
     <section class="content">
-    <h3>{{ sumit_correct_answers }}</h3>
         {% if sumit %}
             <hgroup class="amethyst-accent">
                 <h1 class="color-accent">Hello, {{ user.name }}.{{ answered }}</h1>
@@ -50,16 +49,16 @@
 
                 <h3>
                     {% if learner.sumit_level > 1 %} Tasks completed:<br><br>
-                        {% if sumit_correct_answers == 0 or sumit_correct_answers == 1 %}
+                        {% if sumit_correct_answers == 0 and sumit_correct_answers == 1 %}
                             <p><b>1. Basecamp:<br> </b>3/3 questions answered correctly</p>
-                        {% elif sumit_correct_answers == 0 or sumit_correct_answers == 2 %}
+                        {% elif sumit_correct_answers == 0 and sumit_correct_answers == 2 %}
                             <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
                             <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
-                        {% elif sumit_correct_answers == 0 or sumit_correct_answers == 3 %}
+                        {% elif sumit_correct_answers == 0 and sumit_correct_answers == 3 %}
                             <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
                             <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
                             <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
-                        {% elif sumit_correct_answers == 0 or sumit_correct_answers == 4 %}
+                        {% elif sumit_correct_answers == 0 and sumit_correct_answers == 4 %}
                             <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
                             <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
                             <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
@@ -74,11 +73,11 @@
                     {% endif %}
                 </h3>
 
-                {% if learner.sumit_level >= 1 or sumit_day_flag == False %}
+                {% if learner.sumit_level >= 1 and sumit_day_flag == False and sumit_correct_answers > 3 %}
                     <hr class="hr-accent" />
                 {% endif %}
 
-                {% if sumit_day_flag == False or learner.sumit_level == 0 %}
+                {% if sumit_day_flag == False and learner.sumit_level == 0 and sumit_correct_answers > 3 %}
                     <section class="bottom-novert center-font">
                         <a href="sumit" class="link undecorated icon-right inline">Get Started</a>
                     </section>
