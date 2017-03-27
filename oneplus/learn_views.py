@@ -75,6 +75,7 @@ def home(request, state, user, participant):
     event_name = None
     first_sitting = True
     sumit = None
+
     if _event:
         allowed, _event_participant_rel = _participant.can_take_event(_event)
         if _event.type != 0:
@@ -95,6 +96,9 @@ def home(request, state, user, participant):
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
             sumit["url"] = _sumit_level.image.url
             sumit["level"] = _sumit_level.name
+
+            #next level of current level
+            sumit["next_level"] = SUMitLevel.objects.filter(order=learnerstate.sumit_level)
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -256,6 +260,37 @@ def home(request, state, user, participant):
         if days_ago >= timedelta(days=2):
             update_metric("running.active.participants48", 1, "SUM")
 
+        sumit_answered_today = learnerstate.get_num_questions_answered_today()
+        sumit_next_level = SUMitLevel.objects.get(order=learnerstate.sumit_level + 1).name
+        sumit_day = learnerstate.get_day_of_sumit()
+        sumit_correct_answers, temp = learnerstate.get_correct_of_available()
+        sumit_day_flag = False
+
+        temp = 3*sumit_day
+
+        if temp != sumit_correct_answers:
+            sumit_day_flag = False
+        else:
+            sumit_day_flag = True
+
+        tempSCA = sumit_correct_answers % 3
+
+        if sumit_correct_answers % 3 == 0:
+            sumit_correct_answers = 0
+        else:
+            sumit_correct_answers /= 3
+
+            if sumit_correct_answers > 0 or sumit_correct_answers < 0:
+                tempSCA = 1
+            elif sumit_correct_answers > 1 or sumit_correct_answers < 1:
+                tempSCA = 2
+            elif sumit_correct_answers > 2 or sumit_correct_answers < 2:
+                tempSCA = 3
+            elif sumit_correct_answers > 3 or sumit_correct_answers < 3:
+                tempSCA = 4
+            elif sumit_correct_answers > 4 or sumit_correct_answers < 4:
+                tempSCA = 5
+
         return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
                                                    "level": level,
@@ -267,6 +302,12 @@ def home(request, state, user, participant):
                                                    "public_sharing": _learner.public_share,
                                                    "redo": redo,
                                                    "state": state,
+                                                   "learner": learnerstate,
+                                                   "sumit_day_flag": sumit_day_flag,
+                                                   "sumit_answered_today": sumit_answered_today,
+                                                   "sumit_next_level": sumit_next_level,
+                                                   "sumit_correct_answers": tempSCA,
+                                                   "sumit_day": sumit_day,
                                                    "sumit": sumit,
                                                    "feedback_string": feedback_string,
                                                    "user": user})
@@ -1090,7 +1131,9 @@ def sumit(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "question": _question,
-                "sumit": sumit
+                "sumit": sumit,
+                "count": _learnerstate.get_num_questions_answered_today() + 1,
+                "total_questions": _learnerstate.get_questions_available_count
             }
         )
 
@@ -2155,7 +2198,6 @@ def sumit_end_page(request, state, user, participant):
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
     if num_sumit_questions == num_sumit_questions_answered:
-
         if _learnerstate.sumit_level in range(1, 5):
             winner = False
         elif _learnerstate.sumit_level == 5:
