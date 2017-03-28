@@ -22,7 +22,7 @@
                 {% if errors.grade_error %}
                     <div class="red-front">{{ errors.grade_error }}</div>
                 {% endif %}
-                <div class="radiogroup">
+                <div class="radiogroup radio-vert">
                     <label><input class="block" type="radio" name="grade" value="Grade 10"
                             {% ifequal data.grade 'Grade 10' %}checked{% endifequal %}>10</label>
                     <label><input class="block" type="radio" name="grade" value="Grade 11"
@@ -57,7 +57,7 @@
                     <div class="red-front">{{ errors.grade_course_error }}</div> -
                     <a href={% url 'misc.contact' %}>Contact us</a> to get connected.
                 {% endif %}
-                <input type="text" name="school_dirty" id="id_school_dirty" value="{{ data.school_dirty }}" >
+                <input type="text" name="school_dirty" id="id_school_dirty" value="{{ data.school_dirty }}" placeholder="Type name of school">
                 <div class="subtle-info">Please make sure your school’s name is spelled correctly.</div>
             </label>
 

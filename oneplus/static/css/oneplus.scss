@@ -107,7 +107,7 @@ hgroup {
 }
 
 .page-descriptor {
-  color: #888888;
+  color: $black;
   font-family: $font-family-secondary;
   font-size: 12px;
   font-stretch: normal;
@@ -164,13 +164,22 @@ label > input, label > select, label > textarea {
   margin: 0.25em 0;
 }
 
+select {
+  -webkit-appearance: menulist;
+}
+
 form label, input[type=text], input[type=password], select, textarea {
   color: $black;
   display: block;
+  font-size: 16px;
   font-family: $font-family-secondary;
   width: 100%;
   @include background-transparent;
   @include border-box;
+}
+
+input::placeholder {
+  color: $superlightgrey;
 }
 
 input[type=text], input[type=password], select, textarea {
@@ -318,6 +327,27 @@ form.no-pad {
     padding: 1em 0;
 }
 
+.radio-vert {
+  label {
+    margin: 0.5em 0.5em 0 0;
+    text-align: center;
+  }
+
+  input {
+    height: 32px;
+    width: 32px;
+  }
+}
+
+.radio-horz {
+  vertical-align: middle;
+
+  input {
+    height: 32px;
+    width: 32px;
+  }
+}
+
 .radiogroup {
   label {
     display: inline-block;
@@ -332,7 +362,9 @@ form.no-pad {
 
 .subtle-info {
   color: $lightgrey;
-  font-size: 66%;
+  font-size: 12px;
+  line-height: 1.17;
+  padding-top: 0.25em;
 }
 
 .card {
