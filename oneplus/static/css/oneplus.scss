@@ -168,7 +168,7 @@ select {
   -webkit-appearance: menulist;
 }
 
-form label, input[type=text], input[type=password], select, textarea {
+form, form label, input[type=text], input[type=password], select, textarea {
   color: $black;
   display: block;
   font-size: 16px;
@@ -804,7 +804,7 @@ a.descriptor {
 .container {
     box-sizing: border-box;
     min-height: 100%;
-    padding-bottom: $footer-height + $ms-base;
+    padding-bottom: $footer-height + 2*$ms-base;
     padding-top: $header-height + $ms-base;
     text-align: left;
     width: 100%;
