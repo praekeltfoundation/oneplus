@@ -27,6 +27,8 @@
                 <div class="pip {% ifequal i page_num %}background-color-accent{% endifequal %}" style="border-radius:50%;height:1em;width:1em;"></div>
             {% endfor %}
         </div>
-        <a href="{% url 'misc.welcome' %}" class="inline-link center-font">Skip</a>
+        <div class="spaced-links">
+            <a href="{% url 'misc.welcome' %}" class="inline-link center-font">Skip</a>
+        </div>
     </article>
 {% endblock content %}
