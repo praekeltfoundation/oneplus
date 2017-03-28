@@ -45,7 +45,7 @@
         </header>
     {% endblock %}
 
-    <article class="container">
+    <article class="container {% block content_classes %}{% endblock %}">
         {% block content %}{% endblock %}
     </article>
 

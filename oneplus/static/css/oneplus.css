@@ -715,6 +715,9 @@ img.limit-size {
   font-size: 12pt;
   line-height: 1.5em; }
 
+.no-top-padding {
+  padding-top: 0 !important; }
+
 p a {
   font-weight: bold; }
 
