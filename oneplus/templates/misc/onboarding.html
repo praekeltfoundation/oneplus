@@ -19,7 +19,7 @@
             </section>
         </article>
         <div class="center-font">
-            {% ifnotequal page_num 0 %}<a class="button half-button" href="{% url 'misc.onboarding' %}?p={{ page_num|add:'-1' }}" >Prev</a>{% endifnotequal %}
+            {% ifnotequal page_num 0 %}<a class="button half-button" href="{% url 'misc.onboarding' %}?p={{ page_num|add:'-1' }}" >Previous</a>{% endifnotequal %}
             <a class="button half-button" href="{% url 'misc.onboarding' %}?p={{ page_num|add:'1' }}">Next</a>
         </div>
         <div class="progress-pips">
