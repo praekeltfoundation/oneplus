@@ -2,8 +2,8 @@
 
 {% block header_left %}
     <div class="header-item">
-        <a href="/home" >
-            <li class="icon close"></li>
+        <a href="/home" onclick="javascript:window.history.back()">
+            <li class="icon home"></li>
         </a>
     </div>
 {% endblock %}
@@ -13,28 +13,28 @@
 {% block content %}
     <article class="content">
         <div class="main-menu">
-            <a href="/profile"><div class="item text"><li class="icon profile"></li><span>Profile</span></div></a>
+            <a href="/profile"><div class="item text"><li class="icon profile"></li><span class="menu-text">Profile</span></div></a>
             <hr />
-            <a href="/blog"><div class="item text"><li class="icon stories"></li><span>Stories</span></div></a>
+            <a href="/blog"><div class="item text"><li class="icon stories"></li><span class="menu-text">Stories</span></div></a>
             <hr />
-            <a href="/chat"><div class="item text"><li class="icon chat"></li><span>Chat groups</span></div></a>
+            <a href="/chat"><div class="item text"><li class="icon chat"></li><span class="menu-text">Chat groups</span></div></a>
             <hr />
-            <a href="/inbox"><div class="item text"><li class="icon inbox"></li><span>Inbox{% if state.inbox_unread > 0 %} ({{ state.inbox_unread }}){% endif %}</span></div></a>
+            <a href="/inbox"><div class="item text"><li class="icon inbox"></li><span class="menu-text">Inbox{% if state.inbox_unread > 0 %} ({{ state.inbox_unread }}){% endif %}</span></div></a>
             <hr />
-            <a href="/faq"><div class="item text"><li class="icon faq"></li><span>FAQ</span></div></a>
+            <a href="/faq"><div class="item text"><li class="icon faq"></li><span class="menu-text">FAQ</span></div></a>
             <hr />
-            <a href="/contact"><div class="item text"><li class="icon contact"></li><span>Contact</span></div></a>
+            <a href="/contact"><div class="item text"><li class="icon contact"></li><span class="menu-text">Contact</span></div></a>
             {% comment %}
             <hr />
-            <a href="/welcome"><div class="item text"><li class="icon welcome-color"></li><span>Welcome</span></div></a>
+            <a href="/welcome"><div class="item text"><li class="icon welcome-color"></li><span class="menu-text">Welcome</span></div></a>
             <hr />
-            <a href="/ontrack"><div class="item text"><li class="icon ontrack-color"></li><span>On track</span></div></a>
+            <a href="/ontrack"><div class="item text"><li class="icon ontrack-color"></li><span class="menu-text">On track</span></div></a>
             <hr />
-            <a href="/badges"><div class="item text"><li class="icon badges-color"></li><span>Badges</span></div></a>
+            <a href="/badges"><div class="item text"><li class="icon badges-color"></li><span class="menu-text">Badges</span></div></a>
             <hr />
-            <a href="/leader"><div class="item text"><li class="icon leaderboard-color"></li><span>Leaderboard</span></div></a>
+            <a href="/leader"><div class="item text"><li class="icon leaderboard-color"></li><span class="menu-text">Leaderboard</span></div></a>
             <hr />
-            <a href="/points"><div class="item text"><li class="icon points-color"></li><span>Points</span></div></a>
+            <a href="/points"><div class="item text"><li class="icon points-color"></li><span class="menu-text">Points</span></div></a>
             {% endcomment %}
         </div>
     </article>

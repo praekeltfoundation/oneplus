@@ -53,7 +53,7 @@
                 <label for="id_password">Password</label>
                 <input type="text" id="id_password" name="password" value="******" disabled />
                 {% if editing %}
-                    <p>
+                    <p class="form-hint-link">
                         Change your password <a href="{% url 'auth.sms_reset_password' %}">here</a>.
                     </p>
                 {% endif %}
@@ -73,7 +73,7 @@
                 <label for="id_grade">Grade</label>
                 <input type="text" id="id_grade" name="grade" value="{{ data.grade }}" disabled />
                 {% if editing %}
-                    <p>
+                    <p class="form-hint-link">
                         If you are in the incorrect grade, please <a href="{% url 'misc.contact' %}">contact us</a> so that
                         we can move you to the correct grade.
                     </p>
@@ -84,7 +84,7 @@
                 <label for="id_school">School</label>
                 <input type="text" id="id_school" name="school" value="{{ data.school }}" disabled />
                 {% if editing %}
-                    <p>
+                    <p class="form-hint-link">
                         If you have moved schools, please <a href="{% url 'misc.contact' %}">contact us</a> so that we can
                         move you to your new school.
                     </p>

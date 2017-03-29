@@ -4,21 +4,24 @@
 
 {% block page_descriptor_text %}Contact{% endblock %}
 
+{% block footer_classes %}pale-teal-accent{% endblock %}
+{% block contact_link_classes %}color-accent{% endblock %}
+
 {% block content %}
 
     <article class="content pale-teal-accent">
         <h1 class="color-accent">Need Help?</h1>
         <h2>Send us a message with your query.</h2>
         {% if state.sent %}
-            <div class="large-font green-front">
+            <div class="color-accent">
                 Your message has been sent. We will get back to you in the next 24 hours
             </div>
         {% else %}
             {% if state.valid_message > 1 %}
-                <div class="large-font green-front">
-                {% for message in state.valid_message %}
-                {{ message }}<br/>
-                {% endfor %}
+                <div class="red-front">
+                    {% for message in state.valid_message %}
+                    {{ message }}<br/>
+                    {% endfor %}
                 <br/>
                 </div>
             {% endif %}

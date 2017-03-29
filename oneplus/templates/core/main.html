@@ -30,9 +30,10 @@
                             {% endblock %}
                         </a>
                     {% else %}
-                        <a href="login" class="menu-login">Log in</a>
+                        <a href="/landing" class="menu-login">Back</a>
                     {% endif %}
                 </div>
+                <div style="width:1px;height:75%;display:inline-block;"></div>
             {% endblock %}
 
             {% block page_descriptor %}
@@ -45,15 +46,15 @@
         </header>
     {% endblock %}
 
-    <article class="container">
+    <article class="container {% block content_classes %}{% endblock %}">
         {% block content %}{% endblock %}
     </article>
 
-    <footer>
+    <footer class="{% block footer_classes %}{% endblock %}">
         <ul class="link-bar">
-            <li><a href="/about">About</a></li>
-            <li><a href="/contact">Contact</a></li>
-            <li><a href="/terms">Terms</a></li>
+            <li><a href="/about" class="{% block about_link_classes %}{% endblock %}">About</a></li>
+            <li><a href="/contact" class="{% block contact_link_classes %}{% endblock %}">Contact</a></li>
+            <li><a href="/terms" class="{% block terms_link_classes %}{% endblock %}">Terms</a></li>
             {% if user.name %}
                 <li><a class="footer-link" href="/signout">Log out</a></li>
             {% endif %}

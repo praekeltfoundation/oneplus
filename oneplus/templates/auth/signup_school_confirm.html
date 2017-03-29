@@ -21,10 +21,12 @@
 
             <div class="radiogroup">
                 {% for school in school_list %}
-                    <label>
-                        <input name="school" type="radio" value="{{ school.id }}" />
-                        {{ school.name }}
-                    </label>
+                    <table class="radio-horz">
+                        <tr>
+                            <td class="vert-center"><input name="school" type="radio" value="{{ school.id }}" /></td>
+                            <td class="vert-center">{{ school.name }}</td>
+                        </tr>
+                    </table>
                 {% endfor %}
                 {% comment %}<option value="other">Other</option>{% endcomment %}
                 {% if errors.school_error %}
