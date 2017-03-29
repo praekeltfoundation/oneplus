@@ -379,6 +379,9 @@ hgroup {
   .button.inline {
     padding-left: 1em;
     padding-right: 1em; }
+  .button.disabled {
+    border-color: #d5d5d5;
+    color: #d5d5d5; }
 
 .button.icon-right, .link.icon-right {
   background-color: transparent;

@@ -137,6 +137,11 @@ hgroup {
     padding-left: 1em;
     padding-right: 1em;
   }
+
+  &.disabled {
+    border-color: $superlightgrey;
+    color: $superlightgrey;
+  }
 }
 
 .button, .link {

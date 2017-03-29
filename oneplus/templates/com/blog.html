@@ -16,6 +16,11 @@
             <div class="post-content">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
         </section>
 
+        <div class="center-font">
+            <a class="button half-button{% if not state.blog_previous %} disabled{% endif %}"{% if state.blog_previous %} href="/blog/{{ state.blog_previous }}"{% endif %}>Previous</a>
+            <a class="button half-button{% if not state.blog_next %} disabled{% endif %}"{% if state.blog_next %} href="/blog/{{ state.blog_next }}"{% endif %}>Next</a>
+        </div>
+
         {% if most_popular %}
             <section class="comment-section">
                 <h3 class="left-font">Most popular</h3>
@@ -119,13 +124,6 @@
         {% endif %}
 
         <section class="padded amethyst-accent">
-            {% if state.blog_previous %}
-                <a class="color-accent pull-left" href="/blog/{{ state.blog_previous }}">&lt; Previous</a>
-            {% endif %}
-
-            {% if state.blog_next %}
-                <a class="color-accent pull-right" href="/blog/{{ state.blog_next }}">Next &gt;</a>
-            {% endif %}
             <div>&nbsp;</div>
         </section>
     </article>
