@@ -2,33 +2,23 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}WRONG{% endblock %}
-{% block header_classes %}class="amethyst-accent background-color-accent"{% endblock %}
 {% block page_descriptor_text %}Incorrect{% endblock %}
 
 {% block content %}
    {% load humanize %}
     {% if sumit %}
         <div class="sumit_content" style="padding-bottom: 5px; padding-top: 0px;">
-            <div class="amethyst-accent background-color-accent padding-bottom">
+            <div class="amethyst-accent background-color-accent pad-top padding-bottom">
                 <h1 class="center-font white-front">SUMit</h1>
 
                 <h3 class="center-font white-front">You're at {{ sumit.level }}</h3>
-
-                <div class="sumit_line"></div>
-                <div class="sumit">
-                    <img class="sumit-img" src="{{ sumit.url1 }}">
-                    <img class="sumit-img" src="{{ sumit.url2 }}">
-                    <img class="sumit-img" src="{{ sumit.url3 }}">
-                </div>
             </div>
     {% endif %}
 
     {% autoescape off %}
-        <div class="content padding white-back darkgrey-front">
-            <h1>
-                <span class="amethyst-accent color-accent">Next Time!</span><br>
-                That's not the correct answer
-            </h1>
+        <article class="content amethyst-accent">
+            <h1 class="color-accent pad-top">Next Time!</h1>
+            <h2>That's not the correct answer</h2>
 
             {% if question.textbook_link %}
                 <a href="{{  question.textbook_link  }}">
@@ -48,31 +38,37 @@
             {% endif %}
 
             <div class="card amethyst-accent border-color-accent">
-                <p class="large-font-normal center-font">Question</p>
-                <div class="padding">
-                    <p>{{ question.question_content | format_content }}</p>
-                </div>
+                <section class="top">
+                    <p class="large-font-normal center-font">Question</p>
+                    <div>
+                        <p>{{ question.question_content | format_content }}</p>
+                    </div>
+                </section>
 
-                <hr class="amethyst-accent hr-purple" />
+                <hr class="hr-accent" />
 
-                {% for opt in question.testingquestionoption_set.all %}
-                    <label class="label-question" for="answer_{{ opt.id }}">
-                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle" disabled>
-                    {% if opt.content %}
-                        <div class="align-option"> {{ opt.content | format_option  }}</div> </label>
-                    {% else %}
-                        {{ opt.name }} </label>
-                    {% endif %}
-                {% endfor %}
+                <section class="bottom">
+                    {% for opt in question.testingquestionoption_set.all %}
+                        <label class="label-question" for="answer_{{ opt.id }}">
+                        <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle" disabled>
+                        {% if opt.content %}
+                            <div class="align-option"> {{ opt.content | format_option  }}</div> </label>
+                        {% else %}
+                            {{ opt.name }} </label>
+                        {% endif %}
+                    {% endfor %}
+                </section>
 
-                <hr class="amethyst-accent hr-purple" />
+                <hr class="hr-accent" />
 
-                <p class="large-font-normal center-font">Solution</p>
-                <div class="padding">
-                    <p>{{ question.answer_content | format_content}}</p>
-                </div>
+                <section class="bottom">
+                    <p class="large-font-normal center-font">Solution</p>
+                    <div>
+                        <p>{{ question.answer_content | format_content}}</p>
+                    </div>
+                </section>
             </div>
-        </div>
+        </article>
         </div>
     {% endautoescape %}
 {% endblock %}

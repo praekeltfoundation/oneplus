@@ -2,22 +2,20 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}LEVEL UP{% endblock %}
-{% block header_classes %}class="amethyst-accent background-color-accent"{% endblock %}
 {% block page_descriptor_text %}Level Up{% endblock %}
 
 {% block content %}
     {% load humanize %}
-    <div class="sumit_content" style="padding-top: 0px;">
-        <div class="amethyst-accent background-color-accent padding-bottom">
+    <div class="sumit_content amethyst-accent" style="padding-top: 0px;">
+        <div class="background-color-accent pad-top padding-bottom">
             <h1 class="center-font white-front">SUMit</h1>
 
             <h3 class="center-font white-front">Congratulations</h3>
         </div>
 
         {% autoescape off %}
-            <div class="content">
+            <div class="content pad-top">
                 <p class="large-font center-font">You have conquered the <span class="large-font highlight amethyst-accent color-accent">{{ previous_level.name }}</span> and moved up a level to the <span class="large-font highlight amethyst-accent color-accent">{{ next_level.name }}</span>.</p>
-
 
                 <section class="bottom-novert center-font">
                     <a class="button amethyst-accent border-color-accent color-accent" href="sumit_end_page">Finish</a>

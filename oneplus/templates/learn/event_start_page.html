@@ -12,11 +12,12 @@
             <h1 class="amethyst-accent color-accent">{{ page.header }}</h1>
             <h4 class="large-font-normal pad-bottom">{{ page.message }}</h4>
 
+            {# Add conditional checks that include airtime/points allocation #}
             <p class="descriptor">You will receive your usual 3 questions a day and all points earned still count
             towards the leaderboard. If you manage to SUMit the mountain, you can win your share of additional [X]
             airtime! Good Luck!</p>
 
-            <form action="#" method="post" class="pad-bottom padding-top">
+            <form action="#" method="post" class="block pad-bottom padding-top">
                 {% csrf_token %}
                 <input type="submit" name="event_start_button" class="button" value="Get Started"/>
             </form>

@@ -2,7 +2,6 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}SUMit!{% endblock %}
-{% block header_classes %}class="amethyst-accent background-color-accent"{% endblock %}
 {% block page_descriptor_text %}SUMit{% endblock %}
 
 {% block content %}
@@ -13,34 +12,27 @@
         </div>
     {% endif %}
     <div class="sumit_content" style="padding-top: 0px;">
-        <div class="amethyst-accent background-color-accent padding-bottom">
+        <div class="amethyst-accent background-color-accent pad-top padding-bottom">
             <h1 class="center-font white-front">SUMit</h1>
 
             <h3 class="center-font white-front">You're at {{ sumit.name }}</h3>
-
-            <div class="sumit_line"></div>
-            <div class="sumit">
-                <img class="sumit-img" src="{{ sumit.url1 }}">
-                <img class="sumit-img" src="{{ sumit.url2 }}">
-                <img class="sumit-img" src="{{ sumit.url3 }}">
-            </div>
         </div>
 
         {% autoescape off %}
-            <div class="padding">
-                <h1 class="amethyst-accent color-accent">Question {{ count }}/{{ total_questions }}</h1>
+            <div class="content amethyst-accent pad-top">
+                <h1 class="color-accent">Question {{ count }}/{{ total_questions }}</h1>
 
-                <h1 class="">3 Points</h1>
+                <h2>{{ question.points }} Points</h2>
 
                 <div class="text heading"><span class="body-copy padding-top">Module: Algebra</span></div>
 
                 <article class="card amethyst-accent border-color-accent">
                     <section class="top no-padding">
-                        <form action="sumit" method="post">{% csrf_token %}
+                        <form action="sumit" method="post" class="block">{% csrf_token %}
                         <div class="padding">
                             <p>{{ question.question_content | format_content }}</p>
                         </div>
-                        <hr class="amethyst-accent hr-purple" />
+                        <hr class="hr-accent" />
                         <div class="padding">
                             {% for opt in question.testingquestionoption_set.all %}
                                 <label class="label-question" for="answer_{{ opt.id }}">
@@ -53,7 +45,7 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
-                            <hr class="amethyst-accent hr-accent" />
+                            <hr class="hr-accent" />
                             <section class="bottom-novert center-font">
                             <div>
                                 <input type="submit" class="link icon-right" value="Submit answer"/>

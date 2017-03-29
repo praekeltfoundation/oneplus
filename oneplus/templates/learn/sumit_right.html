@@ -2,59 +2,54 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}RIGHT{% endblock %}
-{% block header_classes %}class="amethyst-accent background-color-accent"{% endblock %}
 {% block page_descriptor_text %}Correct{% endblock %}
 
 {% block content %}
     {% load humanize %}
     {% if sumit %}
         <div class="sumit_content" style="padding-bottom: 5px; padding-top: 0px;">
-            <div class="amethyst-accent background-color-accent padding-bottom">
+            <div class="amethyst-accent background-color-accent pad-top padding-bottom">
                 <h1 class="center-font white-front">SUMit</h1>
 
                 <h3 class="center-font white-front">You're at {{ sumit.level }}</h3>
-
-                <div class="sumit_line"></div>
-                <div class="sumit">
-                    <img class="sumit-img" src="{{ sumit.url1 }}">
-                    <img class="sumit-img" src="{{ sumit.url2 }}">
-                    <img class="sumit-img" src="{{ sumit.url3 }}">
-                </div>
             </div>
     {% endif %}
 
     {% autoescape off %}
-        <div class="content padding">
-                <h1>
-                    <span class="amethyst-accent color-accent"> Well done! </span>
-                    That's the correct answer. You've earned <span class="bold-font">3 Points.</span>
-                </h1>
-                {% if not preview %}
-                   {% if sumit.finished %}
-                        <a class="button amethyst-accent border-color-accent color-accent" href="sumit_end_page">Finish</a>
-                    {% endif %}
-                    {% if state.right_tasks_today >= state.total_tasks_today %}
-                        {% if level_up %}
-                            <a class="button amethyst-accent border-color-accent color-accent" href="sumit_level_up">Done for Today</a>
-                        {% else %}
-                            <a class="button amethyst-accent border-color-accent color-accent" href="home">Done for Today</a>
-                        {% endif %}
+        <article class="content amethyst-accent pad-top">
+            <h1 class="color-accent"> Well done!</h1>
+            <h2>
+                That's the correct answer.
+                You've earned <b>{% if question.points %}{{ question.points }} point{{ points |pluralize }}{% else %}0 points{% endif %}</b>.
+            </h2>
+            {% if not preview %}
+               {% if sumit.finished %}
+                    <a class="button amethyst-accent border-color-accent color-accent" href="sumit_end_page">Finish</a>
+                {% endif %}
+                {% if state.right_tasks_today >= state.total_tasks_today %}
+                    {% if level_up %}
+                        <a class="button amethyst-accent border-color-accent color-accent" href="sumit_level_up">Done for Today</a>
                     {% else %}
-                        {% if level_up %}
-                            <a class="button amethyst-accent border-color-accent color-accent" href="sumit_level_up">Next Question</a>
-                        {% else %}
-                            <a class="button amethyst-accent border-color-accent color-accent" href="sumit">Next Question</a>
-                        {% endif %}
+                        <a class="button amethyst-accent border-color-accent color-accent" href="home">Done for Today</a>
+                    {% endif %}
+                {% else %}
+                    {% if level_up %}
+                        <a class="button amethyst-accent border-color-accent color-accent" href="sumit_level_up">Next Question</a>
+                    {% else %}
+                        <a class="button amethyst-accent border-color-accent color-accent" href="sumit">Next Question</a>
                     {% endif %}
                 {% endif %}
+            {% endif %}
 
-            <div class="card amethyst-accent border-color-accent">
-                <p class="large-font-normal center-font">Question</p>
-                <div class="padding">
-                    <p>{{ question.question_content | format_content }}</p>
-                </div>
+            <article class="card amethyst-accent border-color-accent">
+                <section class="top">
+                    <p class="large-font-normal center-font">Question</p>
+                    <div>
+                        <p>{{ question.question_content | format_content }}</p>
+                    </div>
+                </section>
 
-                <hr class="amethyst-accent hr-purple" />
+                <hr class="hr-accent" />
 
                 {% for opt in question.testingquestionoption_set.all %}
                     <label class="label-question" for="answer_{{ opt.id }}">
@@ -67,13 +62,15 @@
                     {% endif %}
                 {% endfor %}
 
-                <hr class="amethyst-accent hr-purple" />
-                <p class="large-font-normal center-font">Solution</p>
-                <div class="padding">
-                    <p>{{ question.answer_content | format_content  }}</p>
-                </div>
-            </div>
-        </div>
+                <hr class="hr-accent" />
+                <section class="bottom">
+                    <p class="large-font-normal center-font">Solution</p>
+                    <div>
+                        <p>{{ question.answer_content | format_content  }}</p>
+                    </div>
+                </section>
+            </article>
+        </article>
         </div>
     {% endautoescape %}
 {% endblock %}
