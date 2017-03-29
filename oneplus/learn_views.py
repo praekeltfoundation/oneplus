@@ -2065,7 +2065,8 @@ def event_start_page(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
-                "page": page
+                "page": page,
+                "event": _event
             }
         )
 
