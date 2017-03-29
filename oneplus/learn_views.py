@@ -285,7 +285,7 @@ def home(request, state, user, participant):
 
             temp_sumit_correct_answers = sumit_correct_answers % 3
 
-            if sumit_correct_answers % 3 == 0:
+            if temp_sumit_correct_answers == 0:
                 sumit_correct_answers = 0
             else:
                 sumit_correct_answers /= 3
