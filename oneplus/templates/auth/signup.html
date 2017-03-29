@@ -11,7 +11,7 @@
             {% if num_spaces > 1 %} spaces{% else %}space{% endif %}</b> left on dig-it. By signing up you will be able to practice your maths
             on your phone. You will be able to answer up to 15 questions per week and earn badges and prizes for your commitment to revision.
         </p>
-        <form action="" method="post" class="pad-bottom">{% csrf_token %}
+        <form action="" method="post" class="pad-bottom block">{% csrf_token %}
             <input type="submit" class="button background-color-accent color-accent" name="yes" value="Register"/>
             <br>
             <input type="submit" class="link color-accent" name="no" value="Not right now"/>

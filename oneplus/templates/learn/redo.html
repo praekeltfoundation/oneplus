@@ -27,7 +27,7 @@
                 {{ question.question_content | format_content }}
             </section>
             <hr class="hr-accent" />
-            <form action="redo" method="post" style="padding:0;margin:0">{% csrf_token %}
+            <form action="redo" method="post" class="block" style="padding:0;margin:0">{% csrf_token %}
                 <section class="bottom-novert">
                     {% for opt in question.testingquestionoption_set.all %}
                         <label class="label-question" for="answer_{{ opt.id }}">

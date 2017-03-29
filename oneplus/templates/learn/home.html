@@ -26,7 +26,7 @@
 
             <article class="card center-font amethyst-accent border-color-accent">
                 <section class="top">
-                    <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
+                    <div class="img-container"><img class="limit-size" src="{{ sumit.url }}"></div>
 
                     <h3>
                         {% if learner.sumit_level == 1 and sumit_answered_week == 0 %} Step 1, start from Basecamp
@@ -39,7 +39,7 @@
                     <p>
                         {% if learner.sumit_level == 1 and sumit_answered_week == 0 %} You'll have to answer 3 questions correctly in a row to progress to {{ sumit_next_level }}
                         {% elif sumit_answered_today == 3  %} You're at {{ sumit.level }} Tomorrow we go to {{ sumit_next_level }} It's simple - 3 questions, 3 answers. That's it.
-                        {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} Next up {{ sumit_next_level }}. Answer the next 3 questions correctly and we'll get you there. Ready?
+                        {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} Next up: {{ sumit_next_level }}. Answer the next 3 questions correctly and we'll get you there. Ready?
                         {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You'll have another chance to SUMit next time. <br> Well done for this week.
                         {% endif %}
                     </p>
@@ -194,7 +194,7 @@
         {% endif %}
 
         {% if event_name and not sumit %}
-            <form name="event" action="#" method="post">
+            <form name="event" action="#" method="post" class="block">
                 {% csrf_token %}
                 <div class="content">
                     {% if first_sitting %}

@@ -8,7 +8,7 @@
     <article class="content pale-teal-accent">
         <h1 class="color-accent">Hello, {{ data.first_name }}.</h1>
         <h2>We need a bit more info.</h2>
-		<form action="signup_form_normal" method="post" class="signup">
+		<form action="signup_form_normal" method="post" class="signup block">
 			{% csrf_token %}
             <input type="hidden" name="page_num" id="id_page_num" value="1" />
             <input type="hidden" name="first_name" value="{{ data.first_name }}">

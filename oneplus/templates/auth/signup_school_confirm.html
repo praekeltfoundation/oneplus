@@ -7,7 +7,7 @@
 {% block content %}
     <article class="content pale-teal-accent">
         <h1>Please confirm which school is yours:</h1>
-		<form action="signup_school_confirm" method="post" class="signup" >
+		<form action="signup_school_confirm" method="post" class="signup block">
 			{% csrf_token %}
             <input type="hidden" name="page_num" id="id_page_num" value="2" />
             <input type="hidden" name="first_name" value="{{ data.first_name }}">

@@ -12,17 +12,37 @@
                 <div class="blogimage" style="background-image: url('{{ post.big_image.url }}')"></div>
             {% endif %}
             <h1 class="color-accent">{{ post.name }}</h1>
-            <h2 style="padding-bottom:0.5em">{{ post.description }}</h2>
+            {% if post.description %}<h2 style="padding-bottom:0.5em">{{ post.description }}</h2>{% endif %}
             <div class="post-content">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
         </section>
 
-        <div class="center-font">
+        <div class="center-font pad-top">
             <a class="button half-button{% if not state.blog_previous %} disabled{% endif %}"{% if state.blog_previous %} href="/blog/{{ state.blog_previous }}"{% endif %}>Previous</a>
             <a class="button half-button{% if not state.blog_next %} disabled{% endif %}"{% if state.blog_next %} href="/blog/{{ state.blog_next }}"{% endif %}>Next</a>
         </div>
 
+        {% if not state.banned and not preview and allow_commenting %}
+            <section class="pad-top amethyst-accent">
+                <h3 class="left-font">Leave a comment</h3>
+                <form name="comment_form" method="post" action="?#top-comment" class="comment block">
+                    {% csrf_token %}
+                    <textarea name="comment" placeholder="Type a comment..." value=""></textarea>
+                    <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
+                </form>
+
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                        <li class="color-accent">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+            </section>
+        {% endif %}
+
         {% if most_popular %}
-            <section class="comment-section">
+            <section class="comment-section pad-top">
                 <h3 class="left-font">Most popular comments</h3>
                 <div id="most-popular-list" class="comment-list">
                     {% for msg in most_popular %}
@@ -59,30 +79,9 @@
             </section>
         {% endif %}
 
-        {% if not state.banned and not preview and allow_commenting %}
-            <section class="pad-bottom pad-top amethyst-accent">
-                <h3 class="left-font">Leave a comment</h3>
-                <form name="comment_form" method="post" action="?#top-comment" class="comment">
-                    {% csrf_token %}
-                    <textarea name="comment" placeholder="Type a comment..." value=""></textarea>
-                    <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
-                </form>
-
-                {% if messages %}
-                    <ul class="messages">
-                        {% for message in messages %}
-                        <li class="color-accent">{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-
-            </section>
-        {% else %}
-            <h3 class="left-font" >Comments</h3>
-        {% endif %}
-
         {% if state.post_page_max > 0 %}
-            <section id="top-comment" class="comment-list amethyst-accent">
+            <section id="top-comment" class="comment-list amethyst-accent pad-top">
+                <h3 class="left-font" >Comments</h3>
                 {% for comment in post_comments %}
                     {% if comment.moderated %}
                             <div id="comment-{{ comment.id }}" class="item-large">
@@ -114,7 +113,7 @@
                             </div>
                     {% endif %}
                 {% endfor %}
-                <form name="more_comments" method="post" action="?">
+                <form name="more_comments" method="post" action="?" class="block">
                     {% csrf_token %}
                     <div class="item">
                         <span>{{ request.session.state.post_page }} of {{ request.session.state.post_page_max }}</span>

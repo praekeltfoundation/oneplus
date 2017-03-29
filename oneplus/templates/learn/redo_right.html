@@ -83,8 +83,8 @@
         {% endif %}
 
         {% if most_popular %}
-            <section class="comment-section">
-                <h3 class="left-font">Most popular</h3>
+            <section class="comment-section pad-top">
+                <h3 class="left-font">Most popular comments</h3>
                 <div class="comment-list">
                     {% for msg in most_popular %}
                         <div class="item-large">
@@ -133,12 +133,11 @@
                     </ul>
                 {% endif %}
             </div>
-        {% else %}
-            <h3 class="left-font" >Comments</h3>
         {% endif %}
 
         {% if request.session.state.discussion_page_max > 0 or preview%}
-            <article class="comment-list">
+            <article class="comment-list pad-top">
+                <h3 class="left-font" >Comments</h3>
                 {% for msg in comment_messages %}
                     {% if msg.moderated %}
                         <div class="item-large">
@@ -179,7 +178,7 @@
                                 </div>
 
                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                                    <form name="comment_form" method="post" id="active-comment" action="?" class="comment">{% csrf_token %}
+                                    <form name="comment_form" method="post" id="active-comment" action="?" class="comment block">{% csrf_token %}
                                         <input type="text" name="reply" value="" />
                                         <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>

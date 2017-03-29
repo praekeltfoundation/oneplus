@@ -6,7 +6,7 @@
 
     <article class="content pale-teal-accent">
         <h1 class="color-accent">Log in</h1>
-        <form method="POST">
+        <form method="POST" class="block">
             {% csrf_token %}
             {% if username_error %}<div class="red-front">{{ username_error }}</div>{% endif %}
                 {% for field in form %}

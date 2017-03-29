@@ -31,7 +31,7 @@
                 {{ question.question_content | format_content }}
             </section>
             <hr class="hr-accent" />
-            <form action="{% if preview %}/preview/{{ question.id }}{% else %}next{% endif %}" method="post" style="padding:0;margin:0">{% csrf_token %}
+            <form action="{% if preview %}/preview/{{ question.id }}{% else %}next{% endif %}" method="post" class="block" style="padding:0;margin:0">{% csrf_token %}
                 <section class="bottom-novert">
                     {% for opt in question.testingquestionoption_set.all %}
                         <label class="label-question" for="answer_{{ opt.id }}">
@@ -80,7 +80,7 @@
                         </div>
                         <p class="">{{ msg.content }}</p>
                         {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+                            <form name="comment_form" method="post" action="?" class="comment block">{% csrf_token %}
                                 <input type="text" name="reply" value="" />
                                 <button type="submit" name="reply_button" class="button background-color-accent color-accent" value="{{ msg.id }}">Reply</button>
                             </form>

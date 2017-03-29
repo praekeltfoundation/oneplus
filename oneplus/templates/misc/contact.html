@@ -25,7 +25,7 @@
                 <br/>
                 </div>
             {% endif %}
-            <form name="contact_form" method="post" action="?" class="comment">{% csrf_token %}
+            <form name="contact_form" method="post" action="?" class="comment block">{% csrf_token %}
                 <label labelfor="contact">Mobile number</label>
                 <input type="text" name="contact" placeholder="e.g. 073 276 1234" value="{{ state.contact }}"><br>
                 <textarea type="text" name="comment" placeholder="Type a message…" value="" ></textarea><br><br/>

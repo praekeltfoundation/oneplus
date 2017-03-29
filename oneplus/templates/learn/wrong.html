@@ -112,7 +112,7 @@
         {% if not state.banned and not preview%}
             <div class="padded">
                 <h3 class="left-font">Discuss the challenge</h3>
-                <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+                <form name="comment_form" method="post" action="?" class="comment block">{% csrf_token %}
                     <input type="text" name="comment" value="" />
                     <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
                 </form>
@@ -167,7 +167,7 @@
                                 </div>
 
                                {% ifequal state.discussion_response_id|add:"0" msg.id|add:"0" %}
-                                    <form name="comment_form" method="post" id="active-comment" action="?" class="comment">{% csrf_token %}
+                                    <form name="comment_form" method="post" id="active-comment" action="?" class="comment block">{% csrf_token %}
                                         <input type="text" name="reply" value="" />
                                         <button type="submit" name="reply_button" class="link color-accent stack-horz" value="{{ msg.id }}">Reply</button>
                                     </form>
