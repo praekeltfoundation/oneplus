@@ -16,7 +16,7 @@
             <hgroup class="amethyst-accent">
                 <h1 class="color-accent">Hello, {{ user.name }}.{{ answered }}</h1>
                 <h2>
-                    {% if learner.sumit_level == 1 and sumit_answered_today == 0 and correct_answers == 0 %} Ready for SUMit week?
+                    {% if learner.sumit_level == 1 and sumit_answered_week == 0 and correct_answers == 0 %} Ready for SUMit week?
                     {% elif sumit_correct_answers == 0 %} Finished for today
                     {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} It's day {{ sumit_day }} of SUMit week
                     {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} It's the end of SUMit
@@ -25,55 +25,54 @@
             </hgroup>
 
             <article class="card center-font amethyst-accent border-color-accent">
-                <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
+                <section class="top">
+                    <div><span class="text badge-award"><img class="badge-img" src="{{ sumit.url }}"></span></div>
 
-                <h3>
-                    {% if learner.sumit_level == 1 and sumit_answered_today == 0 %} Step 1, start from Basecamp
-                    {% elif sumit_answered_today == 3 %} You're at {{ sumit.level }}
-                    {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} You're at {{ sumit.level }}
-                    {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You almost made it
-                    {% endif %}
-                </h3>
+                    <h3>
+                        {% if learner.sumit_level == 1 and sumit_answered_week == 0 %} Step 1, start from Basecamp
+                        {% elif sumit_answered_today == 3 %} You're at {{ sumit.level }}
+                        {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} You're at {{ sumit.level }}
+                        {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You almost made it
+                        {% endif %}
+                    </h3>
 
-                <p>
-                    {% if learner.sumit_level == 1 and sumit_answered_today == 0 %} You'll have to answer 3 questions correctly in a row to progress to {{ sumit_next_level }}
-                    {% elif sumit_answered_today == 3  %} You're at {{ sumit.level }} Tomorrow we go to {{ sumit_next_level }} It's simple - 3 questions, 3 answers. That's it.
-                    {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} Next up {{ sumit_next_level }}. Answer the next 3 questions correctly and we'll get you there. Ready?
-                    {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You'll have another chance to SUMit next time. <br> Well done for this week.
-                    {% endif %}
-                </p>
+                    <p>
+                        {% if learner.sumit_level == 1 and sumit_answered_week == 0 %} You'll have to answer 3 questions correctly in a row to progress to {{ sumit_next_level }}
+                        {% elif sumit_answered_today == 3  %} You're at {{ sumit.level }} Tomorrow we go to {{ sumit_next_level }} It's simple - 3 questions, 3 answers. That's it.
+                        {% elif sumit_day_flag == False  and learner.sumit_level >= 1 %} Next up {{ sumit_next_level }}. Answer the next 3 questions correctly and we'll get you there. Ready?
+                        {% elif sumit.level == 'Sumit' and learner.sumit_level == 4 %} You'll have another chance to SUMit next time. <br> Well done for this week.
+                        {% endif %}
+                    </p>
+                </section>
 
                 {% if learner.sumit_level > 1 %}
                     <hr class="hr-accent" />
+                    <section class="bottom">
+                        <h3>Tasks completed</h3>
+                        <h3>
+                            {% if learner.sumit_level == 2 %}
+                                <p><b>1. Basecamp:<br> </b>3/3 questions answered correctly</p>
+                            {% elif learner.sumit_level == 3 %}
+                                <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                                <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                            {% elif learner.sumit_level == 4 %}
+                                <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                                <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                                <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
+                            {% elif learner.sumit_level == 5 %}
+                                <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
+                                <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
+                                <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
+                                <p><b>4. Peak: </b>3/3 questions answered correctly</p>
+                                {% if sumit_correct_answers == 15 and learner.sumit_level == 5 %}
+                                    <p><b>5. Sumit: </b>3/3 questions answered correctly</p>
+                                {% endif %}
+                            {% endif %}
+                        </h3>
+                    </section>
                 {% endif %}
 
-                <h3>
-                    {% if learner.sumit_level > 1 %} Tasks completed:<br><br>
-                        {% if level == 2 %}
-                            <p><b>1. Basecamp:<br> </b>3/3 questions answered correctly</p>
-                        {% elif level == 3 %}
-                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
-                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
-                        {% elif level == 4 %}
-                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
-                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
-                            <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
-                        {% elif level == 5 %}
-                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
-                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
-                            <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
-                            <p><b>4. Peak: </b>3/3 questions answered correctly</p>
-                        {% elif sumit_correct_answers == 0 and level == 5 %}
-                            <p><b>1. Basecamp: </b>3/3 questions answered correctly</p>
-                            <p><b>2. Foothills: </b>3/3 questions answered correctly</p>
-                            <p><b>3. Cliffs: </b>3/3 questions answered correctly</p>
-                            <p><b>4. Peak: </b>3/3 questions answered correctly</p>
-                            <p><b>5. Sumit: </b>3/3 questions answered correctly</p>
-                        {% endif %}
-                    {% endif %}
-                </h3>
-
-                {% if sumit_day_flag == False or learner.sumit_level == 0 or sumit_correct_answers != 0 %}
+                {% if learner.sumit_level == 0 or sumit_answered_week < sumit_questions_available %}
                     <hr class="hr-accent" />
 
                     <section class="bottom-novert center-font">
@@ -86,23 +85,23 @@
                 <h1 class="color-accent">Hello, {{ user.name }}.</h1>
                 <h2>Great to see you again.</h2>
             </hgroup>
-        {% endif %}
 
-        {# Normal challenge #}
-        {% if state.home_tasks_today < state.home_required_tasks %}
-            {% if not state.questions_complete %}
-                <article class="card pale-teal-accent border-color-accent">
-                    <section class="top">
-                        <div class="img-container">
-                            <img class="limit-size" src="/media/img/dashboard/test_yourself.png" width="100%" height="auto"/>
-                        </div>
-                        <h3 class="card-top-phrase">Ready for today's challenge?</h3>
-                    </section>
-                    <hr class="hr-accent" />
-                    <section class="bottom-novert center-font">
-                        <a href="next" class="link undecorated icon-right inline">Take today's challenge</a>
-                    </section>
-                </article>
+            {# Normal challenge #}
+            {% if state.home_tasks_today < state.home_required_tasks %}
+                {% if not state.questions_complete %}
+                    <article class="card pale-teal-accent border-color-accent">
+                        <section class="top">
+                            <div class="img-container">
+                                <img class="limit-size" src="/media/img/dashboard/test_yourself.png" width="100%" height="auto"/>
+                            </div>
+                            <h3 class="card-top-phrase">Ready for today's challenge?</h3>
+                        </section>
+                        <hr class="hr-accent" />
+                        <section class="bottom-novert center-font">
+                            <a href="next" class="link undecorated icon-right inline">Take today's challenge</a>
+                        </section>
+                    </article>
+                {% endif %}
             {% endif %}
         {% endif %}
 

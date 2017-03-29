@@ -265,7 +265,7 @@ def home(request, state, user, participant):
             update_metric("running.active.participants48", 1, "SUM")
 
         if(active_sumit):
-            sumit_answered_today = learnerstate.get_num_questions_answered_today()
+            sumit_answered_week = learnerstate.get_questions_answered_week()
 
             try:
                 sumit_next_level = SUMitLevel.objects.get(order=learnerstate.sumit_level + 1).name
@@ -282,30 +282,15 @@ def home(request, state, user, participant):
                 sumit_day_flag = False
             else:
                 sumit_day_flag = True
-
-            temp_sumit_correct_answers = sumit_correct_answers % 3
-
-            if temp_sumit_correct_answers == 0:
-                sumit_correct_answers = 0
-            else:
-                sumit_correct_answers /= 3
-
-                if sumit_correct_answers > 0 or sumit_correct_answers < 0:
-                    temp_sumit_correct_answers = 1
-                elif sumit_correct_answers > 1 or sumit_correct_answers < 1:
-                    temp_sumit_correct_answers = 2
-                elif sumit_correct_answers > 2 or sumit_correct_answers < 2:
-                    temp_sumit_correct_answers = 3
-                elif sumit_correct_answers > 3 or sumit_correct_answers < 3:
-                    temp_sumit_correct_answers = 4
-                elif sumit_correct_answers > 4 or sumit_correct_answers < 4:
-                    temp_sumit_correct_answers = 5
         else:
+            sumit_answered_week = None
             sumit_day_flag = None
             sumit_answered_today = None
             sumit_next_level = None
-            temp_sumit_correct_answers = None
+            sumit_correct_answers = None
             sumit_day = None
+
+        sumit_questions_available = learnerstate.get_questions_available_count()
 
         return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
@@ -320,9 +305,10 @@ def home(request, state, user, participant):
                                                    "state": state,
                                                    "learner": learnerstate,
                                                    "sumit_day_flag": sumit_day_flag,
-                                                   "sumit_answered_today": sumit_answered_today,
+                                                   "sumit_answered_week": sumit_answered_week,
+                                                   "sumit_questions_available": sumit_questions_available,
                                                    "sumit_next_level": sumit_next_level,
-                                                   "sumit_correct_answers": temp_sumit_correct_answers,
+                                                   "sumit_correct_answers": sumit_correct_answers,
                                                    "sumit_day": sumit_day,
                                                    "sumit": sumit,
                                                    "feedback_string": feedback_string,
@@ -1182,7 +1168,7 @@ def sumit(request, state, user, participant):
                 "user": user,
                 "question": _question,
                 "sumit": sumit,
-                "count": _learnerstate.get_num_questions_answered_today() + 1,
+                "count": _learnerstate.get_questions_answered_week() + 1,
                 "total_questions": _learnerstate.get_questions_available_count
             }
         )
