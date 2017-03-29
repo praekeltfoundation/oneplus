@@ -678,6 +678,9 @@ td.num, th.num {
   height: 0;
   width: 100%; }
 
+.menu-text {
+  padding-left: 1em; }
+
 .main-menu a {
   font-family: "Asap", sans-serif;
   font-size: 150%;
