@@ -158,8 +158,13 @@ hgroup {
   }
 }
 
-form > label {
+form > label, form .fieldWrapper label {
   margin: 0.5em 0;
+}
+
+.form-hint-link {
+  line-height: 1.17;
+  padding-top: 0.5em;
 }
 
 label > input, label > select, label > textarea {
@@ -170,12 +175,21 @@ select {
   -webkit-appearance: menulist;
 }
 
-form, form label, input[type=text], input[type=password], select, textarea {
+form label, input[type=text], input[type=password], select, textarea {
   color: $black;
   display: block;
   font-size: 16px;
   font-family: $font-family-secondary;
   width: 100%;
+  @include background-transparent;
+  @include border-box;
+}
+
+form {
+  color: $black;
+  display: inline-block;
+  font-size: 16px;
+  font-family: $font-family-secondary;
   @include background-transparent;
   @include border-box;
 }
@@ -190,8 +204,9 @@ input[type=text], input[type=password], select, textarea {
   padding: 10px;
 
   &:disabled {
-    border: solid $border-width-standard $superlightgrey;
-    color: $superlightgrey;
+    border: solid $border-width-standard #b8b8b8;
+    -webkit-text-fill-color: #b8b8b8;
+    color: #b8b8b8;
   }
 }
 

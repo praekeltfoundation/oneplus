@@ -402,8 +402,12 @@ hgroup {
   /* make text start to the right of the image */
   vertical-align: middle; }
 
-form > label {
+form > label, form .fieldWrapper label {
   margin: 0.5em 0; }
+
+.form-hint-link {
+  line-height: 1.17;
+  padding-top: 0.5em; }
 
 label > input, label > select, label > textarea {
   margin: 0.25em 0; }
@@ -411,12 +415,25 @@ label > input, label > select, label > textarea {
 select {
   -webkit-appearance: menulist; }
 
-form, form label, input[type=text], input[type=password], select, textarea {
+form label, input[type=text], input[type=password], select, textarea {
   color: #000000;
   display: block;
   font-size: 16px;
   font-family: "Lato", sans-serif;
   width: 100%;
+  background-color: #ffffff;
+  background-color: transparent;
+  -ms-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box; }
+
+form {
+  color: #000000;
+  display: inline-block;
+  font-size: 16px;
+  font-family: "Lato", sans-serif;
   background-color: #ffffff;
   background-color: transparent;
   -ms-box-sizing: border-box;
@@ -433,8 +450,9 @@ input[type=text], input[type=password], select, textarea {
   border-radius: 8px;
   padding: 10px; }
   input[type=text]:disabled, input[type=password]:disabled, select:disabled, textarea:disabled {
-    border: solid 2px #d5d5d5;
-    color: #d5d5d5; }
+    border: solid 2px #b8b8b8;
+    -webkit-text-fill-color: #b8b8b8;
+    color: #b8b8b8; }
 
 form.no-pad {
   margin: 0;
