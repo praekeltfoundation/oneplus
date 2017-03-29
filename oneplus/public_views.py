@@ -2,7 +2,7 @@ from __future__ import division
 import logging
 
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from auth.models import Learner
 from core.models import Participant, ParticipantBadgeTemplateRel
 from gamification.models import GamificationBadgeTemplate
@@ -24,6 +24,9 @@ def get_learner_label(learner):
 
 @oneplus_check_user
 def badges(request, state, user):
+    if not settings.SOCIAL_MEDIA_ACTIVE:
+        return redirect('arrive')
+
     def get():
         badge_id = request.GET.get('b', None)
         participant_id = request.GET.get('p', None)
@@ -77,6 +80,9 @@ def badges(request, state, user):
 
 @oneplus_check_user
 def level(request, state, user):
+    if not settings.SOCIAL_MEDIA_ACTIVE:
+        return redirect('arrive')
+
     def get():
         participant_id = request.GET.get('p', None)
 
@@ -122,6 +128,9 @@ def level(request, state, user):
 
 @oneplus_check_user
 def leaderboard(request, state, user, board_type=''):
+    if not settings.SOCIAL_MEDIA_ACTIVE:
+        return redirect('arrive')
+
     def get():
         participant_id = request.GET.get('p', None)
         max_uncollapsed = 3

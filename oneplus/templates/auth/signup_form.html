@@ -34,7 +34,7 @@
                 <input type="text" name="cellphone" id="id_cellphone" placeholder="e.g. 072 439 1733" value="{{ data.cellphone }}" >
                 {% if errors.cellphone_error %}
                     {% if errors.cellphone_error == "registered" %}
-                        <span class="red-front">This number has already been registered. Sign in <a href="/login" class="blue-front bold-font">here</a></span>
+                        <span class="red-front">This number has already been registered. Log in <a href="/login" class="blue-front bold-font">here</a></span>
                     {% else %}
                         <span class="red-front">{{ errors.cellphone_error }}</span>
                     {% endif %}
@@ -50,6 +50,9 @@
 
 			<input type="submit" value="Next" class="button border-color-accent color-accent" />
         </form>
+        <div class="spaced-links">
+            <a href="{% url 'auth.login' %}" class="inline-link center-font">Already registered? Log in.</a>
+        </div>
     </article>
 
 {% endblock %}

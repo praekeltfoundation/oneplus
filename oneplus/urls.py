@@ -58,6 +58,7 @@ urlpatterns = [
     url(r"^next$", oneplus.learn_views.nextchallenge, name="learn.next"),
     url(r"^right$", oneplus.learn_views.right, name="learn.right"),
     url(r"^wrong$", oneplus.learn_views.wrong, name="learn.wrong"),
+    url(r"^golden_egg_splash", oneplus.learn_views.golden_egg_splash, name="learn.golden_egg_splash"),
     url(r"^event$", oneplus.learn_views.event, name="learn.event"),
     url(r"^event_right$", oneplus.learn_views.event_right, name="learn.event_right"),
     url(r"^event_wrong$", oneplus.learn_views.event_wrong, name="learn.event_wrong"),
@@ -144,10 +145,10 @@ urlpatterns = [
     url(r'^djga/', include('google_analytics.urls')),
 
     # Public
-    # url(r"^public/", include(public_patterns, namespace="public")),
+    url(r"^public/", include(public_patterns, namespace="public")),
 
     # Sharing
-    # url(r"^share/", include(sharing_patterns, namespace="share")),
+    url(r"^share/", include(sharing_patterns, namespace="share")),
 
     # Dashboard
     url(r'^dashboard_data$', oneplus.misc_views.dashboard_data, name="dash.data"),

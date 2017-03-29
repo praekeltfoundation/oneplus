@@ -61,3 +61,8 @@ h3 {
   text-align: center;
   color: #0c0d0c;
 }
+
+a, button, div, input, label, p, td {
+  font-family: $font-family-secondary;
+  letter-spacing: -0.3px;
+}

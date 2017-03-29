@@ -1,11 +1,8 @@
-from django.contrib import admin
-from django.conf import settings
-from content.admin import TestingQuestionAdmin, TestingQuestion
 from auth.admin import LearnerResource, LearnerAdmin
 from auth.models import Learner
 from oneplus.utils import update_metric
 from import_export import fields
-from django.db.models import Q, Count
+from django.db.models import Q
 from organisation.models import School
 from django.contrib.admin.sites import AdminSite
 from .filters import *
@@ -18,6 +15,18 @@ class OnePlusLearnerResource(LearnerResource):
     class_name = fields.Field(column_name=u'class')
     completed_questions = fields.Field(column_name=u'completed_questions')
     percentage_correct = fields.Field(column_name=u'percentage_correct')
+
+    def dehydrate_completed_questions(self, learner):
+        if hasattr(learner, 'total'):
+            return learner.total
+        else:
+            return super(LearnerResource, self).dehydrate_completed_questions(learner)
+
+    def dehydrate_percentage_correct(self, learner):
+        if hasattr(learner, 'perc'):
+            return learner.perc
+        else:
+            return super(LearnerResource, self).dehydrate_percentage_correct(learner)
 
     def import_obj(self, obj, data, dry_run):
         school, created = School.objects.get_or_create(name=data[u'school'])

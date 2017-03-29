@@ -16,32 +16,39 @@
             <div class="post-content">{% autoescape off %}{{ post.content }}{% endautoescape %}</div>
         </section>
 
+        <div class="center-font">
+            <a class="button half-button{% if not state.blog_previous %} disabled{% endif %}"{% if state.blog_previous %} href="/blog/{{ state.blog_previous }}"{% endif %}>Previous</a>
+            <a class="button half-button{% if not state.blog_next %} disabled{% endif %}"{% if state.blog_next %} href="/blog/{{ state.blog_next }}"{% endif %}>Next</a>
+        </div>
+
         {% if most_popular %}
             <section class="comment-section">
-                <h3 class="left-font">Most popular</h3>
-                <div class="comment-list">
+                <h3 class="left-font">Most popular comments</h3>
+                <div id="most-popular-list" class="comment-list">
                     {% for msg in most_popular %}
                         <div class="item-large">
                             <div>
                                 <span class="comment-author">{{ msg.author.first_name }}</span>
                             </div>
                             {% if  msg.unmoderated_date == None %}
-                                <p>{{ msg.content }}</p>
-                                <form class="pull-up inline" name="report_comment" method="post" action="?">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="like" value="{{ msg.id }}" />
-                                    {% if msg.has_liked %}
-                                        <input type="hidden" name="has_liked" value="true" />
-                                    {% endif %}
-                                    <button type="submit" name="like_button" class="link stack-horz vert-align">
-                                        <div class="small-icon{% if msg.has_liked  %} like-full{% else %} like-empty{% endif %} vert-align"></div>&nbsp;{{ msg.like_count }}
-                                    </button>
-                                </form>
-                                <form class="pull-up inline" name="report_comment" method="post" action="?">
-                                    {% csrf_token %}
-                                    <button class="link stack-horz" type="submit" name="report_button" value="">Report</button>
-                                    <input type="hidden" name="report" value="{{ msg.id }}" />
-                                </form>
+                                <p id="comment-{{ msg.id }}">{{ msg.content }}</p>
+                                <div class="pull-up">
+                                    <form class="inline" name="report_comment" method="post" action="#most-popular-list">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="like" value="{{ msg.id }}" />
+                                        {% if msg.has_liked %}
+                                            <input type="hidden" name="has_liked" value="true" />
+                                        {% endif %}
+                                        <button type="submit" name="like_button" class="link stack-horz vert-align">
+                                            <div class="small-icon{% if msg.has_liked  %} like-full{% else %} like-empty{% endif %} vert-align"></div>&nbsp;{{ msg.like_count }}
+                                        </button>
+                                    </form>
+                                    <form class="inline pull-right" name="report_comment" method="post" action="#most-popular-list">
+                                        {% csrf_token %}
+                                        <button class="link stack-horz" type="submit" name="report_button" value="">Report</button>
+                                        <input type="hidden" name="report" value="{{ msg.id }}" />
+                                    </form>
+                                </div>
                             {% else %}
                                 <p class="red-front">{{ msg.content }}</p>
                             {% endif %}
@@ -57,7 +64,7 @@
                 <h3 class="left-font">Leave a comment</h3>
                 <form name="comment_form" method="post" action="?#top-comment" class="comment">
                     {% csrf_token %}
-                    <input type="text" name="comment" value="">
+                    <textarea name="comment" placeholder="Type a comment..." value=""></textarea>
                     <button type="submit" name="comment_button" class="button border-color-accent color-accent">Comment</button>
                 </form>
 
@@ -78,28 +85,30 @@
             <section id="top-comment" class="comment-list amethyst-accent">
                 {% for comment in post_comments %}
                     {% if comment.moderated %}
-                            <div class="item-large">
+                            <div id="comment-{{ comment.id }}" class="item-large">
                                 {% if  comment.unmoderated_date == None %}
                                     <div>
                                         <span class="comment-author">{{ comment.author.first_name }}</span>
                                     </div>
 
                                     <p>{{ comment.content }}</p>
-                                    <form class="pull-up inline" name="report_comment" method="post" action="?">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="like" value="{{ comment.id }}" />
-                                        {% if comment.has_liked %}
-                                            <input type="hidden" name="has_liked" value="true" />
-                                        {% endif %}
-                                        <button type="submit" name="like_button" class="link stack-horz vert-align">
-                                            <div class="small-icon{% if comment.has_liked  %} like-full{% else %} like-empty{% endif %} vert-align"></div>&nbsp;{{ comment.like_count }}
-                                        </button>
-                                    </form>
-                                    <form class="pull-up inline" name="report_comment" method="post" action="?">
-                                        {% csrf_token %}
-                                        <button type="submit" name="report_button" class="link stack-horz" value="">Report</button>
-                                        <input type="hidden" name="report" value="{{ comment.id }}" />
-                                    </form>
+                                    <div class="pull-up">
+                                        <form class="inline" name="report_comment" method="post" action="#comment-{{ comment.id }}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="like" value="{{ comment.id }}" />
+                                            {% if comment.has_liked %}
+                                                <input type="hidden" name="has_liked" value="true" />
+                                            {% endif %}
+                                            <button type="submit" name="like_button" class="link stack-horz vert-align">
+                                                <div class="small-icon{% if comment.has_liked  %} like-full{% else %} like-empty{% endif %} vert-align"></div>&nbsp;{{ comment.like_count }}
+                                            </button>
+                                        </form>
+                                        <form class="inline pull-right" name="report_comment" method="post" action="#comment-{{ msg.id }}">
+                                            {% csrf_token %}
+                                            <button type="submit" name="report_button" class="link stack-horz" value="">Report</button>
+                                            <input type="hidden" name="report" value="{{ comment.id }}" />
+                                        </form>
+                                    </div>
                                     <hr />
                                 {% endif %}
                             </div>
@@ -119,13 +128,6 @@
         {% endif %}
 
         <section class="padded amethyst-accent">
-            {% if state.blog_previous %}
-                <a class="color-accent pull-left" href="/blog/{{ state.blog_previous }}">&lt; Previous</a>
-            {% endif %}
-
-            {% if state.blog_next %}
-                <a class="color-accent pull-right" href="/blog/{{ state.blog_next }}">Next &gt;</a>
-            {% endif %}
             <div>&nbsp;</div>
         </section>
     </article>

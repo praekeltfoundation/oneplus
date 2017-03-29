@@ -88,7 +88,7 @@
             </hgroup>
         {% endif %}
 
-        {% comment %}Normal challenge{% endcomment %}
+        {# Normal challenge #}
         {% if state.home_tasks_today < state.home_required_tasks %}
             {% if not state.questions_complete %}
                 <article class="card pale-teal-accent border-color-accent">
@@ -106,7 +106,7 @@
             {% endif %}
         {% endif %}
 
-        {% comment %}Current challenge stats{% endcomment %}
+        {# Current challenge stats #}
         <article class="card sunflower-yellow-accent border-color-accent">
             <section class="top">
                 <div class="img-container">
@@ -135,17 +135,15 @@
             {% endif %}
         </article>
 
-        {% comment %}Overall stats{% endcomment %}
+        {# Overall stats #}
         <article class="card squash-accent border-color-accent">
             <section class="top">
                 <div class="img-container">
                     <img class="limit-size" src="/media/img/splash/splash_level_{{ level }}.png" width="100%" height="auto"/>
                 </div>
-            {% comment %}
-                {% if public_sharing %}
+                {% if public_sharing and SOCIAL_MEDIA_ACTIVE %}
                     <a class="button border-color-accent color-accent" href="{% url 'share:level' %}">Share level and badge</a>
                 {% endif %}
-               {% endcomment %}
                 <h1 class="center-font color-accent">Level</h1>
                 <div class="level-pip-container">
                     {% for i in levels %}
@@ -179,7 +177,7 @@
             </section>
         </article>
 
-        {% comment %}Latest story{% endcomment %}
+        {# Latest story #}
         {% if post %}
             <article class="card amethyst-accent border-color-accent">
                 <section class="top">

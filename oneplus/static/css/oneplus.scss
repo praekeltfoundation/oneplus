@@ -1,6 +1,7 @@
 @import 'reset';
 @import 'borders';
 @import 'colours';
+@import 'dims';
 @import 'fonts';
 
 /*MAIN*/
@@ -44,15 +45,21 @@ div {
 }
 
 header {
-  height: 36pt;
+  height: $header-height;
+  margin-bottom: -$header-height;
+  text-align: justify;
+}
+
+footer {
+  height: $footer-height;
+  margin-top: -$footer-height;
   text-align: justify;
 }
 
 header, footer {
   display: block;
   max-width: 960px;
-  min-height: 2em;
-  padding: 0.5em 1.5em;
+  padding: 0 1.5em;
 }
 
 p {
@@ -76,6 +83,10 @@ hgroup {
   margin-bottom: 1em;
 }
 
+.page-margin-top {
+  margin-top: 1.5em;
+}
+
 .vert-placeholder {
   display: inline-block;
   height: 100%;
@@ -96,7 +107,7 @@ hgroup {
 }
 
 .page-descriptor {
-  color: #888888;
+  color: $black;
   font-family: $font-family-secondary;
   font-size: 12px;
   font-stretch: normal;
@@ -126,6 +137,11 @@ hgroup {
     padding-left: 1em;
     padding-right: 1em;
   }
+
+  &.disabled {
+    border-color: $superlightgrey;
+    color: $superlightgrey;
+  }
 }
 
 .button, .link {
@@ -136,36 +152,67 @@ hgroup {
     background-repeat: no-repeat;  /* make the background image appear only once */
     border: none;           /* assuming we don't want any borders */
     cursor: pointer;        /* make the cursor like hovering over an <a> element */
-    font-size: 16pt;
-    line-height: 1.5em;
+    font-weight: bold !important;
+    font-size: 16px;
+    letter-spacing: -0.1px;
+    line-height: 1.17;
     margin: 0.5em;
-    min-height: 32px;           /* make this the size of your image */
+    padding: 8px;
     padding-right: (32px + 16px);     /* make text start to the right of the image */
     vertical-align: middle;
   }
 }
 
-form > label {
+form > label, form .fieldWrapper label {
   margin: 0.5em 0;
+}
+
+.form-hint-link {
+  line-height: 1.17;
+  padding-top: 0.5em;
 }
 
 label > input, label > select, label > textarea {
   margin: 0.25em 0;
 }
 
+select {
+  -webkit-appearance: menulist;
+}
+
 form label, input[type=text], input[type=password], select, textarea {
   color: $black;
   display: block;
+  font-size: 16px;
   font-family: $font-family-secondary;
   width: 100%;
   @include background-transparent;
   @include border-box;
 }
 
+form {
+  color: $black;
+  display: inline-block;
+  font-size: 16px;
+  font-family: $font-family-secondary;
+  @include background-transparent;
+  @include border-box;
+}
+
+input::placeholder {
+  color: $superlightgrey;
+}
+
 input[type=text], input[type=password], select, textarea {
   border: solid $border-width-standard $black;
   border-radius: $border-radius-standard;
   padding: 10px;
+
+  &:disabled {
+    border: solid $border-width-standard #b8b8b8;
+    -webkit-text-fill-color: #b8b8b8;
+    color: #b8b8b8;
+  }
 }
 
 form.no-pad {
@@ -209,7 +256,7 @@ form.no-pad {
   font-size: 125%;
   height: 2em;
   line-height: 2em;
-  margin: 0.1em 0.25em;
+  margin: 0.1em -4px;
   text-align: center;
   vertical-align: middle;
   width: 2em;
@@ -221,9 +268,11 @@ form.no-pad {
 }
 
 .analytics-plug {
+  filter: alpha(opacity=1); /* msie */
   height: 1px;
+  left: 0;
+  opacity: 0.01;
   position: absolute;
-  right: 0;
   top: 0;
   width: 1px;
 }
@@ -274,7 +323,7 @@ form.no-pad {
 
 .link-bar {
   list-style-type: none;
-  margin: 0.5em 0;
+  margin: 0;
   padding: 0;
   overflow: hidden;
 
@@ -300,6 +349,27 @@ form.no-pad {
     padding: 1em 0;
 }
 
+.radio-vert {
+  label {
+    margin: 0.5em 0.5em 0 0;
+    text-align: center;
+  }
+
+  input {
+    height: 32px;
+    width: 32px;
+  }
+}
+
+.radio-horz {
+  vertical-align: middle;
+
+  input {
+    height: 32px;
+    width: 32px;
+  }
+}
+
 .radiogroup {
   label {
     display: inline-block;
@@ -314,7 +384,9 @@ form.no-pad {
 
 .subtle-info {
   color: $lightgrey;
-  font-size: 66%;
+  font-size: 12px;
+  line-height: 1.17;
+  padding-top: 0.25em;
 }
 
 .card {
@@ -431,6 +503,10 @@ td.num, th.num {
   width: 100%;
 }
 
+.menu-text {
+  padding-left: 1em;
+}
+
 .main-menu {
   a {
     font-family: $font-family-primary;
@@ -487,7 +563,7 @@ ul.unnumbered {
 
 img.limit-size {
   position: relative;
-  max-width: 256px;
+  max-width: 150px;
   width: 100%;
 }
 
@@ -525,6 +601,10 @@ img.limit-size {
 .descriptor, .descriptor > a {
     font-size: 12pt;
     line-height: 1.5em;
+}
+
+.no-top-padding {
+  padding-top: 0 !important;
 }
 
 p a {
@@ -748,20 +828,17 @@ a.descriptor {
 }
 
 .container {
-    width: 100%;
-    text-align: left;
     box-sizing: border-box;
+    min-height: 100%;
+    padding-bottom: $footer-height + 2*$ms-base;
+    padding-top: $header-height + $ms-base;
+    text-align: left;
+    width: 100%;
 }
 
 .content {
   max-width: 960px;
   padding: 0 1.5em;
-}
-
-@media (min-width: 30em) {
-    .content {
-        padding: 0 3em
-    }
 }
 
 .content.narrow {

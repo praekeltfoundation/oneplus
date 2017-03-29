@@ -162,7 +162,7 @@ def get_timeframe_range(value):
     if value == "1":
         # last week
         start = today - timedelta(days=dw, weeks=1)
-        end = start + timedelta(6 - dw)
+        end = start + timedelta(weeks=1, days=-1)
     elif value == "2":
         # this month
         start = today.replace(day=1)
@@ -196,7 +196,7 @@ def get_timeframe_range(value):
     else:
         # this week
         start = today - timedelta(days=dw)
-        end = start + timedelta(6 - dw)
+        end = start + timedelta(weeks=1, days=-1)
 
     start = start.replace(hour=0, minute=0, second=0, microsecond=0)
     end = end.replace(hour=23, minute=59, second=59, microsecond=999999)

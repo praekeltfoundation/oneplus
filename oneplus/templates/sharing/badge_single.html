@@ -38,7 +38,7 @@
                             </a>
                         </li>
                         <li class="js-required should-block" style="display:none">
-                            <a class="vert-center" href="https://twitter.com/intent/tweet?text={{ "I earned a badge on Dig-it!"|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" src="">
+                            <a class="vert-center" href="https://twitter.com/intent/tweet?text={{ 'I earned a badge on Dig-it!'|urlencode:'' }}&url={{ FB_REDIRECT|urlencode:'' }}{{ share_url|urlencode:'' }}" src="">
                                 <span class="icon tw-logo vert-center" style="margin:-6px"></span>Share on Twitter
                             </a>
                         </li>
@@ -71,7 +71,7 @@
                     <ul>
                         <li>
                             <p>You will not be able to share your level until you give us
-                                <a href="{% url "auth.profile" %}" >permission to share your achievements</a>.
+                                <a href="{% url 'auth.profile' %}" >permission to share your achievements</a>.
                             </p>
                         </li>
                     </ul>

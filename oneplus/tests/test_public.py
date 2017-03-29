@@ -59,7 +59,8 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-class TestPublicBadge(): #TestCase):
+@override_settings(SOCIAL_MEDIA_ACTIVE=True)
+class TestPublicBadge(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -93,6 +94,13 @@ class TestPublicBadge(): #TestCase):
                                                    scenario=self.scenario)
 
         self.badge_await = create_badgetemplate(name='Awaiting Badge #1')
+
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_no_sm_badges(self):
+        resp = self.client.get(
+            '{0:s}?p={1:d}&b={2:d}'.format(reverse('public:badges'), 1, 1),
+            follow=True)
+        self.assertRedirects(resp, reverse('misc.onboarding'))
 
     def test_no_perm(self):
         self.learner.public_share = False
@@ -158,7 +166,8 @@ class TestPublicBadge(): #TestCase):
         self.assertContains(resp, "No one's home")
 
 
-class TestPublicLevel(): #TestCase):
+@override_settings(SOCIAL_MEDIA_ACTIVE=True)
+class TestPublicLevel(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -177,6 +186,13 @@ class TestPublicLevel(): #TestCase):
             is_staff=True)
         self.participant = create_participant(self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
+
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_no_sm_level(self):
+        resp = self.client.get(
+            '{0:s}?p={1:d}'.format(reverse('public:level'), 1),
+            follow=True)
+        self.assertRedirects(resp, reverse('misc.onboarding'))
 
     def test_no_perm(self):
         self.learner.public_share = False
@@ -250,7 +266,8 @@ class TestPublicLevel(): #TestCase):
         self.assertContains(resp, '{0:s} {1:s} is awesome'.format(self.learner.first_name, self.learner.last_name))
 
 
-class TestPublicLeaderboardSharing(): #TestCase):
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
+class TestPublicLeaderboardSharing(TestCase):
     def setUp(self):
         self.course = create_course()
         self.classs = create_class('class name', self.course)
@@ -272,7 +289,14 @@ class TestPublicLeaderboardSharing(): #TestCase):
             self.learner, self.classs, datejoined=datetime(2014, 7, 18, 1, 1))
         self.module = create_module('module name', self.course)
 
-    @override_settings(VUMI_GO_FAKE=True)
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False)
+    def test_no_sm_leader(self):
+        resp = self.client.get("{0:s}?p={1:d}".format(reverse('public:leaderboard',
+                                                              kwargs={"board_type": 'class'}),
+                                                      1),
+                               follow=True)
+        self.assertRedirects(resp, reverse('misc.onboarding'))
+
     def test_leaderboard_class(self):
         #login learner
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
