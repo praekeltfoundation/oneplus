@@ -13,9 +13,9 @@
                     {% if post.big_image and forloop.counter == 1 %}
                         <div class="blogimage" style="background-image: url('{{ post.big_image.url }}')"></div>
                     {% endif %}
-                    <a href="/blog/{{ post.id }}"><h3 class="card-top-phrase">{{ post.name }}</h3></a>
+                    <a href="/blog/{{ post.id }}" class="link undecorated"><h3 class="card-top-phrase">{{ post.name }}</h3></a>
                     {% if post.description %}
-                        <div class="card-description">{{ post.description|truncatechars:50 }}</div>
+                        <div class="center-font">{{ post.description|truncatechars:50 }}</div>
                     {% endif %}
                 </section>
                 <hr class="hr-accent" />
