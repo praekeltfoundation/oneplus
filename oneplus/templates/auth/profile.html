@@ -7,7 +7,7 @@
 {% block content %}
     <article class="content pale-teal-accent">
         <h1>Want to edit your profile?</h1>
-        <form action="edit_profile" method="post" class="">
+        <form action="edit_profile" method="post" class="block">
             {% csrf_token %}
 
             {% if editing %}

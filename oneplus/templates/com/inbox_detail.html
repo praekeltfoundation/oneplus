@@ -6,16 +6,18 @@
     <article class="content iris-accent">
         <hgroup>
             <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
-            <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
+            <h2>Something to say?</h2>
         </hgroup>
+
+        <a href="{% url 'com.inbox_send' %}" class="button border-color-accent color-accent">Send us a message</a>
 
         <div class="padded">
             {% autoescape off %}
                 <div class="item-large">
                     <div class="bold-font">{{ message.name }}</div>
                     <p>{{ message.content }}</p>
-                    <form name="DOTHEMENU" method="post" action="?" class="">{% csrf_token %}
-                        <button type="submit" name="hide" value="{{ message.id }}" class="button">Delete</button>
+                    <form name="DOTHEMENU" method="post" action="?" class="block">{% csrf_token %}
+                        <button type="submit" name="hide" value="{{ message.id }}" class="button block">Delete</button>
                     </form>
                 </div>
             {% endautoescape %}

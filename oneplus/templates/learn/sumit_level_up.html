@@ -2,17 +2,25 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}LEVEL UP{% endblock %}
+{% block page_descriptor_text %}Level Up{% endblock %}
 
 {% block content %}
     {% load humanize %}
+    <div class="sumit_content amethyst-accent" style="padding-top: 0px;">
+        <div class="background-color-accent pad-top padding-bottom">
+            <h1 class="center-font white-front">SUMit</h1>
 
-    <div class="text heading darkgrey-front center-font no-padding {{ previous_level.back_colour }}"><p>SUMit!</p></div>
-
-    {% autoescape off %}
-        <div class="content white-front grey-back">
-            <p class="xlarge-font center-font">Congratulations!</p>
-            <p class="large-font center-font">You have conquered the <span class="large-font highlight {{ previous_level.front_colour }}">{{ previous_level.name }}</span> and moved up a level to the <span class="large-font highlight {{ next_level.colour }}">{{ next_level.name }}</span>.</p>
-            <a class="button green-back grey-front" href="sumit">Continue</a>
+            <h3 class="center-font white-front">Congratulations</h3>
         </div>
-    {% endautoescape %}
+
+        {% autoescape off %}
+            <div class="content pad-top">
+                <p class="large-font center-font">You have conquered the <span class="large-font highlight amethyst-accent color-accent">{{ previous_level.name }}</span> and moved up a level to the <span class="large-font highlight amethyst-accent color-accent">{{ next_level.name }}</span>.</p>
+
+                <section class="bottom-novert center-font">
+                    <a class="button amethyst-accent border-color-accent color-accent" href="sumit_end_page">Finish</a>
+                </section>
+            </div>
+        {% endautoescape %}
+    </div>
 {% endblock %}

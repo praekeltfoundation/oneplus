@@ -2,46 +2,60 @@
 {% load bleach_tags %}
 {% load oneplus_extras %}
 {% block title %}SUMit!{% endblock %}
+{% block page_descriptor_text %}SUMit{% endblock %}
 
 {% block content %}
     {% load humanize %}
     {% if state.report_sent %}
-        <div class="content padded darkgrey-back pad-top">
+        <div class="content padded pad-top">
             <p class="green-front">Thank you for your Report. A teacher will review the question.</p>
         </div>
     {% endif %}
+    <div class="sumit_content" style="padding-top: 0px;">
+        <div class="amethyst-accent background-color-accent pad-top padding-bottom">
+            <h1 class="center-font white-front">SUMit</h1>
 
-    <div class="text heading darkgrey-front center-font no-padding {% if sumit.name == 'Basecamp' or sumit.name == 'Summit' %} green-back {% elif sumit.name == 'Foothills' %} yellow-back {% elif sumit.name == 'Cliffs' %} purple-back {% else %} cyan-back {% endif %}"><p>SUMit!</p></div>
-
-    <div class="sumit_content darkgrey-back">
-    <div class="center-font">
-        <span class="large-font center-font">{{ sumit.name }}</span>
-    </div>
-        <div class="sumit_line"></div>
-        <div class="sumit">
-            <img class="sumit-img" src="{{ sumit.url1 }}">
-            <img class="sumit-img" src="{{ sumit.url2 }}">
-            <img class="sumit-img" src="{{ sumit.url3 }}">
+            <h3 class="center-font white-front">You're at {{ sumit.name }}</h3>
         </div>
 
         {% autoescape off %}
-            <div class="content padded white-back darkgrey-front">
-                <form action="sumit" method="post" class="pad-bottom">{% csrf_token %}
-                    <p>{{ question.question_content | format_content }}</p>
-                    {% for opt in question.testingquestionoption_set.all %}
-                        <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
-                        <label class="label-question" for="answer_{{ opt.id }}">
-                        {% if opt.content %}
-                            <div class="align-option"> {{ opt.content | format_option  }}</div> </label><br/><br/>
-                        {% else %}
-                            {{ opt.name }} </label><br/><br/>
-                        {% endif %}
-                    {% endfor %}
-                    <br/>
-                    <div>
-                        <input type="submit" class="link icon-right" value="Submit answer"/>
-                    </div>
-                </form>
+            <div class="content amethyst-accent pad-top">
+                <h1 class="color-accent">Question {{ count }}/{{ total_questions }}</h1>
+
+                <h2>{{ question.points }} Points</h2>
+
+                <div class="text heading"><span class="body-copy padding-top">Module: Algebra</span></div>
+
+                <article class="card amethyst-accent border-color-accent">
+                    <section class="top no-padding">
+                        <form action="sumit" method="post" class="block">{% csrf_token %}
+                        <div class="padding">
+                            <p>{{ question.question_content | format_content }}</p>
+                        </div>
+                        <hr class="hr-accent" />
+                        <div class="padding">
+                            {% for opt in question.testingquestionoption_set.all %}
+                                <label class="label-question" for="answer_{{ opt.id }}">
+                                    <input type="radio" name="answer" id="answer_{{ opt.id }}" value="{{ opt.id }}" style="vertical-align: middle">
+                                {% if opt.content %}
+                                    <div class="align-option"> {{ opt.content | format_option  }}</div>
+                                </label>
+                                {% else %}
+                                    {{ opt.name }} </label>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                            <hr class="hr-accent" />
+                            <section class="bottom-novert center-font">
+                            <div>
+                                <input type="submit" class="link icon-right" value="Submit answer"/>
+                            </div>
+                            </section>
+                        </form>
+                    </section>
+                </article>
+
+                <p>Found a mistake? <a href="">Report it here.</a></p>
             </div>
         {% endautoescape %}
     </div>

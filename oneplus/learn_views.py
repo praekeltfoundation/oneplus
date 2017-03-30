@@ -75,6 +75,7 @@ def home(request, state, user, participant):
     event_name = None
     first_sitting = True
     sumit = None
+
     if _event:
         allowed, _event_participant_rel = _participant.can_take_event(_event)
         if _event.type != 0:
@@ -95,6 +96,9 @@ def home(request, state, user, participant):
             _sumit_level = SUMitLevel.objects.filter(order=learnerstate.sumit_level).first()
             sumit["url"] = _sumit_level.image.url
             sumit["level"] = _sumit_level.name
+
+            #next level of current level
+            sumit["next_level"] = SUMitLevel.objects.filter(order=learnerstate.sumit_level)
 
     answered = ParticipantQuestionAnswer.objects.filter(
         participant=learnerstate.participant
@@ -217,6 +221,10 @@ def home(request, state, user, participant):
         _post = None
 
     def get():
+        active_sumit = SUMit.objects.filter(course=participant.classs.course,
+                                            activation_date__lte=datetime.now(),
+                                            deactivation_date__gt=datetime.now()).first()
+
         _learner = Learner.objects.get(id=user['id'])
         if _learner.last_active_date is None:
             _learner.last_active_date = datetime.now() - timedelta(days=33)
@@ -256,6 +264,34 @@ def home(request, state, user, participant):
         if days_ago >= timedelta(days=2):
             update_metric("running.active.participants48", 1, "SUM")
 
+        if(active_sumit):
+            sumit_answered_week = learnerstate.get_questions_answered_week()
+
+            try:
+                sumit_next_level = SUMitLevel.objects.get(order=learnerstate.sumit_level + 1).name
+            except:
+                sumit_next_level = None
+
+            sumit_day = learnerstate.get_day_of_sumit()
+            sumit_correct_answers, temp = learnerstate.get_correct_of_available()
+            sumit_day_flag = False
+
+            temp = 3*sumit_day
+
+            if temp != sumit_correct_answers:
+                sumit_day_flag = False
+            else:
+                sumit_day_flag = True
+        else:
+            sumit_answered_week = None
+            sumit_day_flag = None
+            sumit_answered_today = None
+            sumit_next_level = None
+            sumit_correct_answers = None
+            sumit_day = None
+
+        sumit_questions_available = learnerstate.get_questions_available_count()
+
         return render(request, "learn/home.html", {"event_name": event_name,
                                                    "first_sitting": first_sitting,
                                                    "level": level,
@@ -267,6 +303,13 @@ def home(request, state, user, participant):
                                                    "public_sharing": _learner.public_share,
                                                    "redo": redo,
                                                    "state": state,
+                                                   "learner": learnerstate,
+                                                   "sumit_day_flag": sumit_day_flag,
+                                                   "sumit_answered_week": sumit_answered_week,
+                                                   "sumit_questions_available": sumit_questions_available,
+                                                   "sumit_next_level": sumit_next_level,
+                                                   "sumit_correct_answers": sumit_correct_answers,
+                                                   "sumit_day": sumit_day,
                                                    "sumit": sumit,
                                                    "feedback_string": feedback_string,
                                                    "user": user})
@@ -1124,7 +1167,9 @@ def sumit(request, state, user, participant):
                 "state": state,
                 "user": user,
                 "question": _question,
-                "sumit": sumit
+                "sumit": sumit,
+                "count": _learnerstate.get_questions_answered_week() + 1,
+                "total_questions": _learnerstate.get_questions_available_count
             }
         )
 
@@ -2020,7 +2065,8 @@ def event_start_page(request, state, user, participant):
             {
                 "state": state,
                 "user": user,
-                "page": page
+                "page": page,
+                "event": _event
             }
         )
 
@@ -2169,7 +2215,6 @@ def sumit_end_page(request, state, user, participant):
     num_sumit_questions_answered = EventQuestionAnswer.objects.filter(event=_sumit, participant=_participant).count()
 
     if num_sumit_questions == num_sumit_questions_answered:
-
         if _learnerstate.sumit_level in range(1, 5):
             winner = False
         elif _learnerstate.sumit_level == 5:

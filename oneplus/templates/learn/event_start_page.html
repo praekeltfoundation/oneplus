@@ -6,14 +6,32 @@
 {% block content %}
 {% load humanize %}
 
-    <div class="content padded darkgrey-back white-front">
-        <div class="pad-bottom">
+    <div class="content padded">
+        <p class="pad-bottom">
 
-            <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
-            <div class="large-font center-font">{{ page.message }}</div>
+            <h1 class="amethyst-accent color-accent">{{ page.header }}</h1>
+            <h4 class="large-font-normal pad-bottom">{{ page.message }}</h4>
 
-            <form action="#" method="post" class="pad-bottom">{% csrf_token %}
-                <input type="submit" name="event_start_button" class="button green-back grey-front" value="Start"/>
+            {# Add conditional checks that include airtime/points allocation #}
+            <p class="descriptor">
+                You will receive your usual 3 questions a day and all points earned still count
+                towards the leaderboard.
+                {% if event.airtime or event.event_points %}
+                    If you manage to SUMit the mountain, you can win
+                    {% if event.airtime and event.event_points %}
+                        your share of additional R{{ event.airtime }} airtime and {{ event.event_points }} Points!
+                    {% elif event.airtime %}
+                         your share of additional R{{ event.airtime }} airtime!
+                    {% elif event.event_points %}
+                        {{ event.event_points }} Points!
+                    {% endif %}
+                {% endif %}
+                Good Luck!
+            </p>
+
+            <form action="#" method="post" class="block pad-bottom padding-top">
+                {% csrf_token %}
+                <input type="submit" name="event_start_button" class="button" value="Get Started"/>
             </form>
         </div>
     </div>

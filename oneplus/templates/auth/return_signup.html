@@ -8,7 +8,7 @@
     <article class="content pale-teal-accent">
         <h1 class="color-accent">Hello, {% if data.first_name %}{{ data.first_name }}{% else %}learner{% endif %}.</h1>
         <h2>We need a bit more info.</h2>
-		<form action="return_signup" method="post" class="signup">
+		<form action="return_signup" method="post" class="signup block">
 			{% csrf_token %}
             <input type="hidden" name="page_num" id="id_page_num" value="1" />
 

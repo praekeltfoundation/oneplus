@@ -711,7 +711,7 @@ a.descriptor {
     position: relative;
     text-align: center;
     width: 100%;
-    margin-bottom: -18px;
+    margin-bottom: 15px;
  }
 
 .sumit-img:nth-child(2) {
@@ -719,7 +719,7 @@ a.descriptor {
 }
 
 .sumit_line {
-    border-top: 5px solid rgb(0, 0, 0);
+    border-top: 5px solid rgb(255, 255, 255);
     display: block;
     height: 1px;
     content: " ";
@@ -738,7 +738,7 @@ a.descriptor {
     }
 
     .sumit_line {
-        border-top: 5px solid rgb(0, 0, 0);
+        border-top: 5px solid rgb(255, 255, 255);
         display: block;
         height: 1px;
         content: " ";
@@ -752,7 +752,7 @@ a.descriptor {
         position: relative;
         text-align: center;
         width: 100%;
-        margin-bottom: -35px;
+        margin-bottom: 15px;
      }
 }
 
@@ -962,6 +962,7 @@ p a { display: inline;}
 }
 
 .sumit_content {
+    max-width: 1008px;
     padding: 10px 0px 0px;
 }
 
@@ -1440,8 +1441,8 @@ label.label-question {
 .label-question input[type=radio] {
     float: left;
     margin: 0;
-    height: 10pt;
-    width: 10pt;
+    height: 13pt;
+    width: 30pt;
 }
 
 .align-option{
@@ -1463,9 +1464,21 @@ ul.bullets{
 }
 
 .padding-bottom {
-     padding-bottom: 5px;
+     padding-bottom: 10px;
  }
+
+.padding-top {
+  padding-top: 20px;
+}
 
 .no-padding {
     padding: 0px !important;
+}
+
+.no-margin {
+  margin: 0px !important;
+}
+
+.padding {
+  padding: 20px;
 }

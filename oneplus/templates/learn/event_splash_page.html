@@ -6,16 +6,20 @@
 {% block content %}
 {% load humanize %}
 
-<div class="content center-font narrow darkgrey-front {% if page.event_type == 0 %} green-back {% elif page.event_type == 1 %} yellow-back {% else %} cyan-back {% endif %} white-back ">
+<div class="content center-font narrow">
     <div class="pad-bottom">
+        <h1 class="center-font pad-bottom amethyst-accent color-accent">{{ page.header }}</h1>
 
-        {% if page.badge_filename %}<div><img src="{{ page.badge_filename }}"></div>{% endif %}
-        <div class="xlarge-font center-font pad-bottom">{{ page.header }}</div>
-        <div><p class="large-font center-font">{{ page.message }}</p></div>
+        <div class="img-container">
+            <img class="limit-size" src="/media/img/sumit/splash_sumit_generic.png" width="100%" height="auto"/>
+        </div>
+        <br>
+        <br>
+        <div><p class="large-font-normal center-font">{{ page.message }}</p></div>
 
-        <a class="button white-back grey-front drop-relative" href="event_start_page">Take It!</a>
+        <a class="button" href="event_start_page">Start</a>
         {%  if page.event_type != 0 %}
-            <a href="home"><div class="center-font darkgrey-front">Skip this</div></a>
+            <a href="home"><div class="center-font">Skip this</div></a>
         {% endif %}
     </div>
 </div>

@@ -6,13 +6,13 @@
     <article class="content iris-accent">
         <hgroup>
             <h1 class="color-accent">Inbox ({{ state.inbox_unread }})</h1>
-            <h2>Something to say? <a href="/inbox_send" class="color-accent link undecorated wraps">Send us a message</a></h2>
+            <h2>Something to say?</h2>
         </hgroup>
 
         {% if not state.inbox_sent %}
-            <form name="comment_form" method="post" action="?" class="comment">{% csrf_token %}
+            <form name="comment_form" method="post" action="?" class="comment block">{% csrf_token %}
                 <textarea type="text" name="comment" placeholder="Enter message here..."></textarea>
-                <button type="submit" name="comment_button" class="button border-color-accent color-accent" value="Submit">Submit</button>
+                <button type="submit" name="comment_button" class="button border-color-accent color-accent" value="Submit">Send</button>
             </form>
         {% else %}
             <div class="item-large">

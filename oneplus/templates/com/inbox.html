@@ -5,7 +5,7 @@
 {% block content %}
     <article class="content iris-accent">
         <hgroup>
-            <h1 class="color-accent">{% ifequal state.inbox_unread '0' %}No messages available.{% else %}Inbox ({{ state.inbox_unread }}){% endifequal %}</h1>
+            <h1 class="color-accent">{% ifequal state.inbox_unread 0 %}No unread messages.{% else %}Inbox ({{ state.inbox_unread }}){% endifequal %}</h1>
             <h2>Something to say?</h2>
         </hgroup>
 
@@ -19,8 +19,8 @@
                         <section class="top">
                             <div class="{% if not msg.viewed %}color-accent {% endif %}bold-font">{{ msg.name }}</div>
                             <div>{{ msg.content|striptags|truncatechars:50 }}</div>
-                            <form name="DOTHEMENU" method="post" action="?" class="no-pad">{% csrf_token %}
-                                <button type="submit" name="hide" value="{{ msg.id }}" class="button">Delete</button>
+                            <form name="DOTHEMENU" method="post" action="?" class="block">{% csrf_token %}
+                                <button type="submit" name="hide" value="{{ msg.id }}" class="link undecorated">Delete</button>
                             </form>
                         </section>
                         <hr class="hr-accent" />
