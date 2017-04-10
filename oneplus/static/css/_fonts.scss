@@ -18,8 +18,11 @@ $font-family-secondary: $font-family-lato;
 
 $standard-font-family: "Arial", sans-serif;
 
-h1 {
+h1, h2, h3, h4, h5, h6 {
   font-family: $font-family-primary;
+}
+
+h1 {
   font-size: 48px;
   font-weight: 500;
   font-style: normal;
@@ -29,7 +32,6 @@ h1 {
 }
 
 h2 {
-  font-family: $font-family-primary;
   font-size: 42px;
   font-weight: normal;
   font-style: normal;
@@ -39,7 +41,6 @@ h2 {
 }
 
 .h1_superscript {
-  font-family: $font-family-primary;
   font-size: 42px;
   font-weight: normal;
   font-style: normal;
@@ -51,7 +52,6 @@ h2 {
 }
 
 h3 {
-  font-family: $font-family-primary;
   font-size: 24px;
   font-weight: normal;
   font-style: normal;

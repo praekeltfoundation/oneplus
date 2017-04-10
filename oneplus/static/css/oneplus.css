@@ -173,8 +173,10 @@ sub {
 /* modular scale */
 /* font family declarations */
 /* font family selections */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Asap", sans-serif; }
+
 h1 {
-  font-family: "Asap", sans-serif;
   font-size: 48px;
   font-weight: 500;
   font-style: normal;
@@ -183,7 +185,6 @@ h1 {
   letter-spacing: -2px; }
 
 h2 {
-  font-family: "Asap", sans-serif;
   font-size: 42px;
   font-weight: normal;
   font-style: normal;
@@ -192,7 +193,6 @@ h2 {
   letter-spacing: -1.7px; }
 
 .h1_superscript {
-  font-family: "Asap", sans-serif;
   font-size: 42px;
   font-weight: normal;
   font-style: normal;
@@ -203,7 +203,6 @@ h2 {
   color: #eca11a; }
 
 h3 {
-  font-family: "Asap", sans-serif;
   font-size: 24px;
   font-weight: normal;
   font-style: normal;
