@@ -59,7 +59,7 @@ def get_school_leaderboard(_participant, max_uncollapsed):
     position = schools.filter(points__gt=my_school['points']).count() + 1
 
     scores = schools.filter(points__gt=0)\
-        .values_list('points', flat=True)
+        .values_list('points', flat=True)[:10]
 
     leaderboard = []
     for score in scores:
