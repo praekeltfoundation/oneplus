@@ -33,8 +33,8 @@ def get_class_leaderboard(_participant, max_uncollapsed):
                 .values('id', 'learner__first_name', 'learner__last_name')[:max_uncollapsed]
 
         members = [{'me': (a['id'] == participant.id),
-                    'name': "{0:s} {1:s}".format(a['learner__first_name'],
-                                                 a['learner__last_name'])} for a in p_list]
+                    'name': u"{0:s} {1:s}".format(a['learner__first_name'],
+                                                  a['learner__last_name'])} for a in p_list]
 
         if len(members) > 0:
             members[0]['position'] = eligible_participants.filter(points__gt=score['points']).count() + 1
@@ -136,8 +136,8 @@ def get_national_leaderboard(_participant, max_uncollapsed):
                         'learner__school__name')[:max_uncollapsed]
 
         members = [{'me': (a['id'] == participant.id),
-                    'name': "{0:s} {1:s}".format(a['learner__first_name'],
-                                                 a['learner__last_name']),
+                    'name': u"{0:s} {1:s}".format(a['learner__first_name'],
+                                                  a['learner__last_name']),
                     'school': a['learner__school__name']} for a in p_list]
 
         if len(members) > 0:
