@@ -965,6 +965,7 @@ def edit_profile(request, state, user):
                 learner.mobile = validated_data['mobile']
                 learner.public_share = validated_data['public_share']
                 learner.save()
+                request.session["user"]["name"] = learner.first_name
 
             data = {
                 'first_name': request.POST.get('first_name', learner.first_name),
