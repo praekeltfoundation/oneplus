@@ -41,3 +41,15 @@ class TestSchoolIndex(TestCase):
         self.school_index.update_index()
         sleep(1)
         self.assertEqual(self.school_index.count(), School.objects.count())
+
+    def test_rebuild(self):
+        num_schools = 10
+        for i in xrange(num_schools):
+            create_school('School %i' % (i,), self.organisation, province='Gauteng')
+
+        self.school_index.rebuild_index()
+        sleep(1)
+        self.assertEqual(self.school_index.count(), School.objects.count())
+        self.school_index.rebuild_index()
+        sleep(1)
+        self.assertEqual(self.school_index.count(), School.objects.count())
