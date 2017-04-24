@@ -35,7 +35,8 @@ class ElasticSearchIndex:
             self.es.indices.delete(self.index_name)
 
     def all(self):
-        results = self.es.search(self.index_name, body={'query': {'match_all': {}}})
+        results = self.es.search(self.index_name,
+                                 body={'query': {'match_all': {}}})
         while type(results) == dict and results.get('hits', None):
             results = results.pop('hits', None)
         return results
@@ -73,6 +74,7 @@ class SchoolIndex(ElasticSearchIndex):
             pass
 
         if delete_stale:
-            self.es.delete_by_query(self.index_name, {'query': {'range': {'date_updated': {'lt': update_time}}}})
+            self.es.delete_by_query(self.index_name,
+                                    {'query': {'range': {'date_updated': {'lt': update_time}}}})
 
         return num_successful, errors
