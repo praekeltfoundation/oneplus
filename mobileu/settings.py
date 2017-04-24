@@ -113,6 +113,7 @@ SUMMERNOTE_CONFIG = {
 }
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/')
+ELASTICSEARCH_INDEX_PREFIX = 'oneplus_'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
