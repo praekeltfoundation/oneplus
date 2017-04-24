@@ -44,6 +44,14 @@ class ElasticSearchIndex:
         count = self.es.count(index=self.index_name)
         return count['count']
 
+    def update_index(self, update_time=None, delete_stale=False):
+        raise NotImplementedError('update_index must be implemented.')
+
+    def rebuild_index(self):
+        self.delete_index()
+        self.ensure_index()
+        self.update_index()
+
 
 class SchoolIndex(ElasticSearchIndex):
     base_index_name = 'school'
