@@ -31,7 +31,7 @@ class ElasticSearchIndex:
         if not self.index_name:
             raise AssertionError('Index name not set.')
 
-        if not self.es.indices.exists(self.index_name):
+        if self.es.indices.exists(self.index_name):
             self.es.indices.delete(self.index_name)
 
     def all(self):
