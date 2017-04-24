@@ -78,3 +78,35 @@ class SchoolIndex(ElasticSearchIndex):
                                     {'query': {'range': {'date_updated': {'lt': update_time}}}})
 
         return num_successful, errors
+
+    def search_name(self, search=None, province=None, limit=10):
+        results = None
+
+        if search and province:
+            results = self.es.search(index=self.index_name,
+                                     body={'query': {'bool': {'must': {'match': {'name': {'query': search,
+                                                                                          'boost': 1.0,
+                                                                                          'fuzziness': 'AUTO'}}},
+                                                              'filter': {'match': {'province': province}}}}})
+        elif search:
+            results = self.es.search(index=self.index_name,
+                                     body={'query': {'match': {'name': {'query': search,
+                                                                        'boost': 1.0,
+                                                                        'fuzziness': 'AUTO'}}}})
+        elif province:
+            results = self.es.search(index=self.index_name,
+                                     body={'query': {'match': {'province': province}}})
+        else:
+            results = self.es.search(index=self.index_name,
+                                     body={'query': {'match_all': {}}})
+
+        if limit:
+            results['from'] = 0
+            results['size'] = limit
+
+        results['sort'] = '_score'
+
+        while type(results) == dict and results.get('hits', None) is not None:
+            results = results.pop('hits', None)
+
+        return results
