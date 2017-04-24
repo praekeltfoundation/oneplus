@@ -112,13 +112,7 @@ SUMMERNOTE_CONFIG = {
     ],
 }
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
-        'INDEX_NAME': 'haystack',
-    },
-}
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
