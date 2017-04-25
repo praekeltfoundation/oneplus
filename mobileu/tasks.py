@@ -16,6 +16,8 @@ from djcelery import celery
 
 from teacher_report import send_teacher_reports_body
 
+from mobileu_elasticsearch import SchoolIndex
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,21 +60,13 @@ def send_sumit_counts_body():
 
 
 @celery.task
-def run_haystack_update():
-    run_haystack_update_body()
-
-
-def run_haystack_update_body():
-    call_command('update_index')
+def run_elasticsearch_update(delete_stale=False):
+    SchoolIndex().update_index(delete_stale=delete_stale)
 
 
 @celery.task
-def run_haystack_rebuild():
-    run_haystack_update_body()
-
-
-def run_haystack_rebuild_body():
-    call_command('rebuild_index', '--noinput')
+def run_elasticsearch_rebuild():
+    SchoolIndex().rebuild_index()
 
 
 @celery.task
