@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     "organisation",
     "core",
     "django_summernote",
+    "mobileu",
     "south",
     "requests",
     "koremutake",
