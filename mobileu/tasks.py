@@ -61,11 +61,13 @@ def send_sumit_counts_body():
 
 @celery.task
 def run_elasticsearch_update(delete_stale=False):
+    SchoolIndex().ensure_index()
     SchoolIndex().update_index(delete_stale=delete_stale)
 
 
 @celery.task
 def run_elasticsearch_rebuild():
+    SchoolIndex().ensure_index()
     SchoolIndex().rebuild_index()
 
 
