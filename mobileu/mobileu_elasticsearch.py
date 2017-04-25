@@ -45,6 +45,9 @@ class ElasticSearchIndex:
         count = self.es.count(index=self.index_name)
         return count['count']
 
+    def exists(self):
+        return self.es.exists(index=self.index_name)
+
     def update_index(self, update_time=None, delete_stale=False):
         raise NotImplementedError('update_index must be implemented.')
 
