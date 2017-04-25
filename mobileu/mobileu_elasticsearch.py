@@ -78,7 +78,7 @@ class SchoolIndex(ElasticSearchIndex):
 
         if delete_stale:
             self.es.delete_by_query(self.index_name,
-                                    {'query': {'range': {'date_updated': {'lt': update_time}}}})
+                                    {'query': {'range': {'date_updated': {'lt': update_time.isoformat()}}}})
 
         return num_successful, errors
 
