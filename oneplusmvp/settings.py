@@ -66,12 +66,10 @@ INSTALLED_APPS = (
     "djcelery",
     "organisation",
     "django_summernote",
-    "haystack",
     "south",
     "django_bleach",
     "bs4",
     "google_analytics",
-    "haystack",
     "pwa",
     "raven.contrib.django.raven_compat",
     "django.contrib.contenttypes",
@@ -123,14 +121,8 @@ DATABASES = {
     }
 }
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'mobileu.haystack_custom.FuzzyEngine',
-        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
-        'INDEX_NAME': 'haystack',
-        'SILENTLY_FAIL': False,
-    },
-}
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/')
+ELASTICSEARCH_INDEX_PREFIX = os.environ.get('ELASTICSEARCH_INDEX_PREFIX', 'oneplus_')
 
 GOOGLE_ANALYTICS = {
     'google_analytics_id': 'UA-52417331-1',
