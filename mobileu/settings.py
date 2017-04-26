@@ -48,7 +48,6 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.humanize",
-    "haystack",
     "gamification",
     "communication",
     "content",
@@ -56,6 +55,7 @@ INSTALLED_APPS = (
     "organisation",
     "core",
     "django_summernote",
+    "mobileu",
     "south",
     "requests",
     "koremutake",
@@ -112,13 +112,8 @@ SUMMERNOTE_CONFIG = {
     ],
 }
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
-        'INDEX_NAME': 'haystack',
-    },
-}
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/')
+ELASTICSEARCH_INDEX_PREFIX = os.environ.get('ELASTICSEARCH_INDEX_PREFIX', 'oneplus_')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
