@@ -1,7 +1,6 @@
 from __future__ import division
 import re
 from functools import wraps
-from haystack.query import SearchQuerySet
 from django.shortcuts import render
 from django.contrib.auth import authenticate, logout
 from django.shortcuts import HttpResponse, redirect, render
@@ -16,7 +15,6 @@ from core.models import Learner, ParticipantQuestionAnswer, Setting
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from django.db.models import Q
-from haystack.exceptions import SearchBackendError
 from django.core.urlresolvers import reverse
 from datetime import datetime
 from lockout import LockedOut
@@ -28,6 +26,7 @@ from core.models import Class, Participant
 from content.models import Event
 from core.common import PROVINCES
 from communication.utils import VumiSmsApi
+from mobileu.mobileu_elasticsearch import SchoolIndex
 
 __author__ = 'herman'
 
@@ -273,11 +272,14 @@ def signup_form_normal(request):
             if "school_dirty" in data:
                 school_list = None
                 try:
-                    school_list = SearchQuerySet()\
-                        .filter(province=data['province'], name__fuzzy=data['school_dirty'])\
-                        .values('pk', 'name')[:10]
+                    school_index = SchoolIndex()
+                    school_list = school_index.search_name(search=data['school_dirty'],
+                                                           province=data['province'],
+                                                           limit=10)
                     for entry in school_list:
-                        entry['id'] = entry.pop('pk')
+                        entry['id'] = entry.pop('_id')
+                        if '_source' in entry:
+                            entry['name'] = entry['_source'].get('name', None)
                 except:
                     pass
                 finally:
@@ -404,11 +406,14 @@ def return_signup(request, state):
             if "school_dirty" in data:
                 school_list = None
                 try:
-                    school_list = SearchQuerySet()\
-                        .filter(province=data['province'], name__fuzzy=data['school_dirty'])\
-                        .values('pk', 'name')[:10]
+                    school_index = SchoolIndex()
+                    school_list = school_index.search_name(search=data['school_dirty'],
+                                                           province=data['province'],
+                                                           limit=10)
                     for entry in school_list:
-                        entry['id'] = entry.pop('pk')
+                        entry['id'] = entry.pop('_id')
+                        if '_source' in entry:
+                            entry['name'] = entry['_source'].get('name', None)
                 except:
                     pass
                 finally:

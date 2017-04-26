@@ -178,18 +178,18 @@ class TestSignUp(TestCase):
             self.assertContains(resp, self.school.name)
 
             # test ElasticSearch succeeds
-            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
+            with patch("oneplus.auth_views.SchoolIndex") as MockSchoolIndex:
                 # non-empty search result
-                MockSearchSet().filter().values.return_value = [{'pk': 1, 'name': 'Blargity School'}]
+                MockSchoolIndex().search_name.return_value = [{'_id': 1, '_source': {'name': 'Blargity School'}}]
                 resp = self.client.post(reverse('auth.return_signup'),
                                         data={
                                             'province': 'Gauteng',
                                             'grade': 'Grade 11',
                                             'school_dirty': 'blarg'},
                                         follow=True)
-                MockSearchSet.assert_called()
+                MockSchoolIndex.assert_called()
                 self.assertContains(resp, 'Blargity School')
-                MockSearchSet.clear()
+                MockSchoolIndex.clear()
 
             # get redirect (p2)
             resp = self.client.get(reverse('auth.return_signup_school_confirm'), follow=True)
@@ -315,9 +315,9 @@ class TestSignUp(TestCase):
             resp = self.client.post(reverse('auth.signup_form_normal'), follow=True)
             self.assertContains(resp, "Register")
 
-            with patch("oneplus.auth_views.SearchQuerySet") as MockSearchSet:
+            with patch("oneplus.auth_views.SchoolIndex") as MockSchoolIndex:
                 # non-empty search result
-                MockSearchSet().filter().values.return_value = [{'pk': 1, 'name': 'Blargity School'}]
+                MockSchoolIndex().search_name.return_value = [{'_id': 1, '_source': {'name': 'Blargity School'}}]
                 resp = self.client.post(reverse('auth.signup_form_normal'),
                                         data={
                                             'first_name': "Bob",
@@ -329,12 +329,12 @@ class TestSignUp(TestCase):
                                             'school_dirty': 'blarg',
                                             'terms': True},
                                         follow=True)
-                MockSearchSet.assert_called()
+                MockSchoolIndex.assert_called()
                 self.assertContains(resp, 'Blargity School')
-                MockSearchSet.clear()
+                MockSchoolIndex.clear()
 
                 # No search results
-                MockSearchSet().filter().values.return_value = []
+                MockSchoolIndex().search_name.return_value = []
                 resp = self.client.post(reverse('auth.signup_form_normal'),
                                         data={
                                             'first_name': "Bob",
@@ -346,12 +346,12 @@ class TestSignUp(TestCase):
                                             'school_dirty': 'blarg',
                                             'terms': True},
                                         follow=True)
-                MockSearchSet.assert_called()
+                MockSchoolIndex.assert_called()
                 self.assertContains(resp, 'No schools were a close enough match')
-                MockSearchSet.clear()
+                MockSchoolIndex.clear()
 
                 # Failed ElasticSearch
-                MockSearchSet().filter().values.side_effect = Exception('LOL! ERROR.')
+                MockSchoolIndex().search_name.side_effect = Exception('LOL! ERROR.')
                 resp = self.client.post(reverse('auth.signup_form_normal'),
                                         data={
                                             'first_name': "Bob",
@@ -363,9 +363,9 @@ class TestSignUp(TestCase):
                                             'school_dirty': self.school.name,
                                             'terms': True},
                                         follow=True)
-                MockSearchSet.assert_called()
+                MockSchoolIndex.assert_called()
                 self.assertContains(resp, 'No schools were a close enough match')
-                MockSearchSet.clear()
+                MockSchoolIndex.clear()
 
             #invalid school and class
             resp = self.client.post(reverse('auth.signup_school_confirm'),
