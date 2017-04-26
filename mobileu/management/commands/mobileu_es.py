@@ -1,5 +1,6 @@
 from optparse import make_option
 from django.core.management.base import BaseCommand
+from elasticsearch.exceptions import TransportError
 from mobileu.mobileu_elasticsearch import SchoolIndex
 
 
@@ -19,7 +20,7 @@ class Command(BaseCommand):
             try:
                 SchoolIndex().ensure_index()
                 self.stdout.write('done')
-            except Exception as e:
+            except TransportError as e:
                 self.stdout.write('failed')
                 self.stdout.write(e.message)
         elif args[0] == 'update':
@@ -27,7 +28,7 @@ class Command(BaseCommand):
             try:
                 SchoolIndex().update_index(delete_stale=options['delete_stale'])
                 self.stdout.write('done')
-            except Exception as e:
+            except TransportError as e:
                 self.stdout.write('failed')
                 self.stdout.write(e.message)
         elif args[0] == 'rebuild':
@@ -35,7 +36,7 @@ class Command(BaseCommand):
             try:
                 SchoolIndex().rebuild_index()
                 self.stdout.write('done')
-            except Exception as e:
+            except TransportError as e:
                 self.stdout.write('failed')
                 self.stdout.write(e.message)
 
