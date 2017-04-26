@@ -76,10 +76,6 @@ class TestSchoolIndex(TestCase):
         self.assertGreaterEqual(len(results), 1)
         self.assertEqual(results[0]['_source']['name'], 'School 1')
 
-        results = self.school_index.search_name(search='School 1')
-        self.assertGreaterEqual(len(results), 1)
-        self.assertEqual(results[0]['_source']['name'], 'School 1')
-
         # test constrained province
         results = self.school_index.search_name(province='Western Cape')
         self.assertGreaterEqual(len(results), 1)
