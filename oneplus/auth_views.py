@@ -198,7 +198,8 @@ def create_learner(first_name, last_name, mobile, country, school, grade):
                                   username=mobile,
                                   country=country,
                                   school=school,
-                                  grade=grade)
+                                  grade=grade,
+                                  terms_accept=True)
 
 
 def create_participant(learner, classs):
