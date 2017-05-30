@@ -24,6 +24,7 @@ setup(
         'psycopg2==2.5.3',
         'pyDNS',
         'requests==2.3.0',
+        'responses==0.5.1',
         'validate_email',
         'xlwt'
     ],

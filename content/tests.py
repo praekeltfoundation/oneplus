@@ -12,6 +12,7 @@ from django.test import TestCase
 from datetime import datetime, timedelta
 from mock import patch
 from django.conf import settings
+import responses
 import os
 
 
@@ -76,7 +77,15 @@ class TestContent(TestCase):
             datejoined=datetime.now()
         )
 
+    @responses.mock.activate
     def create_test_question_helper(self, q_content, a_content, index):
+        responses.mock.add(responses.mock.POST,
+                           settings.MATHML_URL,
+                           body='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6Q' +
+                                'AAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAA' +
+                                'AASUVORK5CYII=',
+                           status=200,
+                           stream=True)
         old_path = settings.MEDIA_ROOT
         settings.MEDIA_ROOT = "/tmp/"
 
