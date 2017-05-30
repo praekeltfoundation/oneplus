@@ -58,7 +58,7 @@ class AirtimeFilter(admin.SimpleListFilter):
         ).values('participant').annotate(Count('participant'))
 
         filtered_participants = participants.filter(
-            participant__count__gte=9
+            participant__count__gte=12
         ).values('participant')
 
         return Participant.objects.filter(
@@ -66,7 +66,7 @@ class AirtimeFilter(admin.SimpleListFilter):
         ).values_list('learner', flat=True)
 
     def lookups(self, request, model_admin):
-        return [('airtime_award', _('9 to 15 questions correct'))]
+        return [('airtime_award', _('12 to 15 questions correct'))]
 
     def queryset(self, request, queryset):
         if self.value() is None:
