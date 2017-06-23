@@ -269,7 +269,7 @@ MAX_LEVEL = 7
 
 # Social media
 SOCIAL_MEDIA_ACTIVE = False
-FB_APP_NUM = '1400713283294375'
+FB_APP_NUM = '857396421078390'
 FB_REDIRECT = 'http://dig-it.me'
 FB_SITE_TITLE = 'dig-it'
 FB_SITE_DESC = 'Challenge your maths skills and improve your marks. ' \
