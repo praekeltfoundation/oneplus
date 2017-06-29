@@ -268,7 +268,7 @@ OPEN_SCHOOL = "Open School"
 MAX_LEVEL = 7
 
 # Social media
-SOCIAL_MEDIA_ACTIVE = False
+SOCIAL_MEDIA_ACTIVE = True
 FB_APP_NUM = '857396421078390'
 FB_REDIRECT = 'http://dig-it.me'
 FB_SITE_TITLE = 'dig-it'
