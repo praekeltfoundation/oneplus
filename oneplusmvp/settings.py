@@ -269,8 +269,8 @@ MAX_LEVEL = 7
 
 # Social media
 SOCIAL_MEDIA_ACTIVE = True
-FB_APP_NUM = os.environ.get('FB_APP_NUM', '857396421078390')
-FB_REDIRECT = os.environ.get('FB_REDIRECT', 'https://dig-it.me')
+FB_APP_NUM = os.environ.get('FB_APP_NUM', '306910083091399')
+FB_REDIRECT = os.environ.get('FB_REDIRECT', 'https://qa-digit.za.p16n.org')
 FB_SITE_TITLE = os.environ.get('FB_SITE_TITLE', 'dig-it')
 FB_SITE_DESC = os.environ.get(
     'FB_SITE_DESC',
