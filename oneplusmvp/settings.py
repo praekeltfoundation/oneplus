@@ -268,12 +268,14 @@ OPEN_SCHOOL = "Open School"
 MAX_LEVEL = 7
 
 # Social media
-SOCIAL_MEDIA_ACTIVE = False
-FB_APP_NUM = '1400713283294375'
-FB_REDIRECT = 'http://dig-it.me'
-FB_SITE_TITLE = 'dig-it'
-FB_SITE_DESC = 'Challenge your maths skills and improve your marks. ' \
-               'dig-it helps Gr10 - 12s score in maths - and in life.'
+SOCIAL_MEDIA_ACTIVE = True
+FB_APP_NUM = os.environ.get('FB_APP_NUM', '857396421078390')
+FB_REDIRECT = os.environ.get('FB_REDIRECT', 'https://dig-it.me')
+FB_SITE_TITLE = os.environ.get('FB_SITE_TITLE', 'dig-it')
+FB_SITE_DESC = os.environ.get(
+    'FB_SITE_DESC',
+    'Challenge your maths skills and improve your marks. '
+    'dig-it helps Gr10 - 12s score in maths - and in life.')
 
 # Progressive Web App
 PWA_SERVICE_WORKER_PATH = os.path.join(ENV_PATH, 'serviceworker.js')
