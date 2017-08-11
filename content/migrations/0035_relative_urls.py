@@ -14,7 +14,7 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        regex = re.compile("http://.*/media/")
+        regex = re.compile("http://[\d\S\.]+/media/")
         for item in orm.TestingQuestion.objects.filter(
                 Q(question_content__contains='/media/') | Q(answer_content__contains='/media/')):
             item.question_content = regex.sub("/media/", item.question_content)
