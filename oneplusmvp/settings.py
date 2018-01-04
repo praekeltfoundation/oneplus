@@ -80,6 +80,7 @@ INSTALLED_APPS = (
     "django.contrib.humanize",
     "django.contrib.sites",
     "django.contrib.auth",
+    "rangefilter"
 )
 
 MIDDLEWARE_CLASSES = (
