@@ -21,6 +21,7 @@ from communication.utils import VumiSmsApi
 from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant, ParticipantQuestionAnswer
 from gamification.models import GamificationScenario
 from mobileu.export import export_selected
+from rangefilter.filter import DateRangeFilter
 
 
 class SystemAdministratorAdmin(UserAdmin):
@@ -252,7 +253,8 @@ class LearnerAdmin(UserAdmin, ImportExportModelAdmin):
     list_display = ("username", "first_name", "last_name", "school",
                     "area", "welcome_message_sent", "class_list", "grade")
     list_filter = ("first_name", "last_name", "mobile", 'school', "country", "area",
-                   "welcome_message_sent", "grade", ClassFilter, CourseFilter, AirtimeFilter)
+                   "welcome_message_sent", "grade", ClassFilter, CourseFilter, AirtimeFilter,
+                   ('last_active_date', DateRangeFilter))
     search_fields = ("last_name", "first_name", "username")
     ordering = ("country", "area", "last_name", "first_name", "last_login")
     filter_horizontal = ()
