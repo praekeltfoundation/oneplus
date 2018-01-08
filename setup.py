@@ -28,7 +28,7 @@ setup(
         'validate_email',
         'xlwt',
         'django_admin_rangefilter==0.3.0',
-        'rangefilter'
+        'date_range'
     ],
     url='www.praekelt.co.za',
     license='',
