@@ -61,6 +61,7 @@ INSTALLED_APPS = (
     "koremutake",
     "import_export",
     "djcelery",
+    "daterange_filter"
 )
 
 MIDDLEWARE_CLASSES = (
