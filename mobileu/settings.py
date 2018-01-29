@@ -29,7 +29,12 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 # os.path.join(BASE_DIR, "oneplus/templates")
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, "templates")]
+TEMPLATE_DIRS = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+    },
+]
 
 ALLOWED_HOSTS = []
 
