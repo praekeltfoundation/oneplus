@@ -35,7 +35,10 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 
 TEMPLATE_DIRS = [
-    os.path.join(BASE_DIR, "templates"),
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+    },
 ]
 
 BASE_URL = 'oneplus.qa.praekeltfoundation.org'
@@ -80,6 +83,7 @@ INSTALLED_APPS = (
     "django.contrib.humanize",
     "django.contrib.sites",
     "django.contrib.auth",
+    "daterange_filter"
 )
 
 MIDDLEWARE_CLASSES = (
