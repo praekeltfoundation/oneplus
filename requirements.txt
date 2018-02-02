@@ -16,5 +16,5 @@ coverage==4.2
 django-boolean-sum
 elasticsearch
 django-progressive-web-app==0.1
-django-daterange-filter
+
 
