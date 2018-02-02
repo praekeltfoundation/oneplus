@@ -1,4 +1,5 @@
--e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
+#-e git+/home/newuser/praekelt/mobileu.git@develop#egg=django-mobileu
+-e git+/home/newuser/praekelt/mobileu/.git@feature/date_range#egg=django-mobileu
 django-google-analytics-app==2.1.6
 raven==5.0.0
 psycopg2
@@ -15,4 +16,5 @@ coverage==4.2
 django-boolean-sum
 elasticsearch
 django-progressive-web-app==0.1
+django-daterange-filter
 
