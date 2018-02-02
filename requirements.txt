@@ -1,4 +1,4 @@
-#-e git+/home/newuser/praekelt/mobileu.git@develop#egg=django-mobileu
+-e git+/home/newuser/praekelt/mobileu.git@develop#egg=django-mobileu
 -e git+/home/newuser/praekelt/mobileu/.git@feature/date_range#egg=django-mobileu
 django-google-analytics-app==2.1.6
 raven==5.0.0
