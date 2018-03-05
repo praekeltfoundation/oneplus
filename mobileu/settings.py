@@ -194,3 +194,8 @@ try:
     from oneplusmvp.settings import OPEN_SCHOOL
 except ImportError as e:
     OPEN_SCHOOL = "Open School"
+
+# Junebug config
+JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "")
+JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "")
+JUNEBUG_ACCOUNT_NUMBER = os.environ.get("JUNEBUG_ACCOUNT_NUMBER", "")
