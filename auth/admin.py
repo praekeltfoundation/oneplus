@@ -17,7 +17,7 @@ from auth.models import SystemAdministrator, SchoolManager, CourseManager, Cours
 from auth.resources import LearnerResource, TeacherResource
 from communication.models import Message
 from communication.tasks import bulk_send_all
-from communication.utils import VumiSmsApi
+from communication.utils import JunebugApi
 from core.models import TeacherClass, ParticipantBadgeTemplateRel, Participant, ParticipantQuestionAnswer
 from gamification.models import GamificationScenario
 from mobileu.export import export_selected
@@ -151,11 +151,11 @@ def send_sms(modeladmin, request, queryset):
         form = SendSmsForm(request.POST)
 
         if form.is_valid():
-            vumi = VumiSmsApi()
+            junebug = JunebugApi()
             message = form.cleaned_data["message"]
 
             if queryset.count() <= settings.MIN_VUMI_CELERY_SEND:
-                successful, fail = vumi.send_all(queryset, message)
+                successful, fail = junebug.send_all(queryset, message)
                 async = False
             else:
                 #Use celery task

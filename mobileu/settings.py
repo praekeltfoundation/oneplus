@@ -196,6 +196,10 @@ except ImportError as e:
     OPEN_SCHOOL = "Open School"
 
 # Junebug config
-JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "")
-JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "")
+JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "https://junebug.qa.dig-it.me/jb/channels/")
+JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "ab79e9c5-7d15-440f-8bd0-6a0e2d2445b1/")
 JUNEBUG_ACCOUNT_NUMBER = os.environ.get("JUNEBUG_ACCOUNT_NUMBER", "")
+JUNEBUG_FAKE = "*11910"
+JUNEBUG_FAKE_TO = "0660000000"
+JUNEBUG_USERNAME = "junebug"
+JUNEBUG_PASSWORD = "DbAOTBsm4zXbU10x"

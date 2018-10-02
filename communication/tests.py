@@ -9,7 +9,7 @@ from auth.models import Learner
 from communication.models import Ban, ChatMessage, CoursePostRel, Message, MessageStatus, Profanity, Post, PostComment,\
     PostCommentLike, Report, ReportResponse, SmsQueue
 from communication.utils import contains_profanity, report_user_post, get_user_bans, get_replacement_content, \
-    VumiSmsApi
+    JunebugApi
 from content.models import TestingQuestion
 from core.models import Class, Participant
 from organisation.models import Course, CourseModuleRel, Module, Organisation, School
@@ -114,7 +114,7 @@ class TestMessage(TestCase):
             name="msg4",
             publishdate=dt4
         )
-        # should return the most recent two in descending order of publishdate
+        # should return the most recent two in descending order of publish date
         self.assertEqual(
             [msg3, msg2], Message.get_messages(self.user, self.course, 2))
         #should return 3, 4th is not published yet
@@ -374,9 +374,9 @@ class TestProfanity(TestCase):
 
 class TestSms(TestCase):
     def test_send_sms(self):
-        settings.__setattr__("VUMI_GO_FAKE", True)
+        settings.__setattr__("JUNEBUG_FAKE", True)
 
-        api = VumiSmsApi()
+        api = JunebugApi()
         sms, sent = api.send("123", "test", None, None)
 
         self.assertIsNotNone(sms)
@@ -437,4 +437,3 @@ class TestLikes(TestCase):
         self.assertEqual(PostCommentLike.count_likes(comment), 2)
         PostCommentLike.unlike(self.learners[1], comment)
         self.assertEqual(PostCommentLike.count_likes(comment), 1)
-

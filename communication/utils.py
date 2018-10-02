@@ -25,21 +25,32 @@ def get_autologin_link(unique_token):
         return None
 
 
-class VumiSmsApi:
+class SmsSender:
 
-    """Sends vumi http api requests"""
+    def send(self, send_to, send_from, message):
+        url = "https://junebug.qa.dig-it.me/jb/channels/ab79e9c5-7d15-440f-8bd0-6a0e2d2445b1/messages/"
+
+        payload = "{\"to\": \"%s\", \"from\": \"%s\", \"content\": \"%s\"}" % (send_to, send_from, message)
+        headers = {
+            'authorization': "Basic anVuZWJ1ZzpEYkFPVEJzbTR6WGJVMTB4",
+            'content-type': "application/json",
+            'cache-control': "no-cache"
+        }
+
+        response = requests.request("POST", url, data=payload, headers=headers)
+
+        print(response.text)
+
+
+class JunebugApi:
+
+    """Sends Junebug http api requests"""
 
     def __init__(self):
 
-        if hasattr(settings, 'VUMI_GO_FAKE') and settings.VUMI_GO_FAKE:
+        if hasattr(settings, 'JUNEBUG_FAKE') and settings.JUNEBUG_FAKE:
             self.sender = LoggingSender(
                 'DEBUG'
-            )
-        else:
-            self.sender = HttpApiSender(
-                account_key=settings.VUMI_GO_ACCOUNT_KEY,
-                conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
-                conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
             )
 
     def prepare_msisdn(self, msisdn):
