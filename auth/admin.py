@@ -154,7 +154,7 @@ def send_sms(modeladmin, request, queryset):
             junebug = JunebugApi()
             message = form.cleaned_data["message"]
 
-            if queryset.count() <= settings.MIN_VUMI_CELERY_SEND:
+            if queryset.count() <= settings.MIN_JUNEBUG_CELERY_SEND:
                 successful, fail = junebug.send_all(queryset, message)
                 async = False
             else:
