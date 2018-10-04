@@ -57,7 +57,7 @@ def create_badgetemplate(name='badge template name', **kwargs):
         **kwargs)
 
 
-@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, JUNEBUG_SMS_FAKE=True)
 class TestLevelShare(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -153,7 +153,7 @@ class TestLevelShare(TestCase):
         self.assertRedirects(resp, reverse('learn.home'))
 
 
-@override_settings(SOCIAL_MEDIA_ACTIVE=True, VUMI_GO_FAKE=True)
+@override_settings(SOCIAL_MEDIA_ACTIVE=True, JUNEBUG_SMS_FAKE=True)
 class TestPermissionToShare(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -301,7 +301,7 @@ class TestSharingLeaderboards(TestCase):
         self.assertContains(resp, "Your national position")
         self.assertContains(resp, "National Leaderboard")
 
-    @override_settings(SOCIAL_MEDIA_ACTIVE=False, VUMI_GO_FAKE=True)
+    @override_settings(SOCIAL_MEDIA_ACTIVE=False, JUNEBUG_SMS_FAKE=True)
     def test_sm_inactive(self):
         self.client.get(reverse('auth.autologin', kwargs={'token': self.learner.unique_token}))
         self.learner.public_share = True

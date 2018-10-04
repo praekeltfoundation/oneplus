@@ -25,7 +25,7 @@ from organisation.models import School
 from core.models import Class, Participant
 from content.models import Event
 from core.common import PROVINCES
-from communication.utils import VumiSmsApi
+from communication.utils import JunebugApi
 from mobileu.mobileu_elasticsearch import SchoolIndex
 
 __author__ = 'herman'
@@ -222,8 +222,8 @@ def send_welcome_sms(learner, password):
     learner.generate_unique_token()
     token = learner.unique_token
 
-    vumi_api = VumiSmsApi()
-    obj, sent = vumi_api.send(learner.mobile, sms_message.value % (password, token), None, None)
+    junebug_api = JunebugApi()
+    obj, sent = junebug_api.send(learner.mobile, sms_message.value % (password, token), None, None)
 
     if not sent:
         SmsQueue.objects.create(message=sms_message.value % (password, token),
@@ -802,8 +802,8 @@ def sms_reset_password_link(request):
     def post():
         form = SmsPasswordForm(request.POST)
         if form.is_valid():
-            #  Initialize vumigo sms
-            vumi = VumiSmsApi()
+            # Initialize Junebug sms API
+            junebug_api = JunebugApi()
 
             try:
                 # Lookup user
@@ -816,7 +816,7 @@ def sms_reset_password_link(request):
                 message = "Use the following link to reset your password: http://www.dig-it.me/r/%s" % \
                           learner.pass_reset_token
 
-                sms, sent = vumi.send(learner.mobile, message, None, None)
+                sms, sent = junebug_api.send(learner.mobile, message, None, None)
 
                 if sent:
                     message = "Link has been SMSed to you."
@@ -993,6 +993,7 @@ def edit_profile(request, state, user):
             return render(request, "auth/profile.html", {'data': data, 'editing': True, 'errors': errors, 'user': user})
 
     return resolve_http_method(request, [get, post])
+
 
 @oneplus_check_user
 def accept_terms(request, state, user):

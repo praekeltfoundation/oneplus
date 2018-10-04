@@ -74,7 +74,7 @@ def create_class(name, course, **kwargs):
     return Class.objects.create(name=name, course=course, **kwargs)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class TestCommentsOnLatestBlog(TestCase):
     def setUp(self):
 
@@ -140,7 +140,7 @@ class TestCommentsOnLatestBlog(TestCase):
         self.assertNotContains(resp, message)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class TestFlashMessage(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -245,7 +245,7 @@ class TestFlashMessage(TestCase):
         self.assertEquals(resp.status_code, 200)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class TestCommentLikes(TestCase):
     def setUp(self):
         self.course = create_course()

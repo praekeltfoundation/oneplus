@@ -50,7 +50,7 @@ def create_participant(learner, classs, **kwargs):
     return participant
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class ValidatorTests(TestCase):
 
     def setUp(self):

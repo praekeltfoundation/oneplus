@@ -88,7 +88,7 @@ def create_organisation(name='organisation name', **kwargs):
     return Organisation.objects.create(name=name, **kwargs)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class TestSignUp(TestCase):
     def setUp(self):
         self.course = create_course()
@@ -521,7 +521,7 @@ class TestSignUp(TestCase):
             self.assertContains(resp, 'Let\'s sign you up')
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class TestChangeDetails(TestCase):
 
     def setUp(self):

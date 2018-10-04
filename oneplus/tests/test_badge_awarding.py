@@ -89,7 +89,7 @@ def create_test_answer(
     )
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_SMS_FAKE=True)
 class TestBadgeAwarding(TestCase):
 
     def setUp(self):
