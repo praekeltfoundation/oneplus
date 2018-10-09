@@ -9,7 +9,6 @@ import oneplus.prog_views
 import oneplus.public_views
 import oneplus.sharing_views
 from oneplus import result_views
-from communication.tasks import process_sms_queue
 
 
 public_patterns = [

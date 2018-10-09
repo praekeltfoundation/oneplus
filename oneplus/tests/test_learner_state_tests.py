@@ -10,7 +10,7 @@ from oneplus.utils import get_today
 from organisation.models import Course, Module, CourseModuleRel, Organisation, School
 
 
-@override_settings(JUNEBUG_SMS_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class LearnerStateTest(TestCase):
     def create_course(self, name="course name", **kwargs):
         return Course.objects.create(name=name, **kwargs)

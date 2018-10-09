@@ -105,7 +105,7 @@ def fake_update_all_perc_correct_answers():
     update_perc_correct_answers_worker('32days', 32)
 
 
-@override_settings(JUNEBUG_SMS_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class ChallengeTest(TestCase):
     def setUp(self):
 

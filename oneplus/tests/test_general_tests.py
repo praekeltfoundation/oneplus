@@ -134,7 +134,7 @@ def create_event_question(event, question, order):
     return EventQuestionRel.objects.create(event=event, question=question, order=order)
 
 
-@override_settings(JUNEBUG_SMS_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class GeneralTests(TestCase):
 
     def setUp(self):

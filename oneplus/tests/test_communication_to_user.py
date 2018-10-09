@@ -53,7 +53,7 @@ def create_message(author, course, **kwargs):
     return Message.objects.create(author=author, course=course, **kwargs)
 
 
-@override_settings(JUNEBUG_SMS_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class TestCommunicationToUser(TestCase):
 
     def setUp(self):

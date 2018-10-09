@@ -84,7 +84,7 @@ def create_test_question_option(name, question, correct=True):
         name=name, question=question, correct=correct)
 
 
-@override_settings(JUNEBUG_SMS_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class GoldenEggTest(TestCase):
 
     def setUp(self):
@@ -318,7 +318,7 @@ class GoldenEggTest(TestCase):
         self.assertEquals(0,cnt)
 
 
-@override_settings(JUNEBUG_SMS_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class GoldenEggSplashTest(TestCase):
 
     def setUp(self):
