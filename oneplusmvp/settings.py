@@ -182,21 +182,15 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-# Base url for vumi requests
-# VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"
-# VUMI_GO_CONVERSATION_KEY = "d5d981d5b86c4fee99f6ee078d0a0abd"
-# VUMI_GO_ACCOUNT_KEY = "b365f245538841a08586a29b5b568c6c"
-# VUMI_GO_ACCOUNT_TOKEN = "vaiToa6c"
-
 # Junebug config
-JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "https://junebug.qa.dig-it.me/jb/channels/")
-JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "ab79e9c5-7d15-440f-8bd0-6a0e2d2445b1/")
+JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "")
+JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "")
 JUNEBUG_ACCOUNT_NUMBER = os.environ.get("JUNEBUG_ACCOUNT_NUMBER", "")
-JUNEBUG_FAKE_SMS = False
-JUNEBUG_FROM = "*11910"
-JUNEBUG_FAKE_TO = "0660000000"
-JUNEBUG_USERNAME = "junebug"
-JUNEBUG_PASSWORD = "DbAOTBsm4zXbU10x"
+JUNEBUG_FAKE = os.environ.get("JUNEBUG_FAKE", "")
+JUNEBUG_FAKE_TO = os.environ.get("JUNEBUG_FAKE_TO", "")
+JUNEBUG_USERNAME = os.environ.get("JUNEBUG_USERNAME", "")
+JUNEBUG_PASSWORD = os.environ.get("JUNEBUG_PASSWORD", "")
+JUNEBUG_AUTHORISATION_TYPE = os.environ.get("JUNEBUG_AUTHORISATION_TYPE", "")
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
