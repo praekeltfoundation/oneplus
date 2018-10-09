@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from oneplus import result_views
 from oneplus import views
 import oneplus.auth_views
 import oneplus.com_views
@@ -8,7 +9,6 @@ import oneplus.misc_views
 import oneplus.prog_views
 import oneplus.public_views
 import oneplus.sharing_views
-from oneplus import result_views
 
 
 public_patterns = [
