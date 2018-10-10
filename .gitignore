@@ -58,3 +58,7 @@ htmlcov/*
 **/.sass-cache
 **/*.map
 **/_*.css
+
+# Folders for the virtual env
+ve/*
+ve26/*
