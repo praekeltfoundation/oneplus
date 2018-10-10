@@ -325,28 +325,6 @@ class GeneralTests(TestCase):
         resp = self.client.post(reverse('misc.terms'), follow=True)
         self.assertEquals(resp.status_code, 200)
 
-    def assert_in_metric_logs(self, metric, aggr, value, temp_handler):
-        msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
-        logs = temp_handler
-        contains = False
-        if logs is not None:
-            for log in logs:
-                if msg == log.msg:
-                    contains = True
-                    break
-        self.assertTrue(contains)
-
-    def assert_not_in_metric_logs(self, metric, aggr, value):
-        msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
-        logs = self.handler.logs
-        contains = False
-        if logs is not None:
-            for log in logs:
-                if msg == log.msg:
-                    contains = True
-                    break
-        self.assertFalse(contains)
-
     def test_blog(self):
         self.client.get(
             reverse('auth.autologin',
