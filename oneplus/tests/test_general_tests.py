@@ -134,7 +134,7 @@ def create_event_question(event, question, order):
     return EventQuestionRel.objects.create(event=event, question=question, order=order)
 
 
-@override_settings(VUMI_GO_FAKE=True)
+@override_settings(JUNEBUG_FAKE=True)
 class GeneralTests(TestCase):
 
     def setUp(self):
@@ -164,6 +164,7 @@ class GeneralTests(TestCase):
             module=self.module,
             badge=self.badge_template
         )
+
         self.outgoing_vumi_text = []
         self.outgoing_vumi_metrics = []
         self.handler = RecordingHandler()
@@ -323,97 +324,6 @@ class GeneralTests(TestCase):
 
         resp = self.client.post(reverse('misc.terms'), follow=True)
         self.assertEquals(resp.status_code, 200)
-
-    def assert_in_metric_logs(self, metric, aggr, value):
-        msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
-        logs = self.handler.logs
-        contains = False
-        if logs is not None:
-            for log in logs:
-                if msg == log.msg:
-                    contains = True
-                    break
-        self.assertTrue(contains)
-
-    def assert_not_in_metric_logs(self, metric, aggr, value):
-        msg = "Metric: '%s' [%s] -> %d" % (metric, aggr, value)
-        logs = self.handler.logs
-        contains = False
-        if logs is not None:
-            for log in logs:
-                if msg == log.msg:
-                    contains = True
-                    break
-        self.assertFalse(contains)
-
-    def test_fire_active_metric_first(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        self.client.get(reverse('learn.home'))
-        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
-        self.assert_in_metric_logs('running.active.participants48', 'sum', 1)
-        self.assert_in_metric_logs('running.active.participants7', 'sum', 1)
-        self.assert_in_metric_logs('running.active.participantsmonth', 'sum', 1)
-
-    def test_fire_only24_hours_metric(self):
-        # 24 hours metric has already been fired so only
-        # 48, 7 days and month should fire
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        self.learner.last_active_date = (
-            datetime.now() - timedelta(days=1, hours=4))
-        self.learner.save()
-        self.client.get(reverse('learn.home'))
-        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participants48', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
-
-    def test_fire_24_and_48_hours_metric(self):
-        # 24 hours metric has already been fired so only
-        # 48, 7 days and month should fire
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        self.learner.last_active_date = (datetime.now() - timedelta(days=2, hours=4))
-        self.learner.save()
-        self.client.get(reverse('learn.home'))
-        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
-        self.assert_in_metric_logs('running.active.participants48', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
-
-    def test_fire_24_and_48_7_days_hours_metric(self):
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        self.learner.last_active_date = (datetime.now() - timedelta(days=8, hours=4))
-        self.learner.save()
-        self.client.get(reverse('learn.home'))
-        self.assert_in_metric_logs('running.active.participants24', 'sum', 1)
-        self.assert_in_metric_logs('running.active.participants48', 'sum', 1)
-        self.assert_in_metric_logs('running.active.participants7', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
-
-    def test_fire_none_metric(self):
-        # None should be fired
-        self.client.get(reverse(
-            'auth.autologin',
-            kwargs={'token': self.learner.unique_token})
-        )
-        self.learner.last_active_date = (datetime.now() - timedelta(hours=4))
-        self.learner.save()
-        self.client.get(reverse('learn.home'))
-        self.assert_not_in_metric_logs('running.active.participants24', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participants48', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participants7', 'sum', 1)
-        self.assert_not_in_metric_logs('running.active.participantsmonth', 'sum', 1)
 
     def test_blog(self):
         self.client.get(

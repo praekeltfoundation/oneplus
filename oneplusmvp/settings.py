@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import djcelery
+import django
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -181,11 +182,22 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-# Base url for vumi requests
-VUMI_GO_BASE_URL = "http://go.vumi.org/api/v1/go/http_api_nostream"
-VUMI_GO_CONVERSATION_KEY = "d5d981d5b86c4fee99f6ee078d0a0abd"
-VUMI_GO_ACCOUNT_KEY = "b365f245538841a08586a29b5b568c6c"
-VUMI_GO_ACCOUNT_TOKEN = "vaiToa6c"
+# Junebug config
+JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "")
+JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "")
+JUNEBUG_ACCOUNT_NUMBER = os.environ.get("JUNEBUG_ACCOUNT_NUMBER", "")
+JUNEBUG_FAKE = os.environ.get("JUNEBUG_FAKE", False)
+JUNEBUG_FAKE_TO = os.environ.get("JUNEBUG_FAKE_TO", "")
+JUNEBUG_USERNAME = os.environ.get("JUNEBUG_USERNAME", "")
+JUNEBUG_PASSWORD = os.environ.get("JUNEBUG_PASSWORD", "")
+JUNEBUG_AUTHORISATION_TYPE = os.environ.get("JUNEBUG_AUTHORISATION_TYPE", "")
+
+# Vumi Metrics turned off and metric http config
+VUMI_METRICS_ON = os.environ.get("VUMI_METRICS_ON", False)
+VUMI_GO_BASE_URL = os.environ.get("VUMI_GO_BASE_URL", "")
+VUMI_GO_ACCOUNT_KEY = os.environ.get("VUMI_GO_ACCOUNT_KEY", "")
+VUMI_GO_CONVERSATION_KEY = os.environ.get("VUMI_GO_CONVERSATION_KEY", "")
+VUMI_GO_ACCOUNT_TOKEN = os.environ.get("VUMI_GO_ACCOUNT_TOKEN", "")
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
@@ -229,6 +241,39 @@ SUMMERNOTE_CONFIG = {
         ['insert', ['link', 'picture']],
         ['table', ['table']],
     ],
+    'default_css': (
+        '//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css',
+        os.path.abspath('django_summernote/summernote.css'),
+        os.path.abspath('django_summernote/django_summernote.css'),
+    ),
+    'default_js': (
+        '//code.jquery.com/jquery-1.9.1.min.js',
+        '//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js',
+        os.path.abspath('django_summernote/jquery.ui.widget.js'),
+        os.path.abspath('django_summernote/jquery.iframe-transport.js'),
+        os.path.abspath('django_summernote/jquery.fileupload.js'),
+        os.path.abspath('django_summernote/summernote.min.js'),
+    ),
+    'css': (),
+    'js': (),
+
+    'default_css_for_inplace': (
+        '//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css',
+        os.path.abspath('django_summernote/summernote.css'),
+        os.path.abspath('django_summernote/django_summernote_inplace.css'),
+    ),
+    'default_js_for_inplace': (
+        '//code.jquery.com/jquery-1.9.1.min.js',
+        '//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js',
+        os.path.abspath('django_summernote/jquery.ui.widget.js'),
+        os.path.abspath('django_summernote/jquery.iframe-transport.js'),
+        os.path.abspath('django_summernote/jquery.fileupload.js'),
+        os.path.abspath('django_summernote/summernote.min.js'),
+    ),
+    'css_for_inplace': (),
+    'js_for_inplace': (),
+    # Disable upload
+    'disable_upload': False,
 }
 
 CELERY_IMPORTS = ('mobileu.tasks', 'communication.tasks')
@@ -237,7 +282,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'
 # The minimum number of SMSes that can be sent before being sent with celery
-MIN_VUMI_CELERY_SEND = 1
+MIN_JUNEBUG_CELERY_SEND = 1
 
 FIXTURE_DIRS = (
     abspath('fixtures'),
@@ -288,19 +333,19 @@ PWA_APP_DESCRIPTION = 'dig-it is a mobisite designed to support Grade 10 - Grade
 PWA_APP_THEME_COLOR = '#68baa7'
 PWA_APP_ICONS = [
     {
-      "src": "/media/img/appicons/dig-it_icon_96.png",
-      "sizes": "96x96",
-      "type": "image/png"
+        "src": "/media/img/appicons/dig-it_icon_96.png",
+        "sizes": "96x96",
+        "type": "image/png"
     },
     {
-      "src": "/media/img/appicons/dig-it_icon_144.png",
-      "sizes": "144x144",
-      "type": "image/png"
+        "src": "/media/img/appicons/dig-it_icon_144.png",
+        "sizes": "144x144",
+        "type": "image/png"
     },
     {
-      "src": "/media/img/appicons/dig-it_icon_192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+        "src": "/media/img/appicons/dig-it_icon_192.png",
+        "sizes": "192x192",
+        "type": "image/png"
     }
 ]
 

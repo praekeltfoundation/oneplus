@@ -7,7 +7,7 @@ import requests
 
 def update_metric(name, value, metric_type):
     try:
-        if hasattr(settings, 'VUMI_GO_FAKE') and settings.VUMI_GO_FAKE:
+        if hasattr(settings, 'JUNEBUG_FAKE') and settings.JUNEBUG_FAKE:
             sender = LoggingSender('DEBUG')
             sender.fire_metric(name, value, agg=metric_type.lower())
         else:
@@ -19,12 +19,13 @@ def update_metric(name, value, metric_type):
 @task()
 def async_sender(name, value, metric_type):
     try:
-        sender = HttpApiSender(
-            account_key=settings.VUMI_GO_ACCOUNT_KEY,
-            conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
-            conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
-        )
-        sender.fire_metric(name, value, agg=metric_type)
+        if hasattr(settings, 'VUMI_METRICS_ON') and settings.VUMI_METRICS_ON:
+            sender = HttpApiSender(
+                account_key=settings.VUMI_GO_ACCOUNT_KEY,
+                conversation_key=settings.VUMI_GO_CONVERSATION_KEY,
+                conversation_token=settings.VUMI_GO_ACCOUNT_TOKEN
+            )
+            sender.fire_metric(name, value, agg=metric_type)
     except requests.exceptions.RequestException as e:
         pass
 

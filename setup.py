@@ -9,6 +9,7 @@ setup(
         'psycopg2',
         'django_bleach',
         'beautifulsoup4',
+        'django-daterange-filter'
     ],
     url='www.praekelt.co.za',
     license='',
