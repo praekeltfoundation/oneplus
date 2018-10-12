@@ -194,6 +194,7 @@ JUNEBUG_AUTHORISATION_TYPE = os.environ.get("JUNEBUG_AUTHORISATION_TYPE", "")
 
 # Vumi Metrics turned off and metric http config
 VUMI_METRICS_ON = os.environ.get("VUMI_METRICS_ON", False)
+VUMI_GO_BASE_URL = os.environ.get("VUMI_GO_BASE_URL", "")
 VUMI_GO_ACCOUNT_KEY = os.environ.get("VUMI_GO_ACCOUNT_KEY", "")
 VUMI_GO_CONVERSATION_KEY = os.environ.get("VUMI_GO_CONVERSATION_KEY", "")
 VUMI_GO_ACCOUNT_TOKEN = os.environ.get("VUMI_GO_ACCOUNT_TOKEN", "")
