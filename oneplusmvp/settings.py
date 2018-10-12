@@ -192,6 +192,9 @@ JUNEBUG_USERNAME = os.environ.get("JUNEBUG_USERNAME", "")
 JUNEBUG_PASSWORD = os.environ.get("JUNEBUG_PASSWORD", "")
 JUNEBUG_AUTHORISATION_TYPE = os.environ.get("JUNEBUG_AUTHORISATION_TYPE", "")
 
+# Vumi Metrics turned off
+VUMI_METRICS_ON = os.environ.get("VUMI_METRICS_ON", False)
+
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
 # Which HTML tags are allowed

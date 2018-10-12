@@ -1,5 +1,4 @@
 from django.conf.urls import url, include
-from oneplus import result_views
 from oneplus import views
 import oneplus.auth_views
 import oneplus.com_views
