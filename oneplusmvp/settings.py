@@ -192,8 +192,11 @@ JUNEBUG_USERNAME = os.environ.get("JUNEBUG_USERNAME", "")
 JUNEBUG_PASSWORD = os.environ.get("JUNEBUG_PASSWORD", "")
 JUNEBUG_AUTHORISATION_TYPE = os.environ.get("JUNEBUG_AUTHORISATION_TYPE", "")
 
-# Vumi Metrics turned off
+# Vumi Metrics turned off and metric http config
 VUMI_METRICS_ON = os.environ.get("VUMI_METRICS_ON", False)
+VUMI_GO_ACCOUNT_KEY = os.environ.get("VUMI_GO_ACCOUNT_KEY", "")
+VUMI_GO_CONVERSATION_KEY = os.environ.get("VUMI_GO_CONVERSATION_KEY", "")
+VUMI_GO_ACCOUNT_TOKEN = os.environ.get("VUMI_GO_ACCOUNT_TOKEN", "")
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
 
