@@ -1,5 +1,5 @@
--e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
-# -e git+/home/newuser/praekelt/mobileu/.git@Feature/Junebug#egg=django-mobileu
+# -e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
+-e git+/home/newuser/praekelt/mobileu/.git@develop#egg=django-mobileu
 django-google-analytics-app==2.1.6
 raven==5.0.0
 psycopg2
@@ -16,4 +16,4 @@ coverage==4.2
 django-boolean-sum
 elasticsearch
 django-progressive-web-app==0.1
-pyopenssl==0.13.1 pyassnl ndg-httpsclient
+pyopenssl==0.13.1
