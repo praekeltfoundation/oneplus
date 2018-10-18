@@ -16,6 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.hashers import make_password
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.conf import settings
 from datetime import datetime
 from lockout import LockedOut
 from .validators import validate_mobile, validate_sign_up_form, validate_sign_up_form_normal, \
@@ -817,6 +818,9 @@ def sms_reset_password_link(request):
                           learner.pass_reset_token
 
                 sms, sent = junebug_api.send(learner.mobile, message, None, None)
+
+                if hasattr(settings, 'JUNEBUG_FAKE') and settings.JUNEBUG_FAKE:
+                    sent = True
 
                 if sent:
                     message = "Link has been SMSed to you."

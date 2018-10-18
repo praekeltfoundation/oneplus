@@ -185,12 +185,11 @@ STATICFILES_FINDERS = (
 # Junebug config
 JUNEBUG_BASE_URL = os.environ.get("JUNEBUG_BASE_URL", "")
 JUNEBUG_CHANNEL_ID = os.environ.get("JUNEBUG_CHANNEL_ID", "")
-JUNEBUG_ACCOUNT_NUMBER = os.environ.get("JUNEBUG_ACCOUNT_NUMBER", "")
 JUNEBUG_FAKE = os.environ.get("JUNEBUG_FAKE", False)
+JUNEBUG_FROM = os.environ.get("JUNEBUG_FROM", "")
 JUNEBUG_FAKE_TO = os.environ.get("JUNEBUG_FAKE_TO", "")
 JUNEBUG_USERNAME = os.environ.get("JUNEBUG_USERNAME", "")
 JUNEBUG_PASSWORD = os.environ.get("JUNEBUG_PASSWORD", "")
-JUNEBUG_AUTHORISATION_TYPE = os.environ.get("JUNEBUG_AUTHORISATION_TYPE", "")
 
 # Vumi Metrics turned off and metric http config
 VUMI_METRICS_ON = os.environ.get("VUMI_METRICS_ON", False)
