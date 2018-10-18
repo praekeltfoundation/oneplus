@@ -1,5 +1,5 @@
-# -e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
--e git+/home/newuser/praekelt/mobileu/.git@develop#egg=django-mobileu
+-e git+https://github.com/praekelt/mobileu.git@develop#egg=django-mobileu
+# -e git+/home/newuser/praekelt/mobileu/.git@feature/Junebug_api#egg=django-mobileu
 django-google-analytics-app==2.1.6
 raven==5.0.0
 psycopg2
